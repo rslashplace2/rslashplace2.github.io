@@ -125,7 +125,7 @@ if(location.search)onerror=alert
 			board = new Uint8Array(w * h).fill(31)
 			let i = board.length
 			onresize()
-			x = WIDTH/2; y = HEIGHT/2; z = 0.2; pos()
+			x = +(localStorage.x || WIDTH/2); y = +(localStorage.y || HEIGHT/2); z = 0.2; pos()
 		}
 		onresize = function(){
 			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 240
@@ -165,6 +165,8 @@ if(location.search)onerror=alert
 			else if(up > 0) y -= up
 			else if(down < 0) y -= down
 			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.round(z*500)/100}x`
+			localStorage.x = Math.floor(x) + 0.5
+			localStorage.y = Math.floor(y) + 0.5
 			transform()
 		}
 		function renderAll(){
