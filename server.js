@@ -108,8 +108,8 @@ async function pushImage(){
 	let curr = new Uint8Array(CHANGES)
 	setTimeout(() => {
 		//after 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove
-		for(let i = CURR.length - 1; i >= 0; i--)if(curr[i] == CHANGES[i])CHANGES[i] = 255
-	}, 10e3)
+		for(let i = curr.length - 1; i >= 0; i--)if(curr[i] == CHANGES[i])CHANGES[i] = 255
+	}, 660e3)
 }
 
 setInterval(async function(){
@@ -122,7 +122,7 @@ setInterval(async function(){
 	for(let [k, t] of cooldowns){
 		if(t > NOW)cooldowns.delete(k)
 	}
-}, 20 * 1e3) //every hour
+}, 60 * 60 * 1e3) //every hour
 
 setInterval(function(){
 	if(!newPos.length)return
