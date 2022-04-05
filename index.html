@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" ontouchstart="event.preventDefault()" ontouchend="event.preventDefault()">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="style.css" rel="stylesheet">
+	<title>place</title>
+	<link rel="icon" type="image/x-icon" href="https://www.reddit.com/favicon.ico">
+</head>
+	<body>
+		<div id="posel" noselect>(0,0) 2.5x</div>
+		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
+		<canvas id="canvas" width="0" height="0" noselect></canvas>
+		<div id="canvparent1" noselect>
+			<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
+		</div>
+		<div id="canvparent2" noselect>
+			<div id="canvselect">
+				<svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;">
+					<g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g>
+				</svg>
+			</div>
+		</div>
+		<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
+		<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
+		<div id="modal" style="display:none"><div id="modal-header"> <h2>Place</h2> <icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close> </div> <div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div> <div id="modal-footer"> <mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button><img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />&nbsp;&nbsp;&nbsp;Recreated by&nbsp;<a href="mailto:blob.kat@hotmail.com">BlobKat</a> </div> </div>
+
+		<div id="palette" style="transform: translateY(100%)" noselect>
+			<div id="colors">
+
+			</div>
+			<div class="buttons">
+				<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
+				<div id="pok" class="pok" onclick="put()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
+			</div>
+		</div>
+	</body>
+	<script>
+		const PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
+		const WIDTH = 2000
+		const HEIGHT = 2000
+		const COOLDOWN = 60e3
+	</script>
+
+	<script>
+		let actives = new Map()
+		actives.set(-2, [])
+		let touch1 = null, touch2 = null, touchmoved = 3;
+		document.body.ontouchstart = function(e){
+			for(let t of e.changedTouches){
+				if(!touch1)touch1 = t, touchmoved = 3
+				else if(!touch2)touch2 = t
+				else [touch1, touch2] = [touch2, t]
+				let ac = []
+				let el = t.target
+				while(el){
+					el.classList.add("active")
+					ac.push(el)
+					el = el.parentElement
+				}
+				actives.set(t.identifier, ac)
+			}
+		}
+		document.body.ontouchend = function(e){
+			for(let t of e.changedTouches){
+				if(touch2 && touch2.identifier == t.identifier)touch2 = null
+				else if(touch1 && touch1.identifier == t.identifier){
+					[touch1, touch2] = [touch2, null]
+					if(touchmoved > 0 && (t.target == canvparent2 || t.target.parentElement == canvselect)){
+						clicked(t.clientX, t.clientY)
+					}
+				}
+				for(let el of actives.get(t.identifier))el.classList.remove("active")
+				actives.delete(t.identifier)
+				if('value' in t.target)t.target.focus()
+				else t.target.click()
+			}
+		}
+		let moved = 3
+		document.body.onmousedown = function(e){
+			moved = 3
+			click = e.button + 1
+			let ac = []
+			let el = e.target
+			while(el){
+				el.classList.add("active")
+				ac.push(el)
+				el = el.parentElement
+			}
+			actives.set(-1, ac)
+		}
+		document.body.onmouseup = function(e){
+			if(moved > 0 && (e.target == canvparent2 || e.target.parentElement == canvselect)){
+				clicked(e.clientX, e.clientY)
+			}
+			moved = 3
+			click = 0
+			for(let el of actives.get(-1))el.classList.remove("active")
+			actives.delete(-1)
+		}
+		oncontextmenu = e => e.preventDefault()
+		let selX = 0, selY = 0
+		let c = canvas.getContext('2d')
+		function transform(){
+			canvparent1.style.transform = canvparent2.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px) scale("+z*120+")"
+			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.04)"
+			canvas.style.width = z * canvas.width * 120 + "px"
+			canvas.style.height = z * canvas.height * 120 + "px"
+			canvas.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px)"
+		}
+		let x, y, z, board, minZoom;
+		function setsize(w, h = w){
+			canvas.width = w
+			canvas.height = h
+			canvparent1.style.width = w + "px"
+			canvparent1.style.height = h + "px"
+			canvparent2.style.width = w + "px"
+			canvparent2.style.height = h + "px"
+			board = new Uint8Array(w * h).fill(31)
+			let i = board.length
+			onresize()
+			x = 0; y = 0; z = 0.5; pos()
+		}
+		onresize = function(){
+			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 240
+		}
+		let click = false
+		let mx = 0, my = 0;
+		document.body.onmousemove = function(e){
+			moved--
+			let {movementX: dx, movementY: dy} = e;
+			mx = e.clientX - innerWidth / 2
+			my = e.clientY - innerHeight / 2
+			if(click){
+				x -= dx / (z * 120)
+				y -= dy / (z * 120)
+				pos()
+				clearInterval(anim)
+			}
+		}
+		document.body.onwheel = function(e){
+			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
+			z *= d
+			x += mx * (d - 1) / z / 120
+			y += my * (d - 1) / z / 120
+			pos()
+		}
+		function pos(){
+			if(z < minZoom)z = minZoom
+			if(z > 1)z = 1
+			let right = x - canvas.width + 0.01
+			let left = x
+			let up = y - canvas.height + 0.01
+			let down = y
+			if(right >= left) x = 0
+			else if(right > 0) x -= right
+			else if(left < 0) x -= left
+			if(up >= down) y = 0
+			else if(up > 0) y -= up
+			else if(down < 0) y -= down
+			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.round(z*500)/100}x`
+			transform()
+		}
+		function renderAll(){
+			let img = new ImageData(canvas.width, canvas.height)
+			let data = new Uint32Array(img.data.buffer)
+			let len = board.length
+			for(let i = 0; i < len; i++){
+				data[i] = PALETTE[board[i]]
+			}
+			c.putImageData(img, 0, 0)
+		}
+		let xa = new Uint32Array(1)
+		let xb = new Uint8Array(xa.buffer)
+		function set(x, y, b){
+			board[x % canvas.width + (y % canvas.height) * canvas.width] = b
+			xa[0] = PALETTE[b]
+			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
+			c.clearRect(x,y,1,1)
+			c.fillRect(x,y,1,1)
+		}
+
+		document.body.ontouchmove = e => {touchmoved--;for(let t of e.changedTouches){
+			clearInterval(anim)
+			if(!touch2 && touch1 && touch1.identifier == t.identifier){
+				x -= (t.clientX - touch1.clientX) / (z * 120)
+				y -= (t.clientY - touch1.clientY) / (z * 120)
+				pos()
+			}else a: if(touch1 && touch2){
+				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
+				if(!touch)break a
+				let other = touch == touch1 ? touch2 : touch1
+				x -= (t.clientX - touch.clientX) / (z * 120)
+				y -= (t.clientY - touch.clientY) / (z * 120)
+				let dx = touch.clientX - other.clientX
+				let dy = touch.clientY - other.clientY
+				let a = dx * dx + dy * dy
+				dx = t.clientX - other.clientX
+				dy = t.clientY - other.clientY
+				a = Math.sqrt((dx * dx + dy * dy) / a)
+				z *= a
+				pos()
+			}
+			if(touch1 && touch1.identifier == t.identifier)touch1 = t
+			else if(touch2 && touch2.identifier == t.identifier)touch2 = t
+		}}
+
+		setsize(WIDTH, HEIGHT)
+		renderAll()
+		let anim = null
+		function clicked(clientX, clientY){
+			clearInterval(anim)
+			clientX = Math.floor(x+(clientX-innerWidth/2)/z/120) + 0.5
+			clientY = Math.floor(y+(clientY-innerHeight/2)/z/120) + 0.5
+			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
+				clientX -= 0.5; clientY -= 0.5
+				if(CD<Date.now())zoomIn(),showPalette()
+				else audios.invalid.run()
+				return
+			}
+			(CD > Date.now() ? audios.invalid : audios.highlight).run()
+			anim = setInterval(function(){
+				x += (clientX - x) / 10
+				y += (clientY - y) / 10
+				pos()
+				if(Math.abs(clientX - x) + Math.abs(clientY - y) < 0.1)clearInterval(anim)
+			},15)
+		}
+		function zoomIn(){
+			if(z >= 0.4)return
+			clearInterval(anim)
+			let dz = 0.005
+			anim = setInterval(function(){
+				if(dz < 0.2)dz *= 1.1
+				z *= 1 + dz
+				pos()
+				if(z >= 0.4)clearInterval(anim)
+			}, 15)
+		}
+		let audios = {
+			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
+			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
+			selectColor: new Audio('https://hot-potato.reddit.com/media/interactions/select-color.mp3'),
+			closePalette: new Audio('https://hot-potato.reddit.com/media/interactions/close-pallette.mp3'),
+			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
+			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
+		}
+		Audio.prototype.run = function(){
+			if(muted)return
+			this.currentTime = 0
+			this.play()
+		}
+		let muted = false, unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
+		mutesvg.innerHTML = unmutedhtml
+		let CD = Infinity
+		let onCooldown = false
+		setInterval(() => {
+			let left = Math.floor((CD - Date.now()) / 1000)
+			place.innerHTML = CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile"
+			if(CD > Date.now() && !onCooldown)onCooldown = true
+			if(CD < Date.now() && onCooldown){
+				onCooldown = false
+				audios.cooldownEnd.run()
+			}
+		}, 300)
+
+		function showPalette(){
+			palette.style.transform = ""
+			audios.highlight.play()
+		}
+		let PEN = -1
+		colors.innerHTML = PALETTE.map((a,i)=>`<div style='background:rgba(${a&255},${(a>>8)&255},${(a>>16)&255},1)${a==0xffffffff?";outline:1px #ddd solid;outline-offset:-1px":""}'></div>`).join('')
+		colors.onclick = function(e){
+			let i = [...this.children].indexOf(e.target)
+			if(i<0)return
+			let el = this.children[PEN]
+			if(el){
+				el.classList.remove('sel')
+			}
+			PEN = i
+			audios.selectColor.run()
+			canvselect.style.background = e.target.style.background
+			e.target.classList.add('sel')
+			pok.classList.add('enabled')
+			canvselect.children[0].style.display='none';canvselect.style.outline='2px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+		}
+		function put(){
+			if(CD>Date.now())return
+			canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
+			set(Math.floor(x), Math.floor(y), PEN)
+			canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
+			audios.cooldownStart.run()
+			CD = Date.now() + COOLDOWN
+			let a = new DataView(new Uint8Array(6).buffer)
+			a.setUint8(0, 4)
+			a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
+			a.setUint8(5, PEN)
+			PEN=-1
+			ws.send(a)
+		}
+		function runLengthChanges(data){
+			let i = 1, boardI = 0
+			while(i < data.byteLength){
+				let cell = data.getUint8(i++)
+				let c = cell >> 6
+				if(c == 1)c = data.getUint8(i++)
+				else if(c == 2)c = data.getUint16(i++),i++
+				else if(c == 3)c = data.getUint32(i++),i+=3
+				boardI += c
+				seti(boardI++, cell & 63)
+			}
+		}
+		let load = false
+		fetch('place').then(a=>a.arrayBuffer()).then(a => {
+			board = new Uint8Array(a)
+			renderAll()
+			if(load)runLengthChanges(load)
+			load = true
+		})
+		let ws = new WebSocket('ws://localhost:1291')
+		ws.onmessage = async function({data}){
+			data = new DataView(await data.arrayBuffer())
+			let code = data.getUint8(0)
+			if(code == 1){
+				CD = data.getUint32(1) * 1000
+			}else if(code == 2){
+				//run length coding
+				if(!load)load = data
+				else runLengthChanges(data)
+			}else if(code == 7){
+				CD = data.getUint32(1) * 1000
+				seti(data.getUint32(5), data.getUint8(9))
+			}else if(code == 6){
+				let i = 0
+				while(i < data.byteLength - 2){
+					seti(data.getUint32(i += 1), data.getUint8(i += 4))
+				}
+			}
+		}
+		ws.onclose = () => {
+			if(CD != Infinity)return location.reload()
+			//Something went wrong...
+			CD = 1e100
+		}
+		function seti(i, b){
+			board[i] = b
+			xa[0] = PALETTE[b]
+			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
+			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
+		}
+	</script>
+	<!--script src="board_final.js"></script-->
+</html>
