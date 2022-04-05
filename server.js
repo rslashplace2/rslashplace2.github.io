@@ -122,7 +122,7 @@ setInterval(async function(){
 	for(let [k, t] of cooldowns){
 		if(t > NOW)cooldowns.delete(k)
 	}
-}, 10 * 1e3) //every hour
+}, 60 * 60 * 1e3) //every hour
 
 setInterval(function(){
 	if(!newPos.length)return
