@@ -79,7 +79,7 @@ if(location.search)onerror=alert
 				for(let el of actives.get(t.identifier))el.classList.remove("active")
 				actives.delete(t.identifier)
 				if('value' in t.target)t.target.focus()
-				else t.target.click()
+				else t.target.click ? t.target.click() : t.target.parentElement.click()
 			}
 		}
 		let moved = 3
