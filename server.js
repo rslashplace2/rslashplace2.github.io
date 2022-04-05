@@ -101,7 +101,7 @@ import { exec } from 'child_process'
 async function pushImage(){
 	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
 	await fs.writeFile('place', BOARD)
-	await new Promise((r, t) => exec("git add *;git commit -m 'a';git push", e => e ? t(e) : r()))
+	await new Promise((r, t) => exec("./push.sh", e => e ? t(e) : r()))
 	//serve old changes for 11 more mins just to be 100% safe
 	let curr = new Uint8Array(CHANGES)
 	setTimeout(() => {
