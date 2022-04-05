@@ -1,1 +1,8 @@
-{"type":"module"}
+{
+  "type": "module",
+  "dependencies": {
+    "basic-repl": "^1.1.2",
+    "websocket": "^1.0.34",
+    "ws": "^8.5.0"
+  }
+}

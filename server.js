@@ -2,7 +2,7 @@
 import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
-let SECURE = false
+let SECURE = true
 let BOARD, CHANGES
 //TODO: compress changes
 const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 60e3 //5mins
@@ -56,8 +56,8 @@ function runLengthChanges(){
 }
 
 if(SECURE){
-	wss = new WebSocketServer({ server: createServer({key: await fs.readFile('a.key'),
-	cert: await fs.readFile('a.pem') }).listen(1291) })
+	wss = new WebSocketServer({ server: createServer({cert: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
+	key: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/privkey.pem') }).listen(1291) })
 }else wss = new WebSocketServer({ port: 1291 })
 let players = 0
 wss.on('connection', async function(p) {
