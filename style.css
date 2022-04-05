@@ -120,6 +120,7 @@ input{
 	height: 25px;
 	transform-origin: top left;
 	position: absolute;
+	will-change: transform;
 	z-index: 3;
 }
 #edge{

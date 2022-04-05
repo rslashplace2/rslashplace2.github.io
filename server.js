@@ -85,7 +85,7 @@ wss.on('connection', async function(p) {
 		}
 		//accept
 		CHANGES[i] = c
-		cooldowns.set(IP, NOW + COOLDOWN)
+		cooldowns.set(IP, NOW + COOLDOWN - 1000)
 		newPos.push(i)
 		newCols.push(c)
   })
@@ -120,7 +120,7 @@ setInterval(async function(){
 	for(let [k, t] of cooldowns){
 		if(t > NOW)cooldowns.delete(k)
 	}
-}, 60 * 60 * 1e3) //every hour
+}, 10 * 1e3) //every hour
 
 setInterval(function(){
 	if(!newPos.length)return
