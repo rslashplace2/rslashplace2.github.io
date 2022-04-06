@@ -269,7 +269,7 @@ if(location.search)onerror=alert
 			if(CD > Date.now() && !onCooldown)onCooldown = true
 			if(CD < Date.now() && onCooldown){
 				onCooldown = false
-				audios.cooldownEnd.run()
+				if (!document.hasFocus()) audios.cooldownEnd.run()
 			}
 		}, 300)
 
