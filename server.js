@@ -5,7 +5,7 @@ import {createServer} from 'https'
 let SECURE = true
 let BOARD, CHANGES
 //TODO: compress changes
-const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 60e3 //5mins
+const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 10e3 //5mins
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
