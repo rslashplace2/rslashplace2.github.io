@@ -116,8 +116,8 @@ input{
 }
 
 #canvselect{
-	width: 25px;
-	height: 25px;
+	width: 100px;
+	height: 100px;
 	transform-origin: top left;
 	position: absolute;
 	will-change: transform;

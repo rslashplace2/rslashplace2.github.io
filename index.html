@@ -109,7 +109,7 @@ if(location.search)onerror=alert
 		let c = canvas.getContext('2d')
 		function transform(){
 			canvparent1.style.transform = canvparent2.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px) scale("+z*120+")"
-			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.04)"
+			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
 			canvas.style.width = z * canvas.width * 120 + "px"
 			canvas.style.height = z * canvas.height * 120 + "px"
 			canvas.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px)"
@@ -125,7 +125,7 @@ if(location.search)onerror=alert
 			board = new Uint8Array(w * h).fill(31)
 			let i = board.length
 			onresize()
-			x = +(localStorage.x || WIDTH/2); y = +(localStorage.y || HEIGHT/2); z = 0.2; pos()
+			x = +(localStorage.x || WIDTH/2); y = +(localStorage.y || HEIGHT/2); z = +(localStorage.z || 0.2); pos()
 		}
 		onresize = function(){
 			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 240
@@ -167,6 +167,7 @@ if(location.search)onerror=alert
 			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.round(z*500)/100}x`
 			localStorage.x = Math.floor(x) + 0.5
 			localStorage.y = Math.floor(y) + 0.5
+			localStorage.z = z
 			transform()
 		}
 		function renderAll(){
