@@ -68,6 +68,7 @@ wss.on('connection', async function(p) {
 	p.send(buf)
 	players++
 	p.send(runLengthChanges())
+  p.on("error", ()=>{})
   p.on('message', function(data) {
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
