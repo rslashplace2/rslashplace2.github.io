@@ -82,7 +82,7 @@
 				for(let el of actives.get(t.identifier))el.classList.remove("active")
 				actives.delete(t.identifier)
 				if('value' in t.target)t.target.focus()
-				else t.target.click ? t.target.click() : t.target.parentElement.click()
+				else{let target = t.target; while(!target.click)target = target.parentElement;target.click()}
 			}
 		}
 		let moved = 3
