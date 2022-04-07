@@ -38,8 +38,8 @@
 
 			</div>
 			<div class="buttons">
-				<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
-				<div id="pok" class="pok" onclick="put()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
+				<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
+				<div id="pok" class="pok" onclick="put(); hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
 			</div>
 		</div>
 	</body>
@@ -292,7 +292,7 @@
 			audios.highlight.play()
 		}
 		let PEN = -1
-		colors.innerHTML = PALETTE.map((a,i)=>`<div style='background:rgba(${a&255},${(a>>8)&255},${(a>>16)&255},1)${a==0xffffffff?";outline:1px #ddd solid;outline-offset:-1px":""}'></div>`).join('')
+		colors.innerHTML = PALETTE.map((a,i)=>`<div style='background:rgba(${a&255},${(a>>8)&255},${(a>>16)&255},1)${a==0xffffffff?";outline:1px #ddd solid;outline-offset:-1px":""}'><span style="background-color: rgba(255, 255, 255, 0.2); border-radius: 20px; width: 15px; height: 15px; position: absolute; text-align: center; line-height: 1; visibility: hidden;"></span></div>`).join('')
 		colors.onclick = function(e){
 			let i = [...this.children].indexOf(e.target)
 			if(i<0)return
@@ -306,6 +306,7 @@
 			e.target.classList.add('sel')
 			pok.classList.add('enabled')
 			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+			hideIndicators();
 		}
 		function put(){
 			if(CD>Date.now())return
@@ -380,11 +381,15 @@
 			if (keyIndex == null) return
 			if (palette.style.transform=='translateY(100%)')
 				showPalette()
+			
+			for (let c = 0; c < document.getElementById("colors").children.length; c++) {
+				document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
+			}
 
 			let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
 			if(i<0) return
 			let el = document.getElementById("colors").children[PEN]
-			if(el){
+			if(el) {
 				el.classList.remove('sel')
 			}
 			PEN = keyIndex;
@@ -393,6 +398,16 @@
 			document.getElementById("colors").children[keyIndex].classList.add('sel')
 			pok.classList.add('enabled')
 			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+		}
+		function hideIndicators() {
+			for (let c = 0; c < document.getElementById("colors").children.length; c++) {
+				document.getElementById("colors").children[c].firstChild.style.visibility = "hidden"
+			}
+		}
+		for (let c = 0; c < document.getElementById("colors").children.length; c++) {
+			let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
+			let indicator = document.getElementById("colors").children[c].firstChild
+			indicator.textContent = keybinds.charAt(c)
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
