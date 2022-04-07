@@ -4,6 +4,6 @@ This site aims to be as similar to the april fools r/place event, where users we
 
 "Alone you can create something, but together, you can create something more" (or something like that)
 
-Site link: https://rplace.tk/
+Site link: https://rplace.tk
 
 *Feel free to contribute!*
