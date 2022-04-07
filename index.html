@@ -16,7 +16,7 @@
 <meta property="og:image" content="https://rplace.tk/favicon.png" />
 <meta name="theme-color" content="#ff4500">
 </head>
-	<body>
+	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
@@ -32,8 +32,7 @@
 		</div>
 		<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
 		<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
-		<div id="modal" style="display:none"><div id="modal-header"> <h2>Place</h2> <icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close> </div> <div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div> <div id="modal-footer"> <mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button><img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />&nbsp;&nbsp;&nbsp;BlobKat#1831 </div> </div>
-
+		<div id="modal" style="display:none"><div id="modal-header"> <h2>Place</h2> <icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close> </div> <div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div> <div> <a href="https://discord.gg/dgEF6wvBzj" onclick="window.open('https:\/\/discord.gg/dgEF6wvBzj','_blank')">Join the Discord!</a>&nbsp;&nbsp;&nbsp;<a href="https://www.patreon.com/rplace" onclick="window.open('https:\/\/www.patreon.com/rplace','_blank')">Donate</a> </div> <div id="modal-footer"> <mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button><img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />&nbsp;&nbsp;&nbsp;Recreated by&nbsp;<a href="mailto:blob.kat@hotmail.com">BlobKat</a> </div> </div>
 		<div id="palette" style="transform: translateY(100%)" noselect>
 			<div id="colors">
 
@@ -281,8 +280,8 @@
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
 			place.innerHTML = CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile"
-			if(CD > Date.now() && !onCooldown)onCooldown = true
-			if(CD < Date.now() && onCooldown){
+			if(CD > Date.now() && !onCooldown && !load.buffer)onCooldown = true
+			if(CD < Date.now() && onCooldown && !load.buffer){
 				onCooldown = false
 				if (!document.hasFocus()) audios.cooldownEnd.run()
 			}
@@ -371,6 +370,28 @@
 			xa[0] = PALETTE[b]
 			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
 			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
+		}
+		function scanDocumentShortcuts(e) {
+			if (onCooldown) return
+			let keyIndex = null;
+
+			if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
+			if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
+			if (keyIndex == null) return
+			if (palette.style.transform=='translateY(100%)')
+				showPalette()
+
+			let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
+			if(i<0) return
+			let el = document.getElementById("colors").children[PEN]
+			if(el){
+				el.classList.remove('sel')
+			}
+			PEN = keyIndex;
+			audios.selectColor.run()
+			document.getElementById("colors").children[keyIndex].classList.add('sel')
+			pok.classList.add('enabled')
+			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
