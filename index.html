@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<link rel="manifest" href="manifest.json">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="favicon.png">
+	<meta name="apple-mobile-web-app-title" content="place">
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,7 +112,7 @@ if(location.search)onerror=alert
 		let selX = 0, selY = 0
 		let c = canvas.getContext('2d')
 		function transform(){
-			canvparent1.style.transform = canvparent2.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px) scale("+z*120+")"
+			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-120+innerWidth/2)+"px, "+(y*z*-120+innerHeight/2)+"px) scale("+z*120+")"
 			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
 			canvas.style.width = z * canvas.width * 120 + "px"
 			canvas.style.height = z * canvas.height * 120 + "px"

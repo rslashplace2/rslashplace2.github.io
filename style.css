@@ -88,8 +88,6 @@ input{
 	font-size: 0;
 	z-index: 1;
 	flex-shrink: 0;
-	top: 50%;
-	left: 50%;
 	transform-origin: top left;
 }
 #canvparent2{
@@ -99,8 +97,6 @@ input{
 	width: 0;
 	height: 0;
 	flex-shrink: 0;
-	top: 50%;
-	left: 50%;
 	transform-origin: top left;
 	box-shadow: 0 0 0 0.07px #c6c4c4, 0 0 0 0.24px white, 0 0 0 0.35px #484848;
 }
