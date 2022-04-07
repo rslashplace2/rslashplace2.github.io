@@ -68,6 +68,7 @@ wss.on('connection', async function(p) {
 	p.send(buf)
 	players++
 	p.send(runLengthChanges())
+  p.on("error", ()=>{})
   p.on('message', function(data) {
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
@@ -103,7 +104,7 @@ let ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()
 async function pushImage(){
 	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
 	await fs.writeFile('place', BOARD)
-	await new Promise((r, t) => exec("git add *;git commit -m 'Hourly backup';git push "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
+	await new Promise((r, t) => exec("git add *;git commit -a -m 'Hourly backup';git push "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
 	//serve old changes for 11 more mins just to be 100% safe
 	let curr = new Uint8Array(CHANGES)
 	setTimeout(() => {
