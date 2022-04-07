@@ -375,6 +375,7 @@ if(location.search)onerror=alert
 			}
 			PEN = keyIndex;
 			audios.selectColor.run()
+			canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
 			document.getElementById("colors").children[keyIndex].classList.add('sel')
 			pok.classList.add('enabled')
 			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
