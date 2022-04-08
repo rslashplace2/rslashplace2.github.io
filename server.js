@@ -56,9 +56,9 @@ function runLengthChanges(){
 }
 
 if(SECURE){
-	wss = new WebSocketServer({ server: createServer({cert: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
-	key: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/privkey.pem') }).listen(1291) })
-}else wss = new WebSocketServer({ port: 1291 })
+	wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({cert: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
+	key: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/privkey.pem'), perMessageDeflate: false }).listen(1291) })
+}else wss = new WebSocketServer({ port: 1291, perMessageDeflate: false })
 let players = 0
 wss.on('connection', async function(p) {
 	let IP = p._socket.remoteAddress
