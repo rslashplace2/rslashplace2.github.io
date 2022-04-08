@@ -141,6 +141,13 @@ setInterval(function(){
 	}
 }, 1000)
 
+setInterval(function(){
+	let buf = Buffer.of(3, players>>8, players)
+	for(let c of wss.clients){
+		c.send(buf)
+	}
+}, 5000)
+
 import repl from 'basic-repl'
 
 let a, b, c, test
