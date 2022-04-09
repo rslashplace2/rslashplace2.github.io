@@ -65,7 +65,6 @@ let players = 0
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
 	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
-	console.log(IP)
 	if(!IP)return p.close()
 	let buf = Buffer.alloc(5)
 	buf[0] = 1
@@ -73,7 +72,7 @@ wss.on('connection', async function(p, {headers}) {
 	p.send(buf)
 	players++
 	p.send(runLengthChanges())
-  p.on("error", console.log)
+  p.on("error", _=>_)
   p.on('message', function(data) {
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
