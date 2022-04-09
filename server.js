@@ -54,21 +54,26 @@ function runLengthChanges(){
 	bufs[blast] = bufs[blast].slice(0,bi)
 	return Buffer.concat(bufs)
 }
-
+const PORT = 443
 if(SECURE){
-	wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({cert: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
-	key: await fs.readFile('/etc/letsencrypt/live/server.rplace.tk/privkey.pem'), perMessageDeflate: false }).listen(1291) })
-}else wss = new WebSocketServer({ port: 1291, perMessageDeflate: false })
+	wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({
+	cert: await fs.readFile('a.pem'), //etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
+	key: await fs.readFile('a.key'), //etc/letsencrypt/live/server.rplace.tk/privkey.pem'),
+	perMessageDeflate: false }).listen(PORT) })
+}else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 let players = 0
-wss.on('connection', async function(p) {
-	let IP = p._socket.remoteAddress
+let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
+wss.on('connection', async function(p, {headers}) {
+	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
+	console.log(IP)
+	if(!IP)return p.close()
 	let buf = Buffer.alloc(5)
 	buf[0] = 1
 	buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
 	p.send(buf)
 	players++
 	p.send(runLengthChanges())
-  p.on("error", ()=>{})
+  p.on("error", console.log)
   p.on('message', function(data) {
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]

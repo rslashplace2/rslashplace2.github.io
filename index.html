@@ -342,7 +342,7 @@
 			load = true
 		})
 		let online = 1
-		let ws = new WebSocket('wss://server.rplace.tk:1291')
+		let ws = new WebSocket('wss://server.rplace.tk:443')
 		ws.onmessage = async function({data}){
 			data = new DataView(await data.arrayBuffer())
 			let code = data.getUint8(0)
