@@ -57,14 +57,15 @@ function runLengthChanges(){
 const PORT = 443
 if(SECURE){
 	wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({
-	cert: await fs.readFile('a.pem'), //etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
-	key: await fs.readFile('a.key'), //etc/letsencrypt/live/server.rplace.tk/privkey.pem'),
+	cert: await fs.readFile('../a.pem'), //etc/letsencrypt/live/server.rplace.tk/fullchain.pem'),
+	key: await fs.readFile('../a.key'), //etc/letsencrypt/live/server.rplace.tk/privkey.pem'),
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 let players = 0
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
 	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
+	console.log(IP, players)
 	if(!IP)return p.close()
 	let buf = Buffer.alloc(5)
 	buf[0] = 1
