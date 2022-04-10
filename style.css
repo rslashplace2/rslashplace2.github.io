@@ -335,3 +335,32 @@ mute-button{
 #helpbtn, #posel, #place{
 	box-shadow: 0 0 30px black;
 }
+
+#onlinepanel {
+	position: absolute;
+    bottom: 2%;
+    left: 0.9%;
+    background: #000000a1;
+    height: 4.5%;
+    width: 4%;
+    border-radius: 16px;
+}
+
+#daCounter {
+	position: absolute;
+    top: 50%;
+    left: 10%;
+    transform: translate(0%, -50%);
+    font-family: consolas;
+    font-size: 150%;
+    color: white;
+}
+
+#theMan {
+	position: absolute;
+    top: 50%;
+    right: 25%;
+    transform: translate(0, -50%);
+    display: inline;
+    color: white;
+}
