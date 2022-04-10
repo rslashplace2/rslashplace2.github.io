@@ -335,3 +335,30 @@ mute-button{
 #helpbtn, #posel, #place{
 	box-shadow: 0 0 30px black;
 }
+
+#onlinepanel {
+	position: absolute;
+    bottom: 2%;
+    left: 0.9%;
+    background: rgba(0, 0, 0, 0.6);
+    height: 35px;
+    width: fit-content;
+    border-radius: 16px;
+	z-index: 10;
+	padding: 5px;
+}
+
+#onlineCounter {
+    font: consolas;
+    font-size: 150%;
+	display: inline-block;
+	color: white;
+	left: 10%;
+}
+
+#playerIcon {
+	display: inline-block;
+    color: white;
+	right: 25%;
+	top: 100%;
+}
