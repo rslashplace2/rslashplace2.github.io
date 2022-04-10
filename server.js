@@ -1,9 +1,11 @@
 //server
+const fs = require("fs")
 import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
 let SECURE = true
 let BOARD, CHANGES
+
 //TODO: compress changes
 const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 10e3 //5mins
 try{
@@ -15,6 +17,7 @@ try{
 }
 let newPos = [], newCols = []
 let wss, cooldowns = new Map()
+let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 
 
 function runLengthChanges(){
@@ -91,7 +94,8 @@ wss.on('connection', async function(p, {headers}) {
 		}
 		//accept
 		CHANGES[i] = c
-		cooldowns.set(IP, NOW + COOLDOWN - 1000)
+		if (!OVERRIDES.has(IP))
+			cooldowns.set(IP, NOW + COOLDOWN - 1000)
 		newPos.push(i)
 		newCols.push(c)
   })
