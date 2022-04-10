@@ -1,5 +1,5 @@
 //server
-const fs = require("fs")
+/*const fs = require("fs")*/
 import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
@@ -132,7 +132,7 @@ setInterval(async function(){
 	for(let [k, t] of cooldowns){
 		if(t > NOW)cooldowns.delete(k)
 	}
-}, 60 * 60 * 1e3) //every hour
+}, 30 * 60 * 1e3) //every hour
 
 setInterval(function(){
 	if(!newPos.length)return
