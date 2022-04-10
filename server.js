@@ -1,5 +1,4 @@
 //server
-/*const fs = require("fs")*/
 import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
