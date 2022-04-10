@@ -349,16 +349,17 @@ mute-button{
 }
 
 #onlineCounter {
-    font: consolas;
+    font-family: consolas;
     font-size: 150%;
-	display: inline-block;
-	color: white;
-	left: 10%;
+    display: inline-block;
+    color: white;
+    left: 10%;
+    user-select: none;
 }
 
 #playerIcon {
 	display: inline-block;
-    color: white;
+    	color: white;
 	right: 25%;
 	top: 100%;
 }
