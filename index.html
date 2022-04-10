@@ -363,6 +363,7 @@
 				}
 			}else if(code == 3){
 				online = data.getUint16(1)
+				document.getElementById("dacounter").textContent = online;
 			}
 		}
 		ws.onclose = () => {
