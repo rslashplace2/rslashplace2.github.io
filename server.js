@@ -16,7 +16,7 @@ try{
 }
 let newPos = [], newCols = []
 let wss, cooldowns = new Map()
-let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
+let OVERRIDES = new Set(await fs.readFile('../cooldown_overrides.txt').toString().split('\n'))
 
 function runLengthChanges(){
 	//compress CHANGES with run-length encoding
@@ -67,6 +67,7 @@ let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
 	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
 	if(!IP)return p.close()
+	p.lchat = 0
 	let buf = Buffer.alloc(5)
 	buf[0] = 1
 	buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
@@ -75,6 +76,14 @@ wss.on('connection', async function(p, {headers}) {
 	p.send(runLengthChanges())
   p.on("error", _=>_)
   p.on('message', function(data) {
+		if(data[0] == 15){
+			if(p.lchat + 2500 > NOW)return
+			p.lchat = NOW
+			for(let c of wss.clients){
+                		c.send(data)
+        		}
+			return
+		}
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
 		if(i >= BOARD.length || c >= PALETTE_SIZE)return //bad packet
@@ -91,8 +100,7 @@ wss.on('connection', async function(p, {headers}) {
 		}
 		//accept
 		CHANGES[i] = c
-		if (!OVERRIDES.has(IP))
-			cooldowns.set(IP, NOW + COOLDOWN - 1000)
+			cooldowns.set(IP, NOW + (OVERRIDES.has(IP) ? 1000 : COOLDOWN - 1000))
 		newPos.push(i)
 		newCols.push(c)
   })

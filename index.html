@@ -27,9 +27,9 @@
 				<icon-close noselect="" id="close-btn" onclick="modal.style.display='none';bg.style.display='none'; hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<br>
-			<div id="chatMessages" style="max-height: calc(100% - 90px); overflow: auto; z-index: -1;">
+			<div id="chatMessages" style="font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;">
 			</div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value)">
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value);this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -59,7 +59,7 @@
 		const PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
 		const WIDTH = 2000
 		const HEIGHT = 2000
-		const COOLDOWN = 10e3
+		let COOLDOWN = 10e3
 	</script>
 
 	<script>
@@ -376,6 +376,12 @@
 			}else if(code == 3){
 				online = data.getUint16(1)
 				document.getElementById("onlineCounter").textContent = online;
+			}else if(code == 15){
+				let txt = decoder.decode(code.slice(1))
+				let el = document.createElement("span")
+				el.textContent = ">> " + txt
+				chatMessages.insertAdjacentElement(el)
+				if(chatMessages.children.length>100)chatMessages.children[0].remove()
 			}
 		}
 		ws.onclose = () => {
@@ -438,7 +444,7 @@
 			else
 				chatPanel.style.transform = "translateX(400px)"
 		}
-		let encoder = new TextEncoder()
+		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(a){
 			ws.send(encoder.encode("\x0f" + a))
 		}
