@@ -77,7 +77,7 @@ wss.on('connection', async function(p, {headers}) {
   p.on("error", _=>_)
   p.on('message', function(data) {
 		if(data[0] == 15){
-			if(p.lchat + 2500 > NOW)return
+			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
 			for(let c of wss.clients){
                 		c.send(data)
