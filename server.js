@@ -18,7 +18,6 @@ let newPos = [], newCols = []
 let wss, cooldowns = new Map()
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 
-
 function runLengthChanges(){
 	//compress CHANGES with run-length encoding
 	let i = 0
@@ -109,9 +108,7 @@ import { exec } from 'child_process'
 let ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()
 
 async function pushImage(){
-	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
-	await fs.writeFile('place', BOARD)
-	await new Promise((r, t) => exec("git add *;git commit -a -m 'Hourly backup';git push "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
+	await new Promise((r, t) => exec("git add *;git commit -a -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
 	//serve old changes for 11 more mins just to be 100% safe
 	let curr = new Uint8Array(CHANGES)
 	setTimeout(() => {
@@ -119,19 +116,6 @@ async function pushImage(){
 		for(let i = curr.length - 1; i >= 0; i--)if(curr[i] == CHANGES[i])CHANGES[i] = 255
 	}, 660e3)
 }
-
-setInterval(async function(){
-	try{
-		await pushImage()
-		console.log('['+new Date().toISOString()+'] Successfully saved r/place!')
-	}catch(e){
-		console.log('['+new Date().toISOString()+'] Error pushing image: ',e)
-	}
-	for(let [k, t] of cooldowns){
-		if(t > NOW)cooldowns.delete(k)
-	}
-}, 1 * 10 * 1e3) //every hour
-
 setInterval(function(){
 	if(!newPos.length)return
 	let pos
@@ -148,10 +132,26 @@ setInterval(function(){
 	}
 }, 1000)
 
-setInterval(function(){
+let I = 0
+
+setInterval(async function(){
+	I++
+	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
+	await fs.writeFile('place', BOARD)
 	let buf = Buffer.of(3, players>>8, players)
 	for(let c of wss.clients){
 		c.send(buf)
+	}
+	if(I % 720 == 0){
+		try{
+                	await pushImage()
+                	console.log('['+new Date().toISOString()+'] Successfully saved r/place!')
+        	}catch(e){
+                	console.log('['+new Date().toISOString()+'] Error pushing image')
+        	}
+        	for(let [k, t] of cooldowns){
+                	if(t > NOW)cooldowns.delete(k)
+        	}
 	}
 }, 5000)
 
