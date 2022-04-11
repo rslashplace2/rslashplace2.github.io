@@ -349,6 +349,7 @@
 			if(load)runLengthChanges(load)
 			load = true
 		})
+		const CHAT_COLOURS = ["lightblue", "lightseagreen", "lightpink", "lightcoral", "lightsalmon", "lightgreen", "lightyellow"]
 		let online = 1
 		let ws = new WebSocket('wss://server.rplace.tk:443')
 		ws.onmessage = async function({data}){
@@ -373,10 +374,10 @@
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
 				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'')
-				let el = document.createElement("span")
-				el.textContent = ">> " + txt + "\n"
+				let newMessage = document.createElement("div")
+				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[Math.round(Math.random() * CHAT_COLOURS.length)]};">[anon]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
-				chatMessages.insertAdjacentElement("beforeEnd", el)
+				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 				if(chatMessages.children.length>100)chatMessages.children[0].remove()
 				scroll && chatMessages.scrollTo(0,999999999)
 			}
