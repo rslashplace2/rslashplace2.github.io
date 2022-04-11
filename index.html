@@ -27,7 +27,7 @@
 				<icon-close noselect="" id="close-btn" onclick="modal.style.display='none';bg.style.display='none'; hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<br>
-			<div id="chatMessages" style="font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
@@ -375,8 +375,10 @@
 				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1))
 				let el = document.createElement("span")
 				el.textContent = ">> " + txt + "\n"
+				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 				chatMessages.insertAdjacentElement("beforeEnd", el)
 				if(chatMessages.children.length>100)chatMessages.children[0].remove()
+				scroll && chatMessages.scrollTo(0,999999999)
 			}
 		}
 		ws.onclose = () => {
