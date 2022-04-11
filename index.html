@@ -29,7 +29,7 @@
 			<br>
 			<div id="chatMessages" style="font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;">
 			</div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value);this.value=''" maxlength="200">
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -377,7 +377,7 @@
 				online = data.getUint16(1)
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
-				let txt = decoder.decode(code.slice(1))
+				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1))
 				let el = document.createElement("span")
 				el.textContent = ">> " + txt
 				chatMessages.insertAdjacentElement(el)

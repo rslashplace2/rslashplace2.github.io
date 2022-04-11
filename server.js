@@ -167,3 +167,14 @@ import repl from 'basic-repl'
 
 let a, b, c, test
 repl('$',(_)=>eval(_))
+
+function fill(x, y, w, h, b = 27){
+	let x1 = x + w, y1 = y + h
+	for(;y < y1; y++){
+		for(;x < x1; x++){
+			CHANGES[x + y * WIDTH] = b
+		}
+		x = x1 - w
+	}
+	return "Filled " + w*h + " pixels, reload page to see effects"
+}
