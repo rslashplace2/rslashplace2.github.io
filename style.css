@@ -358,6 +358,8 @@ mute-button{
 	z-index: 5;
 }
 
+#chat span{ overflow: hidden; display: block }
+
 @media screen and (orientation:landscape) {
 	#chatPanel {
 		position: absolute;
