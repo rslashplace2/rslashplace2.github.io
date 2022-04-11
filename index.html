@@ -140,6 +140,7 @@
 					case 'y': y = v; break
 					case 'z': z = v; break
 					case 'err': onerror = alert; break
+					case 'debug': alert(JSON.stringify(localStorage)); alert(localStorage.x); break
 				}
 			}
 			pos()
