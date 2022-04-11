@@ -22,12 +22,12 @@
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<div id="chat" noselect onclick="showChat()">Chat</div>
 		<div id="chatPanel" style="transform: translateX(400px);">
-			<div style="display: flex; flex-direction: row;">
+			<div style="display: flex; flex-direction: row;" noselect>
 				<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
 				<icon-close noselect="" id="close-btn" onclick="modal.style.display='none';bg.style.display='none'; hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<br>
-			<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<div noselect id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
