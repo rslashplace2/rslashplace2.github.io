@@ -426,11 +426,17 @@
 			let indicator = document.getElementById("colors").children[c].firstChild
 			indicator.textContent = keybinds.charAt(c)
 		}
+		if (window.innerHeight > window.innerWidth) {
+			chatPanel.style.transform = `translateX(${window.innerWidth + 400}px)`
+		}
 		function showChat() {
 			chatPanel.style.transform = ""
 		}
 		function hideChat() {
-			chatPanel.style.transform = "translateX(400px)"
+			if (window.innerHeight > window.innerWidth)
+				chatPanel.style.transform = `translateX(${window.innerWidth + 400}px)`
+			else
+				chatPanel.style.transform = "translateX(400px)"
 		}
 	</script>
 	<!--script src="board_final.js"></script-->

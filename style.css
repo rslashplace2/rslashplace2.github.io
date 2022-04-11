@@ -332,18 +332,6 @@ mute-button{
 	box-shadow: 0 0 30px black;
 }
 
-#onlinepanel {
-	position: absolute;
-    bottom: 2%;
-    left: 0.9%;
-    background: rgba(0, 0, 0, 0.6);
-    height: 35px;
-    width: fit-content;
-    border-radius: 16px;
-	z-index: 10;
-	padding: 5px;
-}
-
 #onlineCounter {
     font: consolas;
     font-size: 150%;
@@ -373,18 +361,60 @@ mute-button{
 	z-index: 5;
 }
 
-#chatPanel {
-	position: absolute;
-	width: 380px;
-	height: calc(100vh - 85px);
-	right: 0px;
-	background-color: white;
-	margin-top: 75px;
-	margin-right: 10px;
-	z-index: 6;
-	border-radius: 16px;
-	padding: 10px;
-	transition: transform .3s ease-out;
+@media screen and (orientation:landscape) {
+	#chatPanel {
+		position: absolute;
+		width: 380px;
+		height: calc(100vh - 85px);
+		right: 0px;
+		background-color: white;
+		margin-top: 75px;
+		margin-right: 10px;
+		z-index: 6;
+		border-radius: 16px;
+		padding: 10px;
+		transition: transform .3s ease-out;
+	}
+
+	#onlinepanel {
+		position: absolute;
+		bottom: 2%;
+		left: 0.9%;
+		background: rgba(0, 0, 0, 0.6);
+		height: 35px;
+		width: fit-content;
+		border-radius: 16px;
+		z-index: 10;
+		padding: 5px;
+	}
+}
+
+@media screen and (orientation:portrait) {
+	#chatPanel {
+		position: absolute;
+		width: calc(100% - 20px);
+		height: calc(100vh - 85px);
+		right: 0px;
+		background-color: white;
+		margin-top: 75px;
+		margin-right: 10px;
+		z-index: 6;
+		border-radius: 16px;
+		padding: 10px;
+		transition: transform .3s ease-out;
+	}
+
+	#onlinepanel {
+		position: absolute;
+		top: 2%;
+		left: 0.9%;
+		background: rgba(0, 0, 0, 0.6);
+		height: 35px;
+		width: fit-content;
+		border-radius: 16px;
+		z-index: 10;
+		padding: 5px;
+	}
 }
 
 #messageInput {
