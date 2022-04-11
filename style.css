@@ -350,6 +350,7 @@ mute-button{
 #onlineCounter {
 	display: inline-block;
 	color: white;
+	line-height: 16px;
 }
 
 #playerIcon {
