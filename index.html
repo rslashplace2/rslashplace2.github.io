@@ -140,7 +140,7 @@
 					case 'y': y = v; break
 					case 'z': z = v; break
 					case 'err': onerror = alert; break
-					case 'debug': alert(JSON.stringify(localStorage)); alert(localStorage.x); break
+					case 'debug': break
 				}
 			}
 			pos()
@@ -187,6 +187,7 @@
 			else if(down < 0) y -= down
 			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.round(z*500)/100}x`
 			localStorage.x = Math.floor(x) + 0.5
+			if(onerror&&localStorage.x=='NaN')alert(x)
 			localStorage.y = Math.floor(y) + 0.5
 			localStorage.z = z
 			transform()
