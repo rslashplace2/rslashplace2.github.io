@@ -82,10 +82,11 @@
 		}
 		document.body.ontouchend = function(e){
 			for(let t of e.changedTouches){
-				if(touch2 && touch2.identifier == t.identifier)touch2 = null
+				a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
 				else if(touch1 && touch1.identifier == t.identifier){
 					[touch1, touch2] = [touch2, null]
 					if(touchmoved > 0 && (t.target == canvparent2 || t.target.parentElement == canvselect)){
+						if(e.target != document.body && e.target != canvparent2)break a
 						clicked(t.clientX, t.clientY)
 					}
 				}
@@ -99,23 +100,14 @@
 		document.body.onmousedown = function(e){
 			moved = 3
 			click = e.button + 1
-			let ac = []
-			let el = e.target
-			while(el){
-				el.classList.add("active")
-				ac.push(el)
-				el = el.parentElement
-			}
-			actives.set(-1, ac)
 		}
 		document.body.onmouseup = function(e){
+			if(e.target != document.body && e.target != canvparent2)return
 			if(moved > 0 && (e.target == canvparent2 || e.target.parentElement == canvselect)){
 				clicked(e.clientX, e.clientY)
 			}
 			moved = 3
 			click = 0
-			for(let el of actives.get(-1))el.classList.remove("active")
-			actives.delete(-1)
 		}
 		oncontextmenu = e => e.preventDefault()
 		let selX = 0, selY = 0
@@ -159,6 +151,7 @@
 		let click = false
 		let mx = 0, my = 0;
 		document.body.onmousemove = function(e){
+			if(e.target != document.body && e.target != canvparent2)return
 			moved--
 			let {movementX: dx, movementY: dy} = e;
 			mx = e.clientX - innerWidth / 2
@@ -171,6 +164,7 @@
 			}
 		}
 		document.body.onwheel = function(e){
+			if(e.target != document.body && e.target != canvparent2)return
 			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
 			z *= d
 			x += mx * (d - 1) / z / 120
@@ -217,11 +211,13 @@
 
 		document.body.ontouchmove = e => {touchmoved--;for(let t of e.changedTouches){
 			clearInterval(anim)
-			if(!touch2 && touch1 && touch1.identifier == t.identifier){
+			a: if(!touch2 && touch1 && touch1.identifier == t.identifier){
+				if(e.target != document.body && e.target != canvparent2)break a
 				x -= (t.clientX - touch1.clientX) / (z * 120)
 				y -= (t.clientY - touch1.clientY) / (z * 120)
 				pos()
-			}else a: if(touch1 && touch2){
+			}else if(touch1 && touch2){
+				if(e.target != document.body && e.target != canvparent2)break a
 				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
 				if(!touch)break a
 				let other = touch == touch1 ? touch2 : touch1
