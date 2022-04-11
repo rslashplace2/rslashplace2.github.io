@@ -67,7 +67,6 @@ let players = 0
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
 	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
-	console.log(IP, players)
 	if(!IP)return p.close()
 	let buf = Buffer.alloc(5)
 	buf[0] = 1
@@ -131,7 +130,7 @@ setInterval(async function(){
 	for(let [k, t] of cooldowns){
 		if(t > NOW)cooldowns.delete(k)
 	}
-}, 30 * 60 * 1e3) //every hour
+}, 1 * 10 * 1e3) //every hour
 
 setInterval(function(){
 	if(!newPos.length)return
