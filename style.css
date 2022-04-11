@@ -363,7 +363,7 @@ mute-button{
 	position: absolute;
 	bottom: 20px;
 	right: 20px;
-	width: 60px;
+	width: 80px;
 	height: 24px;
 	padding: 5px;
 	line-height: 15px;
@@ -384,6 +384,7 @@ mute-button{
 	z-index: 6;
 	border-radius: 16px;
 	padding: 10px;
+	transition: transform .3s ease-out;
 }
 
 #messageInput {
