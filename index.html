@@ -380,7 +380,7 @@
 				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1))
 				let el = document.createElement("span")
 				el.textContent = ">> " + txt
-				chatMessages.insertAdjacentElement(el, "beforeEnd")
+				chatMessages.insertAdjacentElement("beforeEnd", el)
 				if(chatMessages.children.length>100)chatMessages.children[0].remove()
 			}
 		}
