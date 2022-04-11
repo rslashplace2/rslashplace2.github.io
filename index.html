@@ -28,9 +28,8 @@
 			</div>
 			<br>
 			<div id="chatMessages" style="max-height: calc(100% - 90px); overflow: auto; z-index: -1;">
-				<span style="color: lightgreen;">[anon]</span> CONTENT <br>
 			</div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send">
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value)">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -393,7 +392,7 @@
 		function scanDocumentShortcuts(e) {
 			if (onCooldown) return
 			let keyIndex = null;
-
+			if(document.activeElement != document.body)return
 			if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
 			if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
 			if (keyIndex == null) return
@@ -438,6 +437,10 @@
 				chatPanel.style.transform = `translateX(${window.innerWidth + 400}px)`
 			else
 				chatPanel.style.transform = "translateX(400px)"
+		}
+		let encoder = new TextEncoder()
+		function sendMsg(a){
+			ws.send(encoder.encode("\x0f" + a))
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
