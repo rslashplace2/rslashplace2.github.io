@@ -102,7 +102,7 @@
 			click = e.button + 1
 		}
 		document.body.onmouseup = function(e){
-			if(e.target != document.body && e.target != canvparent2)return
+			if(e.target != document.body && e.target != canvparent2)return (moved = 3, click = 0)
 			if(moved > 0 && (e.target == canvparent2 || e.target.parentElement == canvselect)){
 				clicked(e.clientX, e.clientY)
 			}
