@@ -372,7 +372,7 @@
 				online = data.getUint16(1)
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
-				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1))
+				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'')
 				let el = document.createElement("span")
 				el.textContent = ">> " + txt + "\n"
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
