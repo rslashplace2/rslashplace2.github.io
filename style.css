@@ -333,18 +333,15 @@ mute-button{
 }
 
 #onlineCounter {
-    font: consolas;
-    font-size: 150%;
 	display: inline-block;
 	color: white;
-	left: 10%;
+	line-height: 16px;
 }
 
 #playerIcon {
 	display: inline-block;
-    color: white;
-	right: 25%;
-	top: 100%;
+	color: white;
+	height: 80%;
 }
 
 #chat {
