@@ -334,13 +334,13 @@ mute-button{
 
 #onlineCounter {
 	display: inline-block;
-	color: white;
+	color: black;
 	line-height: 16px;
 }
 
 #playerIcon {
 	display: inline-block;
-	color: white;
+	color: black;
 	height: 80%;
 }
 
@@ -356,6 +356,7 @@ mute-button{
 	border-radius: 100px;
 	text-align: center;
 	z-index: 5;
+	cursor: pointer;
 }
 
 #chat span{ overflow: hidden; display: block }
@@ -376,10 +377,12 @@ mute-button{
 	}
 
 	#onlinepanel {
+		box-shadow: 0 0 30px black;
+
 		position: absolute;
 		bottom: 20px;
 		left: 20px;
-		background: rgba(0, 0, 0, 0.6);
+		background-color: white;
 		height: 24px;
 		border-radius: 12px;
 		z-index: 7;
