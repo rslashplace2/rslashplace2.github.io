@@ -129,7 +129,6 @@
 			canvparent2.style.height = h + "px"
 			board = new Uint8Array(w * h).fill(31)
 			let i = board.length
-			onresize()
 			x = +localStorage.x || WIDTH/2
 			y = +localStorage.y || HEIGHT/2
 			z = +localStorage.z || 0.2
@@ -143,6 +142,7 @@
 					case 'debug': break
 				}
 			}
+			onresize()
 			pos()
 		}
 		onresize = function(){
