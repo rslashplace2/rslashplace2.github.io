@@ -375,12 +375,9 @@
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
 				let txt = decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-				let newMessage = document.createElement("div")
-				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]};">[anon]</span> ${txt}\n`
-				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
-				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
-				if(chatMessages.children.length>100)chatMessages.children[0].remove()
-				scroll && chatMessages.scrollTo(0,999999999)
+				
+				let author = 'anon' // enix here: I don't know how to mess with Uint8Array and those things so i'm letting that here.
+				newMsgEl(`[${author}]`, `${txt}`, `${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]}`);
 			}
 		}
 		ws.onclose = () => {
@@ -444,8 +441,26 @@
 				chatPanel.style.transform = "translateX(400px)"
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
+		function newMsgEl(author, msg, color) { // I hope this works.
+			let newMessage = document.createElement("div")
+			newMessage.innerHTML = `<span style="color: ${color};">${author}</span>${msg}\n`
+			let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
+			chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+			if(chatMessages.children.length>100)chatMessages.children[0].remove()
+			scroll && chatMessages.scrollTo(0,999999999)
+		}
 		function sendMsg(a){
-			ws.send(encoder.encode("\x0f" + a))
+			if (a.startsWith('/')) {
+				let args = a.slice(2).split(/ +/)
+				let cmd = args[0];
+				
+				switch (cmd) { // Easy way to do new commands and shit.
+					case 'nickname':
+						localStorage.setItem('nickname', args[1]);
+						newMsgEl(``, `\nNickname changed succesfully to ${localStorage.getItem('nickname')}`, `green`)
+					break;
+				}
+			} else ws.send(encoder.encode("\x0f" + a))
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
