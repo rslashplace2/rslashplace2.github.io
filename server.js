@@ -167,7 +167,8 @@ import repl from 'basic-repl'
 
 let a, b, c, test
 repl('$',(_)=>eval(_))
-
+let O=()=>{console.log("\x1b[31mNothing to confirm!")}, yc = O;
+Object.defineProperties(globalThis, {y: {get(){yc();yc=O}}, n: {get(){yc=O}}})
 function fill(x, y, w, h, b = 27){
 	let x1 = x + w, y1 = y + h
 	for(;y < y1; y++){
