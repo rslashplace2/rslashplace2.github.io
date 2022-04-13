@@ -359,6 +359,8 @@ mute-button{
 }
 
 #donate {
+	cursor: pointer;
+	box-shadow: 0 0 30px black;
         position: absolute;
         top: 20px;
         left: 20px;
