@@ -376,6 +376,16 @@ mute-button{
 
 #chat span{ overflow: hidden; display: block }
 
+
+#onlinepanel {
+                background: rgba(0, 0, 0, 0.6);
+                height: 20px;
+                border-radius: 10px;
+                z-index: 7;
+                padding: 3px;
+	margin-right: 20px;
+}
+
 @media screen and (orientation:landscape) {
 	#chatPanel {
 		position: absolute;
@@ -389,17 +399,6 @@ mute-button{
 		border-radius: 16px;
 		padding: 10px;
 		transition: transform .3s ease-out;
-	}
-
-	#onlinepanel {
-		position: absolute;
-		bottom: 20px;
-		left: 20px;
-		background: rgba(0, 0, 0, 0.6);
-		height: 24px;
-		border-radius: 12px;
-		z-index: 7;
-		padding: 5px;
 	}
 }
 
@@ -416,17 +415,6 @@ mute-button{
 		border-radius: 16px;
 		padding: 10px;
 		transition: transform .3s ease-out;
-	}
-
-	#onlinepanel {
-		position: absolute;
-		top: 48px;
-		left: 20px;
-		background: rgba(0, 0, 0, 0.6);
-		height: 24px;
-		border-radius: 12px;
-		z-index: 7;
-		padding: 5px;
 	}
 }
 
