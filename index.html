@@ -378,10 +378,11 @@
 				online = data.getUint16(1)
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
-				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'')).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+				let name; [txt, name] = txt.split("\n")
 				if(!txt)return
 				let newMessage = document.createElement("div")
-				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]};">[anon]</span> ${txt}\n`
+				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]};">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 				if(chatMessages.children.length>100){
@@ -452,7 +453,7 @@
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(a){
-			ws.send(encoder.encode("\x0f" + a))
+			ws.send(encoder.encode("\x0f" + a + (localStorage.name ? "\n" + localStorage.name : "")))
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
