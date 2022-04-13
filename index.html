@@ -155,8 +155,8 @@
 		document.body.onmousemove = function(e){
 			if(e.target != document.body && e.target != canvparent2)return
 			moved--
-			let dx = (mx = e.clientX - innerWidth / 2) - mx
-			let dy = (my = e.clientY - innerHeight / 2) - my
+			let dx = -(mx - (mx = e.clientX - innerWidth / 2))
+			let dy = -(my - (my = e.clientY - innerHeight / 2))
 			if(dx != dx || dy != dy)return
 			if(click){
 				x -= dx / (z * 120)
