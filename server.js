@@ -62,14 +62,14 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 let players = 0
-
+/*
 if (!fs.existsSync("blacklist.txt")) {
 	fs.writeFile("blacklist.txt", "\n", err => { if (err) { console.error(err); return; } });
 }
 if (!fs.existsSync("cooldown_overrides.txt")) { 
         fs.writeFile("cooldown_overrides.txt", "\n", err => { if (err) { console.error(err); return; } });
 }
-
+*/
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
