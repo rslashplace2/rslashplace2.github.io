@@ -441,16 +441,16 @@
 			indicator.textContent = keybinds.charAt(c)
 		}
 		if (window.innerHeight > window.innerWidth) {
-			chatPanel.style.transform = `translateX(${window.innerWidth + 400}px)`
+			chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
 		function showChat() {
 			chatPanel.style.transform = ""
 		}
 		function hideChat() {
 			if (window.innerHeight > window.innerWidth)
-				chatPanel.style.transform = `translateX(${window.innerWidth + 400}px)`
+				chatPanel.style.transform = "translateX(calc(100% + 50px))"
 			else
-				chatPanel.style.transform = "translateX(400px)"
+				chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(a){
