@@ -354,7 +354,7 @@
 		const CHAT_COLOURS = ["lightblue", "lightseagreen", "lightpink", "lightcoral", "lightsalmon", "lightgreen", "gold"]
 		let online = 1
 		
-		const allowed = new Set("discord.gg rplace.tk google.com wikipedia.org discord.com pxls.space".split(" ")), messages = Object.create(null), censor = a => (messages[a] > 2 ? "" : (messages[a]=(messages[a]||0)+1,a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : ""))).trim()
+		const allowed = new Set("discord.gg rplace.tk google.com wikipedia.org discord.com pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		
 		let ws = new WebSocket('wss://server.rplace.tk:443')
 		ws.onmessage = async function({data}){
@@ -378,15 +378,13 @@
 				online = data.getUint16(1)
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
-				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"));
+				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/[\r\n\t]/g,'')).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 				if(!txt)return
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]};">[anon]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 				if(chatMessages.children.length>100){
-                    			let txt = chatMessages.children[0].lastChild.nodeValue
-                    			--messages[txt] || delete messages[txt]
                     			chatMessages.children[0].remove()
                 		}
 				scroll && chatMessages.scrollTo(0,999999999)
