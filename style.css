@@ -358,6 +358,20 @@ mute-button{
 	z-index: 5;
 }
 
+#donate {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 70px;
+        height: 24px;
+        padding: 5px;
+        line-height: 15px;
+        background: white;
+        border-radius: 100px;
+        text-align: center;
+        z-index: 5;
+}
+
 #chat span{ overflow: hidden; display: block }
 
 @media screen and (orientation:landscape) {
