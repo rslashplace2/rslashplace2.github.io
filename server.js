@@ -16,7 +16,6 @@ try{
 }
 let newPos = [], newCols = []
 let wss, cooldowns = new Map()
-let OVERRIDES = new Set(await fs.readFile('../cooldown_overrides.txt').toString().split('\n'))
 
 function runLengthChanges(){
 	//compress CHANGES with run-length encoding
@@ -63,7 +62,16 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 let players = 0
+
+if (!fs.existsSync("blacklist.txt")) {
+	fs.writeFile("blacklist.txt", "\n", err => { if (err) { console.error(err); return; } });
+}
+if (!fs.existsSync("cooldown_overrides.txt")) { 
+        fs.writeFile("cooldown_overrides.txt", "\n", err => { if (err) { console.error(err); return; } });
+}
+
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
+let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
 	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
 	if(!IP)return p.close()
@@ -153,9 +161,9 @@ setInterval(async function(){
 	if(I % 720 == 0){
 		try{
                 	await pushImage()
-                	console.log('['+new Date().toISOString()+'] Successfully saved r/place!')
+                	console.log("["+new Date().toISOString()+"] Successfully saved r/place!")
         	}catch(e){
-                	console.log('['+new Date().toISOString()+'] Error pushing image')
+                	console.log("["+new Date().toISOString()+"] Error pushing image")
         	}
         	for(let [k, t] of cooldowns){
                 	if(t > NOW)cooldowns.delete(k)
@@ -169,13 +177,13 @@ let a, b, c, test
 repl('$',(_)=>eval(_))
 let O=()=>{console.log("\x1b[31mNothing to confirm!")}, yc = O;
 Object.defineProperties(globalThis, {y: {get(){yc();yc=O}}, n: {get(){yc=O}}})
-function fill(x, y, w, h, b = 27){
-	let x1 = x + w, y1 = y + h
+function fill(x, y, x1, y1, b = 27) {
+	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
 			CHANGES[x + y * WIDTH] = b
 		}
 		x = x1 - w
 	}
-	return "Filled " + w*h + " pixels, reload page to see effects"
+	return `Filled an area of ${w}*${h} (${(w*h)} pixels), reload the webpage to see the effects`
 }
