@@ -151,13 +151,13 @@
 			pos()
 		}
 		let click = false
-		let mx = 0, my = 0;
+		let mx, my;
 		document.body.onmousemove = function(e){
 			if(e.target != document.body && e.target != canvparent2)return
 			moved--
-			let {movementX: dx, movementY: dy} = e;
-			mx = e.clientX - innerWidth / 2
-			my = e.clientY - innerHeight / 2
+			let dx = (mx = e.clientX - innerWidth / 2) - mx
+			let dy = (my = e.clientY - innerHeight / 2) - my
+			if(dx != dx || dy != dy)return
 			if(click){
 				x -= dx / (z * 120)
 				y -= dy / (z * 120)
