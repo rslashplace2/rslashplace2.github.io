@@ -356,7 +356,7 @@
 		
 		let allowed = new Set("discord.gg rplace.tk google.com wikipedia.org discord.com pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		
-		let ws = new WebSocket('wss://server.rplace.tk:443')
+		let ws = new WebSocket('wss://server.rplace.tk:443' + (localStorage.key ? "/" + localStorage.key : ""))
 		ws.onmessage = async function({data}){
 			data = new DataView(await data.arrayBuffer())
 			let code = data.getUint8(0)
