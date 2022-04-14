@@ -351,9 +351,9 @@
 			if(load)runLengthChanges(load)
 			load = true
 		})
-		const CHAT_COLOURS = ["lightblue", "lightseagreen", "lightpink", "lightcoral", "lightsalmon", "lightgreen", "gold"]
+		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		let online = 1
-		
+		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 		let allowed = new Set("discord.gg rplace.tk google.com wikipedia.org discord.com pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		
 		let ws = new WebSocket('wss://server.rplace.tk:443' + (localStorage.vip ? "/" + localStorage.vip : ""))
@@ -382,7 +382,7 @@
 				let name; [txt, name] = txt.split("\n")
 				if(!txt)return
 				let newMessage = document.createElement("div")
-				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[(Math.round(Math.random() * CHAT_COLOURS.length))]};">[${name || "anon"}]</span> ${txt}\n`
+				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 				if(chatMessages.children.length>100){
