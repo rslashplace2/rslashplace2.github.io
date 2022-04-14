@@ -391,7 +391,7 @@
 			}else if(code == 15){
 				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 				let name; [txt, name] = txt.split("\n")
-				name = name.replace(/\W+/g,'').toLowerCase()
+				if(name)name = name.replace(/\W+/g,'').toLowerCase()
 				if(!txt)return
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
