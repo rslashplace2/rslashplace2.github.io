@@ -72,7 +72,7 @@
 				else if(!touch2)touch2 = t
 				else [touch1, touch2] = [touch2, t]
 				let ac = []
-				let el = t.target
+				let el = e.target
 				while(el){
 					el.classList.add("active")
 					ac.push(el)
@@ -86,15 +86,15 @@
 				a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
 				else if(touch1 && touch1.identifier == t.identifier){
 					[touch1, touch2] = [touch2, null]
-					if(touchmoved > 0 && (t.target == canvparent2 || t.target.parentElement == canvselect)){
-						if(e.target != document.body && e.target != canvparent2)break a
+					if(touchmoved > 0 && canvparent2.contains(e.target)){
+						if(e.target != document.body && !canvparent2.contains(e.target))break a
 						clicked(t.clientX, t.clientY)
 					}
 				}
 				for(let el of actives.get(t.identifier))el.classList.remove("active")
 				actives.delete(t.identifier)
-				if('value' in t.target)t.target.focus()
-				else{let target = t.target; while(!target.click)target = target.parentElement;target.click()}
+				if('value' in e.target)e.target.focus()
+				else{let target = e.target; while(!target.click)target = target.parentElement;target.click()}
 			}
 		}
 		let moved = 3
@@ -103,8 +103,8 @@
 			click = e.button + 1
 		}
 		document.body.onmouseup = function(e){
-			if(e.target != document.body && e.target != canvparent2)return (moved = 3, click = 0)
-			if(moved > 0 && (e.target == canvparent2 || e.target.parentElement == canvselect)){
+			if(e.target != document.body && !canvparent2.contains(e.target))return (moved = 3, click = 0)
+			if(moved > 0 && canvparent2.contains(e.target)){
 				clicked(e.clientX, e.clientY)
 			}
 			moved = 3
@@ -153,7 +153,7 @@
 		let click = false
 		let mx, my;
 		document.body.onmousemove = function(e){
-			if(e.target != document.body && e.target != canvparent2)return
+			if(e.target != document.body && !canvparent2.contains(e.target))return
 			moved--
 			let dx = -(mx - (mx = e.clientX - innerWidth / 2))
 			let dy = -(my - (my = e.clientY - innerHeight / 2))
@@ -166,7 +166,7 @@
 			}
 		}
 		document.body.onwheel = function(e){
-			if(e.target != document.body && e.target != canvparent2)return
+			if(e.target != document.body && !canvparent2.contains(e.target))return
 			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
 			z *= d
 			x += mx * (d - 1) / z / 120
@@ -214,12 +214,12 @@
 		document.body.ontouchmove = e => {touchmoved--;for(let t of e.changedTouches){
 			clearInterval(anim)
 			a: if(!touch2 && touch1 && touch1.identifier == t.identifier){
-				if(e.target != document.body && e.target != canvparent2)break a
+				if(e.target != document.body && !canvparent2.contains(e.target))break a
 				x -= (t.clientX - touch1.clientX) / (z * 120)
 				y -= (t.clientY - touch1.clientY) / (z * 120)
 				pos()
 			}else if(touch1 && touch2){
-				if(e.target != document.body && e.target != canvparent2)break a
+				if(e.target != document.body && !canvparent2.contains(e.target))break a
 				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
 				if(!touch)break a
 				let other = touch == touch1 ? touch2 : touch1
