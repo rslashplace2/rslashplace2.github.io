@@ -324,7 +324,7 @@
 			set(Math.floor(x), Math.floor(y), PEN)
 			canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
 			audios.cooldownStart.run()
-			CD = Date.now() + COOLDOWN
+			CD = Date.now() + localStorage.key ? (localStorage.key[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN
 			let a = new DataView(new Uint8Array(6).buffer)
 			a.setUint8(0, 4)
 			a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
