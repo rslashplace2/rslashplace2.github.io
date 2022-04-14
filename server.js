@@ -72,7 +72,7 @@ if (!fs.existsSync("cooldown_overrides.txt")) {
 }
 */
 let VIP
-try{VIP = (await fs.readFile('../vip.txt')).toString().split('\n')}catch(e){}
+try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers, url: uri}) {
