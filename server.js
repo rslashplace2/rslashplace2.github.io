@@ -75,10 +75,11 @@ let VIP
 try{VIP = (await fs.readFile('../vip.txt')).toString().split('\n')}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
-wss.on('connection', async function(p, {headers}) {
-	let IP = /*p._socket.remoteAddress */headers['x-vip-key'] || headers['x-forwarded-for']
-	if(headers['x-vip-key'] && !VIP.has(sha256(IP)))return p.close()
-	let CD = headers['x-vip-key'] ? (IP.startsWith('!') ? 0 : COOLDOWN / 2) : COOLDOWN
+wss.on('connection', async function(p, {headers, url: uri}) {
+	let url = uri.slice(1)
+	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
+	if(url && !VIP.has(sha256(IP)))return p.close()
+	let CD = url ? (IP.startsWith('!') ? 0 : COOLDOWN / 2) : COOLDOWN
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(5)
