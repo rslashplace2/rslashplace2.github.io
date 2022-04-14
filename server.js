@@ -4,7 +4,7 @@ import {promises as fs} from 'fs'
 import {createServer} from 'https'
 import sha256 from 'sha256'
 import fsExists from 'fs.promises.exists';
-let SECURE = false
+let SECURE = true
 let BOARD, CHANGES
 
 //TODO: compress changes
