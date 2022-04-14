@@ -324,7 +324,7 @@
 			set(Math.floor(x), Math.floor(y), PEN)
 			canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
 			audios.cooldownStart.run()
-			CD = Date.now() + localStorage.key ? (localStorage.key[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN
+			CD = Date.now() + localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN
 			let a = new DataView(new Uint8Array(6).buffer)
 			a.setUint8(0, 4)
 			a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
@@ -356,7 +356,7 @@
 		
 		let allowed = new Set("discord.gg rplace.tk google.com wikipedia.org discord.com pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		
-		let ws = new WebSocket('wss://server.rplace.tk:443' + (localStorage.key ? "/" + localStorage.key : ""))
+		let ws = new WebSocket('wss://server.rplace.tk:443' + (localStorage.vip ? "/" + localStorage.vip : ""))
 		ws.onmessage = async function({data}){
 			data = new DataView(await data.arrayBuffer())
 			let code = data.getUint8(0)
