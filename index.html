@@ -37,7 +37,7 @@
      data-ad-format="auto"
      data-full-width-responsive="true"></ins>
 <script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
+     //(adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 			<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
@@ -455,6 +455,7 @@
 		}
 		function showChat() {
 			chatPanel.style.transform = ""
+			setTimeout(()=>{(adsbygoogle = window.adsbygoogle || []).push({})},1000)
 		}
 		function hideChat() {
 			if (window.innerHeight > window.innerWidth)
