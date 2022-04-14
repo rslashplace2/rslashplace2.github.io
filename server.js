@@ -2,6 +2,7 @@
 import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
+import sha256 from 'sha256'
 let SECURE = true
 let BOARD, CHANGES
 
@@ -70,10 +71,14 @@ if (!fs.existsSync("cooldown_overrides.txt")) {
         fs.writeFile("cooldown_overrides.txt", "\n", err => { if (err) { console.error(err); return; } });
 }
 */
+let VIP
+try{VIP = (await fs.readFile('../vip.txt')).toString().split('\n')}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers}) {
-	let IP = /*p._socket.remoteAddress */headers['x-forwarded-for']
+	let IP = /*p._socket.remoteAddress */headers['x-vip-key'] || headers['x-forwarded-for']
+	if(headers['x-vip-key'] && !VIP.has(sha256(IP)))return p.close()
+	let CD = headers['x-vip-key'] ? (IP.startsWith('!') ? 0 : COOLDOWN / 2) : COOLDOWN
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(5)
@@ -108,7 +113,7 @@ wss.on('connection', async function(p, {headers}) {
 		}
 		//accept
 		CHANGES[i] = c
-			cooldowns.set(IP, NOW + (OVERRIDES.has(IP) ? 1000 : COOLDOWN - 1000))
+		cooldowns.set(IP, NOW + CD - 1000)
 		newPos.push(i)
 		newCols.push(c)
   })
