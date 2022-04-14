@@ -65,18 +65,18 @@ if(SECURE){
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
 if (!await fsExists('blacklist.txt')) {
-	await fs.writeFile("blacklist.txt", "\n", err => { if (err) { console.error(err); return; } });
+	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
 }
 if (!await fsExists('cooldown_overrides.txt')) { 
-	await fs.writeFile("cooldown_overrides.txt", "\n", err => { if (err) { console.error(err); return; } });
+	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('vip.txt')) { 
-	await fs.writeFile("vip.txt", "\n", err => { if (err) { console.error(err); return; } });
+if (!await fsExists('../vip.txt')) { 
+	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
 let VIP
-try{VIP = new Set((await fs.readFile('vip.txt')).toString().split('\n'))}catch(e){}
+try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 wss.on('connection', async function(p, {headers, url: uri}) {
