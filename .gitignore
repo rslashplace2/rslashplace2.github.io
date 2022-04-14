@@ -1,4 +1,5 @@
 *.pem
 blacklist.txt
 cooldown_overrides.txt
+vip.txt
 t
