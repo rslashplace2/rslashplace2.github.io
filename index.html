@@ -21,8 +21,8 @@
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<div id="chat" noselect onclick="showChat()">Chat</div>
-		<div id="chatPanel" style="transform: translateX(calc(100% + 50px));">
-			<div id="namePanel" style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: calc(100% - 20px);">
+		<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));">
+			<div id="namePanel" style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: calc(100% - 20px); padding: 10px; background-color: white; border-radius: 15px;">
 				<h2>Enter a nickname to continue:</h2>
 				<h4 style="color: lightgrey;">Devam etmek için bir takma ad girin:</h4>
 				<br>
@@ -38,6 +38,20 @@
 				<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 				<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 			</div>
+			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
+			<!-- Chat Ad -->
+			<div><ins class="adsbygoogle"
+				style="display:block"
+				data-ad-client="ca-pub-7492601452630734"
+				data-ad-slot="4496076769"
+				data-ad-format="auto"
+				data-full-width-responsive="true"></ins>
+			</div>
+			<script>
+				(adsbygoogle = window.adsbygoogle || []).push({});setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";document.querySelector(".adsbygoogle").style.height="150px"},100)
+			</script>
+			<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 240px); overflow: auto; z-index: -1;"></div>
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -388,6 +402,7 @@
 			}else if(code == 15){
 				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 				let name; [txt, name] = txt.split("\n")
+				if(name)name = name.replace(/\W+/g,'').toLowerCase()
 				if(!txt)return
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
@@ -466,6 +481,7 @@
 		function setName(name) {
 			localStorage.setItem('name', name);
 			namePanel.style.visibility = "hidden"
+			mainChat.style.visibility = "visible"
 		}
 	</script>
 	<!--script src="board_final.js"></script-->

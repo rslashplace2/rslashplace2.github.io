@@ -187,11 +187,11 @@ let a, b, c, test
 repl('$',(_)=>eval(_))
 let O=()=>{console.log("\x1b[31mNothing to confirm!")}, yc = O;
 Object.defineProperties(globalThis, {y: {get(){yc();yc=O}}, n: {get(){yc=O}}})
-function fill(x, y, x1, y1, b = 27) {
+function fill(x, y, x1, y1, b = 27, random = false) {
 	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
-			CHANGES[x + y * WIDTH] = b
+			CHANGES[x + y * WIDTH] = (random ? Math.floor(Math.random() * 31) :  b)
 		}
 		x = x1 - w
 	}
