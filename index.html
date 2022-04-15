@@ -478,10 +478,12 @@
 		function sendMsg(message){
 			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "")))
 		}
-		function setName(name) {
-			localStorage.setItem('name', name);
+		if (localStorage.getItem("name")) {
 			namePanel.style.visibility = "hidden"
-			mainChat.style.visibility = "visible"
+		}
+		function setName(name) {
+			localStorage.setItem("name", name);
+			namePanel.style.visibility = "hidden"
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
