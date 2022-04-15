@@ -3,6 +3,7 @@ import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs'
 import {createServer} from 'https'
 import sha256 from 'sha256'
+import fsExists from 'fs.promises.exists';
 let SECURE = true
 let BOARD, CHANGES
 
@@ -62,15 +63,18 @@ if(SECURE){
 	key: await fs.readFile('../a.key'), //etc/letsencrypt/live/server.rplace.tk/privkey.pem'),
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
+
+if (!await fsExists('blacklist.txt')) {
+	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
+}
+if (!await fsExists('cooldown_overrides.txt')) { 
+	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
+}
+if (!await fsExists('../vip.txt')) { 
+	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
+}
+
 let players = 0
-/*
-if (!fs.existsSync("blacklist.txt")) {
-	fs.writeFile("blacklist.txt", "\n", err => { if (err) { console.error(err); return; } });
-}
-if (!fs.existsSync("cooldown_overrides.txt")) { 
-        fs.writeFile("cooldown_overrides.txt", "\n", err => { if (err) { console.error(err); return; } });
-}
-*/
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
