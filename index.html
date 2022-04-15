@@ -28,16 +28,12 @@
 				<br>
 				<input id="nameInput" type="text" placeholder="Enter nickname..." enterkeyhint="enter" onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
 			</div>
-			<div>
-				<div style="display: flex; flex-direction: row;" noselect>
-					<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
-					<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
-					<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
-				</div>
-				<br>
-				<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
-				<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
+			<div style="display: flex; flex-direction: row;" noselect>
+				<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
+				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
+				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
+			<br>
 			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
 			<!-- Chat Ad -->
 			<div><ins class="adsbygoogle"
@@ -50,6 +46,8 @@
 			<script>
 				(adsbygoogle = window.adsbygoogle || []).push({});setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";document.querySelector(".adsbygoogle").style.height="150px"},100)
 			</script>
+			<div id="chatMessages" style="overflow-wrap: break-word;word-wrap: break-word;font-family:mono;white-space: pre-wrap;max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
