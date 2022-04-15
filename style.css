@@ -447,4 +447,5 @@ input {
 	display: block;
 	width: 100%;
 	max-height: 150px !important;
+	overflow: hidden !important;
 }
