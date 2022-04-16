@@ -124,7 +124,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 if (txt.includes(deez)) return;
             })
 			
-	    let msgHook = {"content": name" | "+txt}
+	    let msgHook = {"content": name+" | "+txt}
 				
 	    try {
             await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify(msgHook)})
