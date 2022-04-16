@@ -88,7 +88,7 @@ let WEBHOOK_URL = await fs.readFile("webhook_url.txt").toString()
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
-let decoder = new TextDecoder();
+let Deezcoder = new TextDecoder();
 
 wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
@@ -112,18 +112,23 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 		c.send(data)
         		}
 			
-			let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+			
+			let txt = censor(Deezcoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 			let name; [txt, name] = txt.split("\n")
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
 			
 			if (!txt || !name || name == 'nors' || name == 'anlcan') return;
 			
 			let moreCensorship = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
-			moreCensorship.forEach(deez => {
+	    moreCensorship.forEach(deez => {
                 if (txt.includes(deez)) return;
             })
+			
+	    let msgHook = {"content": name" | "+txt}
 				
-            await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify({"content": txt})})
+	    try {
+            await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify(msgHook)})
+	    } catch (e) { console.log(e) };
 
 			return;
 		}
