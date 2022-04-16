@@ -116,11 +116,12 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			let name; [txt, name] = txt.split("\n")
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
 			if (!txt || !name || name == 'nors' || name == 'anlcan') return;
-			let moreCensorship = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
+			let moreCensorship = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg","", "�"];
 	    		moreCensorship.forEach(deez => {
                 		if (txt.includes(deez)) return;
             		})
-	    		let msgHook = {"content": name+" | "+txt}
+	    		let msgHook = {"content": name+" | "+txt}//.substring(6, txt.length)}
+			
 			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return;
             		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify(msgHook)})
 			return;
