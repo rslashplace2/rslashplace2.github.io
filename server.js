@@ -4,6 +4,7 @@ import {promises as fs} from 'fs'
 import {createServer} from 'https'
 import sha256 from 'sha256'
 import fsExists from 'fs.promises.exists';
+import fetch from 'node-fetch';
 let SECURE = true
 let BOARD, CHANGES
 
@@ -79,6 +80,10 @@ let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
+
+let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
+let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
+
 wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
@@ -93,14 +98,28 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	players++
 	p.send(runLengthChanges())
   p.on("error", _=>_)
-  p.on('message', function(data) {
+  p.on('message', async function(data) {
 		if(data[0] == 15){
 			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
 			for(let c of wss.clients){
                 		c.send(data)
         		}
-			return
+			
+			let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+			let name; [txt, name] = txt.split("\n")
+			if(name)name = name.replace(/\W+/g,'').toLowerCase()
+			
+			if (!txt || !name || name == 'nors' || name == 'anlcan') return;
+			
+			let moreCensorship = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
+			moreCensorship.forEach(deez => {
+                if (txt.includes(deez)) return;
+            })
+				
+            await fetch("hey zekiah, insert the whurl here please" + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify({"content": txt})})
+
+			return;
 		}
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
