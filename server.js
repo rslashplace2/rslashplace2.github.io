@@ -121,7 +121,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 		if (txt.includes(link)) return;
             		})
 
-	    		let msgHook = { "username": `${name} @rplace.tk`, "content": txt }
+	    		let msgHook = { "username": (name ? name : "anon") + " @rplace.tk", "content": txt }
 			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return
             		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			return;
@@ -215,7 +215,7 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
-			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24 :  b
+			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24) :  b
 		}
 		x = x1 - w
 	}
