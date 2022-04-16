@@ -88,7 +88,7 @@ let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
-let Deezcoder = new TextDecoder();
+let decoder = new TextDecoder();
 
 wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
@@ -112,17 +112,18 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 		c.send(data)
         		}
 
-			let txt = censor(Deezcoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+			let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 			let name; [txt, name] = txt.split("\n")
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
-			if (!txt || !name || name == 'nors' || name == 'anlcan') return;
-			let moreCensorship = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
-	    		moreCensorship.forEach(deez => {
-                		if (txt.includes(deez)) return;
+			if (!txt) return
+			let extraLinks = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
+	    		extraLinks.forEach(link => {
+                		if (txt.includes(link)) return;
             		})
-	    		let msgHook = {"content": name+" | "+txt}
-			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return;
-            		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify(msgHook)})
+
+	    		let msgHook = { "username": `${name} @rplace.tk`, "content": txt }
+			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return
+            		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			return;
 		}
 		if(data.length < 6)return //bad packet
@@ -204,8 +205,6 @@ setInterval(async function(){
 	}
 }, 5000)
 
-let decoder = new TextDecoder()
-
 import repl from 'basic-repl'
 
 let a, b, c, test
@@ -216,7 +215,7 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
-			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24) :  b
+			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24 :  b
 		}
 		x = x1 - w
 	}
