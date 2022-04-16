@@ -68,10 +68,10 @@ if(SECURE){
 if (!await fsExists('blacklist.txt')) {
 	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('cooldown_overrides.txt')) { 
+if (!await fsExists('cooldown_overrides.txt')) {
 	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('../vip.txt')) { 
+if (!await fsExists('../vip.txt')) {
 	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
 }
 if (!await fsExists("webhook_url.txt")) {
@@ -186,20 +186,20 @@ let I = 0
 
 setInterval(async function(){
 	I++
-	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
+	for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
 	await fs.writeFile('place', BOARD)
 	let buf = Buffer.of(3, players>>8, players)
-	for(let c of wss.clients){
+	for (let c of wss.clients) {
 		c.send(buf)
 	}
 	if(I % 720 == 0){
-		try{
+		try {
                 	await pushImage()
                 	console.log("["+new Date().toISOString()+"] Successfully saved r/place!")
-        	}catch(e){
+        	} catch(e) {
                 	console.log("["+new Date().toISOString()+"] Error pushing image")
         	}
-        	for(let [k, t] of cooldowns){
+        	for (let [k, t] of cooldowns) {
                 	if(t > NOW)cooldowns.delete(k)
         	}
 	}
