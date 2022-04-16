@@ -74,12 +74,16 @@ if (!await fsExists('cooldown_overrides.txt')) {
 if (!await fsExists('../vip.txt')) { 
 	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
 }
+if (!await fsExists("webhook_url.txt")) {
+  await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
+}
 
 let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
+let WEBHOOK_URL = await fs.readFile("webhook_url.txt").toString()
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
@@ -117,7 +121,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 if (txt.includes(deez)) return;
             })
 				
-            await fetch("hey zekiah, insert the whurl here please" + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify({"content": txt})})
+            await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"},"body": JSON.stringify({"content": txt})})
 
 			return;
 		}
