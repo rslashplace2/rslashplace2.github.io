@@ -88,6 +88,8 @@ let WEBHOOK_URL = await fs.readFile("webhook_url.txt").toString()
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
+let decoder = new TextDecoder();
+
 wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
