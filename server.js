@@ -191,7 +191,7 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
-			CHANGES[x + y * WIDTH] = (random ? Math.floor(Math.random() * 31) :  b)
+			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24) :  b
 		}
 		x = x1 - w
 	}
