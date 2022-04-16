@@ -204,6 +204,8 @@ setInterval(async function(){
 	}
 }, 5000)
 
+let decoder = new TextDecoder()
+
 import repl from 'basic-repl'
 
 let a, b, c, test
