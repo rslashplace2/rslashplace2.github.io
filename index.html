@@ -421,10 +421,10 @@
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 				if (messageChannel == "en") {
-					cMessagesEn = cMessagesEn.concat(newMessage)
+					cMessagesEn = cMessagesEn.concat(newMessage.innerHTML.toString())
 				}
 				else if (messageChannel == "tu") {
-					cMessagesTu = cMessagesTu.concat(newMessage)
+					cMessagesTu = cMessagesTu.concat(newMessage.innerHTML.toString())
 				}
 				if (currentChannel == messageChannel) {
 					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
