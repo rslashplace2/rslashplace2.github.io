@@ -404,7 +404,9 @@
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
 				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-				let name; [txt, name] = txt.split("\n")
+				let name;
+				let messageChannel;
+				[txt, name, messageChannel] = txt.split("\n")
 				if(name)name = name.replace(/\W+/g,'').toLowerCase()
 				if(!txt)return
 				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
@@ -415,7 +417,6 @@
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
-				let messageChannel = "en" //set it to always default to EN until we implement the channel identifier to messages.
 				if (messageChannel == "en") {
 					cMessagesEn.push(newMessage)
 				}
@@ -494,7 +495,7 @@
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(message){
-			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "")))
+			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
 		if (localStorage.getItem("name")) {
 			namePanel.style.visibility = "hidden"
