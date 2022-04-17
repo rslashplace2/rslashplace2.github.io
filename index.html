@@ -420,6 +420,7 @@
 				if(txt.includes("discord.gg"))return
 				if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
 				if(txt.includes("𒐫"))return
+				if(name == "nors")return
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
