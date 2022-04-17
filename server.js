@@ -108,20 +108,22 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 		if(data[0] == 15){
 			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
-			for(let c of wss.clients){
-                		c.send(data)
-        		}
+			for(let c of wss.clients) {
+                c.send(data)
+			}
 
 			let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-			let name; [txt, name] = txt.split("\n")
+			let name;
+			let messageChannel;
+			[txt, name, messageChannel] = txt.split("\n")
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
 			if (!txt) return
 			let extraLinks = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
-	    		extraLinks.forEach(link => {
-                		if (txt.includes(link)) return;
-            		})
+			extraLinks.forEach(link => {
+				if (txt.includes(link)) return;
+			})
 
-	    		let msgHook = { "username": `${name || "anon"} @rplace.tk`, "content": txt }
+			let msgHook = { "username": `[${messageChannel.toUpperCase()}] ${name || "anon"} @rplace.tk`, "content": txt }
 			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return
             		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			return;
