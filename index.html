@@ -32,9 +32,10 @@
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
 				<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
-				<div style="height:30px; width: 60px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px;">
-					<span style="flex: auto; line-height: 30px; text-align: center; border-radius: 5px 0px 0px 5px; background-color: transparent;">TK</span>
-					<span style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 5px 5px 0px; background-color: lightgray;">EN</span>
+				<div style="height:30px; width: 60px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;" onclick="switchLanguageChannel()">
+					<span style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent;">TÜ</span>
+					<span style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent;">EN</span>
+					<div id="channelBlur" style="flex: none; line-height: 30px; text-align: center; border-radius: 20px; padding: 5px; background-color: rgba(255, 255, 255, 0.8); width: 30px; height: 30px; position: absolute;"></div>
 				</div>
 				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
 				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
@@ -380,7 +381,9 @@
 		let online = 1
 		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
-		
+		let cMessagesTu = "", cMessagesEn = ""
+		let currentChannel = "en"
+
 		let ws = new WebSocket('wss://server.rplace.tk:443' + (localStorage.vip ? "/" + localStorage.vip : ""))
 		ws.onmessage = async function({data}){
 			data = new DataView(await data.arrayBuffer())
@@ -404,21 +407,32 @@
 				document.getElementById("onlineCounter").textContent = online;
 			}else if(code == 15){
 				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-				let name; [txt, name] = txt.split("\n")
+				let name;
+				let messageChannel;
+				[txt, name, messageChannel] = txt.split("\n")
 				if(name)name = name.replace(/\W+/g,'').toLowerCase()
 				if(!txt)return
 				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
 				if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
 				if(txt.includes("discord.gg"))return
-				if(name == "nors")return
-				if(name == "anlcan")return
+				if(txt.includes("𒐫"))return
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
-				chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+
+				if (messageChannel == "en") {
+					cMessagesEn.push(newMessage)
+				}
+				else if (messageChannel == "tu") {
+					cMessagesTu.push(newMessage)
+				}
+				if (currentChannel == messageChannel) {
+					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+				}
+
 				if(chatMessages.children.length>100){
                     			chatMessages.children[0].remove()
-                		}
+				}
 				scroll && chatMessages.scrollTo(0,999999999)
 			}
 		}
@@ -484,7 +498,7 @@
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(message){
-			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "")))
+			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
 		if (localStorage.getItem("name")) {
 			namePanel.style.visibility = "hidden"
@@ -492,6 +506,19 @@
 		function setName(name) {
 			localStorage.setItem("name", name);
 			namePanel.style.visibility = "hidden"
+		}
+		
+		function switchLanguageChannel() {
+			if(currentChannel == "en")  {
+				channelBlur.style.transform = "translateX(30px)"
+				currentChannel = "tu"
+				chatMessages.innerHTML = cMessagesTu.toString()
+			}
+			else if (currentChannel == "tu") {
+				channelBlur.style.transform = "translateX(0px)"
+				currentChannel = "en"
+				chatMessages.innerHTML = cMessagesEn.toString()
+			}
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
