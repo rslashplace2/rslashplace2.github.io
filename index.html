@@ -421,10 +421,10 @@
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 				if (messageChannel == "en") {
-					cMessagesEn.push(newMessage)
+					cMessagesEn = cMessagesEn.concat(newMessage)
 				}
 				else if (messageChannel == "tu") {
-					cMessagesTu.push(newMessage)
+					cMessagesTu = cMessagesTu.concat(newMessage)
 				}
 				if (currentChannel == messageChannel) {
 					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
@@ -512,12 +512,12 @@
 			if(currentChannel == "en")  {
 				channelBlur.style.transform = "translateX(30px)"
 				currentChannel = "tu"
-				chatMessages.innerHTML = cMessagesTu.toString()
+				chatMessages.innerHTML = cMessagesTu
 			}
 			else if (currentChannel == "tu") {
 				channelBlur.style.transform = "translateX(0px)"
 				currentChannel = "en"
-				chatMessages.innerHTML = cMessagesEn.toString()
+				chatMessages.innerHTML = cMessagesEn
 			}
 		}
 	</script>
