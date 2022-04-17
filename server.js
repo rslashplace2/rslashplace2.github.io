@@ -123,7 +123,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 				if (txt.includes(link)) return;
 			})
 
-			let blockedNames = ["nors", "ehe", "turk", "burack", "thedeath", "alidark"]
+			let blockedNames = ["nors", "ehe", "turk", "burack", "thedeath", "alidark", "31"]
 			blockedNames.forEach(blockedName => {
 				if (name == blockedName) return;
 			})
