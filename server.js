@@ -4,6 +4,7 @@ import {promises as fs} from 'fs'
 import {createServer} from 'https'
 import sha256 from 'sha256'
 import fsExists from 'fs.promises.exists';
+import fetch from 'node-fetch';
 let SECURE = true
 let BOARD, CHANGES
 
@@ -67,11 +68,14 @@ if(SECURE){
 if (!await fsExists('blacklist.txt')) {
 	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('cooldown_overrides.txt')) { 
+if (!await fsExists('cooldown_overrides.txt')) {
 	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('../vip.txt')) { 
+if (!await fsExists('../vip.txt')) {
 	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
+}
+if (!await fsExists("webhook_url.txt")) {
+  await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
@@ -79,6 +83,13 @@ let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
 let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
+let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
+
+let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
+let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
+
+let decoder = new TextDecoder();
+
 wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
@@ -93,14 +104,27 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	players++
 	p.send(runLengthChanges())
   p.on("error", _=>_)
-  p.on('message', function(data) {
+  p.on('message', async function(data) {
 		if(data[0] == 15){
 			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
 			for(let c of wss.clients){
                 		c.send(data)
         		}
-			return
+
+			let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+			let name; [txt, name] = txt.split("\n")
+			if(name)name = name.replace(/\W+/g,'').toLowerCase()
+			if (!txt) return
+			let extraLinks = ["𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐", "𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠", "discord.gg"]
+	    		extraLinks.forEach(link => {
+                		if (txt.includes(link)) return;
+            		})
+
+	    		let msgHook = { "username": `${name || "anon"} @rplace.tk`, "content": txt }
+			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return
+            		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
+			return;
 		}
 		if(data.length < 6)return //bad packet
 		let i = data.readInt32BE(1), c = data[5]
@@ -162,20 +186,20 @@ let I = 0
 
 setInterval(async function(){
 	I++
-	for(let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
+	for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
 	await fs.writeFile('place', BOARD)
 	let buf = Buffer.of(3, players>>8, players)
-	for(let c of wss.clients){
+	for (let c of wss.clients) {
 		c.send(buf)
 	}
 	if(I % 720 == 0){
-		try{
+		try {
                 	await pushImage()
                 	console.log("["+new Date().toISOString()+"] Successfully saved r/place!")
-        	}catch(e){
+        	} catch(e) {
                 	console.log("["+new Date().toISOString()+"] Error pushing image")
         	}
-        	for(let [k, t] of cooldowns){
+        	for (let [k, t] of cooldowns) {
                 	if(t > NOW)cooldowns.delete(k)
         	}
 	}
@@ -191,7 +215,7 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	let w = x1-x, h = y1-y
 	for(;y < y1; y++){
 		for(;x < x1; x++){
-			CHANGES[x + y * WIDTH] = (random ? Math.floor(Math.random() * 31) :  b)
+			CHANGES[x + y * WIDTH] = random ? Math.floor(Math.random() * 24) :  b
 		}
 		x = x1 - w
 	}
