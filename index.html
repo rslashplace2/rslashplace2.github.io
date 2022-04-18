@@ -450,7 +450,7 @@
 			}
 		}
 		ws.onclose = () => {
-			if(CD != Infinity)return location.reload()
+			if(CD != Infinity)return location.replace(location.origin)
 			//Something went wrong...
 			CD = 1e100
 		}
