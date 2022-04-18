@@ -6,4 +6,6 @@ This site aims to be as similar to the april fools r/place event, where users we
 
 Site link: https://rplace.tk/
 
+![https://rplace.tk running on firefox as of 18/4/2022](site_demo.png)
+
 *Feel free to contribute!*
