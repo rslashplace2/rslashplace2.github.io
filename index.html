@@ -425,7 +425,7 @@
 				 if (name == bname) return;
 				})
 				let newMessage = document.createElement("div")
-				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}\n`
+				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(value);">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 				if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
@@ -534,6 +534,13 @@
 				currentChannel = "en"
 				chatMessages.innerHTML = cMessagesEn
 			}
+		}
+
+		function chatMentionUser(formattedName) {
+			let user = formattedName.slice(1, -1)
+			messageInput.focus()
+			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
+			messageInput.setRangeText("@" + user, start, end, 'select')
 		}
 	</script>
 	<!--script src="board_final.js"></script-->
