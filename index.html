@@ -57,7 +57,7 @@
 			</div>
 			<script>
 				//(adsbygoogle = window.adsbygoogle || []).push({});
-				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";document.querySelector(".adsbygoogle").style.height="150px"},100)
+				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle").style;ad.height="150px";ad.position="relative"},100)
 			</script>
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
