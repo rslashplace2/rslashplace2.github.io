@@ -27,7 +27,7 @@
 				<h2>Enter a nickname to continue:</h2>
 				<h4 style="color: lightgrey;">Devam etmek için bir takma ad girin:</h4>
 				<br>
-				<input id="nameInput" type="text" placeholder="Enter nickname..." enterkeyhint="enter" onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
+				<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
 				<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
@@ -516,11 +516,11 @@
 		function sendMsg(message){
 			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
-		if (localStorage.getItem("name")) {
+		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
 		function setName(name) {
-			localStorage.setItem("name", name);
+			localStorage.name = name
 			namePanel.style.visibility = "hidden"
 		}
 		
