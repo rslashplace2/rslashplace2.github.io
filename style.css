@@ -430,6 +430,10 @@ input {
 	padding: 5px;
 }
 
+a {
+	cursor: pointer;
+}
+
 #messageInput {
 	position: absolute;
 	bottom: 10px;
