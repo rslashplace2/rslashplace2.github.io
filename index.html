@@ -376,7 +376,7 @@
 			}
 		}
 		let load = false
-		fetch('place').then(a=>a.arrayBuffer()).then(a => {
+		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
 			board = new Uint8Array(a)
 			renderAll()
 			if(load)runLengthChanges(load)
@@ -452,10 +452,11 @@
 				scroll && chatMessages.scrollTo(0,999999999)
 			}
 		}
-		ws.onclose = () => {
+		ws.onclose = (e) => {
 			if(CD != Infinity)return location.replace(location.origin)
 			//Something went wrong...
 			CD = 1e100
+			console.error(e)
 		}
 		function seti(i, b){
 			board[i] = b
