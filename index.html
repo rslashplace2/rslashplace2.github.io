@@ -468,7 +468,7 @@
 			if (onCooldown) return
 
 			//"Enter" key to place selected block without using mouse
-			if (e.keyCode == 13 && palette.style.transform == "" && !messageInput.hasFocus()) 
+			if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement) 
 				pok.click()
 
 			//Keyboard shortcuts for selecting palette colours
