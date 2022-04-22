@@ -466,7 +466,13 @@
 		}
 		function scanDocumentShortcuts(e) {
 			if (onCooldown) return
-			let keyIndex = null;
+
+			//"Enter" key to place selected block without using mouse
+			if (e.keyCode == 13 && palette.style.transform == "" && !messageInput.hasFocus()) 
+				pok.click()
+
+			//Keyboard shortcuts for selecting palette colours
+			let keyIndex = null 
 			if(document.activeElement != document.body)return
 			if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
 			if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
