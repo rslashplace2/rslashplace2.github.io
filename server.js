@@ -228,3 +228,10 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	}
 	return `Filled an area of ${w}*${h} (${(w*h)} pixels), reload the webpage to see the effects`
 }
+
+function paste(stack) {
+	stack.forEach(async pxl => {
+		CHANGES[pxl[0] + pxl[1] * WIDTH] = pxl[2];
+	})
+	return `Finished pasting, reload the webpage to see the effects`
+}
