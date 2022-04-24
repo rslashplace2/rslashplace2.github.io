@@ -441,15 +441,37 @@ a {
 	flex: initial;
 }
 
-#nameInput {
-	width: 100%;
-	margin-left: auto;
-	margin-right: auto;
-}
 
 .adsbygoogle{
 	display: block;
 	width: 100%;
 	max-height: 150px !important;
 	overflow: hidden !important;
+}
+
+#nameInput {
+	position: absolute;
+	width: calc(100% - 65px);
+	left: 10px;
+	display: inline-block;
+	height: 40px;
+}
+
+#nameSubmit {
+	position: absolute;
+	display: inline-block;
+	right: 10px;
+	width: 40px;
+	height: 40px;
+	background: white;
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border: none;
+	border-radius: 10px;
+	padding: 2px;
+	transition: all .2s ease-in;
+	cursor: pointer;
+}
+
+#nameSubmit:hover {
+	transform: rotate(5deg) scale(110%);
 }
