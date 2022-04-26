@@ -130,7 +130,12 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 
 			let msgHook = { "username": `[channel] ${name || "anon"} @rplace.tk`, "content": txt }
 			if (msgHook.content.includes("@") || msgHook.content.includes("<@") || msgHook.content.includes("http")) return
-            		await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
+            		try {
+				await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
+			}
+			catch(err) {
+				console.log("Could not post to discord: " + err)
+			}
 			return;
 		}
 		if(data.length < 6)return //bad packet
