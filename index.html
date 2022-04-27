@@ -20,6 +20,10 @@
 	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="donate" noselect onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
+		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
+			<h2 title="Switch to an official secondary or private game server.">Switch Game Server:</h2> <br>
+			<input id="serverInput" type="text" placeholder="server.rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
+		</div>
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<div id="chat" noselect onclick="showChat()">Chat</div>
 		<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));">
@@ -33,7 +37,7 @@
 				</div>
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
-				<h2 style="margin-bottom: 5px; flex: auto;">Live Chat:</h2>
+				<h2 style="flex: auto;">Live Chat:</h2>
 				<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
 					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
 					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('tu')">🇹🇷TÜ</span>
@@ -44,7 +48,7 @@
 				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<hr style="margin-top: 10px;">
-			<span style="color: red;">[!] </span><span id="channelNotification">Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın.</span>
+			<span style="color: red;">[!] </span><span id="channelNotification">لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید</span>
 			<hr>
 			<br>
 			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
@@ -420,6 +424,11 @@
 				let messageChannel;
 				[txt, name, messageChannel] = txt.split("\n")
 				if(name)name = name.replace(/\W+/g,'').toLowerCase()
+				let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
+				bannedNames.forEach(bname => {
+					if (name == bname) return;
+				})
+				
 				if(!txt)return
 				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
 				if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
@@ -427,10 +436,6 @@
 				if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
 				if(txt.includes("𒐫"))return
 				
-				let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
-				bannedNames.forEach(bname => {
-				 if (name == bname) return;
-				})
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
 				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
@@ -472,10 +477,23 @@
 			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
 		}
 		function scanDocumentShortcuts(e) {
+			//"Space" key to open server switch menu
+			if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
+				if (serverMenu.opened) {
+					serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
+					serverMenu.opened = false
+				}
+				else {
+					serverMenu.style.transform = "translateX(-50%)"
+					serverMenu.opened = true
+				}
+			}
+			
+			//Begin palette commands
 			if (onCooldown) return
 
 			//"Enter" key to place selected block without using mouse
-			if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement) 
+			if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
 				pok.click()
 
 			//Keyboard shortcuts for selecting palette colours
@@ -540,7 +558,7 @@
 		
 		function switchLanguageChannel(selected) {
 			if (selected == "fas") {
-				channelNotification.innerText = "..." //TODO: Correct farsi message, and others
+				channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
 				chatMessages.innerHTML = cMessagesFas
 				currentChannel = selected
 				channelEn.style.opacity = "0.5"
@@ -570,6 +588,10 @@
 			messageInput.focus()
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
 			messageInput.setRangeText("@" + user, start, end, 'select')
+		}
+
+		function switchGameServer() {
+
 		}
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
