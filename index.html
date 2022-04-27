@@ -21,7 +21,9 @@
 		<div id="donate" noselect onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
-			<h2 title="Switch to an official secondary or private game server.">Switch Game Server:</h2> <br>
+			<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
+			<icon-close noselect="" id="close-btn" onclick="serverInput.blur(); serverMenu.style.transform = 'translateX(-50%) translateY(-200px)'; serverMenu.opened = false;" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+			<br><br>
 			<input id="serverInput" type="text" placeholder="server.rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
 		</div>
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
@@ -42,7 +44,6 @@
 					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
 					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('tu')">🇹🇷TÜ</span>
 					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')">🇬🇧EN</span>
-					<!--<div id="channelBlur" style="flex: none; line-height: 30px; text-align: center; border-radius: 20px; padding: 5px; background-color: rgba(255, 255, 255, 0.8); width: 45px; height: 30px; position: absolute; transform: translateX(45px);"></div>-->
 				</div>
 				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
 				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
@@ -480,6 +481,7 @@
 			//"Space" key to open server switch menu
 			if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
 				if (serverMenu.opened) {
+					serverInput.blur();
 					serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
 					serverMenu.opened = false
 				}
