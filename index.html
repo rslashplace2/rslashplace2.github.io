@@ -69,7 +69,7 @@
 				//(adsbygoogle = window.adsbygoogle || []).push({});
 				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle").style;ad.height="150px";ad.position="relative"},100)
 			</script>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
+			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1; direction: rtl;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
@@ -567,6 +567,7 @@
 				channelEn.style.opacity = "0.5"
 				channelTu.style.opacity = "0.5"
 				channelFas.style.opacity = "1"
+				chatMessages.style.direction =  "rtl";
 			}
 			else if(selected == "tu")  {
 				channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
@@ -575,6 +576,7 @@
 				channelEn.style.opacity = "0.5"
 				channelTu.style.opacity = "1"
 				channelFas.style.opacity = "0.5"
+				chatMessages.style.direction =  "ltr";
 			}
 			else if (selected == "en") {
 				channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
@@ -583,6 +585,7 @@
 				channelEn.style.opacity = "1"
 				channelTu.style.opacity = "0.5"
 				channelFas.style.opacity = "0.5"
+				chatMessages.style.direction =  "ltr";
 			}
 		}
 
