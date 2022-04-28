@@ -328,7 +328,7 @@ mute-button{
 	}
 }
 
-#helpbtn, #posel, #place, #chat, #chatPanel{
+#helpbtn, #posel, #place, #chat, #chatPanel, #serverMenu{
 	box-shadow: 0 0 30px black;
 }
 
@@ -474,4 +474,21 @@ a {
 
 #nameSubmit:hover {
 	transform: rotate(5deg) scale(110%);
+}
+
+#serverMenu {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    width: 380px;
+    padding: 10px;
+    line-height: 17px;
+    background: white;
+    border-radius: 15px;
+	transition: all .2s ease-in;
+    z-index: 5;
+}
+
+#serverInput {
+	width: 100%;
 }
