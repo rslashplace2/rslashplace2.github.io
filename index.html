@@ -160,7 +160,7 @@
 			canvas.style.width = z * canvas.width * 120 + "px"
 			canvas.style.height = z * canvas.height * 120 + "px"
 			canvas.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px)"
-			canvas.style.imageRendering = z < 1/120/devicePixelRatio ? "initial" : "pixelated"
+			canvas.style.imageRendering = z < 1/120/devicePixelRatio ? "initial" : ""
 		}
 		let x, y, z, board, minZoom;
 		function setsize(w, h = w){
