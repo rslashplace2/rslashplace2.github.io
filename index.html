@@ -30,8 +30,8 @@
 		<div id="chat" noselect onclick="showChat()">Chat</div>
 		<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));">
 			<div id="namePanel" style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: calc(100% - 20px); padding: 10px; background-color: white; border-radius: 15px; height: 120px;">
-				<h2>Enter a nickname to continue:</h2>
-				<h4 style="color: lightgrey;">Devam etmek için bir takma ad girin:</h4>
+				<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
+				<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
 				<br>
 				<div>
 					<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
@@ -39,7 +39,7 @@
 				</div>
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
-				<h2 style="flex: auto;">Live Chat:</h2>
+				<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
 				<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
 					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7-->
 					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
@@ -85,7 +85,22 @@
 		</div>
 		<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
 		<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
-		<div id="modal" style="display:none"><div id="modal-header"> <h2>Place</h2> <icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close> </div> <div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div> <div> <a onclick="window.open('https://discord.gg/dgEF6wvBzj','_blank')">Discord</a><span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span><a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> </div> <div id="modal-footer"> <mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button><img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" /></div> </div>
+			<div id="modal" style="display:none"><div id="modal-header">
+				<h2>Place</h2>
+				<icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close>
+			</div>
+			<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
+			<div>
+				<a onclick="window.open('https://discord.gg/dgEF6wvBzj','_blank')">Discord</a>
+				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
+				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
+				<em>Interface language:</em> <button class="languageButton" onclick="localStorage.language = ''; window.location.reload()">🇬🇧</button> <button class="languageButton" onclick="localStorage.language = 'tu'; window.location.reload()">🇹🇷</button> <button class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload()">🇮🇷</button>
+			</div>
+			<div id="modal-footer">
+				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
+				<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
+			</div>
+		</div>
 		<div id="palette" style="transform: translateY(100%)" noselect>
 			<div id="colors">
 
@@ -330,8 +345,8 @@
 		let CD = Infinity
 		let onCooldown = false
 		setInterval(() => {
-			let left = Math.floor((CD - Date.now()) / 1000)
-			place.innerHTML = load.buffer ? "Downloading image..." : (CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile")
+			let left = Math.floor((CD - Date.now()) / 1000) //TODO: This line of code is disgusting
+			place.innerHTML = load.buffer ? translate("Downloading image...") : (CD >= 1e100 ? (CD == Infinity ? (translate("Connecting...")) : `<span style="color:#f50">${translate("Could not connect!")}</span>`) : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : translate("Place a tile"))
 			if(CD > Date.now() && !onCooldown && !load.buffer)onCooldown = true
 			if(CD < Date.now() && onCooldown && !load.buffer){
 				onCooldown = false
@@ -597,9 +612,29 @@
 			messageInput.setRangeText("@" + user, start, end, 'select')
 		}
 
-		function switchGameServer() {
-
+		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
+			localStorage.server = serverAddress
+			localStorage.board = boardAddress + "/place"
+			location.reload()
 		}
+
+		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" }
+		function translate(key) {
+			switch(localStorage.language) {
+				case "fas":
+					return TRANSLATIONS_FAS[key]
+				default:
+					return key
+			}
+		}
+		
+		//Initial translations
+		chat.textContent = translate(chat.textContent)
+		donate.textContent = translate(donate.textContent)
+		place.textContent = translate(place.textContent)
+		liveChatHeader.textContent = translate(liveChatHeader.textContent)
+		namePanelHeader.textContent = translate(namePanelHeader.textContent)
+		
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 	<!--script src="board_final.js"></script-->
