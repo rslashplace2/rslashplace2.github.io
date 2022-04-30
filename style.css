@@ -494,6 +494,7 @@ a {
 }
 
 .languageButton {
+	font-size: xx-large;
 	border: 0px solid black;
 	background-color: transparent;
 	transition: transform .2s;
