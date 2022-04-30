@@ -187,7 +187,7 @@ input{
 		min-width: 200px;
 		max-width: 275px;
 	}
-	#modal-footer { margin-top: 32px }
+	#modal-footer { margin-top: 16px }
 }
 #close-btn{
 	width: 20px;
@@ -213,7 +213,7 @@ input{
 	margin: 0px 0px 20px;
 }
 #modal-footer {
-	margin-top: 56px;
+	margin-top: 16px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
