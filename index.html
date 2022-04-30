@@ -368,7 +368,7 @@
 				el.classList.remove('sel')
 			}
 			PEN = i
-			audios.selectColor.run()
+			try { audios.selectColor.run() } catch(e) {console.error("**CRITICAL BLOB PLEASE FIX**: " + e)}
 			canvselect.style.background = e.target.style.background
 			e.target.classList.add('sel')
 			pok.classList.add('enabled')
