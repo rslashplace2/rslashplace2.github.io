@@ -94,7 +94,7 @@
 				<a onclick="window.open('https://discord.gg/dgEF6wvBzj','_blank')">Discord</a>
 				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
 				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
-				<em>Interface language:</em> <button class="languageButton" onclick="localStorage.language = ''; window.location.reload()">🇬🇧</button> <button class="languageButton" onclick="localStorage.language = 'tu'; window.location.reload()">🇹🇷</button> <button class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload()">🇮🇷</button>
+				<em>Interface language:</em> <button class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button>
 			</div>
 			<div id="modal-footer">
 				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
@@ -618,10 +618,14 @@
 		}
 
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" }
+		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" }
 		function translate(key) {
 			switch(localStorage.language) {
 				case "fas":
 					return TRANSLATIONS_FAS[key]
+				case "tk":
+					return TRANSLATIONS_TK[key]
+				
 				default:
 					return key
 			}
