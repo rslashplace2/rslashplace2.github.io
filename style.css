@@ -384,6 +384,7 @@ mute-button{
 	padding: 3px;
 	margin-top: 2.5px;
 	margin-right: 20px;
+	display: flex;
 }
 
 @media screen and (orientation:landscape) {
