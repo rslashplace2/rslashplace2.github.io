@@ -555,9 +555,21 @@
 		if (window.innerHeight > window.innerWidth) {
 			chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
+
+		/**
+		 * Shows the chat window
+		 * 
+		 * @todo Change chat "display" in stylesheet.
+		 */
 		function showChat() {
 			chatPanel.style.transform = ""
 		}
+
+		/**
+		 * Hides the chat window
+		 * 
+		 * @todo Change chat "display" in stylesheet to none.
+		 */
 		function hideChat() {
 			if (window.innerHeight > window.innerWidth)
 				chatPanel.style.transform = "translateX(calc(100% + 50px))"
@@ -565,17 +577,34 @@
 				chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
+
+		/**
+		 * Send a chat message to the WebSocket
+		 * 
+		 * @param {string} message Message to send
+		 */
 		function sendMsg(message){
 			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
+
+		/**
+		 * Set chat username
+		 * 
+		 * @param {string} name The username to set
+		 */
 		function setName(name) {
 			localStorage.name = name
 			namePanel.style.visibility = "hidden"
 		}
 		
+		/**
+		 * Changes between the different language channels
+		 * 
+		 * @param {string} selected The selected channel
+		 */
 		function switchLanguageChannel(selected) {
 			if (selected == "fas") {
 				channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
@@ -606,6 +635,11 @@
 			}
 		}
 
+		/**
+		 * Adds the users name to the message input
+		 * 
+		 * @param {string} formattedName The formatted username
+		 */
 		function chatMentionUser(formattedName) {
 			let user = formattedName.slice(1, -1)
 			messageInput.focus()
@@ -614,6 +648,13 @@
 		}
 
 		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
+		/**
+		 * Changes the current game server being used.
+		 * 
+		 * @param {string} serverAddress The server URI.
+		 * @todo Make proper implementation
+		 */
+		function switchGameServer(serverAddress) {
 			localStorage.server = serverAddress
 			localStorage.board = boardAddress + "/place"
 			location.reload()
@@ -627,6 +668,12 @@
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
 		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
 
+		/**
+		 * Translates the given text to the currently selected language.
+		 * 
+		 * @param {string} key The text to translate.
+		 * @return {string} Translated text
+		 */
 		function translate(key) {
 			switch(localStorage.language) {
 				case "fas": //persian
