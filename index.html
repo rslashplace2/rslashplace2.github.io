@@ -167,6 +167,40 @@
 			moved = 3
 			click = 0
 		}
+		document.body.onkeyup = function(e) {
+			if (e.keyCode == 37) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 38) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 39) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 40) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+		}
 		oncontextmenu = e => e.preventDefault()
 		let selX = 0, selY = 0
 		let c = canvas.getContext('2d')
@@ -336,7 +370,7 @@
 			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
 			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
 		}
-		Audio.prototype.run = async function(){
+		HTMLAudioElement.prototype.run = Audio.prototype.run = async function(){
 			if(muted)return
 			this.currentTime = 0
 			try{await this.play()}catch(e){}
@@ -577,32 +611,34 @@
 		}
 		
 		function switchLanguageChannel(selected) {
-			if (selected == "fas") {
-				channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
-				chatMessages.innerHTML = cMessagesFas
-				currentChannel = selected
-				channelEn.style.opacity = "0.5"
-				channelTu.style.opacity = "0.5"
-				channelFas.style.opacity = "1"
-				chatMessages.style.direction =  "rtl";
-			}
-			else if(selected == "tu")  {
-				channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
-				chatMessages.innerHTML = cMessagesTu
-				currentChannel = selected
-				channelEn.style.opacity = "0.5"
-				channelTu.style.opacity = "1"
-				channelFas.style.opacity = "0.5"
-				chatMessages.style.direction =  "ltr";
-			}
-			else if (selected == "en") {
-				channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
-				chatMessages.innerHTML = cMessagesEn
-				currentChannel = selected
-				channelEn.style.opacity = "1"
-				channelTu.style.opacity = "0.5"
-				channelFas.style.opacity = "0.5"
-				chatMessages.style.direction =  "ltr";
+			switch(selected) {
+				case "fas":
+					channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
+					chatMessages.innerHTML = cMessagesFas
+					currentChannel = selected
+					channelEn.style.opacity = "0.5"
+					channelTu.style.opacity = "0.5"
+					channelFas.style.opacity = "1"
+					chatMessages.style.direction =  "rtl";
+					break;
+				case "tu":
+					channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
+					chatMessages.innerHTML = cMessagesTu
+					currentChannel = selected
+					channelEn.style.opacity = "0.5"
+					channelTu.style.opacity = "1"
+					channelFas.style.opacity = "0.5"
+					chatMessages.style.direction =  "ltr";
+					break;
+				case "en":
+					channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
+					chatMessages.innerHTML = cMessagesEn
+					currentChannel = selected
+					channelEn.style.opacity = "1"
+					channelTu.style.opacity = "0.5"
+					channelFas.style.opacity = "0.5"
+					chatMessages.style.direction =  "ltr";
+					break;
 			}
 		}
 
