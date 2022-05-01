@@ -606,32 +606,31 @@
 		 * @param {string} selected The selected channel
 		 */
 		function switchLanguageChannel(selected) {
-			if (selected == "fas") {
-				channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
-				chatMessages.innerHTML = cMessagesFas
-				currentChannel = selected
-				channelEn.style.opacity = "0.5"
-				channelTu.style.opacity = "0.5"
-				channelFas.style.opacity = "1"
-				chatMessages.style.direction =  "rtl";
-			}
-			else if(selected == "tu")  {
-				channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
-				chatMessages.innerHTML = cMessagesTu
-				currentChannel = selected
-				channelEn.style.opacity = "0.5"
-				channelTu.style.opacity = "1"
-				channelFas.style.opacity = "0.5"
-				chatMessages.style.direction =  "ltr";
-			}
-			else if (selected == "en") {
-				channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
-				chatMessages.innerHTML = cMessagesEn
-				currentChannel = selected
-				channelEn.style.opacity = "1"
-				channelTu.style.opacity = "0.5"
-				channelFas.style.opacity = "0.5"
-				chatMessages.style.direction =  "ltr";
+			switch(selected) {
+				case "fas":
+					channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
+					chatMessages.innerHTML = cMessagesFas
+					currentChannel = selected
+					channelEn.style.opacity = "0.5"
+					channelTu.style.opacity = "0.5"
+					channelFas.style.opacity = "1"
+					chatMessages.style.direction =  "rtl";
+				case "tu":
+					channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
+					chatMessages.innerHTML = cMessagesTu
+					currentChannel = selected
+					channelEn.style.opacity = "0.5"
+					channelTu.style.opacity = "1"
+					channelFas.style.opacity = "0.5"
+					chatMessages.style.direction =  "ltr";
+				case "en":
+					channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
+					chatMessages.innerHTML = cMessagesEn
+					currentChannel = selected
+					channelEn.style.opacity = "1"
+					channelTu.style.opacity = "0.5"
+					channelFas.style.opacity = "0.5"
+					chatMessages.style.direction =  "ltr";
 			}
 		}
 
