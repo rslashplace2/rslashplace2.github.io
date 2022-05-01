@@ -586,6 +586,8 @@
 		function sendMsg(message){
 			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
+
+		// check if name exists, hide the request for a username if so.
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
