@@ -576,7 +576,6 @@
 			else
 				chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
-		let encoder = new TextEncoder(), decoder = new TextDecoder()
 
 		/**
 		 * Send a chat message to the WebSocket
@@ -584,7 +583,7 @@
 		 * @param {string} message Message to send
 		 */
 		function sendMsg(message){
-			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+			ws.send(new TextEncoder().encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
 
 		// check if name exists, hide the request for a username if so.
