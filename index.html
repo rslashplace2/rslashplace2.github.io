@@ -742,6 +742,42 @@
 			click = 0
 		}
 
+		// Arrow key support
+		document.body.onkeyup = function(e) {
+			if (e.keyCode == 37) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 38) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 39) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 40) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+		}
+
 		// Disable right click context menu.
 		oncontextmenu = e => e.preventDefault()
 
