@@ -122,22 +122,12 @@
 	</script>
 
 	<script>
-		let actives = new Map()
-		actives.set(-2, [])
 		let touch1 = null, touch2 = null, touchmoved = 3;
 		document.body.ontouchstart = function(e){
 			for(let t of e.changedTouches){
 				if(!touch1)touch1 = t, touchmoved = 3
 				else if(!touch2)touch2 = t
 				else [touch1, touch2] = [touch2, t]
-				let ac = []
-				let el = e.target
-				while(el){
-					el.classList.add("active")
-					ac.push(el)
-					el = el.parentElement
-				}
-				actives.set(t.identifier, ac)
 			}
 		}
 		document.body.ontouchend = function(e){
@@ -150,8 +140,6 @@
 						clicked(t.clientX, t.clientY)
 					}
 				}
-				for(let el of actives.get(t.identifier))el.classList.remove("active")
-				actives.delete(t.identifier)
 				if('value' in e.target)e.target.focus()
 				else{let target = e.target; while(!target.click)target = target.parentElement;target.click()}
 			}
@@ -212,12 +200,12 @@
 		let selX = 0, selY = 0
 		let c = canvas.getContext('2d')
 		function transform(){
-			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-120+innerWidth/2)+"px, "+(y*z*-120+innerHeight/2)+"px) scale("+z*120+")"
+			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-50+innerWidth/2)+"px, "+(y*z*-50+innerHeight/2)+"px) scale("+z*50+")"
 			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
-			canvas.style.width = z * canvas.width * 120 + "px"
-			canvas.style.height = z * canvas.height * 120 + "px"
-			canvas.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px)"
-			canvas.style.imageRendering = z < 1/120/devicePixelRatio ? "initial" : ""
+			canvas.style.width = z * canvas.width * 50 + "px"
+			canvas.style.height = z * canvas.height * 50 + "px"
+			canvas.style.transform = "translate("+x*z*-50+"px, "+y*z*-50+"px)"
+			canvas.style.imageRendering = z < 1/50/devicePixelRatio ? "initial" : ""
 		}
 		let x, y, z, board, minZoom;
 		function setsize(w, h = w){
@@ -258,8 +246,8 @@
 			let dy = -(my - (my = e.clientY - innerHeight / 2))
 			if(dx != dx || dy != dy)return
 			if(click){
-				x -= dx / (z * 120)
-				y -= dy / (z * 120)
+				x -= dx / (z * 50)
+				y -= dy / (z * 50)
 				pos()
 				clearInterval(anim)
 			}
@@ -268,8 +256,8 @@
 			if(e.target != document.body && !canvparent2.contains(e.target))return
 			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
 			z *= d
-			x += mx * (d - 1) / z / 120
-			y += my * (d - 1) / z / 120
+			x += mx * (d - 1) / z / 50
+			y += my * (d - 1) / z / 50
 			pos()
 		}
 		function pos(){
@@ -314,16 +302,16 @@
 			clearInterval(anim)
 			a: if(!touch2 && touch1 && touch1.identifier == t.identifier){
 				if(e.target != document.body && !canvparent2.contains(e.target))break a
-				x -= (t.clientX - touch1.clientX) / (z * 120)
-				y -= (t.clientY - touch1.clientY) / (z * 120)
+				x -= (t.clientX - touch1.clientX) / (z * 50)
+				y -= (t.clientY - touch1.clientY) / (z * 50)
 				pos()
 			}else if(touch1 && touch2){
 				if(e.target != document.body && !canvparent2.contains(e.target))break a
 				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
 				if(!touch)break a
 				let other = touch == touch1 ? touch2 : touch1
-				x -= (t.clientX - touch.clientX) / (z * 120)
-				y -= (t.clientY - touch.clientY) / (z * 120)
+				x -= (t.clientX - touch.clientX) / (z * 50)
+				y -= (t.clientY - touch.clientY) / (z * 50)
 				let dx = touch.clientX - other.clientX
 				let dy = touch.clientY - other.clientY
 				let a = dx * dx + dy * dy
@@ -342,8 +330,8 @@
 		let anim = null
 		function clicked(clientX, clientY){
 			clearInterval(anim)
-			clientX = Math.floor(x+(clientX-innerWidth/2)/z/120) + 0.5
-			clientY = Math.floor(y+(clientY-innerHeight/2)/z/120) + 0.5
+			clientX = Math.floor(x+(clientX-innerWidth/2)/z/50) + 0.5
+			clientY = Math.floor(y+(clientY-innerHeight/2)/z/50) + 0.5
 			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
 				clientX -= 0.5; clientY -= 0.5
 				if(CD<Date.now())zoomIn(),showPalette()
