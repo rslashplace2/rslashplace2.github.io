@@ -169,37 +169,40 @@
 			click = 0
 		}
 		document.body.onkeyup = function(e) {
-			if (e.keyCode == 37) {
-				let j = 50, t = setInterval(function(){
-					j--
-					x -= j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 38) {
-				let j = 50, t = setInterval(function(){
-					j--
-					y -= j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 39) {
-				let j = 50, t = setInterval(function(){
-					j--
-					x += j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 40) {
-				let j = 50, t = setInterval(function(){
-					j--
-					y += j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
+			let i = 10, repeatFunc
+			switch (e.keyCode) {
+				case 37:
+					repeatFunc = setInterval(function(){
+						i--
+						x -= i / 55
+						pos()
+						if(i <= 1)clearInterval(repeatFunc)
+					}, 16) //60fps is 16.67ms
+					break
+				case 38:
+					repeatFunc = setInterval(function(){
+						i--
+						y -= i / 55
+						pos()
+						if(i <= 1)clearInterval(repeatFunc)
+					}, 16)
+					break
+				case 39:
+					repeatFunc = setInterval(function(){
+						i--
+						x += i / 55
+						pos()
+						if(i <= 1)clearInterval(repeatFunc)
+					}, 16)
+					break
+				case 40:
+					repeatFunc = setInterval(function(){
+						i--
+						y += i / 55
+						pos()
+						if(i <= 1)clearInterval(repeatFunc)
+					}, 16)
+					break
 			}
 		}
 		oncontextmenu = e => e.preventDefault()
@@ -484,11 +487,7 @@
 				})
 				
 				if(!txt)return
-				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
-				if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
-				if(txt.includes("discord.gg"))return
-				if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
-				if(txt.includes("𒐫"))return
+				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
 				
 				let newMessage = document.createElement("div")
 				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
@@ -498,18 +497,12 @@
 					newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 					if (currentChannel == messageChannel) audios.closePalette.run()
 				}
-
-				if (messageChannel == "en") {
-					cMessagesEn = cMessagesEn.concat(newMessage.outerHTML.toString())
-				}
-				else if (messageChannel == "tu") {
-					cMessagesTu = cMessagesTu.concat(newMessage.outerHTML.toString())
-				}
-				else if (messageChannel == "fas") {
-					cMessagesFas = cMessagesFas.concat(newMessage.outerHTML.toString())
-				}
-				if (currentChannel == messageChannel) {
-					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+				
+				switch(messageChannel) {
+					case "en": cMessagesEn = cMessagesEn.concat(newMessage.outerHTML.toString()); break
+					case "tu": cMessagesTu = cMessagesTu.concat(newMessage.outerHTML.toString()); break
+					case "fas": cMessagesFas = cMessagesFas.concat(newMessage.outerHTML.toString()); break
+					case currentChannel: chatMessages.insertAdjacentElement("beforeEnd", newMessage); break
 				}
 
 				if(chatMessages.children.length>100){
@@ -621,7 +614,7 @@
 					channelTu.style.opacity = "0.5"
 					channelFas.style.opacity = "1"
 					chatMessages.style.direction =  "rtl";
-					break;
+					break
 				case "tu":
 					channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
 					chatMessages.innerHTML = cMessagesTu
@@ -630,7 +623,7 @@
 					channelTu.style.opacity = "1"
 					channelFas.style.opacity = "0.5"
 					chatMessages.style.direction =  "ltr";
-					break;
+					break
 				case "en":
 					channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
 					chatMessages.innerHTML = cMessagesEn
@@ -639,7 +632,7 @@
 					channelTu.style.opacity = "0.5"
 					channelFas.style.opacity = "0.5"
 					chatMessages.style.direction =  "ltr";
-					break;
+					break
 			}
 		}
 
