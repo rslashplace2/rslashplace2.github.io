@@ -169,39 +169,6 @@
 			click = 0
 		}
 		document.body.onkeyup = function(e) {
-<<<<<<< HEAD
-			if (e.keyCode == 37) {
-				let j = 10, t = setInterval(function(){
-					j--
-					x -= j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 38) {
-				let j = 10, t = setInterval(function(){
-					j--
-					y -= j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 39) {
-				let j = 10, t = setInterval(function(){
-					j--
-					x += j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-			}
-			else if (e.keyCode == 40) {
-				let j = 10, t = setInterval(function(){
-					j--
-					y += j / 55
-					pos()
-					if(j <= 1)clearInterval(t)
-				}, 50)
-=======
 			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 			if (e.keyCode == 37) { //Right
 				let i = 10
@@ -238,7 +205,6 @@
 					pos()
 					if(i <= 1)clearInterval(repeatFunc)
 				}, 16)
->>>>>>> 0dcbf7206ce47c8122bcb60659460172fb14f75f
 			}
 		}
 		oncontextmenu = e => e.preventDefault()
