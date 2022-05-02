@@ -18,6 +18,7 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
+		<div id='loadingScreen' style='background:#d6dfe3;z-index:99;transition:opacity .3s;opacity:1;position:fixed;top:0;left:0;bottom:0;right:0;display:flex;justify-content:center;align-items:center'><img src='https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif' style='width:128px;height:128px' /></div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
@@ -427,6 +428,8 @@
 				boardI += c
 				seti(boardI++, cell & 63)
 			}
+			loadingScreen.style.opacity = 0
+			setTimeout(()=>loadingScreen.remove(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
