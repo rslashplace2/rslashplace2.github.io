@@ -171,40 +171,38 @@
 		//Arrow key movement around the canvas
 		document.body.onkeyup = function(e) {
 			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
-			let i = 10, repeatFunc
-			switch (e.keyCode) {
-				case 37: //Right
-					repeatFunc = setInterval(function(){
-						i--
-						x -= i / 55
-						pos()
-						if(i <= 1)clearInterval(repeatFunc)
-					}, 16) //60fps is 16.67ms
-					break
-				case 38: //up
-					repeatFunc = setInterval(function(){
-						i--
-						y -= i / 55
-						pos()
-						if(i <= 1)clearInterval(repeatFunc)
-					}, 16)
-					break
-				case 39: //left
-					repeatFunc = setInterval(function(){
-						i--
-						x += i / 55
-						pos()
-						if(i <= 1)clearInterval(repeatFunc)
-					}, 16)
-					break
-				case 40: //down
-					repeatFunc = setInterval(function(){
-						i--
-						y += i / 55
-						pos()
-						if(i <= 1)clearInterval(repeatFunc)
-					}, 16)
-					break
+			let i = 10
+			if (e.keyCode == 37) { //Right
+				let repeatFunc = setInterval(function(){
+					i--
+					x -= i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16) //60fps is 16.67ms
+			}
+			else if (e.keyCode == 38) { //up
+				let repeatFunc = setInterval(function(){
+					i--
+					y -= i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
+			}
+			else if (e.keyCode == 39) { //left
+				let repeatFunc = setInterval(function(){
+					i--
+					x += i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
+			}
+			else if (e.keyCode == 40) { //down
+				let repeatFunc = setInterval(function(){
+					i--
+					y += i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
 			}
 		}
 		oncontextmenu = e => e.preventDefault()
