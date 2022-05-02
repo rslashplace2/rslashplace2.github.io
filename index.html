@@ -91,10 +91,12 @@
 			</div>
 			<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
 			<div>
-				<br> <br>
 				<a onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</a>
 				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
 				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
+				<br>
+				<p style="font-family: reddit; font-size: 18px; line-height: 5px;">Interface language:</p> <br>
+				<button noselect class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button noselect class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'rom'; window.location.reload();">🇷🇴</button> <button noselect class="languageButton" onclick="localStorage.language = 'gr'; window.location.reload();">🇬🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'sp'; window.location.reload();">🇪🇸</button> <button noselect class="languageButton" onclick="localStorage.language = 'fr'; window.location.reload();">🇫🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'am'; window.location.reload();">🇦🇲</button>
 			</div>
 			<div id="modal-footer">
 				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
