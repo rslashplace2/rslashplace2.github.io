@@ -168,10 +168,12 @@
 			moved = 3
 			click = 0
 		}
+		//Arrow key movement around the canvas
 		document.body.onkeyup = function(e) {
+			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 			let i = 10, repeatFunc
 			switch (e.keyCode) {
-				case 37:
+				case 37: //Right
 					repeatFunc = setInterval(function(){
 						i--
 						x -= i / 55
@@ -179,7 +181,7 @@
 						if(i <= 1)clearInterval(repeatFunc)
 					}, 16) //60fps is 16.67ms
 					break
-				case 38:
+				case 38: //up
 					repeatFunc = setInterval(function(){
 						i--
 						y -= i / 55
@@ -187,7 +189,7 @@
 						if(i <= 1)clearInterval(repeatFunc)
 					}, 16)
 					break
-				case 39:
+				case 39: //left
 					repeatFunc = setInterval(function(){
 						i--
 						x += i / 55
@@ -195,7 +197,7 @@
 						if(i <= 1)clearInterval(repeatFunc)
 					}, 16)
 					break
-				case 40:
+				case 40: //down
 					repeatFunc = setInterval(function(){
 						i--
 						y += i / 55
