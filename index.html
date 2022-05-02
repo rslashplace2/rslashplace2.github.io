@@ -167,6 +167,7 @@
 			click = 0
 		}
 		document.body.onkeyup = function(e) {
+<<<<<<< HEAD
 			if (e.keyCode == 37) {
 				let j = 10, t = setInterval(function(){
 					j--
@@ -198,6 +199,44 @@
 					pos()
 					if(j <= 1)clearInterval(t)
 				}, 50)
+=======
+			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
+			if (e.keyCode == 37) { //Right
+				let i = 10
+				let repeatFunc = setInterval(function(){
+					i--
+					x -= i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16) //60fps is 16.67ms
+			}
+			else if (e.keyCode == 38) { //up
+				let i = 10
+				let repeatFunc = setInterval(function(){
+					i--
+					y -= i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
+			}
+			else if (e.keyCode == 39) { //left
+				let i = 10
+				let repeatFunc = setInterval(function(){
+					i--
+					x += i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
+			}
+			else if (e.keyCode == 40) { //down
+				let i = 10
+				let repeatFunc = setInterval(function(){
+					i--
+					y += i / 55
+					pos()
+					if(i <= 1)clearInterval(repeatFunc)
+				}, 16)
+>>>>>>> 0dcbf7206ce47c8122bcb60659460172fb14f75f
 			}
 		}
 		oncontextmenu = e => e.preventDefault()
