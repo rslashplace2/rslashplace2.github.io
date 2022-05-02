@@ -16,7 +16,6 @@
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
-<script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
@@ -43,15 +42,15 @@
 				<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
 				<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
 					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7-->
-					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
+					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
 					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('tu')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
-					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
+					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
 				</div>
 				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
 				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<hr style="margin-top: 10px;">
-			<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید</span>
+			<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">Please use English in EN, Turkish in TÜ and persian in FAS</span>
 			<hr>
 			<br>
 			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
@@ -70,8 +69,8 @@
 				//(adsbygoogle = window.adsbygoogle || []).push({});
 				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle").style;ad.height="150px";ad.position="relative"},100)
 			</script>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1; direction: rtl;"></div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
+			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -110,7 +109,7 @@
 			</div>
 			<div class="buttons">
 				<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
-				<div id="pok" class="pok" onclick="if(!this.classList.contains('enabled'))return; put(); hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
+				<div id="pok" class="pok"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
 			</div>
 		</div>
 	</body>
@@ -169,8 +168,40 @@
 			moved = 3
 			click = 0
 		}
-		//Arrow key movement around the canvas
 		document.body.onkeyup = function(e) {
+<<<<<<< HEAD
+			if (e.keyCode == 37) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 38) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y -= j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 39) {
+				let j = 10, t = setInterval(function(){
+					j--
+					x += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+			}
+			else if (e.keyCode == 40) {
+				let j = 10, t = setInterval(function(){
+					j--
+					y += j / 55
+					pos()
+					if(j <= 1)clearInterval(t)
+				}, 50)
+=======
 			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 			if (e.keyCode == 37) { //Right
 				let i = 10
@@ -207,6 +238,7 @@
 					pos()
 					if(i <= 1)clearInterval(repeatFunc)
 				}, 16)
+>>>>>>> 0dcbf7206ce47c8122bcb60659460172fb14f75f
 			}
 		}
 		oncontextmenu = e => e.preventDefault()
@@ -228,7 +260,7 @@
 			canvparent1.style.height = h + "px"
 			canvparent2.style.width = w + "px"
 			canvparent2.style.height = h + "px"
-			board = new Uint8Array(w * h).fill(31)
+			board = new Uint8Array(w * h).fill(255)
 			let i = board.length
 			x = +localStorage.x || WIDTH/2
 			y = +localStorage.y || HEIGHT/2
@@ -411,26 +443,12 @@
 				el.classList.remove('sel')
 			}
 			PEN = i
-			try { audios.selectColor.run() } catch(e) {console.error("**CRITICAL BLOB PLEASE FIX**: " + e)}
 			canvselect.style.background = e.target.style.background
 			e.target.classList.add('sel')
 			pok.classList.add('enabled')
 			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
-			hideIndicators();
-		}
-		function put(){
-			if(CD>Date.now())return
-			canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
-			set(Math.floor(x), Math.floor(y), PEN)
-			canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
-			audios.cooldownStart.run()
-			CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
-			let a = new DataView(new Uint8Array(6).buffer)
-			a.setUint8(0, 4)
-			a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
-			a.setUint8(5, PEN)
-			PEN=-1
-			ws.send32(a)
+			hideIndicators()
+			audios.selectColor.run()
 		}
 		function runLengthChanges(data){
 			let i = 1, boardI = 0
@@ -454,73 +472,96 @@
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		let online = 1
 		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
-		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
-		let cMessagesFas = "", cMessagesTu = "", cMessagesEn = ""
+		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
+		let cMessages = {fas: [], tu: [], en: []}
 		let currentChannel = "en"
 
-		let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
-		ws.onmessage = async function({data}){
-			data = new DataView(await data.arrayBuffer())
-			let code = data.getUint8(0)
-			if(code == 1){
-				CD = data.getUint32(1) * 1000
-			}else if(code == 2){
-				//run length coding
-				if(!load)load = data
-				else runLengthChanges(data)
-			}else if(code == 7){
-				CD = data.getUint32(1) * 1000
-				seti(data.getUint32(5), data.getUint8(9))
-			}else if(code == 6){
-				let i = 0
-				while(i < data.byteLength - 2){
-					seti(data.getUint32(i += 1), data.getUint8(i += 4))
-				}
-			}else if(code == 3){
-				online = data.getUint16(1)
-				document.getElementById("onlineCounter").textContent = online;
-			}else if(code == 15){
-				let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-				let name;
-				let messageChannel;
-				[txt, name, messageChannel] = txt.split("\n")
-				if(name)name = name.replace(/\W+/g,'').toLowerCase()
-				let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
-				bannedNames.forEach(bname => {
-					if (name == bname) return;
-				})
-				
-				if(!txt)return
-				if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
-				
-				let newMessage = document.createElement("div")
-				newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
-				let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
+		;((ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))) => {
+			ws.onmessage = async function({data}){
+				data = new DataView(await data.arrayBuffer())
+				let code = data.getUint8(0)
+				if(code == 1){
+					CD = data.getUint32(1) * 1000
+				}else if(code == 2){
+					//run length coding
+					if(!load)load = data
+					else runLengthChanges(data)
+				}else if(code == 7){
+					CD = data.getUint32(1) * 1000
+					seti(data.getUint32(5), data.getUint8(9))
+				}else if(code == 6){
+					let i = 0
+					while(i < data.byteLength - 2){
+						seti(data.getUint32(i += 1), data.getUint8(i += 4))
+					}
+				}else if(code == 3){
+					online = data.getUint16(1)
+					document.getElementById("onlineCounter").textContent = online;
+				}else if(code == 15){
+					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+					let name;
+					let messageChannel;
+					[txt, name, messageChannel] = txt.split("\n")
+					if(name)name = name.replace(/\W+/g,'').toLowerCase()
+					let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
+					bannedNames.forEach(bname => {
+						if (name == bname) return;
+					})
+					
+					if(!txt)return
+					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
+					if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
+					if(txt.includes("discord.gg"))return
+					if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
+					if(txt.includes("𒐫"))return
+					
+					let newMessage = document.createElement("div")
+					newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
+					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
-				if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
-					newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
-					if (currentChannel == messageChannel) audios.closePalette.run()
-				}
-				
-				switch(messageChannel) {
-					case "en": cMessagesEn = cMessagesEn.concat(newMessage.outerHTML.toString()); break
-					case "tu": cMessagesTu = cMessagesTu.concat(newMessage.outerHTML.toString()); break
-					case "fas": cMessagesFas = cMessagesFas.concat(newMessage.outerHTML.toString()); break
-					case currentChannel: chatMessages.insertAdjacentElement("beforeEnd", newMessage); break
-				}
+					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
+						newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
+						if (currentChannel == messageChannel) audios.closePalette.run()
+					}
+					messageChannel = messageChannel || 'en'
+					cMessages[messageChannel].push(newMessage.outerHTML)
+					if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+					if (currentChannel == messageChannel) {
+						chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+					}
 
-				if(chatMessages.children.length>100){
-                    			chatMessages.children[0].remove()
+					if(chatMessages.children.length>100){
+						chatMessages.children[0].remove()
+					}
+					scroll && chatMessages.scrollTo(0,999999999)
 				}
-				scroll && chatMessages.scrollTo(0,999999999)
 			}
-		}
-		ws.onclose = (e) => {
-			if(CD != Infinity)return location.replace(location.origin)
-			//Something went wrong...
-			CD = 1e100
-			console.error(e)
-		}
+			ws.onclose = (e) => {
+				if(CD != Infinity)return location.replace(location.origin)
+				//Something went wrong...
+				CD = 1e100
+				console.error(e)
+			}
+			function put(){
+				if(CD>Date.now())return
+				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
+				set(Math.floor(x), Math.floor(y), PEN)
+				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
+				audios.cooldownStart.run()
+				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
+				let a = new DataView(new Uint8Array(6).buffer)
+				a.setUint8(0, 4)
+				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
+				a.setUint8(5, PEN)
+				PEN=-1
+				ws.send(a)
+			}
+			pok.onclick = e => {if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			function sendMsg(message){
+				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+			}
+			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
+		})()
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
@@ -597,9 +638,6 @@
 				chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
-		function sendMsg(message){
-			ws.send32(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
-		}
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
@@ -609,35 +647,27 @@
 		}
 		
 		function switchLanguageChannel(selected) {
+			channelTu.style.opacity = "0.5"
+			channelFas.style.opacity = "0.5"
+			channelEn.style.opacity = "0.5"
+			currentChannel = selected
+			chatMessages.style.direction =  "ltr";
 			switch(selected) {
 				case "fas":
-					channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید"
-					chatMessages.innerHTML = cMessagesFas
-					currentChannel = selected
-					channelEn.style.opacity = "0.5"
-					channelTu.style.opacity = "0.5"
+					channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'fas' برای فارسی استفاده کنید"
 					channelFas.style.opacity = "1"
 					chatMessages.style.direction =  "rtl";
-					break
+					break;
 				case "tu":
-					channelNotification.innerText = "Lütfen TÜ'da Türkçe ve EN'de İngilizce kullanın."
-					chatMessages.innerHTML = cMessagesTu
-					currentChannel = selected
-					channelEn.style.opacity = "0.5"
+					channelNotification.innerText = "Lütfen TÜ'da Türkçe, EN'de İngilizce ve FAS'ta Farsça kullanın."
 					channelTu.style.opacity = "1"
-					channelFas.style.opacity = "0.5"
-					chatMessages.style.direction =  "ltr";
-					break
+					break;
 				case "en":
-					channelNotification.innerText = "Please use English in EN and Turkish in TÜ"
-					chatMessages.innerHTML = cMessagesEn
-					currentChannel = selected
+					channelNotification.innerText = "Please use English in EN, Turkish in TÜ and persian in FAS"
 					channelEn.style.opacity = "1"
-					channelTu.style.opacity = "0.5"
-					channelFas.style.opacity = "0.5"
-					chatMessages.style.direction =  "ltr";
-					break
+					break;
 			}
+			chatMessages.innerHTML = cMessages[selected].join('')
 		}
 
 		function chatMentionUser(formattedName) {
@@ -653,31 +683,28 @@
 			location.reload()
 		}
 		
-		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation, thanks to Kapra#7777 for armenian translation.
+		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" }
 		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" }
 		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:" }
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
 		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
-		const TRANSLATIONS_AM = { "Connecting...": "Միանում...", "Could not connect!": "Միանալը հնարավոր չէր:", "Downloading image...": "Ներբեռնում ենք նկարը...", "Place a tile": "Տեղադրեք մի սալիկ", "Donate": "Նվիրաբերել", "Chat": "Զրուցարան", "Live Chat:": "Ուղիղ Զրուցարան.", "Enter a nickname to continue:": "Մուտքագրեք մականուն՝ շարունակելու համար." }
 
 		function translate(key) {
-			switch(localStorage.language) {
-				case "fas": //persian
+			switch(navigator.language.split('-')[0]) {
+				case "fa": //persian
 					return TRANSLATIONS_FAS[key]
-				case "tk": //turkish
+				case "tr": //turkish
 					return TRANSLATIONS_TK[key]
-				case "rom": //romanian
+				case "ro": //romanian
 					return TRANSLATIONS_ROM[key]
-				case "gr": //greek
+				case "el": //greek
 					return TRANSLATIONS_GR[key]
-				case "sp": //spanish
+				case "es": //spanish
 					return TRANSLATIONS_SP[key]
 				case "fr": //french
 					return TRANSLATIONS_FR[key]
-				case "am": //armenian
-					return TRANSLATIONS_AM[key]
 				default:
 					return key
 			}
