@@ -173,7 +173,7 @@
 			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 			let i = 10
 			if (e.keyCode == 37) { //Right
-				repeatFunc = setInterval(function(){
+				let repeatFunc = setInterval(function(){
 					i--
 					x -= i / 55
 					pos()
@@ -181,7 +181,7 @@
 				}, 16) //60fps is 16.67ms
 			}
 			else if (e.keyCode == 38) { //up
-				repeatFunc = setInterval(function(){
+				let repeatFunc = setInterval(function(){
 					i--
 					y -= i / 55
 					pos()
@@ -189,7 +189,7 @@
 				}, 16)
 			}
 			else if (e.keyCode == 39) { //left
-				repeatFunc = setInterval(function(){
+				let repeatFunc = setInterval(function(){
 					i--
 					x += i / 55
 					pos()
@@ -197,7 +197,7 @@
 				}, 16)
 			}
 			else if (e.keyCode == 40) { //down
-				repeatFunc = setInterval(function(){
+				let repeatFunc = setInterval(function(){
 					i--
 					y += i / 55
 					pos()
