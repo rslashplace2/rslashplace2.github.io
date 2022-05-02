@@ -656,13 +656,14 @@
 			location.reload()
 		}
 		
-		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
+		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation, thanks to Kapra#7777 for armenian translation.
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" }
 		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" }
 		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:" }
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
 		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
+		const TRANSLATIONS_AM = { "Connecting...": "Միանում...", "Could not connect!": "Միանալը հնարավոր չէր:", "Downloading image...": "Ներբեռնում ենք նկարը...", "Place a tile": "Տեղադրեք մի սալիկ", "Donate": "Նվիրաբերել", "Chat": "Զրուցարան", "Live Chat:": "Ուղիղ Զրուցարան.", "Enter a nickname to continue:": "Մուտքագրեք մականուն՝ շարունակելու համար." }
 
 		function translate(key) {
 			switch(localStorage.language) {
@@ -678,6 +679,8 @@
 					return TRANSLATIONS_SP[key]
 				case "fr": //french
 					return TRANSLATIONS_FR[key]
+				case "am": //armenian
+					return TRANSLATIONS_AM[key]
 				default:
 					return key
 			}
