@@ -16,9 +16,10 @@
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
+<script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
-		<div id="donate" noselect onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</div>
+		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
 			<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
@@ -91,9 +92,9 @@
 			</div>
 			<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
 			<div>
-				<p style="font-family: reddit; font-size: 18px; line-height: 5px;">Interface language:</p> <button class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button> <button class="languageButton" onclick="localStorage.language = 'rom'; window.location.reload();">🇷🇴</button> <button class="languageButton" onclick="localStorage.language = 'gr'; window.location.reload();">🇬🇷</button> <button class="languageButton" onclick="localStorage.language = 'sp'; window.location.reload();">🇪🇸</button>
+				<p style="font-family: reddit; font-size: 18px; line-height: 5px;">Interface language:</p> <button class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button> <button class="languageButton" onclick="localStorage.language = 'rom'; window.location.reload();">🇷🇴</button> <button class="languageButton" onclick="localStorage.language = 'gr'; window.location.reload();">🇬🇷</button> <button class="languageButton" onclick="localStorage.language = 'sp'; window.location.reload();">🇪🇸</button> <button class="languageButton" onclick="localStorage.language = 'fr'; window.location.reload();">🇫🇷</button> <button class="languageButton" onclick="localStorage.language = 'am'; window.location.reload();">🇦🇲</button>
 				<br> <br>
-				<a onclick="window.open('https://discord.gg/dgEF6wvBzj','_blank')">Discord</a>
+				<a onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</a>
 				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
 				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
 			</div>
@@ -422,7 +423,7 @@
 			a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 			a.setUint8(5, PEN)
 			PEN=-1
-			ws.send(a)
+			ws.send32(a)
 		}
 		function runLengthChanges(data){
 			let i = 1, boardI = 0
@@ -448,7 +449,7 @@
 		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		let cMessagesFas = "", cMessagesTu = "", cMessagesEn = ""
-		let currentChannel = "fas"
+		let currentChannel = "en"
 
 		let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 		ws.onmessage = async function({data}){
@@ -600,7 +601,7 @@
 		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		function sendMsg(message){
-			ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+			ws.send32(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 		}
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
@@ -655,13 +656,15 @@
 			location.reload()
 		}
 		
-		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, and a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations.
+		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation, thanks to Kapra#7777 for armenian translation.
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" }
 		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" }
 		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:" }
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
-		
+		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
+		const TRANSLATIONS_AM = { "Connecting...": "Միանում...", "Could not connect!": "Միանալը հնարավոր չէր:", "Downloading image...": "Ներբեռնում ենք նկարը...", "Place a tile": "Տեղադրեք մի սալիկ", "Donate": "Նվիրաբերել", "Chat": "Զրուցարան", "Live Chat:": "Ուղիղ Զրուցարան.", "Enter a nickname to continue:": "Մուտքագրեք մականուն՝ շարունակելու համար." }
+
 		function translate(key) {
 			switch(localStorage.language) {
 				case "fas": //persian
@@ -674,6 +677,10 @@
 					return TRANSLATIONS_GR[key]
 				case "sp": //spanish
 					return TRANSLATIONS_SP[key]
+				case "fr": //french
+					return TRANSLATIONS_FR[key]
+				case "am": //armenian
+					return TRANSLATIONS_AM[key]
 				default:
 					return key
 			}
