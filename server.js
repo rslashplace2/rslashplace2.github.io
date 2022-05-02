@@ -12,10 +12,10 @@ let BOARD, CHANGES
 const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 10e3 //5mins
 try{
 	BOARD = await fs.readFile('./place')
-	CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
+	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
 }catch(e){
 	BOARD = new Uint8Array(WIDTH * HEIGHT)
-	CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
+	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
 }
 let newPos = [], newCols = []
 let wss, cooldowns = new Map()
@@ -25,6 +25,9 @@ function runLengthChanges(){
 	let i = 0
 	let bufs = [Buffer.alloc(256)], blast = 0, bi = 0
 	bufs[0][bi++] = 2
+	bufs[0].writeUint32BE(WIDTH, 1)
+	bufs[0].writeUint32BE(HEIGHT, 5)
+	bi += 8
 	let add = a => {bufs[blast][bi++]=a;bi==256&&(bi=0,bufs.push(Buffer.alloc(256)),blast++)}
 	while(true){
 		let c = 0
@@ -159,13 +162,15 @@ import { exec } from 'child_process'
 let ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()
 
 async function pushImage(){
+	for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
+	await fs.writeFile('place', BOARD)
 	await new Promise((r, t) => exec("git add *;git commit -a -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
 	//serve old changes for 11 more mins just to be 100% safe
 	let curr = new Uint8Array(CHANGES)
 	setTimeout(() => {
 		//after 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove
 		for(let i = curr.length - 1; i >= 0; i--)if(curr[i] == CHANGES[i])CHANGES[i] = 255
-	}, 660e3)
+	}, 200e3)
 }
 setInterval(function(){
 	if(!newPos.length)return
@@ -187,8 +192,7 @@ let I = 0
 
 setInterval(async function(){
 	I++
-	for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i]
-	await fs.writeFile('place', BOARD)
+	await fs.writeFile('change', CHANGES)
 	let buf = Buffer.of(3, players>>8, players)
 	for (let c of wss.clients) {
 		c.send(buf)

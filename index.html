@@ -406,7 +406,8 @@
 			audios.selectColor.run()
 		}
 		function runLengthChanges(data){
-			let i = 1, boardI = 0
+			let i = 9, boardI = 0
+			
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
