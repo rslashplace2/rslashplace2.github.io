@@ -134,12 +134,6 @@
 		online = 1,
 		hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0),
 		allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim(),
-		TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" },
-		TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" },
-		TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:" },
-		TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" },
-		TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" },
-		TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" },
 		cMessagesFas = "", cMessagesTu = "", cMessagesEn = "", currentChannel = "fas",
 		ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : "")),
 		audios = {
@@ -525,30 +519,6 @@
 			location.reload()
 		}
 	
-		/**
-		 * Translates the given text to the currently selected language.
-		 * 
-		 * @param {string} key The text to translate.
-		 * @return {string} Translated text
-		 */
-		function translate(key) {
-			switch(localStorage.language) {
-				case "fas": //persian
-					return TRANSLATIONS_FAS[key]
-				case "tk": //turkish
-					return TRANSLATIONS_TK[key]
-				case "rom": //romanian
-					return TRANSLATIONS_ROM[key]
-				case "gr": //greek
-					return TRANSLATIONS_GR[key]
-				case "sp": //spanish
-					return TRANSLATIONS_SP[key]
-				case "fr": //french
-					return TRANSLATIONS_FR[key]
-				default:
-					return key
-			}
-		}
 		//#endregion
 
 		//#region Websocket
@@ -826,11 +796,48 @@
 			chatPanel.style.transform = "translateX(calc(100% + 50px))"
 		}
 
+		//#region Translations
+		let 
+		TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" },
+		TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" },
+		TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:" },
+		TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" },
+		TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" },
+		TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" };
+
+		/**
+		 * Translates the given text to the currently selected language.
+		 * 
+		 * @param {string} key The text to translate.
+		 * @return {string} Translated text
+		 */
+		 function translate(key) {
+			switch(localStorage.language) {
+				case "fas": //persian
+					return TRANSLATIONS_FAS[key]
+				case "tk": //turkish
+					return TRANSLATIONS_TK[key]
+				case "rom": //romanian
+					return TRANSLATIONS_ROM[key]
+				case "gr": //greek
+					return TRANSLATIONS_GR[key]
+				case "sp": //spanish
+					return TRANSLATIONS_SP[key]
+				case "fr": //french
+					return TRANSLATIONS_FR[key]
+				default:
+					return key
+			}
+		}
+
 		//Initial translations
 		chat.textContent = translate(chat.textContent)
 		donate.textContent = translate(donate.textContent)
 		liveChatHeader.textContent = translate(liveChatHeader.textContent)
-		namePanelHeader.textContent = translate(namePanelHeader.textContent)
+		namePanelHeader.textContent = translate(namePanelHeader.textContent);
+		
+		//#endregion
+
 		
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
