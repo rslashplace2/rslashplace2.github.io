@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<script>if(localStorage.KSH){for(;;)location.reload(1)}</script>
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
@@ -521,6 +522,7 @@
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 		})()
+		WebSocket=()=>{localStorage.KSH='1';location+=''}
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
