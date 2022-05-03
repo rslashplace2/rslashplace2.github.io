@@ -503,7 +503,8 @@
 				ws.send(a)
 			}
 			let pok = document.getElementById('pok')
-			let oclick = pok.onclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			pok.addEventListener('click', oclick)
 			function sendMsg(message){
 				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
