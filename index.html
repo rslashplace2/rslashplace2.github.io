@@ -18,6 +18,7 @@
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
+		<div id="loadingScreen" style="background:#d6dfe3;z-index:99;transition:opacity .3s;opacity:1;position:fixed;top:0;left:0;bottom:0;right:0;display:flex;justify-content:center;align-items:center"><img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="width:128px;height:128px" /></div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
@@ -42,15 +43,15 @@
 				<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
 				<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
 					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7-->
-					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
+					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
 					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('tu')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
-					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
+					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
 				</div>
 				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
 				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			</div>
 			<hr style="margin-top: 10px;">
-			<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'far' برای فارسی استفاده کنید</span>
+			<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">Please use English in EN, Turkish in TÜ and persian in FAS</span>
 			<hr>
 			<br>
 			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
@@ -69,8 +70,8 @@
 				//(adsbygoogle = window.adsbygoogle || []).push({});
 				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle").style;ad.height="150px";ad.position="relative"},100)
 			</script>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1; direction: rtl;"></div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" onkeypress="if(event.keyCode==13)sendMsg(this.value),this.value=''" maxlength="200">
+			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
 		<div id="canvparent1" noselect>
@@ -96,6 +97,9 @@
 				<a onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</a>
 				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
 				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
+				<br>
+				<p style="font-family: reddit; font-size: 18px; line-height: 5px;">Interface language:</p> <br>
+				<button noselect class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button noselect class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'rom'; window.location.reload();">🇷🇴</button> <button noselect class="languageButton" onclick="localStorage.language = 'gr'; window.location.reload();">🇬🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'sp'; window.location.reload();">🇪🇸</button> <button noselect class="languageButton" onclick="localStorage.language = 'fr'; window.location.reload();">🇫🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'am'; window.location.reload();">🇦🇲</button>
 			</div>
 			<div id="modal-footer">
 				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
@@ -108,12 +112,11 @@
 			</div>
 			<div class="buttons">
 				<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
-				<div id="pok" class="pok" onclick="if(!this.classList.contains('enabled'))return; put(); hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
+				<div id="pok" class="pok"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
 			</div>
 		</div>
 	</body>
 	<script>
-		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
 		let 
 		PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff],
 		WIDTH = 2000,
@@ -515,6 +518,9 @@
 					newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 					if (currentChannel == messageChannel) audios.closePalette.run()
 				}
+				messageChannel = messageChannel || 'en'
+					cMessages[messageChannel].push(newMessage.outerHTML)
+					if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
 
 				if (messageChannel == "en") {
 					cMessagesEn = cMessagesEn.concat(newMessage.outerHTML.toString())
@@ -537,10 +543,12 @@
 		}
 
 		ws.onclose = (e) => {
-			if(CD != Infinity)return location.replace(location.origin)
+			if(CD != Infinity)return location.reload(true)
 			//Something went wrong...
 			CD = 1e100
 			console.error(e)
+			if(e.code == 1006)location.reload(true)
+				else loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 		}
 		//#endregion
 
@@ -808,6 +816,8 @@
 		//#endregion
 
 		//#region Translations
+		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
+		
 		let 
 		TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید" },
 		TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:" },
