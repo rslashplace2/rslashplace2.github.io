@@ -407,9 +407,9 @@
 				seti(boardI++, cell & 63)
 			}
 			loadingScreen.style.opacity = 0
-			waitingGame.stop()
-			waitingGame.clear()
 			setTimeout(()=>loadingScreen.remove(),300)
+			setTimeout(()=>waitingGame.stop(),300)
+			setTimeout(()=>waitingGame.clear(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
