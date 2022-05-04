@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<script>if(localStorage.KSH){for(;;)location.reload(1)}</script>
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
@@ -19,6 +20,7 @@
 <script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
+		<div id="loadingScreen" style="background:#d6dfe3;z-index:99;transition:opacity .3s;opacity:1;position:fixed;top:0;left:0;bottom:0;right:0;display:flex;justify-content:center;align-items:center"><img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="width:128px;height:128px" /></div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
@@ -30,13 +32,13 @@
 		<div id="place" noselect onclick="if(CD<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<div id="chat" noselect onclick="showChat()">Chat</div>
 		<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));">
-			<div id="namePanel" style="position: absolute; top: 50%; transform: translateY(-50%); text-align: center; width: calc(100% - 20px); padding: 10px; background-color: white; border-radius: 15px; height: 120px;">
+			<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
 				<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
 				<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
 				<br>
 				<div>
 					<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
-					<button id="nameSubmit" onclick="setName(nameInput.value)"><svg enable-background="new 0 0 55.702 55.702" version="1.1" viewBox="0 0 55.702 55.702" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g fill="lightgrey"><path d="M27.851,0C12.494,0,0,12.494,0,27.851s12.494,27.851,27.851,27.851s27.851-12.494,27.851-27.851   C55.701,12.494,43.208,0,27.851,0z M27.851,51.213c-12.882,0-23.362-10.48-23.362-23.363c0-12.882,10.48-23.362,23.362-23.362   s23.362,10.481,23.362,23.363S40.733,51.213,27.851,51.213z"/><path d="m36.729 18.97-13 13.001-4.757-4.757c-0.876-0.877-2.297-0.877-3.173 0-0.877 0.876-0.877 2.297 0 3.173l6.344 6.344c0.438 0.438 1.013 0.658 1.587 0.658s1.148-0.219 1.586-0.658l14.587-14.587c0.876-0.877 0.876-2.297 0-3.174-0.877-0.876-2.297-0.876-3.174 0z"/></g></svg></button>
+					<button id="nameSubmit" onclick="setName(nameInput.value)"><svg enable-background="new 0 0 55.702 55.702" version="1.1" viewBox="0 0 55.702 55.702" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g fill="limegreen"><path d="M27.851,0C12.494,0,0,12.494,0,27.851s12.494,27.851,27.851,27.851s27.851-12.494,27.851-27.851   C55.701,12.494,43.208,0,27.851,0z M27.851,51.213c-12.882,0-23.362-10.48-23.362-23.363c0-12.882,10.48-23.362,23.362-23.362   s23.362,10.481,23.362,23.363S40.733,51.213,27.851,51.213z"/><path d="m36.729 18.97-13 13.001-4.757-4.757c-0.876-0.877-2.297-0.877-3.173 0-0.877 0.876-0.877 2.297 0 3.173l6.344 6.344c0.438 0.438 1.013 0.658 1.587 0.658s1.148-0.219 1.586-0.658l14.587-14.587c0.876-0.877 0.876-2.297 0-3.174-0.877-0.876-2.297-0.876-3.174 0z"/></g></svg></button>
 				</div>
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
@@ -94,11 +96,8 @@
 			<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
 			<div>
 				<a onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</a>
-				<span onclick='localStorage.vip=prompt("Enter key?")'>&nbsp;/&nbsp;</span>
+				<span onclick='localStorage.vip=prompt("Enter key?")||""'>&nbsp;/&nbsp;</span>
 				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
-				<br>
-				<p style="font-family: reddit; font-size: 18px; line-height: 5px;">Interface language:</p> <br>
-				<button noselect class="languageButton" onclick="localStorage.language = ''; window.location.reload();">🇬🇧</button> <button noselect class="languageButton" onclick="localStorage.language = 'tk'; window.location.reload();">🇹🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'fas'; window.location.reload();">🇮🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'rom'; window.location.reload();">🇷🇴</button> <button noselect class="languageButton" onclick="localStorage.language = 'gr'; window.location.reload();">🇬🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'sp'; window.location.reload();">🇪🇸</button> <button noselect class="languageButton" onclick="localStorage.language = 'fr'; window.location.reload();">🇫🇷</button> <button noselect class="languageButton" onclick="localStorage.language = 'am'; window.location.reload();">🇦🇲</button>
 			</div>
 			<div id="modal-footer">
 				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
@@ -123,38 +122,12 @@
 	</script>
 
 	<script>
-		let actives = new Map()
-		actives.set(-2, [])
 		let touch1 = null, touch2 = null, touchmoved = 3;
 		document.body.ontouchstart = function(e){
 			for(let t of e.changedTouches){
 				if(!touch1)touch1 = t, touchmoved = 3
 				else if(!touch2)touch2 = t
 				else [touch1, touch2] = [touch2, t]
-				let ac = []
-				let el = e.target
-				while(el){
-					el.classList.add("active")
-					ac.push(el)
-					el = el.parentElement
-				}
-				actives.set(t.identifier, ac)
-			}
-		}
-		document.body.ontouchend = function(e){
-			for(let t of e.changedTouches){
-				a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
-				else if(touch1 && touch1.identifier == t.identifier){
-					[touch1, touch2] = [touch2, null]
-					if(touchmoved > 0 && canvparent2.contains(e.target)){
-						if(e.target != document.body && !canvparent2.contains(e.target))break a
-						clicked(t.clientX, t.clientY)
-					}
-				}
-				for(let el of actives.get(t.identifier))el.classList.remove("active")
-				actives.delete(t.identifier)
-				if('value' in e.target)e.target.focus()
-				else{let target = e.target; while(!target.click)target = target.parentElement;target.click()}
 			}
 		}
 		let moved = 3
@@ -213,12 +186,12 @@
 		let selX = 0, selY = 0
 		let c = canvas.getContext('2d')
 		function transform(){
-			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-120+innerWidth/2)+"px, "+(y*z*-120+innerHeight/2)+"px) scale("+z*120+")"
+			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-50+innerWidth/2)+"px, "+(y*z*-50+innerHeight/2)+"px) scale("+z*50+")"
 			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
-			canvas.style.width = z * canvas.width * 120 + "px"
-			canvas.style.height = z * canvas.height * 120 + "px"
-			canvas.style.transform = "translate("+x*z*-120+"px, "+y*z*-120+"px)"
-			canvas.style.imageRendering = z < 1/120/devicePixelRatio ? "initial" : ""
+			canvas.style.width = z * canvas.width * 50 + "px"
+			canvas.style.height = z * canvas.height * 50 + "px"
+			canvas.style.transform = "translate("+x*z*-50+"px, "+y*z*-50+"px)"
+			canvas.style.imageRendering = z < 1/50/devicePixelRatio ? "initial" : ""
 		}
 		let x, y, z, board, minZoom;
 		function setsize(w, h = w){
@@ -247,11 +220,11 @@
 			pos()
 		}
 		onresize = function(){
-			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 240
+			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 100
 			pos()
 		}
 		let click = false
-		let mx, my;
+		let mx = 0, my = 0;
 		document.body.onmousemove = function(e){
 			if(e.target != document.body && !canvparent2.contains(e.target))return
 			moved--
@@ -259,8 +232,8 @@
 			let dy = -(my - (my = e.clientY - innerHeight / 2))
 			if(dx != dx || dy != dy)return
 			if(click){
-				x -= dx / (z * 120)
-				y -= dy / (z * 120)
+				x -= dx / (z * 50)
+				y -= dy / (z * 50)
 				pos()
 				clearInterval(anim)
 			}
@@ -269,8 +242,8 @@
 			if(e.target != document.body && !canvparent2.contains(e.target))return
 			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
 			z *= d
-			x += mx * (d - 1) / z / 120
-			y += my * (d - 1) / z / 120
+			x += mx * (d - 1) / z / 50
+			y += my * (d - 1) / z / 50
 			pos()
 		}
 		function pos(){
@@ -286,7 +259,7 @@
 			if(up >= down) y = 0
 			else if(up > 0) y -= up
 			else if(down < 0) y -= down
-			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.round(z*500)/100}x`
+			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.ceil(z*500)/100}x`
 			localStorage.x = Math.floor(x) + 0.5
 			localStorage.y = Math.floor(y) + 0.5
 			localStorage.z = z
@@ -315,16 +288,16 @@
 			clearInterval(anim)
 			a: if(!touch2 && touch1 && touch1.identifier == t.identifier){
 				if(e.target != document.body && !canvparent2.contains(e.target))break a
-				x -= (t.clientX - touch1.clientX) / (z * 120)
-				y -= (t.clientY - touch1.clientY) / (z * 120)
+				x -= (t.clientX - touch1.clientX) / (z * 50)
+				y -= (t.clientY - touch1.clientY) / (z * 50)
 				pos()
 			}else if(touch1 && touch2){
 				if(e.target != document.body && !canvparent2.contains(e.target))break a
 				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
 				if(!touch)break a
 				let other = touch == touch1 ? touch2 : touch1
-				x -= (t.clientX - touch.clientX) / (z * 120)
-				y -= (t.clientY - touch.clientY) / (z * 120)
+				x -= (t.clientX - touch.clientX) / (z * 50)
+				y -= (t.clientY - touch.clientY) / (z * 50)
 				let dx = touch.clientX - other.clientX
 				let dy = touch.clientY - other.clientY
 				let a = dx * dx + dy * dy
@@ -343,8 +316,8 @@
 		let anim = null
 		function clicked(clientX, clientY){
 			clearInterval(anim)
-			clientX = Math.floor(x+(clientX-innerWidth/2)/z/120) + 0.5
-			clientY = Math.floor(y+(clientY-innerHeight/2)/z/120) + 0.5
+			clientX = Math.floor(x+(clientX-innerWidth/2)/z/50) + 0.5
+			clientY = Math.floor(y+(clientY-innerHeight/2)/z/50) + 0.5
 			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
 				clientX -= 0.5; clientY -= 0.5
 				if(CD<Date.now())zoomIn(),showPalette()
@@ -419,7 +392,8 @@
 			audios.selectColor.run()
 		}
 		function runLengthChanges(data){
-			let i = 1, boardI = 0
+			let i = 9, boardI = 0
+			
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
@@ -429,6 +403,8 @@
 				boardI += c
 				seti(boardI++, cell & 63)
 			}
+			loadingScreen.style.opacity = 0
+			setTimeout(()=>loadingScreen.remove(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
@@ -436,6 +412,8 @@
 			renderAll()
 			if(load)runLengthChanges(load)
 			load = true
+		}).catch(e => {
+			loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 		})
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		let online = 1
@@ -446,6 +424,7 @@
 
 		;((ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))) => {
 			ws.onmessage = async function({data}){
+				delete sessionStorage.err;
 				data = new DataView(await data.arrayBuffer())
 				let code = data.getUint8(0)
 				if(code == 1){
@@ -505,10 +484,12 @@
 				}
 			}
 			ws.onclose = (e) => {
-				if(CD != Infinity)return location.replace(location.origin)
+				if(CD != Infinity)return location.reload(true)
 				//Something went wrong...
 				CD = 1e100
 				console.error(e)
+				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location.reload(true)
+				else loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 			}
 			function put(){
 				if(CD>Date.now())return
@@ -524,64 +505,82 @@
 				PEN=-1
 				ws.send32(a)
 			}
-			pok.onclick = e => {if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			let pok = document.getElementById('pok')
+			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			pok.addEventListener('click', oclick)
 			function sendMsg(message){
 				ws.send32(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
+			window.scanDocumentShortcuts = function(e) {
+				if(!e.isTrusted)return
+				//"Space" key to open server switch menu
+				if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
+					if (serverMenu.opened) {
+						serverInput.blur();
+						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
+						serverMenu.opened = false
+					}
+					else {
+						serverMenu.style.transform = "translateX(-50%)"
+						serverMenu.opened = true
+					}
+				}
+
+				//Begin palette commands
+				if (onCooldown) return
+
+				//"Enter" key to place selected block without using mouse
+				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
+					oclick.call(pok, e)
+
+				//Keyboard shortcuts for selecting palette colours
+				let keyIndex = null 
+				if(document.activeElement != document.body)return
+				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
+				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
+				if (keyIndex == null) return
+				if (palette.style.transform=='translateY(100%)')
+					showPalette()
+
+				for (let c = 0; c < document.getElementById("colors").children.length; c++) {
+					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
+				}
+
+				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
+				if(i<0) return
+				let el = document.getElementById("colors").children[PEN]
+				if(el) {
+					el.classList.remove('sel')
+				}
+				PEN = keyIndex;
+				audios.selectColor.run()
+				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
+				document.getElementById("colors").children[keyIndex].classList.add('sel')
+				pok.classList.add('enabled')
+				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+			}
+			document.body.ontouchend = function(e){if(!e.isTrusted)return
+				for(let t of e.changedTouches){
+					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
+					else if(touch1 && touch1.identifier == t.identifier){
+						[touch1, touch2] = [touch2, null]
+						if(touchmoved > 0 && canvparent2.contains(e.target)){
+							if(e.target != document.body && !canvparent2.contains(e.target))break a
+							clicked(t.clientX, t.clientY)
+						}
+					}
+					if('value' in e.target)e.target.focus()
+					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
+				}
+			}
 		})()
+		WebSocket=()=>{localStorage.KSH='1';location+=''}
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
 			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
 			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
-		}
-		function scanDocumentShortcuts(e) {
-			//"Space" key to open server switch menu
-			if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
-				if (serverMenu.opened) {
-					serverInput.blur();
-					serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
-					serverMenu.opened = false
-				}
-				else {
-					serverMenu.style.transform = "translateX(-50%)"
-					serverMenu.opened = true
-				}
-			}
-			
-			//Begin palette commands
-			if (onCooldown) return
-
-			//"Enter" key to place selected block without using mouse
-			if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
-				pok.click()
-
-			//Keyboard shortcuts for selecting palette colours
-			let keyIndex = null 
-			if(document.activeElement != document.body)return
-			if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
-			if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
-			if (keyIndex == null) return
-			if (palette.style.transform=='translateY(100%)')
-				showPalette()
-			
-			for (let c = 0; c < document.getElementById("colors").children.length; c++) {
-				document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
-			}
-
-			let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
-			if(i<0) return
-			let el = document.getElementById("colors").children[PEN]
-			if(el) {
-				el.classList.remove('sel')
-			}
-			PEN = keyIndex;
-			audios.selectColor.run()
-			canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
-			document.getElementById("colors").children[keyIndex].classList.add('sel')
-			pok.classList.add('enabled')
-			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
 		}
 		function hideIndicators() {
 			for (let c = 0; c < document.getElementById("colors").children.length; c++) {
