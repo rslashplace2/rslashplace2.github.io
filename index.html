@@ -16,6 +16,7 @@
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
+<script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
@@ -77,6 +78,7 @@
 			<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
 		</div>
 		<div id="canvparent2" noselect>
+			<div id="canvSelectArea" style="transform: translate(520px, 1922px); width: 50px; height: 50px; position: absolute; top: -10%; left: -10%; color: red; background-color: red; z-index: 100;"></div>
 			<div id="canvselect">
 				<svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;">
 					<g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g>
@@ -520,11 +522,11 @@
 				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				a.setUint8(5, PEN)
 				PEN=-1
-				ws.send(a)
+				ws.send32(a)
 			}
 			pok.onclick = e => {if(pok.classList.contains('enabled')) put(); hideIndicators()}
 			function sendMsg(message){
-				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+				ws.send32(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 		})()
