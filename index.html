@@ -20,7 +20,10 @@
 <script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
-		<div id="loadingScreen" style="background:#d6dfe3;z-index:99;transition:opacity .3s;opacity:1;position:fixed;top:0;left:0;bottom:0;right:0;display:flex;justify-content:center;align-items:center"><img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="width:128px;height:128px" /></div>
+		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
+			<img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="position: absolute; width: 128px; height: 128px; top: 50%; left: 50%; transform: translate(-50%); z-index: 22;"/>
+			<canvas id="waitingGameCanvas" style="position: absolute; width: 100%; height: 100%; z-index: 21;"></canvas>
+		</div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
@@ -404,6 +407,8 @@
 				seti(boardI++, cell & 63)
 			}
 			loadingScreen.style.opacity = 0
+			waitingGame.stop()
+			waitingGame.clear()
 			setTimeout(()=>loadingScreen.remove(),300)
 		}
 		let load = false
@@ -657,7 +662,6 @@
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
 		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
-
 		function translate(key) {
 			switch(navigator.language.split('-')[0]) {
 				case "fa": //persian
@@ -676,13 +680,82 @@
 					return key
 			}
 		}
-
 		//Initial translations
 		chat.textContent = translate(chat.textContent)
 		donate.textContent = translate(donate.textContent)
 		liveChatHeader.textContent = translate(liveChatHeader.textContent)
 		namePanelHeader.textContent = translate(namePanelHeader.textContent)
 		
+		var waitingGame = {
+			canvas: document.getElementById("waitingGameCanvas"),
+			start: function() {
+				this.canvas.width = window.innerWidth
+				this.canvas.height = window.innerHeight
+				this.context = this.canvas.getContext("2d")
+				this.interval = setInterval(updateGameArea, 14)
+			},
+			stop: function() { clearInterval(this.interval) },
+			clear: function() {
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+				physicsCubes = []
+			}
+		}
+		function component(width, height, colour, x, y, type, falling) {
+			this.type = type
+			this.width = width
+			this.height = height
+			this.x = x
+			this.y = y
+			this.speedX = 0
+			this.speedY = 0
+			this.gravity = 0.12
+			this.gravitySpeed = 0
+
+			this.update = function () {
+				//gravity calculations
+				this.gravitySpeed += this.gravity
+				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed):0
+				this.x += this.speedX
+				//floor
+				var floor = waitingGame.canvas.height - this.height
+				if (this.y > floor) {
+					this.y = floor
+					this.speedY = 0
+					this.gravitySpeed = 0
+				}
+				//grid snap
+				this.x = Math.floor(this.x / this.width) * this.width
+				//overlapping
+				physicsCubes.forEach(other => {
+					if (other != this) {
+						let calcH =  this.height + other.height, calcW = this.width + other.width
+						if (!(Math.abs(this.y - other.y) + other.height >= calcH || Math.abs(other.x - this.x) + other.width >= calcW)) { //Colliding
+							this.speedY = 0
+							this.gravitySpeed = 0
+							this.y = (other.y - other.height) - 0.01
+						}
+					}
+				})
+				//render update
+				ctx = waitingGame.context
+				ctx.fillStyle = colour
+				ctx.fillRect(this.x, this.y, this.width, this.height)
+			}
+		}
+		function updateGameArea() {
+			waitingGame.clear()
+			physicsCubes.forEach(cube => { cube.update() })
+		}
+		waitingGame.canvas.onmousedown = function(e) {
+			physicsCubes.push(new component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y)))
+		}
+		window.onresize = function(e) {
+			waitingGame.canvas.width = window.innerWidth
+			waitingGame.canvas.height = window.innerHeight
+		}
+		let physicsCubes = []
+		waitingGame.start()
+
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 	<!--script src="board_final.js"></script-->
