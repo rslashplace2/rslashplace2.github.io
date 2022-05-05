@@ -17,9 +17,13 @@
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
+<script>let W=WebSocket.prototype;W.send32=W.send;W.send=()=>{window.close();location.href="about:blank"}</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
-		<div id="loadingScreen" style="background:#d6dfe3;z-index:99;transition:opacity .3s;opacity:1;position:fixed;top:0;left:0;bottom:0;right:0;display:flex;justify-content:center;align-items:center"><img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="width:128px;height:128px" /></div>
+		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
+			<img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="position: absolute; width: 128px; height: 128px; top: 50%; left: 50%; transform: translate(-50%); z-index: 22;"/>
+			<canvas id="waitingGameCanvas" style="position: absolute; width: 100%; height: 100%; z-index: 21;"></canvas>
+		</div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
 		<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
@@ -79,6 +83,7 @@
 			<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
 		</div>
 		<div id="canvparent2" noselect>
+			<div id="canvSelectArea" style="transform: translate(520px, 1922px); width: 50px; height: 50px; position: absolute; top: -10%; left: -10%; color: red; background-color: red; z-index: 100;"></div>
 			<div id="canvselect">
 				<svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;">
 					<g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g>
@@ -391,7 +396,8 @@
 		}
 		function runLengthChanges(data){
 			let i = 9, boardI = 0
-			
+			waitingGame.start()
+
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
@@ -403,6 +409,7 @@
 			}
 			loadingScreen.style.opacity = 0
 			setTimeout(()=>loadingScreen.remove(),300)
+			setTimeout(()=>waitingGame.stop(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
@@ -412,6 +419,7 @@
 			load = true
 		}).catch(e => {
 			loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
+			waitingGame.start()
 		})
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		let online = 1
@@ -487,7 +495,10 @@
 				CD = 1e100
 				console.error(e)
 				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location.reload(true)
-				else loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
+				else {
+					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg" 
+					waitingGame.start()
+				}
 			}
 			function put(){
 				if(CD>Date.now())return
@@ -501,13 +512,13 @@
 				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				a.setUint8(5, PEN)
 				PEN=-1
-				ws.send(a)
+				ws.send32(a)
 			}
 			let pok = document.getElementById('pok')
 			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
 			pok.addEventListener('click', oclick)
 			function sendMsg(message){
-				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+				ws.send32(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 			window.scanDocumentShortcuts = function(e) {
@@ -655,7 +666,6 @@
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:" }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:" }
 		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :" }
-
 		function translate(key) {
 			switch(navigator.language.split('-')[0]) {
 				case "fa": //persian
@@ -674,13 +684,83 @@
 					return key
 			}
 		}
-
 		//Initial translations
 		chat.textContent = translate(chat.textContent)
 		donate.textContent = translate(donate.textContent)
 		liveChatHeader.textContent = translate(liveChatHeader.textContent)
 		namePanelHeader.textContent = translate(namePanelHeader.textContent)
 		
+		let waitingGame = {
+			canvas: document.getElementById("waitingGameCanvas"),
+			start: function() {
+				this.canvas.width = window.innerWidth
+				this.canvas.height = window.innerHeight
+				this.context = this.canvas.getContext("2d")
+				this.interval = setInterval(updateGameArea, 14)
+			},
+			stop: function() {
+				clearInterval(this.interval)
+				physicsCubes = null
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			},
+			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
+		}
+		function component(width, height, colour, x, y, type, falling) {
+			this.type = type
+			this.width = width
+			this.height = height
+			this.x = x
+			this.y = y
+			this.speedX = 0
+			this.speedY = 0
+			this.gravity = 0.12
+			this.gravitySpeed = 0
+
+			this.update = function () {
+				//gravity calculations
+				this.gravitySpeed += this.gravity
+				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed):0
+				this.x += this.speedX
+				//floor
+				var floor = waitingGame.canvas.height - this.height
+				if (this.y > floor) {
+					this.y = floor
+					this.speedY = 0
+					this.gravitySpeed = 0
+				}
+				//grid snap
+				this.x = Math.floor(this.x / this.width) * this.width
+				//overlapping
+				physicsCubes.forEach(other => {
+					if (other != this) {
+						let calcH =  this.height + other.height, calcW = this.width + other.width
+						if (!(Math.abs(this.y - other.y) + other.height >= calcH || Math.abs(other.x - this.x) + other.width >= calcW)) { //Colliding
+							this.speedY = 0
+							this.gravitySpeed = 0
+							this.y = (other.y - other.height) - 0.01
+						}
+					}
+				})
+				//render update
+				ctx = waitingGame.context
+				ctx.fillStyle = colour
+				ctx.fillRect(this.x, this.y, this.width, this.height)
+			}
+		}
+		function updateGameArea() {
+			waitingGame.clear()
+			physicsCubes.forEach(cube => { cube.update() })
+		}
+		waitingGame.canvas.onmousedown = function(e) {
+			physicsCubes.push(new component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y)))
+		}
+		window.onresize = function(e) {
+			waitingGame.canvas.width = window.innerWidth
+			waitingGame.canvas.height = window.innerHeight
+		}
+		let physicsCubes = []
+		waitingGame.start()
+
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 	<!--script src="board_final.js"></script-->
