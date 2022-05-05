@@ -396,7 +396,8 @@
 		}
 		function runLengthChanges(data){
 			let i = 9, boardI = 0
-			
+			waitingGame.start()
+
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
@@ -408,8 +409,7 @@
 			}
 			loadingScreen.style.opacity = 0
 			setTimeout(()=>loadingScreen.remove(),300)
-			setTimeout(waitingGame.stop(), 300)
-			setTimeout(waitingGame.clear(), 300)
+			setTimeout(()=>waitingGame.stop(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
@@ -698,11 +698,12 @@
 				this.context = this.canvas.getContext("2d")
 				this.interval = setInterval(updateGameArea, 14)
 			},
-			stop: function() { clearInterval(this.interval) },
-			clear: function() {
+			stop: function() {
+				clearInterval(this.interval)
+				physicsCubes = null
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				physicsCubes = []
-			}
+			},
+			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
 		}
 		function component(width, height, colour, x, y, type, falling) {
 			this.type = type
