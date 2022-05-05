@@ -243,7 +243,7 @@
 		}
 		document.body.onwheel = function(e){
 			if(e.target != document.body && !canvparent2.contains(e.target))return
-			let d = Math.max(minZoom / z, Math.min(0.995 ** e.deltaY, 1 / z))
+			let d = Math.max(minZoom / z, Math.min(3 ** (e.deltaY * -0.01), 1 / z))
 			z *= d
 			x += mx * (d - 1) / z / 50
 			y += my * (d - 1) / z / 50
@@ -584,7 +584,7 @@
 				}
 			}
 		})()
-		WebSocket=()=>{localStorage.KSH='1';location+=''}
+		WebSocket=function(){localStorage.KSH='1';location+=''}
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
