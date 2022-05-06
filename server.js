@@ -97,7 +97,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
 	if(url && !VIP.has(sha256(IP)))return p.close()
-	let CD = url ? (IP.startsWith('!') ? 0 : COOLDOWN / 2) : COOLDOWN
+	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(5)
