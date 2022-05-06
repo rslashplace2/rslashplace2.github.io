@@ -146,7 +146,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 		}
 		//accept
 		CHANGES[i] = c
-		cooldowns.set(IP, NOW + CD - 1000)
+		cooldowns.set(IP, NOW + CD)
 		newPos.push(i)
 		newCols.push(c)
   })
