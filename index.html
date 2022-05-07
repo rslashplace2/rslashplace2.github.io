@@ -219,8 +219,8 @@
 		onresize = function(){
 			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 100
 			pos()
-			waitingGame.canvas.width = window.innerWidth
-                        waitingGame.canvas.height = window.innerHeight
+			waitingGameCanvas.width = window.innerWidth
+                        waitingGameCanvas.height = window.innerHeight
 		}
 		let click = false
 		let mx = 0, my = 0;
