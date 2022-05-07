@@ -215,11 +215,12 @@
 				}
 			}
 			onresize()
-			pos()
 		}
 		onresize = function(){
 			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 100
 			pos()
+			waitingGame.canvas.width = window.innerWidth
+                        waitingGame.canvas.height = window.innerHeight
 		}
 		let click = false
 		let mx = 0, my = 0;
@@ -748,10 +749,6 @@
 		}
 		waitingGame.canvas.onmousedown = function(e) {
 			physicsCubes.push(new component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y)))
-		}
-		window.onresize = function(e) {
-			waitingGame.canvas.width = window.innerWidth
-			waitingGame.canvas.height = window.innerHeight
 		}
 		let physicsCubes = []
 		waitingGame.start()
