@@ -729,8 +729,8 @@
 				//overlapping
 				physicsCubes.forEach(other => {
 					if (other != this) {
-						let calcH =  this.height + other.height, calcW = this.width + other.width
-						if (!(Math.abs(this.y - other.y) + other.height >= calcH || Math.abs(other.x - this.x) + other.width >= calcW)) { //Colliding
+						let calcH = (this.height + other.height) / 2, calcW = (this.width + other.width)/2
+						if (Math.abs(this.y - other.y) < calcH && Math.abs(other.x - this.x) < calcW) { //Colliding
 							this.speedY = 0
 							this.gravitySpeed = 0
 							this.y = (other.y - other.height) - 0.01
