@@ -94,7 +94,8 @@ let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")
 let decoder = new TextDecoder();
 
 wss.on('connection', async function(p, {headers, url: uri}) {
-	if(headers['origin'] != 'https://rplace.tk')return
+	
+	if(headers['origin'] != 'https://rplace.tk')return p.close()
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
 	if(url && !VIP.has(sha256(IP)))return p.close()
