@@ -94,7 +94,6 @@ let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")
 let decoder = new TextDecoder();
 
 wss.on('connection', async function(p, {headers, url: uri}) {
-	
 	if(headers['origin'] != 'https://rplace.tk')return p.close()
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
@@ -131,9 +130,19 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 				console.log("Could not post to discord: " + err)
 			}
 			return;
+		}else if(data[0] == 99 && CD == 30){
+			let w = data[1], h = data[2], i = data.readUInt32BE(3)
+			if(i%2000+w>=2000)return
+			if(i+h*2000>=4000000)return
+			let hi = 0
+			while(hi < h){
+				CHANGES.set(data.slice(hi*w+7,hi*w+w+7),i)
+				i += 2000
+				hi++
+			}
 		}
 		if(data.length < 6)return //bad packet
-		let i = data.readInt32BE(1), c = data[5]
+		let i = data.readUInt32BE(1), c = data[5]
 		if(i >= BOARD.length || c >= PALETTE_SIZE)return //bad packet
     let cd = cooldowns.get(IP)
 		if(cd > NOW){
