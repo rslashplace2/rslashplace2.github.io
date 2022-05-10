@@ -39,11 +39,7 @@
 					})
 					
 					if(!txt)return
-					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
-					if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
-					if(txt.includes("discord.gg"))return
-					if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
-					if(txt.includes("𒐫"))return
+					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
 					
 					let newMessage = document.createElement("div")
 					newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
@@ -671,7 +667,7 @@
 			let user = formattedName.slice(1, -1)
 			messageInput.focus()
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
-			messageInput.setRangeText("@" + user, start, end, 'select')
+			messageInput.setRangeText("@" + user, start, end, 'preserve')
 		}
 
 		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
