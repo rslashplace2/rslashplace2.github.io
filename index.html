@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<meta http-equiv="Content-Security-Policy" content="frame-src 'none'; worker-src 'none'; frame-ancestors 'none'">
 	<script>
 		const wscapsule = (send => {
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
