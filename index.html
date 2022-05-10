@@ -2,7 +2,7 @@
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
-		const wscapsule = ;((WebSocket) => {
+		const wscapsule = ((WebSocket) => {
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			ws.onmessage = async function({data}){
 				delete sessionStorage.err;
