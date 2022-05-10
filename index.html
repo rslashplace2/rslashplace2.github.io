@@ -353,6 +353,21 @@
 			canvas.style.imageRendering = z < 1/50/devicePixelRatio ? "initial" : ""
 		}
 		let x, y, z, board, minZoom;
+		let waitingGame = {
+			canvas: document.getElementById("waitingGameCanvas"),
+			start: function() {
+				this.canvas.width = window.innerWidth
+				this.canvas.height = window.innerHeight
+				this.context = this.canvas.getContext("2d")
+				this.interval = setInterval(updateGameArea, 14)
+			},
+			stop: function() {
+				clearInterval(this.interval)
+				physicsCubes = []
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			},
+			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
+		}
 		function setsize(w, h = w){
 			canvas.width = w
 			canvas.height = h
@@ -380,8 +395,8 @@
 		onresize = function(){
 			minZoom = Math.min(innerWidth / canvas.width, innerHeight / canvas.height) / 100
 			pos()
-			waitingGameCanvas.width = window.innerWidth
-                        waitingGameCanvas.height = window.innerHeight
+			waitingGame.canvas.width = window.innerWidth
+                        waitingGame.canvas.height = window.innerHeight
 		}
 		let click = false
 		let mx = 0, my = 0;
@@ -689,22 +704,6 @@
 		donate.textContent = translate(donate.textContent)
 		liveChatHeader.textContent = translate(liveChatHeader.textContent)
 		namePanelHeader.textContent = translate(namePanelHeader.textContent)
-		
-		let waitingGame = {
-			canvas: document.getElementById("waitingGameCanvas"),
-			start: function() {
-				this.canvas.width = window.innerWidth
-				this.canvas.height = window.innerHeight
-				this.context = this.canvas.getContext("2d")
-				this.interval = setInterval(updateGameArea, 14)
-			},
-			stop: function() {
-				clearInterval(this.interval)
-				physicsCubes = []
-				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-			},
-			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
-		}
 		function component(width, height, colour, x, y, type, falling) {
 			this.type = type
 			this.width = width
