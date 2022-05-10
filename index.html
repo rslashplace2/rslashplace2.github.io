@@ -1,7 +1,168 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
-	<script>if(localStorage.KSH){for(;;)location.reload(1)}</script>
+	<script>
+		const wscapsule = ;((WebSocket) => {
+			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
+			ws.onmessage = async function({data}){
+				delete sessionStorage.err;
+				data = new DataView(await data.arrayBuffer())
+				let code = data.getUint8(0)
+				if(code == 1){
+					CD = data.getUint32(1) * 1000
+				}else if(code == 2){
+					//run length coding
+					if(!load)load = data
+					else runLengthChanges(data)
+				}else if(code == 7){
+					CD = data.getUint32(1) * 1000
+					seti(data.getUint32(5), data.getUint8(9))
+				}else if(code == 6){
+					let i = 0
+					while(i < data.byteLength - 2){
+						seti(data.getUint32(i += 1), data.getUint8(i += 4))
+					}
+				}else if(code == 3){
+					online = data.getUint16(1)
+					document.getElementById("onlineCounter").textContent = online;
+				}else if(code == 15){
+					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+					let name;
+					let messageChannel;
+					[txt, name, messageChannel] = txt.split("\n")
+					if(name)name = name.replace(/\W+/g,'').toLowerCase()
+					let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
+					bannedNames.forEach(bname => {
+						if (name == bname) return;
+					})
+					
+					if(!txt)return
+					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
+					if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
+					if(txt.includes("discord.gg"))return
+					if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
+					if(txt.includes("𒐫"))return
+					
+					let newMessage = document.createElement("div")
+					newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
+					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
+
+					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
+						newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
+						if (currentChannel == messageChannel) audios.closePalette.run()
+					}
+					messageChannel = messageChannel || 'en'
+					cMessages[messageChannel].push(newMessage.outerHTML)
+					if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+					if (currentChannel == messageChannel) {
+						chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+					}
+
+					if(chatMessages.children.length>100){
+						chatMessages.children[0].remove()
+					}
+					scroll && chatMessages.scrollTo(0,999999999)
+				}
+			}
+			ws.onclose = (e) => {
+				if(CD != Infinity)return location.reload(true)
+				//Something went wrong...
+				CD = 1e100
+				console.error(e)
+				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location.reload(true)
+				else {
+					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg" 
+					waitingGame.start()
+				}
+			}
+			function put(){
+				if(CD>Date.now())return
+				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
+				set(Math.floor(x), Math.floor(y), PEN)
+				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
+				audios.cooldownStart.run()
+				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
+				let a = new DataView(new Uint8Array(6).buffer)
+				a.setUint8(0, 4)
+				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
+				a.setUint8(5, PEN)
+				PEN=-1
+				ws.send(a)
+			}
+			let pok = document.getElementById('pok')
+			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			pok.addEventListener('click', oclick)
+			function sendMsg(message){
+				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+			}
+			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
+			window.scanDocumentShortcuts = function(e) {
+				if(!e.isTrusted)return
+				//"Space" key to open server switch menu
+				if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
+					if (serverMenu.opened) {
+						serverInput.blur();
+						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
+						serverMenu.opened = false
+					}
+					else {
+						serverMenu.style.transform = "translateX(-50%)"
+						serverMenu.opened = true
+					}
+				}
+
+				//Begin palette commands
+				if (onCooldown) return
+
+				//"Enter" key to place selected block without using mouse
+				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
+					oclick.call(pok, e)
+
+				//Keyboard shortcuts for selecting palette colours
+				let keyIndex = null 
+				if(document.activeElement != document.body)return
+				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
+				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
+				if (keyIndex == null) return
+				if (palette.style.transform=='translateY(100%)')
+					showPalette()
+
+				for (let c = 0; c < document.getElementById("colors").children.length; c++) {
+					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
+				}
+
+				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
+				if(i<0) return
+				let el = document.getElementById("colors").children[PEN]
+				if(el) {
+					el.classList.remove('sel')
+				}
+				PEN = keyIndex;
+				audios.selectColor.run()
+				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
+				document.getElementById("colors").children[keyIndex].classList.add('sel')
+				pok.classList.add('enabled')
+				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+			}
+			document.body.ontouchend = function(e){if(!e.isTrusted)return
+				for(let t of e.changedTouches){
+					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
+					else if(touch1 && touch1.identifier == t.identifier){
+						[touch1, touch2] = [touch2, null]
+						if(touchmoved > 0 && canvparent2.contains(e.target)){
+							if(e.target != document.body && !canvparent2.contains(e.target))break a
+							clicked(t.clientX, t.clientY)
+						}
+					}
+					if('value' in e.target)e.target.focus()
+					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
+				}
+			}
+			
+		}).bind(undefined, WebSocket)
+		delete WebSocket
+	</script>
+	
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
@@ -423,164 +584,7 @@
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		let cMessages = {fas: [], tu: [], en: []}
 		let currentChannel = "en"
-
-		;((ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))) => {
-			ws.onmessage = async function({data}){
-				delete sessionStorage.err;
-				data = new DataView(await data.arrayBuffer())
-				let code = data.getUint8(0)
-				if(code == 1){
-					CD = data.getUint32(1) * 1000
-				}else if(code == 2){
-					//run length coding
-					if(!load)load = data
-					else runLengthChanges(data)
-				}else if(code == 7){
-					CD = data.getUint32(1) * 1000
-					seti(data.getUint32(5), data.getUint8(9))
-				}else if(code == 6){
-					let i = 0
-					while(i < data.byteLength - 2){
-						seti(data.getUint32(i += 1), data.getUint8(i += 4))
-					}
-				}else if(code == 3){
-					online = data.getUint16(1)
-					document.getElementById("onlineCounter").textContent = online;
-				}else if(code == 15){
-					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-					let name;
-					let messageChannel;
-					[txt, name, messageChannel] = txt.split("\n")
-					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
-					bannedNames.forEach(bname => {
-						if (name == bname) return;
-					})
-					
-					if(!txt)return
-					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐"))return
-					if(txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠"))return
-					if(txt.includes("discord.gg"))return
-					if(txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜"))return
-					if(txt.includes("𒐫"))return
-					
-					let newMessage = document.createElement("div")
-					newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
-					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
-
-					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
-						newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
-						if (currentChannel == messageChannel) audios.closePalette.run()
-					}
-					messageChannel = messageChannel || 'en'
-					cMessages[messageChannel].push(newMessage.outerHTML)
-					if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
-					if (currentChannel == messageChannel) {
-						chatMessages.insertAdjacentElement("beforeEnd", newMessage)
-					}
-
-					if(chatMessages.children.length>100){
-						chatMessages.children[0].remove()
-					}
-					scroll && chatMessages.scrollTo(0,999999999)
-				}
-			}
-			ws.onclose = (e) => {
-				if(CD != Infinity)return location.reload(true)
-				//Something went wrong...
-				CD = 1e100
-				console.error(e)
-				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location.reload(true)
-				else {
-					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg" 
-					waitingGame.start()
-				}
-			}
-			function put(){
-				if(CD>Date.now())return
-				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
-				set(Math.floor(x), Math.floor(y), PEN)
-				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
-				audios.cooldownStart.run()
-				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
-				let a = new DataView(new Uint8Array(6).buffer)
-				a.setUint8(0, 4)
-				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
-				a.setUint8(5, PEN)
-				PEN=-1
-				ws.send(a)
-			}
-			let pok = document.getElementById('pok')
-			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
-			pok.addEventListener('click', oclick)
-			function sendMsg(message){
-				ws.send(encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
-			}
-			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
-			window.scanDocumentShortcuts = function(e) {
-				if(!e.isTrusted)return
-				//"Space" key to open server switch menu
-				if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
-					if (serverMenu.opened) {
-						serverInput.blur();
-						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
-						serverMenu.opened = false
-					}
-					else {
-						serverMenu.style.transform = "translateX(-50%)"
-						serverMenu.opened = true
-					}
-				}
-
-				//Begin palette commands
-				if (onCooldown) return
-
-				//"Enter" key to place selected block without using mouse
-				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
-					oclick.call(pok, e)
-
-				//Keyboard shortcuts for selecting palette colours
-				let keyIndex = null 
-				if(document.activeElement != document.body)return
-				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
-				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
-				if (keyIndex == null) return
-				if (palette.style.transform=='translateY(100%)')
-					showPalette()
-
-				for (let c = 0; c < document.getElementById("colors").children.length; c++) {
-					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
-				}
-
-				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
-				if(i<0) return
-				let el = document.getElementById("colors").children[PEN]
-				if(el) {
-					el.classList.remove('sel')
-				}
-				PEN = keyIndex;
-				audios.selectColor.run()
-				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
-				document.getElementById("colors").children[keyIndex].classList.add('sel')
-				pok.classList.add('enabled')
-				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
-			}
-			document.body.ontouchend = function(e){if(!e.isTrusted)return
-				for(let t of e.changedTouches){
-					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
-					else if(touch1 && touch1.identifier == t.identifier){
-						[touch1, touch2] = [touch2, null]
-						if(touchmoved > 0 && canvparent2.contains(e.target)){
-							if(e.target != document.body && !canvparent2.contains(e.target))break a
-							clicked(t.clientX, t.clientY)
-						}
-					}
-					if('value' in e.target)e.target.focus()
-					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
-				}
-			}
-		})()
-		WebSocket=function(){localStorage.KSH='1';location+=''}
+		wscapsule()
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
