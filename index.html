@@ -100,7 +100,8 @@
 			window.scanDocumentShortcuts = function(e) {
 				if(!e.isTrusted)return
 				//"Space" key to open server switch menu
-				if (e.code == 'KeyS' && e.ctrlKey && !('value' in document.activeElement)) {
+				if (e.code == 'KeyS' && e.altKey && !('value' in document.activeElement)) {
+					e.preventDefault()
 					if (serverMenu.opened) {
 						serverInput.blur();
 						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
