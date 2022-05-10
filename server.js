@@ -9,7 +9,7 @@ let SECURE = true
 let BOARD, CHANGES
 
 //TODO: compress changes
-const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 10e3 //5mins
+const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 8e3 //5mins
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
@@ -101,9 +101,10 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
 	if(!IP)return p.close()
 	p.lchat = 0
-	let buf = Buffer.alloc(5)
+	let buf = Buffer.alloc(9)
 	buf[0] = 1
 	buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
+	buf.writeInt32BE(COOLDOWN, 5)
 	p.send(buf)
 	players++
 	p.send(runLengthChanges())
