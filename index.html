@@ -99,13 +99,14 @@
 			window.scanDocumentShortcuts = function(e) {
 				if(!e.isTrusted)return
 				//"Space" key to open server switch menu
-				if (e.keyCode == 32 && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) {
+				if (e.code == 'KeyS' && e.ctrlKey && !('value' in document.activeElement)) {
 					if (serverMenu.opened) {
 						serverInput.blur();
 						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
 						serverMenu.opened = false
 					}
 					else {
+						serverInput.focus();
 						serverMenu.style.transform = "translateX(-50%)"
 						serverMenu.opened = true
 					}
@@ -160,7 +161,8 @@
 			}
 			
 		}).bind(undefined, WebSocket.prototype.send)
-		WebSocket.prototype.send = WebSocket.prototype.close
+		WebSocket.prototype.send = function(){this.close()}
+		delete WebSocket
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
@@ -183,7 +185,8 @@
 	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
 			<img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="position: absolute; width: 128px; height: 128px; z-index: 22;"/>
-			<canvas id="waitingGameCanvas" style="position: absolute; width: 100%; height: 100%; z-index: 21;"></canvas>
+			<canvas id="waitingGameCanvas" style="width: 100%; height: 100%; z-index: 21;"></canvas>
+			<div id="connproblems" style="transition: opacity .5s; position: absolute; opacity: 0; bottom: 80px; z-index: 22;font-family: 'mono';">Connection problems? <a onclick="localStorage.clear()" href="">try clicking here</a><br>or tweet us <a href="https://twitter.com/rplacetk">@rplacetk</a></div>
 		</div>
 		<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">Discord</div>
 		<div id="posel" noselect>(0,0) 2.5x</div>
@@ -191,7 +194,7 @@
 			<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
 			<icon-close noselect="" id="close-btn" onclick="serverInput.blur(); serverMenu.style.transform = 'translateX(-50%) translateY(-200px)'; serverMenu.opened = false;" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			<br><br>
-			<input id="serverInput" type="text" placeholder="server.rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
+			<input id="serverInput" type="text" placeholder="rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
 		</div>
 		<div id="place" noselect onclick="if(CD-700<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 		<div id="chat" noselect onclick="showChat()">Chat</div>
@@ -669,8 +672,11 @@
 		}
 
 		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
-			localStorage.server = serverAddress
-			localStorage.board = boardAddress + "/place"
+			let [a, b] = serverAddress.split(" ").reverse()
+			if(!b)[b,a]=[a+'/place','server.'+a]
+			a = "wss://" + a
+			b = "https://" + b
+			server(a, b)
 			location.reload()
 		}
 		
@@ -755,7 +761,7 @@
 		}
 		let physicsCubes = []
 		waitingGame.start()
-
+		setTimeout(() => connproblems.style.opacity = 1, 5000)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 	<!--script src="board_final.js"></script-->
