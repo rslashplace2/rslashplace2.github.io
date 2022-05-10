@@ -11,6 +11,7 @@
 				let code = data.getUint8(0)
 				if(code == 1){
 					CD = data.getUint32(1) * 1000
+					COOLDOWN = data.getUint32(5)
 				}else if(code == 2){
 					//run length coding
 					if(!load)load = data
