@@ -14,7 +14,7 @@
 				}else if(code == 2){
 					//run length coding
 					if(!load)load = data
-					else runLengthChanges(data)
+					else runLengthChanges(data, load)
 				}else if(code == 7){
 					CD = data.getUint32(1) * 1000
 					seti(data.getUint32(5), data.getUint8(9))
@@ -277,9 +277,9 @@
 		</div>
 	</body>
 	<script>
-		const PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
-		const WIDTH = 2000
-		const HEIGHT = 2000
+		let PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
+		let WIDTH = 2000
+		let HEIGHT = 2000
 		let COOLDOWN = 10e3
 	</script>
 
@@ -372,8 +372,8 @@
 			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
 		}
 		function setsize(w, h = w){
-			canvas.width = w
-			canvas.height = h
+			canvas.width = WIDTH = w
+			canvas.height = HEIGHT = h
 			canvparent1.style.width = w + "px"
 			canvparent1.style.height = h + "px"
 			canvparent2.style.width = w + "px"
@@ -569,10 +569,12 @@
 			hideIndicators()
 			audios.selectColor.run()
 		}
-		function runLengthChanges(data){
+		function runLengthChanges(data, x){
 			let i = 9, boardI = 0
 			waitingGame.start()
-
+			let w = data.getUint32(1), h = data.getUint32(5)
+			if(w != WIDTH || h != HEIGHT)setsize(w, h)
+			board = new Uint8Array(a)
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
@@ -580,18 +582,17 @@
 				else if(c == 2)c = data.getUint16(i++),i++
 				else if(c == 3)c = data.getUint32(i++),i+=3
 				boardI += c
-				seti(boardI++, cell & 63)
+				board[boardI++] = cell & 63
 			}
+			renderAll()
 			loadingScreen.style.opacity = 0
 			setTimeout(()=>loadingScreen.remove(),300)
 			setTimeout(()=>waitingGame.stop(),300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
-			board = new Uint8Array(a)
-			renderAll()
-			if(load)runLengthChanges(load)
-			load = true
+			if(load) runLengthChanges(load, a)
+			else load = a
 		}).catch(e => {
 			loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 			waitingGame.start()
