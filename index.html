@@ -294,7 +294,7 @@
 			moved = 3
 			click = e.button + 1
 		}
-		document.body.onmouseup = function(e){
+		document.onmouseup = function(e){
 			if(e.target != document.body && !canvparent2.contains(e.target))return (moved = 3, click = 0)
 			if(moved > 0 && canvparent2.contains(e.target)){
 				clicked(e.clientX, e.clientY)
