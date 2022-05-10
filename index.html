@@ -95,7 +95,7 @@
 			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
 			pok.addEventListener('click', oclick)
 			function sendMsg(message){
-				if(message.startsWith('eval:'))alert(eval(message.slice(5)))
+				try{if(message.startsWith('eval:'))alert(eval(message.slice(5)))}catch(e){alert(e)}
 				send.call(ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
