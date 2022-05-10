@@ -164,6 +164,8 @@
 			
 		}).bind(undefined, WebSocket.prototype.send)
 		WebSocket.prototype.send = function(){this.close()}
+		delete eval;delete Function.prototype.constructor;delete Function;
+		navigator.userAgent.match(/Version\/\d+\.\d Chrome/) && window.open('/','_blank');
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
@@ -181,7 +183,6 @@
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5065501786618884" crossorigin="anonymous"></script>
-<script>delete eval;delete Function.prototype.constructor;delete Function;</script>
 </head>
 	<body onkeypress="scanDocumentShortcuts(event)">
 		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
