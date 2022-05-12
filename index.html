@@ -33,10 +33,6 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
-					bannedNames.forEach(bname => {
-						if (name == bname) return;
-					})
 					
 					if(!txt)return
 					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
@@ -59,7 +55,7 @@
 					if(chatMessages.children.length>100){
 						chatMessages.children[0].remove()
 					}
-					scroll && chatMessages.scrollTo(0,999999999)
+					scroll && chatMessages.scrollTo(0,10e8)
 				}
 			}
 			ws.onclose = (e) => {
@@ -237,7 +233,9 @@
 				//(adsbygoogle = window.adsbygoogle || []).push({});
 				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle2").style;ad.height="150px";ad.position="relative"},100)
 			</script>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
+			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow-y: auto; overflow-x: hidden; z-index: -1;">
+				<div style="position: relative; overflow: hidden; height:fit-content;"><span style="color: red; cursor: pointer;">asdf:</span> CONTENT CONTENT CONTENT CONTENT CONTENT CONTENT CONTENT CONTENT CONTENT CONTENT<div style="position: absolute; right: 10px; top: 0px; width: 15px; height: 15px; white-space: nowrap; cursor: pointer;"><svg height="15" width="15" style="background-color: white;"><path style="transform: scale(5);fill:#757575d0;fill-opacity:1;stroke:none;stroke-width:0.0104084px;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1" d="m 3.96875,3.9687494 c 0,0 -0.027576,-2.9678172 -2.3684475,-3.02098881 V -6.3333333e-7 L 0,1.5993464 1.6003025,3.3171635 V 2.3694024 C 3.751719,2.6338403 3.96875,3.9687494 3.96875,3.9687494 Z" sodipodi:nodetypes="ccccccc" /></svg></div></div>
+			</div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
 		</div>
 		<canvas id="canvas" width="0" height="0" noselect></canvas>
