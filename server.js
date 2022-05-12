@@ -7,7 +7,7 @@ import fsExists from 'fs.promises.exists';
 import fetch from 'node-fetch';
 let SECURE = true
 let BOARD, CHANGES
-import {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} from './config.json'
+let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} = JSON.parse(await fs.readFile('./config.json'))
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
@@ -97,6 +97,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
 	if(url && !VIP.has(sha256(IP)))return p.close()
 	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
+	if(IP.startsWith("%")){BANS.add(headers['x-forwarded-for']);fs.appendFile("blacklist.txt","\n"+headers['x-forwarded-for']);return p.close()}
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(9)
