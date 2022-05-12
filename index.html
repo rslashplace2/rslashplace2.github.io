@@ -3,6 +3,9 @@
 <head>
 	<script>
 		const wscapsule = (send => {
+			let focused = true
+			window.addEventListener('blur', () => focused = false)
+			window.addEventListener('focus', () => focused = true)
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
@@ -74,7 +77,7 @@
 				}
 			}
 			function put(){
-				if(CD>Date.now())return
+				if(!focused || CD>Date.now())return
 				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
 				set(Math.floor(x), Math.floor(y), PEN)
 				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
