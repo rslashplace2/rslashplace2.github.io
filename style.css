@@ -392,7 +392,7 @@ mute-button{
 	#chatPanel {
 		position: absolute;
 		width: 380px;
-		height: calc(100% - 235px);
+		height: calc(100% - 85px);
 		right: 0px;
 		background-color: white;
 		margin-top: 75px;
