@@ -764,7 +764,7 @@
 		}
 		let physicsCubes = []
 		waitingGame.start()
-		setTimeout(() => connproblems.style.opacity = 1, 5000)
+		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 	<!--script src="board_final.js"></script-->
