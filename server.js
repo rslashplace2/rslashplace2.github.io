@@ -7,9 +7,7 @@ import fsExists from 'fs.promises.exists';
 import fetch from 'node-fetch';
 let SECURE = true
 let BOARD, CHANGES
-
-//TODO: compress changes
-const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 8e3 //5mins
+import {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} from './config.json'
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
