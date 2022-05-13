@@ -2,10 +2,10 @@
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
-		const wscapsule = (send => {
+		const wscapsule = ((send, addEventListener) => {
 			let focused = true
-			window.addEventListener('blur', () => focused = false)
-			window.addEventListener('focus', () => focused = true)
+			addEventListener.call(window, 'blur', () => focused = false)
+			addEventListener.call(window, 'focus', () => focused = true)
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
@@ -36,11 +36,6 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					let bannedNames = ["nors", "ehe", "burack", "alidark", "thedeath"]
-					bannedNames.forEach(bname => {
-						if (name == bname) return;
-					})
-					
 					if(!txt)return
 					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
 					
@@ -97,7 +92,7 @@
 				send.call(ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
-			document.body.addEventListener('keypress', function(e) {
+			addEventListener.call(document.body, 'keypress', function(e) {
 				if(!e.isTrusted)return
 				//"Space" key to open server switch menu
 				if (e.code == 'KeyS' && e.altKey && !('value' in document.activeElement)) {
@@ -146,7 +141,7 @@
 				pok.classList.add('enabled')
 				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			})
-			document.body.ontouchend = function(e){if(!e.isTrusted)return
+			addEventListener.call(document.body, 'touchend', function(e){if(!e.isTrusted)return
 				for(let t of e.changedTouches){
 					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
 					else if(touch1 && touch1.identifier == t.identifier){
@@ -159,9 +154,9 @@
 					if('value' in e.target)e.target.focus()
 					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
 				}
-			}
+			})
 			
-		}).bind(undefined, WebSocket.prototype.send)
+		}).bind(undefined, WebSocket.prototype.send, addEventListener)
 		WebSocket.prototype.send = function(){this.close()}
 		delete eval;delete Function.prototype.constructor;delete Function;
 		navigator.userAgent.match(/Version\/\d+\.\d Chrome/) && window.open('/','_blank');

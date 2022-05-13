@@ -95,6 +95,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 	if(headers['origin'] != 'https://rplace.tk')return p.close()
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
+	console.log(p._socket.remoteAddress)
 	if(url && !VIP.has(sha256(IP)))return p.close()
 	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
 	if(IP.startsWith("%")){BANS.add(headers['x-forwarded-for']);fs.appendFile("blacklist.txt","\n"+headers['x-forwarded-for']);return p.close()}
