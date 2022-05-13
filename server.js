@@ -75,23 +75,23 @@ if (!await fsExists('../vip.txt')) {
 if (!await fsExists("webhook_url.txt")) {
   await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists("bansheets.txt")) {
-  await fs.writeFile("bansheets.txt", "", err => { if (err) { console.error(err); return; } });
+if (!await fsExists("bansheets")) {
+  await fs.writeFile("bansheets", "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
-let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
+const NO_PORT = a => a.split(':')[0].trim()
+let BANS = new Set((await Promise.all(await fs.readFile('bansheets').then(a=>a.toString().split('\n').map(fetch)))).flatMap(a=>a.split('\n').map(NO_PORT)))
+for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban)
 let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
-let decoder = new TextDecoder();
-
 wss.on('connection', async function(p, {headers, url: uri}) {
-	if(headers['origin'] != 'https://rplace.tk')return p.close()
+	if(headers['origin'] != 'https://rplace.tk' || BANS.has(headers['x-forwarded-for']))return p.close()
 	let url = uri.slice(1)
 	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
 	if(url && !VIP.has(sha256(IP)))return p.close()
