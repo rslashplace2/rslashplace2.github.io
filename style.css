@@ -23,6 +23,21 @@ body{
 	top: 0;
 	background: #333;
 }
+body > #maincontent{
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 90%;
+	right: 0;
+	overflow: hidden;
+}
+body > #posts{
+	position: absolute;
+	top: 90%;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
 
 btn{
 	display: block;
