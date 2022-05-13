@@ -69,21 +69,20 @@ if(SECURE){
 if (!await fsExists('blacklist.txt')) {
 	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists('cooldown_overrides.txt')) {
-	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
-}
 if (!await fsExists('../vip.txt')) {
 	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
 }
 if (!await fsExists("webhook_url.txt")) {
   await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
 }
+if (!await fsExists("bansheets.txt")) {
+  await fs.writeFile("bansheets.txt", "", err => { if (err) { console.error(err); return; } });
+}
 
 let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
-let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
 let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
