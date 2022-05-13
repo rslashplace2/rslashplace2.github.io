@@ -83,7 +83,7 @@ let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 const NO_PORT = a => a.split(':')[0].trim()
-let BANS = new Set((await Promise.all(await fs.readFile('bansheets').then(a=>a.toString().split('\n').map(fetch)))).flatMap(a=>a.split('\n').map(NO_PORT)))
+let BANS = new Set((await Promise.all(await fs.readFile('bansheets').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT)))
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban)
 let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 
