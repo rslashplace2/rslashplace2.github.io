@@ -755,6 +755,11 @@
 		waitingGame.start()
 		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
+
+		if ( window.location !== window.parent.location ) {
+  			// The page is in an iframe
+			window.location.replace("https://youareanidiot.cc")
+		}
 	</script>
 	<!--script src="board_final.js"></script-->
 </html>
