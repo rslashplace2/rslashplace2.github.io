@@ -248,6 +248,7 @@ function checkPreban(incomingX, incomingY, ip) {
 				BANS.add(ip)
 				fs.appendFile("blacklist.txt","\n"+ip)
 			}
+			console.log(`Pixel placed in preban area at ${x},${y} by ${ip}`)
 			return true
 		}
 		else {
