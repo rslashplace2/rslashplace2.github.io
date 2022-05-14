@@ -157,7 +157,7 @@
 		}).bind(undefined, WebSocket.prototype.send, addEventListener)
 		WebSocket.prototype.send = function(){this.close()}
 		delete eval;delete Function.prototype.constructor;delete Function;
-		navigator.userAgent.match(/Version\/\d+\.\d Chrome/) && alert("Error")
+		if(navigator.userAgent.match(/Version\/\d+\.\d Chrome/))while(1)location.reload(1)
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
