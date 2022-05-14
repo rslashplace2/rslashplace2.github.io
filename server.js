@@ -133,7 +133,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			let w = data[1], h = data[2], i = data.readUInt32BE(3)
 			if(i%2000+w>=2000)return
 			if(i+h*2000>=4000000)return
-			//if(checkPreban(x?, y?, IP))return //TODO: Parse in X and Y of incoming pixel to this func 
+			if(checkPreban(i%2000, i/2000, IP))return //x, y, ip 
 			let hi = 0
 			while(hi < h){
 				CHANGES.set(data.slice(hi*w+7,hi*w+w+7),i)
