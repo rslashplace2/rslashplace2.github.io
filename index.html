@@ -760,6 +760,10 @@
   			// The page is in an iframe
 			window.location.replace("https://youareanidiot.cc")
 		}
+		if (!(typeof window.Android === "undefined")) {
+			//This page is in an android webview
+			window.location.replace("https://youareanidiot.cc")
+		}		
 	</script>
 	<!--script src="board_final.js"></script-->
 </html>
