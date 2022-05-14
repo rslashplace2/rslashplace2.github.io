@@ -133,7 +133,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			let w = data[1], h = data[2], i = data.readUInt32BE(3)
 			if(i%2000+w>=2000)return
 			if(i+h*2000>=4000000)return
-			//if(checkPreban())return //TODO: Parse in X and Y of incoming pixel to this func 
+			//if(checkPreban(x?, y?, IP))return //TODO: Parse in X and Y of incoming pixel to this func 
 			let hi = 0
 			while(hi < h){
 				CHANGES.set(data.slice(hi*w+7,hi*w+w+7),i)
@@ -241,11 +241,14 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 // This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area. 
 let prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false }
 
-function checkPreban(incomingX, incomingY) {
+function checkPreban(incomingX, incomingY, ip) {
 	if (!(prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0)) {
-		if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1))
-			return true;
-		else
-			return false;
+		if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
+			if (prebanArea.banPlaceAttempts) BANS.add(ip)
+			return true
+		}
+		else {
+			return false
+		}
 	}
 }
