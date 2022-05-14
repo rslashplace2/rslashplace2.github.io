@@ -236,3 +236,15 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 	}
 	return `Filled an area of ${w}*${h} (${(w*h)} pixels), reload the webpage to see the effects`
 }
+
+// This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area. 
+let prebanArea = { x: 0, y: 0, x1:0, y1:0 }
+
+function checkPreban(incomingX, incomingY) {
+	if (!(prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0)) {
+		if ((incomingX > x && incomingX < x1) && (incomingY > x && incomingY < x1))
+			return true;
+		else
+			return false;
+	}
+}
