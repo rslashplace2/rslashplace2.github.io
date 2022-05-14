@@ -133,7 +133,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			let w = data[1], h = data[2], i = data.readUInt32BE(3)
 			if(i%2000+w>=2000)return
 			if(i+h*2000>=4000000)return
-			if(checkPreban(i%2000, i/2000, IP))return //x, y, ip 
+			if(checkPreban(i%2000, i/2000, IP))return p.close() 
 			let hi = 0
 			while(hi < h){
 				CHANGES.set(data.slice(hi*w+7,hi*w+w+7),i)
@@ -244,7 +244,10 @@ let prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false }
 function checkPreban(incomingX, incomingY, ip) {
 	if (!(prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0)) {
 		if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
-			if (prebanArea.banPlaceAttempts) BANS.add(ip)
+			if (prebanArea.banPlaceAttempts) {
+				BANS.add(ip)
+				fs.appendFile("blacklist.txt","\n"+ip)
+			}
 			return true
 		}
 		else {
