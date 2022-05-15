@@ -258,9 +258,7 @@ function checkPreban(incomingX, incomingY, ip) {
 			console.log(`Pixel placed in preban area at ${x},${y} by ${ip}`)
 			return true
 		}
-		else {
-			return false
-		}
+		else return false
 	}
 	return false
 }
