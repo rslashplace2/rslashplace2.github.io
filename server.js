@@ -262,7 +262,5 @@ function checkPreban(incomingX, incomingY, ip) {
 			return false
 		}
 	}
-	else {
-		return false
-	}
+	return false
 }
