@@ -344,7 +344,7 @@ mute-button{
 	}
 }
 
-#helpbtn, #posel, #place, #chat, #chatPanel, #serverMenu{
+#helpbtn, #posel, #place, #chat, #chatPanel, #serverMenu, #archiveView{
 	box-shadow: 0 0 30px black;
 }
 
@@ -511,4 +511,22 @@ a {
 
 .languageButton:hover {
 	transform: scale(1.2);
+}
+
+#archiveView {
+	position: absolute;
+	z-index: 10;
+	padding: 10px;
+	background-color: white;
+	width: 80%;
+	height: 85%;
+	left: 50%;
+	top: 50%;
+	transform: translateY(-50%) translateX(-50%);
+	border-radius: 10px;
+}
+
+#archiveViewImg {
+	object-fit: none;
+	image-rendering: pixelated;
 }
