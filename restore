@@ -1,6 +1,6 @@
 sudo systemctl stop place
 sudo rm place
-https://github.com/rslashplace2/rslashplace2.github.io/commit/5699769410fe240511f88e8bba4667e52a975505/place -o place
+curl https://github.com/rslashplace2/rslashplace2.github.io/commit/5699769410fe240511f88e8bba4667e52a975505/place -o place
 chmod +x place
 sudo rm change
 sudo systemctl start place
