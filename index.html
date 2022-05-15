@@ -756,7 +756,7 @@
 		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 
-		if ((window.location !== window.parent.location) || (!(typeof window.Android === "undefined") || (!(typeof window.Kodular === "undefined")) {
+		if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
   			// The page is in an iframe, android webview or free app maker (bad)
 			window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 		}
