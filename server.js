@@ -250,6 +250,7 @@ function clearPreban() {
 
 function checkPreban(incomingX, incomingY, ip) {
 	if (!(prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0)) {
+		console.log("At least it got to the checking stage " + incomingX + " " + incomingY + " " + ip)
 		if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
 			if (prebanArea.banPlaceAttempts) {
 				BANS.add(ip)
