@@ -252,7 +252,7 @@ function checkPreban(incomingX, incomingY, ip) {
 	if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
 
 	if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
-		if (prebanArea.banPlaceAttempts) {
+		if (prebanArea.banPlaceAttempts === true) {
 			BANS.add(ip)
 			fs.appendFile("blacklist.txt","\n"+ip)
 		}
