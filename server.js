@@ -91,12 +91,13 @@ let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
 wss.on('connection', async function(p, {headers, url: uri}) {
-	if(headers['origin'] != 'https://rplace.tk' || BANS.has(headers['x-forwarded-for']))return p.close()
+	p.ip = headers['x-forwarded-for'].split(',').pop()
+	if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close()
 	let url = uri.slice(1)
-	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
+	let IP = /*p._socket.remoteAddress */url || p.ip
 	if(url && !VIP.has(sha256(IP)))return p.close()
 	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
-	if(IP.startsWith("%")){BANS.add(headers['x-forwarded-for']);fs.appendFile("blacklist.txt","\n"+headers['x-forwarded-for']);return p.close()}
+	if(IP.startsWith("%")){BANS.add(p.ip);fs.appendFile("blacklist.txt","\n"+p.ip);return p.close()}
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(9)
