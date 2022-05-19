@@ -75,15 +75,15 @@ if (!await fsExists('../vip.txt')) {
 if (!await fsExists("webhook_url.txt")) {
   await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
 }
-if (!await fsExists("bansheets")) {
-  await fs.writeFile("bansheets", "", err => { if (err) { console.error(err); return; } });
+if (!await fsExists("bansheets.txt")) {
+  await fs.writeFile("bansheets.txt", "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
 const NO_PORT = a => a.split(':')[0].trim()
-let BANS = new Set((await Promise.all(await fs.readFile('bansheets').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT)))
+let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT)))
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban)
 let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 
