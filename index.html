@@ -92,7 +92,7 @@
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 			addEventListener.call(document.body, 'keypress', function(e) {
 				if(!e.isTrusted)return
-				//"Space" key to open server switch menu
+				//"Alt+S" key to open server switch menu
 				if (e.code == 'KeyS' && e.altKey && !('value' in document.activeElement)) {
 					if (serverMenu.opened) {
 						serverInput.blur();
@@ -103,6 +103,15 @@
 						serverInput.focus();
 						serverMenu.style.transform = "translateX(-50%)"
 						serverMenu.opened = true
+					}
+				}
+				//"Alt+O" to open overlay menu
+				if (e.code == 'KeyO' && e.altKey && !('value' in document.activeElement)) {
+					if (overlayMenu.opened) {
+						overlayMenu.opened = false
+					}
+					else {
+						overlayMenu.opened = true
 					}
 				}
 
