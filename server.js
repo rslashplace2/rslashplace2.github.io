@@ -122,7 +122,6 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
 			if (!txt) return
 			try {
-				console.log(txt)
 				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt }
 				if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
 				await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
