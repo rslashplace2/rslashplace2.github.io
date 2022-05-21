@@ -92,27 +92,16 @@
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 			addEventListener.call(document.body, 'keypress', function(e) {
 				if(!e.isTrusted)return
+
 				//"Alt+S" key to open server switch menu
-				if (e.code == 'KeyS' && e.altKey && !('value' in document.activeElement)) {
-					if (serverMenu.opened) {
-						serverInput.blur();
-						serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
-						serverMenu.opened = false
-					}
-					else {
-						serverInput.focus();
-						serverMenu.style.transform = "translateX(-50%)"
-						serverMenu.opened = true
-					}
+				if (e.code == 'KeyS' && e.shiftKey && !('value' in document.activeElement)) {
+					if (serverMenu.opened) closeServerMenu()
+					else openServerMenu()
 				}
 				//"Alt+O" to open overlay menu
-				if (e.code == 'KeyO' && e.altKey && !('value' in document.activeElement)) {
-					if (overlayMenu.opened) {
-						overlayMenu.opened = false
-					}
-					else {
-						overlayMenu.opened = true
-					}
+				if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
+					if (overlayMenu.opened) closeOverlayMenu()
+					else openOverlayMenu()
 				}
 
 				//Begin palette commands
@@ -204,9 +193,18 @@
 				Discord
 			</div>
 			<div id="posel" noselect>(0,0) 2.5x</div>
-			<div id="serverMenu" style="transform: translateX(-50%) translateY(-200px)">
+			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
+				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Load Custom Overlay:</h2>
+				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+				<br><br>
+				<input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
+				<input id="overlayX" value="" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
+				<input id="overlayY" value="" placeholder="Image Y" style="width: calc(50% - 5px)"/> <br><br>
+				<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" onchange="this.title=this.value"/>
+			</div>
+			<div id="serverMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-200px)">
 				<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
-				<icon-close noselect="" id="close-btn" onclick="serverInput.blur(); serverMenu.style.transform = 'translateX(-50%) translateY(-200px)'; serverMenu.opened = false;" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+				<icon-close noselect="" id="close-btn" onclick="closeServerMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 				<br><br>
 				<input id="serverInput" type="text" placeholder="rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
 			</div>
@@ -252,6 +250,7 @@
 			</div>
 			<div id="canvparent2" noselect>
 				<div id="canvselect"> <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;"> <g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g> </svg> </div>
+				<img id="templateImage" width="auto" height="auto" style="pointer-events: none; position: absolute; transform-origin: top left; image-rendering: pixelated; will-change: transform; z-index: 2;" ondrag="return"/>
 			</div>
 			<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
 			<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
@@ -783,6 +782,47 @@
 			archiveViewZoom += 1
 			archiveViewImg.style.transform = `scale(${archiveViewZoom}%)`
 			console.log(archiveViewZoom)
+		}
+
+		function closeServerMenu() {
+			serverInput.blur();
+			serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
+			if (overlayMenu.opened) overlayMenu.style.transform = "translateX(-50%) translateY(0px)"
+			serverMenu.opened = false
+		}
+		function openServerMenu() {
+			serverInput.focus();
+			serverMenu.style.transform = "translateX(-50%)"
+			if (overlayMenu.opened) overlayMenu.style.transform = "translateX(-50%) translateY(110px)"
+			serverMenu.opened = true
+		}
+		function closeOverlayMenu() {
+			overlayMenu.style.transform = "translateX(-50%) translateY(-330px)"
+			overlayMenu.opened = false
+		}
+		function openOverlayMenu() {
+			overlayMenu.style.transform = serverMenu.opened ? "translateX(-50%) translateY(110px)"  : "translateX(-50%)"
+			overlayMenu.opened = true
+		}
+
+		let overlayInfo = {x: 0, y: 0, w: 0, h: 0, opacity: 0.8} //TODO: Useless var, replace with direct access
+		overlayInput.onchange = () => {
+			if (!overlayInput.files || !overlayInput.files[0]) return
+			console.log("set")
+			templateImage.src = URL.createObjectURL(overlayInput.files[0])
+			templateImage.style.transform = `translate(${overlayInfo.x}px ${overlayInfo.y}px)`
+		}
+		overlayX.onchange = () => {
+			overlayInfo.x = Number(overlayX.value)
+			templateImage.style.left = overlayInfo.x+"px"
+		}
+		overlayY.onchange = () => {
+			overlayInfo.y = Number(overlayY.value)
+			templateImage.style.top = overlayInfo.y+"px"
+		}
+		overlayOpacity.onchange = () => {
+			overlayInfo.opacity = Number(overlayOpacity.value)/100
+			templateImage.style.opacity = overlayInfo.opacity
 		}
 
 		// The page is in an iframe, android webview or free app maker (bad)
