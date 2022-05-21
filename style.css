@@ -99,10 +99,36 @@ input[type=file]::file-selector-button {
 	border: 0px solid black;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 }
+input[type=range]::-moz-range-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
 
 @media (prefers-color-scheme: dark) {
 	btn{background: #000;color: white}
 }
+
 #canvparent1{
 	position: absolute;
 	font-size: 0;
