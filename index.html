@@ -200,7 +200,10 @@
 				<input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
 				<input id="overlayX" value="" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
 				<input id="overlayY" value="" placeholder="Image Y" style="width: calc(50% - 5px)"/> <br><br>
-				<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" onchange="this.title=this.value"/>
+				<div style="width: 100%; position: relative;">
+					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;"/>
+					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
+				</div>
 			</div>
 			<div id="serverMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-200px)">
 				<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
@@ -823,6 +826,8 @@
 		overlayOpacity.onchange = () => {
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
+			overlaySliderValue.textContent = overlayOpacity.value
+			overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`
 		}
 
 		// The page is in an iframe, android webview or free app maker (bad)
