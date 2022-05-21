@@ -66,17 +66,9 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
-if (!await fsExists('blacklist.txt')) {
-	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists('../vip.txt')) {
-	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists("webhook_url.txt")) {
-  await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists("bansheets.txt")) {
-  await fs.writeFile("bansheets.txt", "", err => { if (err) { console.error(err); return; } });
+let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.text", "bansheets.txt"]
+for (let i = 0; i < criticalFiles.length; i++) {
+  await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
