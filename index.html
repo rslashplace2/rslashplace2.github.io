@@ -201,7 +201,7 @@
 				<input id="overlayX" value="" type="number" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
 				<input id="overlayY" value="" type="number" placeholder="Image Y" style="width: calc(50% - 5px)"/> <br><br>
 				<div style="width: 100%; position: relative;">
-					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;"/>
+					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" oninput="overlaySliderValue.textContent = this.value; overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`;"/>
 					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
 				</div>
 			</div>
@@ -826,8 +826,6 @@
 		overlayOpacity.onchange = () => {
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
-			overlaySliderValue.textContent = overlayOpacity.value
-			overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`
 		}
 
 		// The page is in an iframe, android webview or free app maker (bad)
