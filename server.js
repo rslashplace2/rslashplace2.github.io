@@ -66,7 +66,7 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
-let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.text", "bansheets.txt", "./config.json"]
+let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.txt", "bansheets.txt", "./config.json"]
 for (let i = 0; i < criticalFiles.length; i++) {
 	if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
 
