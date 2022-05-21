@@ -11,7 +11,7 @@ let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} = JSON.parse(await fs.readFile('./co
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
-}catch(e){
+} catch(e) {
 	BOARD = new Uint8Array(WIDTH * HEIGHT)
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
 }
@@ -66,9 +66,9 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
-let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.text", "bansheets.txt"]
+let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.text", "bansheets.txt", "config.json"]
 for (let i = 0; i < criticalFiles.length; i++) {
-  await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
+	await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
 }
 
 let players = 0
