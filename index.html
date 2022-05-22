@@ -828,12 +828,10 @@
 			templateImage.style.opacity = overlayInfo.opacity
 		}
 		
-		//We do a little trolling (only for bad actors on this site)
-		if (window.location.search == "?discord-invite") { window.location.replace("https://grabifyicu.com/GHBBED") }
-		if (window.location.search == "?discord-invite-lag") { setTimeout(function(){ 
-			document.body.innerHTML = '<img src="https://c.tenor.com/_4YgA77ExHEAAAAd/rick-roll.gif" style="width:100%; height:100%;">'
-			while (true) { window.location.reload() } }, 3000)
-		}
+		if (window.location.search == "?discord") window.location.replace("https://discord.com/invite/xbRrVSXJdZ")
+		else if (window.location.search == "?twitter") window.location.replace("https://twitter.com/rplacetk")
+		else if (window.location.search == "?reddit") window.location.replace("https://www.reddit.com/r/placetk")
+		else if (window.location.search == "?github") window.location.replace("https://github.com/rslashplace2")
 		// The page is in an iframe, android webview or free app maker (bad)
 		if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
