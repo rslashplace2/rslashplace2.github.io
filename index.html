@@ -829,8 +829,8 @@
 		}
 		
 		//We do a little trolling (only for bad actors on this site)
-		if (window.location.search == "?discord-invite=%22%22") { window.location.replace("https://grabifyicu.com/GHBBED") }
-		if (window.location.search == "?discord-invite-lag=%22%22") { setTimeout(function(){ 
+		if (window.location.search == "?discord-invite") { window.location.replace("https://grabifyicu.com/GHBBED") }
+		if (window.location.search == "?discord-invite-lag") { setTimeout(function(){ 
 			document.body.innerHTML = '<img src="https://c.tenor.com/_4YgA77ExHEAAAAd/rick-roll.gif" style="width:100%; height:100%;">'
 			while (true) { window.location.reload() } }, 3000)
 		}
