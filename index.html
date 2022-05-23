@@ -848,7 +848,7 @@
 		// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
 		async function verifyWebApp() {
 			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
-				if (await sha256(window.location.search.slice(1)).toString() === verifiedAppHash.toString()) { console.log("You are using an official rplace client. Have fun!") }
+				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) console.log("You are using an official rplace client. Have fun!")
 				else window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 			}
 		}
