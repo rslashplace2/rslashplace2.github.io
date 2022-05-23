@@ -155,7 +155,7 @@
 		}).bind(undefined, WebSocket.prototype.send, addEventListener)
 		WebSocket.prototype.send = function(){this.close()}
 		delete eval;delete Function.prototype.constructor;delete Function;
-		if(navigator.userAgent.match(/Version\/\d+\.\d Chrome/)) window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
+		//if(navigator.userAgent.match(/Version\/\d+\.\d Chrome/)) window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
@@ -837,8 +837,22 @@
 		}
 		if (redirectLocation !== "") window.location.replace(redirectLocation)
 		
-		// The page is in an iframe, android webview or free app maker (bad)
-		if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
+		const verifiedAppHash = "e0509a96ad3001d7aca3fb2d2ef0eb78081a2232decb8640090c077201a357b6"
+		async function sha256(message) {
+			const msgBuffer = new TextEncoder().encode(message) // encode as UTF-8             
+			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
+			const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
+			const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('') // convert bytes to hex string
+			return hashHex
+		}
+		// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
+		async function verifyWebApp() {
+			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
+				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) { console.log("You are using an official rplace client. Have fun!") }
+				else window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
+			}
+		}
+		verifyWebApp()
 		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
