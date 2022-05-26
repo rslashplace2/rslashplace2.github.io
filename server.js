@@ -105,17 +105,22 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 		if(data[0] == 15){
 			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
+			let txt = data.toString().slice(1), content, name, messageChannel
+			[content, name, messageChannel] = txt.split("\n")
+			let nlCount = 0
+			if (!VIP.has(sha256(IP))) {
+				for(var i=0; i < txt.length; i++) {
+			    		if (txt[i] === "\n") nlCount++
+				}
+			}
+			if (nlCount >= 4) return
 			for(let c of wss.clients) {
                 		c.send(data)
 			}
-			let txt = data.toString().slice(1)
-			let name;
-			let messageChannel;
-			[txt, name, messageChannel] = txt.split("\n")
-			if(name)name = name.replace(/\W+/g,'').toLowerCase()
-			if (!txt) return
+			if(name) name = name.replace(/\W+/g,'').toLowerCase()
+			if (!content) return
 			try {
-				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt }
+				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": content }
 				if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
 				await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			}
@@ -149,7 +154,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			return
 		}
 		//accept
-		if(checkPreban(i%2000, Math.floor(i/2000), IP))return p.close() 
+		if(checkPreban(i%2000, Math.floor(i/2000), IP)) return p.close() 
 		CHANGES[i] = c
 		cooldowns.set(IP, NOW + CD - 500)
 		newPos.push(i)
