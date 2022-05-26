@@ -690,7 +690,7 @@
 		}
 		messageInput.oninput = () => {
 			for (const [emojiCode, value] of Object.entries(emojiMap)) {
-				messageInput.value = messageInput.replace(":"+emojiCode+":", value)
+				messageInput.value = messageInput.value.replace(":"+emojiCode+":", value)
 			}
 		}
 
