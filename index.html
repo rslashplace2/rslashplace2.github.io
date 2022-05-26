@@ -81,6 +81,8 @@
 				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				a.setUint8(5, PEN)
 				PEN=-1
+				if (localstorage.placed === "undefined") localstorage.placed = 1
+				else localstorage.placed++
 				send.call(ws, a)
 			}
 			let pok = document.getElementById('pok')
