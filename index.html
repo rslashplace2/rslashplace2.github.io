@@ -318,7 +318,6 @@
 			click = 0
 		}
 		document.body.onkeyup = function(e) {
-			if (messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 			if (e.keyCode == 37) { //Right
 				let i = 10
 				let repeatFunc = setInterval(function(){
@@ -682,6 +681,17 @@
 			messageInput.focus()
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
 			messageInput.setRangeText("@" + user, start, end, 'preserve')
+		}
+		
+		const emojiMap = {
+	  		joy: "&#x1f602",
+	  		cool: "&#x1f60e",
+			moyai: "&#128511"
+		}
+		messageInput.oninput = () => {
+			for (const [emojiCode, value] of Object.entries(emojiMap)) {
+				messageInput.value = messageInput.replace(":"+emojiCode+":", value)
+			}
 		}
 
 		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
