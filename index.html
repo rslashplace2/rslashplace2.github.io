@@ -36,22 +36,9 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-<<<<<<< HEAD
-					
-					if(!txt)return
-					if(txt.includes("𝚍𝚒𝚜𝚌𝚘𝚛𝚍.𝚐𝚐") || txt.includes("𝐝𝐢𝐬𝐜𝐨𝐫𝐝.𝐠𝐠") || txt.includes("discord.gg") || txt.includes("𝙙𝙞𝙨𝙘𝙤𝙧𝙙.𝙜𝙜") || txt.includes("𒐫"))return
-					
-					let newMessage = document.createElement("div")
-					newMessage.setAttribute("style", "position: relative; overflow: hidden; height:fit-content;")
-					newMessage.setAttribute("onmouseenter", "this.children[1].style.visibility='visible'")
-					newMessage.setAttribute("onmouseleave", "this.children[1].style.visibility='hidden'")
-					newMessage.innerHTML = `<span style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer; onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n<div style="position: absolute; right: 10px; top: 0px; width: 25px; height: 25px; white-space: nowrap; cursor: pointer; visibility: hidden;" onclick="chatReplyMessage(this.parentElement.textContent)"><svg height="25" width="25"><path style="transform: scale(5);fill:white;fill-opacity:1;stroke:darkgrey;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1;" d="m 3.96875,3.9687494 c 0,0 -0.027576,-2.9678172 -2.3684475,-3.02098881 V -6.3333333e-7 L 0,1.5993464 1.6003025,3.3171635 V 2.3694024 C 3.751719,2.6338403 3.96875,3.9687494 3.96875,3.9687494 Z" sodipodi:nodetypes="ccccccc"/></svg></div>`
-					
-=======
 					if(!txt)return					
 					let newMessage = document.createElement("div")
 					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
->>>>>>> 6bf9acdc3ccdd521d0789d5acc88b52c0f162961
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
@@ -202,69 +189,6 @@
 					<img id="archiveViewImg" src="https://media.discordapp.net/attachments/971490691844816916/975200666194686012/deez.png" style="width: 100%; height: 100%; object-position: 0px 0px; cursor: grab;" onmousedown="archiveViewDragging = true" onmouseup="archiveViewDragging = false" onmousemove="archiveViewMouseMove(event)" onwheel="archiveViewWheel()" ondragstart="return false"></img>
 				</div>
 			</div>
-<<<<<<< HEAD
-			<div style="display: flex; flex-direction: row;" noselect>
-				<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
-				<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
-					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7-->
-					<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
-					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('tu')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
-					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
-				</div>
-				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
-				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
-			</div>
-			<hr style="margin-top: 10px;">
-			<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">Please use English in EN, Turkish in TÜ and persian in FAS</span>
-			<hr>
-			<br>
-			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7492601452630734" crossorigin="anonymous"></script>
-			<!-- Chat Ad -->
-			<div><ins class="adsbygoogle2"
-				style="display:block"
-				data-ad-client="ca-pub-5065501786618884"
-				data-ad-slot=""
-				data-ad-format="auto"
-				data-full-width-responsive="true" style="position: relative">
-				<!--custom ad for now-->
-				<div style="background: url(https://pxlsfiddle.com/pxlsarchive/canvas41/final.png) 50%/cover;height: 100%;filter: blur(1px) brightness(0.5);"></div><div style="position: absolute;top: 0;color: white;font-size: 25px;text-align: center;left: 0;right: 0;margin-top: 40px;">We're at <em>WAR</em> with <a href="https://pxls.space" target="blank" style="color: #88f;">pxls.space</a><div style="font-size: 17px;color: #aaa;">pxls.space ile savaştayız<br>Sanatlarını bayraklarla örtün!</div></div>
-				</ins>
-			</div>
-			<script>
-				//(adsbygoogle = window.adsbygoogle || []).push({});
-				setInterval(()=>{chatPanel.style.height="calc(100% - 85px)";let ad=document.querySelector(".adsbygoogle2").style;ad.height="150px";ad.position="relative"},100)
-			</script>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow-y: auto; overflow-x: hidden; z-index: -1;"></div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
-		</div>
-		<canvas id="canvas" width="0" height="0" noselect></canvas>
-		<div id="canvparent1" noselect>
-			<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
-		</div>
-		<div id="canvparent2" noselect>
-			<div id="canvselect"> <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;"> <g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g> </svg> </div>
-		</div>
-		<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
-		<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
-			<div id="modal" style="display:none"><div id="modal-header">
-				<h2>Place</h2>
-				<icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close>
-			</div>
-			<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-			<div>
-				<a onclick="window.open('https://bit.ly/3LVwDtW','_blank')">Donate</a>
-				<span onclick='localStorage.vip=prompt("Enter key?")||""'>&nbsp;/&nbsp;</span>
-				<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
-			</div>
-			<div id="modal-footer">
-				<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
-				<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
-			</div>
-		</div>
-		<div id="palette" style="transform: translateY(100%)" noselect>
-			<div id="colors">
-=======
->>>>>>> 6bf9acdc3ccdd521d0789d5acc88b52c0f162961
 
 			<div id="donate" noselect onclick="window.open('https://discord.gg/xbRrVSXJdZ','_blank')">
 				<svg width="14" height="11" viewBox="0 0 71 55" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0)"><path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="#5865F2"></path></g><defs><clipPath id="clip0"><rect width="71" height="55" fill="white"></rect></clipPath></defs></svg>
@@ -303,11 +227,12 @@
 				</div>
 				<div style="display: flex; flex-direction: row;" noselect>
 					<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
-					<div style="height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
+					<div style="position: relative; height:30px; width: 180px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 20px; cursor: pointer;">
 						<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7-->
 						<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('fas')">فارسی FAS</span>
 						<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('tu')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
 						<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
+						<span class="tooltip" onclick="this.style.visibility = 'hidden';">Change channel:</span>
 					</div>
 					<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
 					<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
@@ -394,42 +319,18 @@
 			click = 0
 		}
 		document.body.onkeyup = function(e) {
-			if (e.keyCode == 37) { //Right
-				let i = 10
-				let repeatFunc = setInterval(function(){
-					i--
-					x -= i / 55
-					pos()
-					if(i <= 1)clearInterval(repeatFunc)
-				}, 16) //60fps is 16.67ms
-			}
-			else if (e.keyCode == 38) { //up
-				let i = 10
-				let repeatFunc = setInterval(function(){
-					i--
-					y -= i / 55
-					pos()
-					if(i <= 1)clearInterval(repeatFunc)
-				}, 16)
-			}
-			else if (e.keyCode == 39) { //left
-				let i = 10
-				let repeatFunc = setInterval(function(){
-					i--
-					x += i / 55
-					pos()
-					if(i <= 1)clearInterval(repeatFunc)
-				}, 16)
-			}
-			else if (e.keyCode == 40) { //down
-				let i = 10
-				let repeatFunc = setInterval(function(){
-					i--
-					y += i / 55
-					pos()
-					if(i <= 1)clearInterval(repeatFunc)
-				}, 16)
-			}
+			let i = 10
+			let repeatFunc = setInterval(function() {
+				switch (e.keyCode) { //We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+					case 37: x -= i / 55; break //right
+					case 38: y -= i / 55; break //up
+					case 39: x += i / 55; break //left
+					case 40: y += i / 55; break //down
+				}
+				pos()
+				i--
+				if(i <= 0) clearInterval(repeatFunc)
+			}, 16)
 		}
 		oncontextmenu = e => e.preventDefault()
 		let selX = 0, selY = 0
