@@ -696,6 +696,7 @@
 			usa: "🇺🇸"
 		}
 		messageInput.oninput = () => {
+			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black" )
 			for (const [emojiCode, value] of Object.entries(emojiMap)) {
 				messageInput.value = messageInput.value.replace(":"+emojiCode+":", value)
 			}
