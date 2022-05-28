@@ -699,8 +699,7 @@
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
 
 			for (const [emojiCode, value] of Object.entries(emojiMap)) {
-				if (messageInput.includes(":"+emojiCode+":"))
-				{
+				if (messageInput.value.includes(":"+emojiCode+":")) {
 					messageInput.value = messageInput.value.replace(":"+emojiCode+":", value)
 					messageInput.style.color =  "black"
 				}
