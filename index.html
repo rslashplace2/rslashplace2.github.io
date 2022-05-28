@@ -696,17 +696,7 @@
 			usa: "🇺🇸"
 		}
 		messageInput.oninput = () => {
-			if (messageInput.value.includes(":")) {
-				if (messageInput.value.charAt(messageInput.value.length - 1) === " ") { //If user has broken off from the emoji code
-					messageInput.style.color = "black"
-					return true
-				}
-				messageInput.style.color = "#00FA9A"
-			}
-			else {
-				messageInput.style.color = "black"
-				return true
-			}
+			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
 
 			for (const [emojiCode, value] of Object.entries(emojiMap)) {
 				if (messageInput.includes(":"+emojiCode+":"))
