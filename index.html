@@ -830,9 +830,9 @@
 		let overlayInfo = {x: 0, y: 0, w: 0, h: 0, opacity: 0.8} //TODO: Useless var, replace with direct access
 		overlayInput.onchange = () => {
 			if (!overlayInput.files || !overlayInput.files[0]) return
-			console.log("set")
 			templateImage.src = URL.createObjectURL(overlayInput.files[0])
 			templateImage.style.transform = `translate(${overlayInfo.x}px ${overlayInfo.y}px)`
+			templateImage.style.opacity = 0.8
 		}
 		overlayX.onchange = () => {
 			overlayInfo.x = Number(overlayX.value)
