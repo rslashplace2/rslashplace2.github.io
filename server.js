@@ -7,13 +7,11 @@ import fsExists from 'fs.promises.exists';
 import fetch from 'node-fetch';
 let SECURE = true
 let BOARD, CHANGES
-
-//TODO: compress changes
-const WIDTH = 2000, HEIGHT = 2000, PALETTE_SIZE = 32, COOLDOWN = 8e3 //5mins
+let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} = JSON.parse(await fs.readFile('./config.json'))
 try{
 	BOARD = await fs.readFile('./place')
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
-}catch(e){
+} catch(e) {
 	BOARD = new Uint8Array(WIDTH * HEIGHT)
 	CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
 }
@@ -68,37 +66,31 @@ if(SECURE){
 	perMessageDeflate: false }).listen(PORT) })
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
-if (!await fsExists('blacklist.txt')) {
-	await fs.writeFile("blacklist.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists('cooldown_overrides.txt')) {
-	await fs.writeFile("cooldown_overrides.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists('../vip.txt')) {
-	await fs.writeFile("../vip.txt", "", err => { if (err) { console.error(err); return; } });
-}
-if (!await fsExists("webhook_url.txt")) {
-  await fs.writeFile("webhook_url.txt", "", err => { if (err) { console.error(err); return; } });
+let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.txt", "bansheets.txt", "./config.json"]
+for (let i = 0; i < criticalFiles.length; i++) {
+	if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
+
 }
 
 let players = 0
 let VIP
 try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catch(e){}
-let BANS = new Set(await fs.readFile('blacklist.txt').toString().split('\n'))
-let OVERRIDES = new Set(await fs.readFile('cooldown_overrides.txt').toString().split('\n'))
+const NO_PORT = a => a.split(':')[0].trim()
+let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT)))
+for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban)
 let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 
-let decoder = new TextDecoder();
-
 wss.on('connection', async function(p, {headers, url: uri}) {
-	if(headers['origin'] != 'https://rplace.tk')return p.close()
+	p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':')
+	if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close()
 	let url = uri.slice(1)
-	let IP = /*p._socket.remoteAddress */url || headers['x-forwarded-for']
+	let IP = /*p._socket.remoteAddress */url || p.ip
 	if(url && !VIP.has(sha256(IP)))return p.close()
 	let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
+	if(IP.startsWith("%")){BANS.add(p.ip);fs.appendFile("blacklist.txt","\n"+p.ip);return p.close()}
 	if(!IP)return p.close()
 	p.lchat = 0
 	let buf = Buffer.alloc(9)
@@ -114,7 +106,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			if(p.lchat + 2500 > NOW || data.length > 400)return
 			p.lchat = NOW
 			for(let c of wss.clients) {
-                c.send(data)
+                		c.send(data)
 			}
 			let txt = data.toString().slice(1)
 			let name;
@@ -122,9 +114,10 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			[txt, name, messageChannel] = txt.split("\n")
 			if(name)name = name.replace(/\W+/g,'').toLowerCase()
 			if (!txt) return
-			let msgHook = { "username": `[channel] ${name || "anon"} @rplace.tk`, "content": txt }
-			if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
-            		try {
+			try {
+				if (txt.includes("@")) return
+				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt, "allowed_mentions": [] }
+				if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
 				await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			}
 			catch(err) {
@@ -145,7 +138,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 		if(data.length < 6)return //bad packet
 		let i = data.readUInt32BE(1), c = data[5]
 		if(i >= BOARD.length || c >= PALETTE_SIZE)return //bad packet
-    let cd = cooldowns.get(IP)
+    		let cd = cooldowns.get(IP)
 		if(cd > NOW){
 			//reject
 			let data = Buffer.alloc(10)
@@ -157,6 +150,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 			return
 		}
 		//accept
+		if(checkPreban(i%2000, Math.floor(i/2000), IP))return p.close() 
 		CHANGES[i] = c
 		cooldowns.set(IP, NOW + CD - 500)
 		newPos.push(i)
@@ -237,4 +231,28 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 		x = x1 - w
 	}
 	return `Filled an area of ${w}*${h} (${(w*h)} pixels), reload the webpage to see the effects`
+}
+
+// This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area. 
+var prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false }
+
+function setPreban(_x, _y, _x1, _y1, ban = true) {
+	prebanArea = { x: _x, y: _y, x1:_x1, y1:_y1, banPlaceAttempts:ban }
+}
+function clearPreban() {
+	prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false }
+}
+
+function checkPreban(incomingX, incomingY, ip) {
+	if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
+
+	if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
+		if (prebanArea.banPlaceAttempts === true) {
+			BANS.add(ip)
+			fs.appendFile("blacklist.txt","\n"+ip)
+		}
+		console.log(`Pixel placed in preban area at ${incomingX},${incomingY} by ${ip}`)
+		return true
+	}
+	else return false
 }

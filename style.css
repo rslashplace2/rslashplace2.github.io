@@ -1,3 +1,4 @@
+
 * { margin: 0; padding: 0 } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; touch-action: none; overflow: hidden; position: absolute }
 
 html{
@@ -21,6 +22,21 @@ body{
 	left: 0;
 	top: 0;
 	background: #333;
+}
+body > #maincontent{
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 90%;
+	right: 0;
+	overflow: hidden;
+}
+body > #posts{
+	position: absolute;
+	top: 90%;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 
 btn{
@@ -76,9 +92,43 @@ input{
 	border-radius: 0;
 }
 
+input[type=file]::file-selector-button {
+	padding: 4px;
+	border-radius: 5px;
+	background-color: white;
+	border: 0px solid black;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+}
+input[type=range]::-moz-range-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
 @media (prefers-color-scheme: dark) {
 	btn{background: #000;color: white}
 }
+
 #canvparent1{
 	position: absolute;
 	font-size: 0;
@@ -328,7 +378,7 @@ mute-button{
 	}
 }
 
-#helpbtn, #posel, #place, #chat, #chatPanel, #serverMenu{
+#helpbtn, #posel, #place, #chat, #chatPanel, #archiveView, .toastMenu{
 	box-shadow: 0 0 30px black;
 }
 
@@ -364,7 +414,7 @@ mute-button{
         position: absolute;
         top: 20px;
         left: 20px;
-        width: 70px;
+        width: 80px;
         height: 24px;
         padding: 5px;
         line-height: 15px;
@@ -392,8 +442,7 @@ mute-button{
 	#chatPanel {
 		position: absolute;
 		width: 380px;
-		min-height: calc(100% - 85px);
-		max-height: calc(100% - 85px);
+		height: calc(100% - 85px);
 		right: 0px;
 		background-color: white;
 		margin-top: 75px;
@@ -409,8 +458,7 @@ mute-button{
 	#chatPanel {
 		position: absolute;
 		width: calc(100% - 20px);
-		min-height: calc(100% - 85px);
-		max-height: calc(100% - 85px);
+		height: calc(100% - 85px);
 		right: 0px;
 		background-color: white;
 		margin-top: 75px;
@@ -443,14 +491,6 @@ a {
 	flex: initial;
 }
 
-
-.adsbygoogle{
-	display: block;
-	width: 100%;
-	max-height: 150px !important;
-	overflow: hidden !important;
-}
-
 #nameInput {
 	position: absolute;
 	width: calc(100% - 65px);
@@ -478,7 +518,7 @@ a {
 	transform: rotate(5deg) scale(110%);
 }
 
-#serverMenu {
+.toastMenu {
     position: absolute;
     top: 60px;
     left: 50%;
@@ -506,3 +546,22 @@ a {
 .languageButton:hover {
 	transform: scale(1.2);
 }
+
+#archiveView {
+	position: absolute;
+	z-index: 10;
+	padding: 10px;
+	background-color: white;
+	width: 80%;
+	height: 85%;
+	left: 50%;
+	top: 50%;
+	transform: translateY(-50%) translateX(-50%);
+	border-radius: 10px;
+}
+
+#archiveViewImg {
+	object-fit: none;
+	image-rendering: pixelated;
+}
+
