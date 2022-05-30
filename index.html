@@ -38,7 +38,7 @@
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
 					if(!txt)return
 					let emojiMatch = txt.match("🗘🖼.+\.png").toString()
-					if(emojiMatch !== "") {
+					if(emojiMatch) {
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:">`)
 					}
 					let newMessage = document.createElement("div")
