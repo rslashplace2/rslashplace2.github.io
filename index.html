@@ -195,6 +195,7 @@
 				Discord
 			</div>
 			<div id="posel" noselect>(0,0) 2.5x</div>
+			<span id="toastTooltips" class="tooltip" style="width: 240px; top: 60px;" noselect onmouseleave="this.click();" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);"><kbd>Shift</kbd>+<kbd>O</kbd> overlay menu, <kbd>Shift</kbd>+<kbd>S</kbd> server switch menu.</span>
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
 				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Overlay:</h2>
 				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
@@ -697,27 +698,27 @@
 		}
 		
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
-		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:" }
-		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:" }
-		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:" }
-		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:" }
-		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:" }
-		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :", "Change channel:": "Changer de chaîne:" }
+		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
+		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü." }
+		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> meniu suprapus, <kbd>Shift</kbd>+<kbd>S</kbd> meniu de comutare server." }
+		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "Μενού επικάλυψης <kbd>Shift</kbd>+<kbd>O</kbd>, μενού εναλλαγής διακομιστή <kbd>Shift</kbd>+<kbd>S</kbd>." }
+		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menú superpuesto, <kbd>Shift</kbd>+<kbd>S</kbd> menú de cambio de servidor." }
+		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :", "Change channel:": "Changer de chaîne:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menu superposé, <kbd>Shift</kbd>+<kbd>S</kbd> menu de changement de serveur." }
 		function translate(elementArray) {
 			elementArray.forEach(element => {
-				let key = element.textContent
+				let key = element.innerHTML
 				switch(navigator.language.split('-')[0]) {
-					case "fa": element.textContent = TRANSLATIONS_FAS[key] //persian
-					case "tr": element.textContent = TRANSLATIONS_TK[key] //turkish
-					case "ro": element.textContent = TRANSLATIONS_ROM[key] //romanian
-					case "el": element.textContent = TRANSLATIONS_GR[key] //greek
-					case "es": element.textContent = TRANSLATIONS_SP[key] //spanish
-					case "fr": element.textContent = TRANSLATIONS_FR[key] //french
-					default: element.textContent = key
+					case "fa": element.innerHTML = TRANSLATIONS_FAS[key] //persian
+					case "tr": element.innerHTML = TRANSLATIONS_TK[key] //turkish
+					case "ro": element.innerHTML = TRANSLATIONS_ROM[key] //romanian
+					case "el": element.innerHTML = TRANSLATIONS_GR[key] //greek
+					case "es": element.innerHTML = TRANSLATIONS_SP[key] //spanish
+					case "fr": element.innerHTML = TRANSLATIONS_FR[key] //french
+					default: element.innerHTML = key
 				}
 			})
 		}
-		translate([chat, liveChatHeader, namePanelHeader, channelTooltip])
+		translate([chat, liveChatHeader, namePanelHeader, channelTooltip, toastTooltips])
 
 
 		function component(width, height, colour, x, y, type, falling) {
