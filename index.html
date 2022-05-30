@@ -36,7 +36,10 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					if(!txt)return					
+					if(!txt)return
+					if(txt.match("🗘🖼.+\.png").toString() !== "") {
+						txt = txt.replace(txt.match("🗘🖼.+\.png").toString(), `<img src="custom_emojis/${txt.match("🗘🖼.+\.png").toString().slice(4)}" alt=":${txt.match("🗘🖼.+\.png").toString().slice(4, -4)}:">`)
+					}
 					let newMessage = document.createElement("div")
 					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
@@ -660,18 +663,8 @@
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
 			messageInput.setRangeText("@" + user, start, end, 'preserve')
 		}
-		
 		const emojiMap = {
-	  		joy: "😂",
-	  		cool: "😎",
-			heart: "❤️",
-			moyai: "🗿",
-			turkey: "🇹🇷",
-			skull: "💀",
-			amongus: "ඞ",
-			iran: "🇮🇷",
-			uk: "🇬🇧",
-			usa: "🇺🇸"
+	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", fan: "🗘🖼fan.png"
 		}
 		messageInput.oninput = () => {
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
