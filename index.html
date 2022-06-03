@@ -42,7 +42,7 @@
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
 					}
 					let newMessage = document.createElement("div")
-					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);">[${name || "anon"}]</span> ${txt}\n`
+					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);" oncontextmenu="onChatContext(event)">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
@@ -251,6 +251,13 @@
 					<div style="background: url(https://media.discordapp.net/attachments/960966748834775052/974228266779045939/Screenshot_2022-05-12_at_09.35.05.png) 50%/cover;height: 100%;filter: blur(1px) brightness(0.5);"></div>
 						<div style="position: absolute;top: 0;color: white;font-size: 25px;text-align: center;left: 0;right: 0;margin-top: 30px;"><em>Infinite Anarchy<br>No cooldown</em><br><a href="https://canv.tk" target="blank" style="font-size: 17px;color: #88f;">canv.tk</a></div>
 					</ins>
+				</div>
+				<div id="chatContext" class="contextMenu" style="display:none">
+					<ul>
+						<li><a onclick="chatMentionUser(this.textContent);">Mention user</a></li>
+						<li><a>Block user</a></li>
+						<li style="pointer-events: none;"><a style="color: grey;" href="#">Open user channel</a></li>
+					</ul>
 				</div>
 				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
 				<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
@@ -821,6 +828,22 @@
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
 		}
+
+		function onChatContext(e) {
+			e.preventDefault();
+
+			if (chatContext.style.display == "block")
+                hideMenu();
+            else {
+                chatContext.style.display = 'block';
+                chatContext.style.left = e.pageX + "px";
+                chatContext.style.top = e.pageY + "px";
+			}
+		}
+		function hideChatContext() {
+			chatContext.style.display = "none"
+		}
+
 		let redirectLocation = ""
 		switch (window.location.search) {
 			case "?discord": redirectLocation = "https://discord.com/invite/xbRrVSXJdZ"; break
