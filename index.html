@@ -836,8 +836,8 @@
 				hideChatContext();
             else {
                 chatContext.style.display = 'block';
-                chatContext.style.left = e.pageX + "px";
-                chatContext.style.top = e.pageY + "px";
+                chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px";
+                chatContext.style.top = e.pageY - chatPanel.offsetTop + "px";
 			}
 		}
 		function hideChatContext() {
