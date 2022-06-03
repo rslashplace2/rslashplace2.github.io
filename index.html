@@ -682,13 +682,13 @@
 			console.log(message)
 		}
 
-		function switchGameServer(serverAddress) { //TODO: Make a proper version of this
+		function switchGameServer(serverAddress) {
 			let [a, b] = serverAddress.split(" ").reverse()
 			if(!b)[b,a]=[a+'/place','server.'+a]
 			a = "wss://" + a
 			b = "https://" + b
 			server(a, b)
-			location.reload()
+			location.reload(true)
 		}
 		
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
