@@ -830,14 +830,16 @@
 		}
 
 		function onChatContext(e) {
-			e.preventDefault();
+			e.preventDefault()
 
 			if (chatContext.style.display == "block")
 				hideChatContext();
             else {
-                chatContext.style.display = 'block';
-                chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px";
-                chatContext.style.top = e.pageY - chatPanel.offsetTop + "px";
+                chatContext.style.display = 'block'
+				chatContext.children[0] = "Mention" + e.target.textContent.slice(1, -1)
+				chatContext.children[1] = "Block" + e.target.textContent.slice(1, -1)
+                chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
+                chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
 			}
 		}
 		function hideChatContext() {
