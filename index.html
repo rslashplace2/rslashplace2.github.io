@@ -254,7 +254,7 @@
 				</div>
 				<div id="chatContext" class="contextMenu" style="display:none">
 					<ul>
-						<li><a onclick="chatMentionUser(this.textContent);">Mention user</a></li>
+						<li><a onclick="chatMentionUser(this.textContent.slice(' ')[1]);">Mention user</a></li>
 						<li><a>Block user</a></li>
 						<li style="pointer-events: none;"><a style="color: grey;" href="#">Open user channel</a></li>
 					</ul>
