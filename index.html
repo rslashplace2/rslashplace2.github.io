@@ -254,9 +254,9 @@
 				</div>
 				<div id="chatContext" class="contextMenu" style="display:none">
 					<ul>
-						<li><a onclick="chatMentionUser(this.textContent.slice(' ')[1]);">Mention user</a></li>
-						<li><a>Block user</a></li>
-						<li style="pointer-events: none;"><a style="color: grey;" href="#">Open user channel</a></li>
+						<li><a onclick="chatMentionUser(this.innerText.slice(' ')[1]); hideChatContext();">Mention user</a></li>
+						<li><a onclick="hideChatContext();">Block user</a></li>
+						<li style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
 					</ul>
 				</div>
 				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 300px); overflow: auto; z-index: -1;"></div>
