@@ -36,7 +36,8 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					if(!txt)return
+					if(blockedUsers.includes(name)) return
+					if(!txt)return;
 					if(txt.match("🗘🖼.+\.png")) {
 						let emojiMatch = txt.match("🗘🖼.+\.png").toString()
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
@@ -255,7 +256,7 @@
 				<div id="chatContext" class="contextMenu" style="display:none">
 					<ul>
 						<li><a onclick="chatMentionUser(this.innerText.slice(' ')[1]); hideChatContext();">Mention user</a></li>
-						<li><a onclick="hideChatContext();">Block user</a></li>
+						<li><a onclick="hideChatContext();blockUser();">Block user</a></li>
 						<li style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
 					</ul>
 				</div>
@@ -828,18 +829,24 @@
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
 		}
+		let blockedUsers = [], targetedUser
+		function blockUser() {
+			blockedUsers.push(targetedUser)
+		};
 
 		function onChatContext(e) {
 			e.preventDefault()
 
-			if (chatContext.style.display == "block")
+		if (chatContext.style.display == "block")
 				hideChatContext();
-            else {
-                chatContext.style.display = 'block'
+			else {
+				targetedUser = e.target.textContent.slice(1, -1);
+				console.log('User targeted: '+targetedUser);
+				chatContext.style.display = 'block'
 				chatContext.children[0].children[0].children[0].textContent = "Mention " + e.target.textContent.slice(1, -1)
 				chatContext.children[0].children[1].children[0].textContent = "Block " + e.target.textContent.slice(1, -1)
-                chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
-                chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
+				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
+				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
 			}
 		}
 		function hideChatContext() {
