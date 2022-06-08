@@ -2,7 +2,6 @@
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
-		let blockedUsers = {}, targetedUser;
 		const wscapsule = ((send, addEventListener) => {
 			let focused = true
 			addEventListener.call(window, 'blur', () => focused = false)
@@ -37,7 +36,7 @@
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					if(blockedUsers[`${name}`] != undefined) return;
+					if(blockedUsers.includes(name)) return
 					if(!txt)return;
 					if(txt.match("🗘🖼.+\.png")) {
 						let emojiMatch = txt.match("🗘🖼.+\.png").toString()
@@ -830,9 +829,9 @@
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
 		}
-
+		let blockedUsers = [], targetedUser
 		function blockUser() {
-			blockedUsers[`${targetedUser}`] = true;
+			blockedUsers.push(targetedUser)
 		};
 
 		function onChatContext(e) {
