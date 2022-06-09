@@ -43,7 +43,7 @@
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
 					}
 					let newMessage = document.createElement("div")
-					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent);" oncontextmenu="onChatContext(event)">[${name || "anon"}]</span> ${txt}\n`
+					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event)">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
@@ -666,11 +666,10 @@
 			chatMessages.innerHTML = cMessages[selected].join('')
 		}
 
-		function chatMentionUser(formattedName) {
-			let user = formattedName.slice(1, -1)
+		function chatMentionUser(user) {
 			messageInput.focus()
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
-			messageInput.setRangeText("@" + user, start, end, 'preserve')
+			messageInput.setRangeText("@" + user, start, end, "end")
 		}
 		const emojiMap = {
 	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", fan: "🗘🖼fan.png"
