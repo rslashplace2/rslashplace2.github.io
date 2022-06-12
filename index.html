@@ -221,7 +221,7 @@
 			</div>
 			<div id="place" noselect onclick="if(CD-700<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 			<div id="chat" noselect onclick="showChat()">Chat</div>
-			<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));">
+			<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));" ontouchstart="messageInput.blur(); hideChatContext();">
 				<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
 					<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
 					<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
