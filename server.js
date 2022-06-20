@@ -118,12 +118,12 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 				txt = txt.replace("@", "")
 				name = name.replace("@", "")
 				messageChannel = messageChannel.replace("@", "")
-				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt, "allowed_mentions": {"parse": []}}
+				let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt.replaceAll("@","")}
 				if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
 				await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)})
 			}
 			catch(err) {
-				console.log("Could not post to discord: " + err)
+				//console.log("Could not post to discord: " + err)
 			}
 			return;
 		}else if(data[0] == 99 && CD == 30){
