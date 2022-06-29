@@ -338,7 +338,7 @@
 				arrowkeyDown = true //we say, yeah, it is down
 				setTimeout(function() {
 					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
-					if (!arrowkeydown) return 
+					if (!arrowkeyDown) return 
 					let repeatFunc = setInterval(function() {
 						let match = true
 						let x0 = x, y0 = y
