@@ -336,17 +336,21 @@
 		document.body.onkeydown = function (e) {
 			setTimeout(function() {
 				if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
-						let repeatFunc = setInterval(function() {
+					let repeatFunc = setInterval(function() {
 						let match = true
+						let x0 = x, y0 = y
 						switch (e.keyCode) {
-							case 37: x -= 1; break //right
-							case 38: y -= 1; break //up
-							case 39: x += 1; break //left
-							case 40: y += 1; break //down
+							case 37: x0 -= 1; break //right
+							case 38: y0 -= 1; break //up
+							case 39: x0 += 1; break //left
+							case 40: y0 += 1; break //down
 							default: match = false; return
 						}
 						if (match) arrowkeyDown = true
 						if (!arrowkeyDown) {clearInterval(repeatFunc); return}
+						//commit changes to position
+						x = x0
+						y = y0
 						pos()
 					}, 100)
 				}
