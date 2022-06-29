@@ -334,8 +334,11 @@
 
 		let arrowkeyDown = false
 		document.body.onkeydown = function(e) {
-			setTimeout(function() {
-				if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
+			if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
+				arrowkeyDown = true //we say, yeah, it is down
+				setTimeout(function() {
+					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
+					if (!arrowkeydown) return 
 					let repeatFunc = setInterval(function() {
 						let match = true
 						let x0 = x, y0 = y
@@ -346,15 +349,15 @@
 							case 40: y0 += 1; break //down
 							default: match = false; return
 						}
+						//If cancelled while we are moving, then stop moving immediately.
 						if (!arrowkeyDown) {clearInterval(repeatFunc); return}
-						if (match) arrowkeyDown = true
 						//commit changes to position
 						x = x0
 						y = y0
 						pos()
 					}, 100)
-				}
-			}, 500)
+				}, 500)
+			}
 		}
 
 		document.body.onkeyup = function(e) {
