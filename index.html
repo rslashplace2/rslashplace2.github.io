@@ -333,7 +333,7 @@
 		}
 
 		let arrowkeyDown = false
-		document.body.onkeydown = function (e) {
+		document.body.onkeydown = function(e) {
 			setTimeout(function() {
 				if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
 					let repeatFunc = setInterval(function() {
@@ -346,8 +346,8 @@
 							case 40: y0 += 1; break //down
 							default: match = false; return
 						}
-						if (match) arrowkeyDown = true
 						if (!arrowkeyDown) {clearInterval(repeatFunc); return}
+						if (match) arrowkeyDown = true
 						//commit changes to position
 						x = x0
 						y = y0
