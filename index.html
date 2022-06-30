@@ -43,7 +43,7 @@
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
 					}
 					let newMessage = document.createElement("div")
-					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event)">[${name || "anon"}]</span> ${txt}\n`
+					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
 					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
@@ -221,7 +221,7 @@
 			</div>
 			<div id="place" noselect onclick="if(CD-700<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
 			<div id="chat" noselect onclick="showChat()">Chat</div>
-			<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));" ontouchstart="messageInput.blur(); hideChatContext();">
+			<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));" ontouchstart="messageInput.blur(); hideChatContext();" onclick="hideChatContext();">
 				<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
 					<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
 					<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
@@ -259,6 +259,7 @@
 						<li><a onclick="chatMentionUser(targetedUser); hideChatContext();">Mention user</a></li>
 						<li><a onclick="blockUser(); hideChatContext();">Block user</a></li>
 						<li style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
+						<li onclick="changeMyName()" style="display: none;"><a><em>Change my name</em></a></li>
 					</ul>
 				</div>
 				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 265px); overflow: auto; z-index: -1;"></div>
@@ -861,22 +862,37 @@
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
 		}
+		
 		let blockedUsers = [], targetedUser
 		function blockUser() {
 			blockedUsers.push(targetedUser)
-		};
-
-		function onChatContext(e) {
+		}
+		function changeMyName()	{
+			localStorage.name = prompt("Please enter your new username:", "anon")
+		}
+		function onChatContext(e, uname) {
 			e.preventDefault()
-
-		if (chatContext.style.display == "block")
+	
+			if (chatContext.style.display == "block")
 				hideChatContext();
 			else {
-				targetedUser = e.target.textContent.slice(1, -1);
-				console.log('User targeted: ' + targetedUser);
+				targetedUser = uname
+				console.log('User targeted: ' + uname);
 				chatContext.style.display = 'block'
-				chatContext.children[0].children[0].children[0].textContent = "Mention " + targetedUser
-				chatContext.children[0].children[1].children[0].textContent = "Block " + targetedUser
+				chatContext.children[0].children[0].children[0].textContent = "Mention " + uname
+				if (uname === localStorage.name) {
+					//Prevent user from self blocking.
+					chatContext.children[0].children[2].style.pointerEvents = "none"
+					chatContext.children[0].children[2].children[0].style.color = "grey"
+					chatContext.children[0].children[1].children[0].innerHTML = "Block" + uname
+					chatContext.children[0].children[3].style.display = "visible"
+				}
+				else {
+					chatContext.children[0].children[2].style.pointerEvents = "initial"
+					chatContext.children[0].children[2].children[0].style.color = "initial"
+					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
+					chatContext.children[0].children[3].style.display = "none"
+				}
 				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
 				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
 			}
