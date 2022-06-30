@@ -868,7 +868,8 @@
 			blockedUsers.push(targetedUser)
 		}
 		function changeMyName()	{
-			localStorage.name = prompt("Please enter your new username:", "anon")
+			let newName = prompt("Please enter your new username:", "anon")
+			localStorage.name = (newName != null ? newName : localStorage.name)
 		}
 		function onChatContext(e, uname) {
 			e.preventDefault()
@@ -877,20 +878,21 @@
 				hideChatContext();
 			else {
 				targetedUser = uname
-				console.log('User targeted: ' + uname);
 				chatContext.style.display = 'block'
 				chatContext.children[0].children[0].children[0].textContent = "Mention " + uname
-				if (uname == localStorage.name) {
+				if (uname === localStorage.name) {
 					//Prevent user from self blocking.
 					chatContext.children[0].children[1].style.pointerEvents = "none"
 					chatContext.children[0].children[1].children[0].style.color = "grey"
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
+					//Allow user to change their own name
 					chatContext.children[0].children[3].style.display = "visible"
 				}
 				else {
 					chatContext.children[0].children[1].style.pointerEvents = "initial"
 					chatContext.children[0].children[1].children[0].style.color = "initial"
 					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
+					//Allow user to change their own name
 					chatContext.children[0].children[3].style.display = "none"
 				}
 				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
