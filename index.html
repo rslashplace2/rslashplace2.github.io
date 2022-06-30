@@ -258,8 +258,8 @@
 					<ul>
 						<li><a onclick="chatMentionUser(targetedUser); hideChatContext();">Mention user</a></li>
 						<li><a onclick="blockUser(); hideChatContext();">Block user</a></li>
-						<li style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
-						<li onclick="changeMyName()" style="display: none;"><a><em>Change my name</em></a></li>
+						<li onclick="hideChatContext();" style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
+						<li onclick="changeMyName(); hideChatContext();" style="display: none;"><a><em>Change my name</em></a></li>
 					</ul>
 				</div>
 				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 265px); overflow: auto; z-index: -1;"></div>
@@ -866,12 +866,10 @@
 		let blockedUsers = [], targetedUser
 		function blockUser() {
 			blockedUsers.push(targetedUser)
-			hideChatContext()
 		}
 		function changeMyName()	{
 			let newName = prompt("Please enter your new username:", "anon")
 			localStorage.name = (newName != null ? newName : localStorage.name)
-			hideChatContext()
 		}
 		function onChatContext(e, uname) {
 			e.preventDefault()
