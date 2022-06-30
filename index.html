@@ -259,7 +259,7 @@
 						<li><a onclick="chatMentionUser(targetedUser); hideChatContext();">Mention user</a></li>
 						<li><a onclick="blockUser(); hideChatContext();">Block user</a></li>
 						<li style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
-						<li onclick="changeMyName()" style="display: none;"><a><em>Change my name</em></a></li>
+						<li id="ctxChName" onclick="changeMyName()" style="display: none;"><a><em>Change my name</em></a></li>
 					</ul>
 				</div>
 				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 265px); overflow: auto; z-index: -1;"></div>
@@ -886,14 +886,14 @@
 					chatContext.children[0].children[1].children[0].style.color = "grey"
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[3].style.display = "visible"
+					ctxChName.style.display = "visible"
 				}
 				else {
 					chatContext.children[0].children[1].style.pointerEvents = "initial"
 					chatContext.children[0].children[1].children[0].style.color = "initial"
 					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[3].style.display = "none"
+					ctxChName.style.display = "none"
 				}
 				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
 				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
