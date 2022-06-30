@@ -463,6 +463,7 @@ mute-button{
 		background-color: white;
 		margin-top: 75px;
 		margin-right: 10px;
+		margin-bottom: 10px;
 		z-index: 6;
 		border-radius: 16px;
 		padding: 10px;
