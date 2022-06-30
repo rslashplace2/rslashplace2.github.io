@@ -866,10 +866,12 @@
 		let blockedUsers = [], targetedUser
 		function blockUser() {
 			blockedUsers.push(targetedUser)
+			hideChatContext()
 		}
 		function changeMyName()	{
 			let newName = prompt("Please enter your new username:", "anon")
 			localStorage.name = (newName != null ? newName : localStorage.name)
+			hideChatContext()
 		}
 		function onChatContext(e, uname) {
 			e.preventDefault()
@@ -886,7 +888,7 @@
 					chatContext.children[0].children[1].children[0].style.color = "grey"
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[3].style.display = "inline"
+					chatContext.children[0].children[3].style.display = "initial"
 				}
 				else {
 					chatContext.children[0].children[1].style.pointerEvents = "initial"
