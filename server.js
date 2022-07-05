@@ -168,7 +168,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 let NOW = Date.now() 
 setInterval(() => { 
         NOW = Date.now() 
-}, 50) 
+}, 50)OD
 
 import { exec } from 'child_process' 
 
@@ -242,14 +242,8 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 
 // This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area.  
 var prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false } 
-
-function setPreban(_x, _y, _x1, _y1, ban = true) { 
-        prebanArea = { x: _x, y: _y, x1:_x1, y1:_y1, banPlaceAttempts:ban } 
-} 
-function clearPreban() { 
-        prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false } 
-} 
-
+function setPreban(_x, _y, _x1, _y1, ban = true) => prebanArea = { x: _x, y: _y, x1:_x1, y1:_y1, banPlaceAttempts: ban }
+function clearPreban() => prebanArea = { x:0, y: 0, x1:0, y1:0, banPlaceAttempts: false } 
 function checkPreban(incomingX, incomingY, ip) { 
         if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false 
 
