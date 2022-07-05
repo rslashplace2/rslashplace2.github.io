@@ -168,7 +168,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
 let NOW = Date.now() 
 setInterval(() => { 
         NOW = Date.now() 
-}, 50)OD
+}, 50)
 
 import { exec } from 'child_process' 
 
