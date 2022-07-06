@@ -24,7 +24,7 @@ function runLengthChanges(){
         let bufs = [Buffer.alloc(256)], blast = 0, bi = 0 
         bufs[0][bi++] = 2 
         bufs[0].writeUint32BE(WIDTH, 1) 
-        bufs[0].writeUint32BE(HEIGHT, 5) 
+        bufs[0].writeUint32BE(HEIGHT, 5)
         bi += 8 
         let add = a => {bufs[blast][bi++]=a;bi==256&&(bi=0,bufs.push(Buffer.alloc(256)),blast++)} 
         while(true){ 
@@ -51,7 +51,7 @@ function runLengthChanges(){
                         add(CHANGES[i++] + 192) 
                         add(c >> 24) 
                         add(c >> 16) 
-                        add(c >> 8) 
+                        add(c >> 8)
                         add(c) 
                 } 
         } 
@@ -242,8 +242,8 @@ function fill(x, y, x1, y1, b = 27, random = false) {
 
 // This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area.  
 var prebanArea = { x: 0, y: 0, x1:0, y1:0, banPlaceAttempts:false } 
-function setPreban(_x, _y, _x1, _y1, ban = true) => prebanArea = { x: _x, y: _y, x1:_x1, y1:_y1, banPlaceAttempts: ban }
-function clearPreban() => prebanArea = { x:0, y: 0, x1:0, y1:0, banPlaceAttempts: false } 
+function setPreban(_x, _y, _x1, _y1, ban = true) { prebanArea = { x: _x, y: _y, x1:_x1, y1:_y1, banPlaceAttempts: ban } }
+function clearPreban() { prebanArea = { x:0, y: 0, x1:0, y1:0, banPlaceAttempts: false } }
 function checkPreban(incomingX, incomingY, ip) { 
         if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false 
 
@@ -257,4 +257,3 @@ function checkPreban(incomingX, incomingY, ip) {
         } 
         else return false 
 }
-
