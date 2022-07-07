@@ -194,8 +194,8 @@
 					<img id="archiveViewImg" src="https://media.discordapp.net/attachments/971490691844816916/975200666194686012/deez.png" style="width: 100%; height: 100%; object-position: 0px 0px; cursor: grab;" onmousedown="archiveViewDragging = true" onmouseup="archiveViewDragging = false" onmousemove="archiveViewMouseMove(event)" onwheel="archiveViewWheel()" ondragstart="return false"></img>
 				</div>
 			</div>
-			<div id="svSwitch" collapsed onclick="if (this.collapsed) { this.style.width = '150px'; this.style.height = '30px'; this.children[0].innerText = 'Switch canvas v'; this.style.cursor = 'pointer'; } else { this.style.width = '250px'; this.style.height = '425px'; this.children[0].innerText = 'Collapse ^'; this.style.cursor = 'default'; } this.collapsed = !this.collapsed;">
-				<p>Switch canvas v</p><br>
+			<div id="svSwitch" collapsed onclick="this.style.animation = ''; if (this.collapsed) { this.style.width = '150px'; this.style.height = '30px'; this.children[0].innerText = 'Switch canvas v'; this.style.cursor = 'pointer'; } else { this.style.width = '250px'; this.style.height = '425px'; this.children[0].innerText = 'Collapse ^'; this.style.cursor = 'default'; } this.collapsed = !this.collapsed;">
+				<p class="rainbow-text">Switch canvas v</p><br>
 				<button style="cursor: pointer;" onclick="server('wss:\/\/server.rplace.tk', 'https:\/\/rplace.tk/place'); location.reload(true);"><img src='https://cdn.discordapp.com/attachments/960966748834775052/994560152176967690/unknown.png' height="100" width="230"/></button>
 				<br><br>Main canvas (original) - From the r/place april fools event.<br>
 				<sup style="color: grey;">cooldown: 10s, size: 2000x2000</sup>
