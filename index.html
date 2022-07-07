@@ -630,7 +630,7 @@
 			waitingGame.start()
 			let w = data.getUint32(1), h = data.getUint32(5)
 			if(w != WIDTH || h != HEIGHT)setsize(w, h)
-			board = new Uint8Array(a)
+			board = new Uint8Array(a.buffer)
 			while(i < data.byteLength){
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
