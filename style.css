@@ -424,6 +424,23 @@ mute-button{
 	z-index: 5;
 }
 
+#svSwitch {
+	cursor: pointer;
+	box-shadow: 0 0 30px black;
+	position: absolute;
+	bottom: 0px;
+	right: 20%;
+	width: 150px;
+	height: 30px;
+	padding: 5px;
+	line-height: 15px;
+	background: white;
+	border-radius: 15px 15px 0px 0px;
+	text-align: center;
+	z-index: 5;
+	transition: all .3s ease-out;
+}
+
 #chat span{ overflow: hidden; display: block }
 
 
