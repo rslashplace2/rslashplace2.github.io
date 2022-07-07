@@ -66,7 +66,7 @@ if(SECURE){
         perMessageDeflate: false }).listen(PORT) }) 
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false }) 
 
-let criticalFiles = ["blacklist.txt", "../vip.txt", "webhook_url.txt", "bansheets.txt", "./config.json"] 
+let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt"] 
 for (let i = 0; i < criticalFiles.length; i++) { 
         if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } }); 
 
@@ -78,7 +78,8 @@ try{VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n'))}catc
 const NO_PORT = a => a.split(':')[0].trim() 
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT))) 
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban) 
-let WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString() 
+let WEBHOOK_URL
+try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let printChatInfo = false
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0) 
@@ -89,7 +90,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
         if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close() 
         let url = uri.slice(1) 
         let IP = /*p._socket.remoteAddress */url || p.ip 
-        if(url && !VIP.has(sha256(IP)))return p.close() 
+        if(url && VIP != null && !VIP.has(sha256(IP)))return p.close() 
         let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN 
         if(IP.startsWith("%")){BANS.add(p.ip);fs.appendFile("blacklist.txt","\n"+p.ip);return p.close()} 
         if(!IP)return p.close() 
@@ -109,6 +110,8 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         for(let c of wss.clients) { 
                                 c.send(data) 
                         } 
+
+                        if (WEBHOOK_URL == null) return;
                         let txt = data.toString().slice(1) 
                         let name; 
                         let messageChannel; 
@@ -127,9 +130,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                                 if (msgHook.content.includes("@") || msgHook.content.includes("http")) return 
                                 await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)}) 
                         } 
-                        catch(err) { 
-                                console.log("Could not post to discord: " + err) 
-                        } 
+                        catch(err) { console.log("Could not post to discord: " + err) }
                         return; 
                 }else if(data[0] == 99 && CD == 30){ 
                         let w = data[1], h = data[2], i = data.readUInt32BE(3) 
@@ -172,7 +173,8 @@ setInterval(() => {
 
 import { exec } from 'child_process' 
 
-let ORIGIN = (''+await fs.readFile("../.git-credentials")).trim() 
+let ORIGIN 
+try {ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()}catch(e){} 
 
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
