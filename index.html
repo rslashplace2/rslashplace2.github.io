@@ -923,7 +923,8 @@
 			case "?email": redirectLocation = "mailto:blob.kat@hotmail.com"; break
 		}
 		if (redirectLocation !== "") window.location.replace(redirectLocation)
-		
+		if (window.location.pathname.includes("admin")) window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
 		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcdda44"
 		async function sha256(message) {
 			const msgBuffer = new TextEncoder().encode(message) // encode as UTF-8             
