@@ -16,12 +16,12 @@ Setting up a custom server that users can connect to (usually with the server sw
 
 ## Setting up the server:
 1. Get a web domain.
-2. Port forward ports 80 (will be used by certbot), 443 (web socket), 8080 (place file server) to the computer you deceide to use to host the server
+2. Port forward ports 80 (will be used by certbot), 443 (web socket), 8080 (place file server) to the computer you decide to use to host the server
 3. Install certbot, nodejs and npm
 4. Use certbot to set up the keys and certificates on the computer you would like to use
 5. Install the latest version of node from the official site onto your computer
 6. Install the latest npm available on your system
-7. Clone the rslashplace2.github.io github repository, it may take a while ~~because we pack in all node modules  
+7. Clone the rslashplace2.github.io github repository, it may take a while ~~because we pack in all node modules~~ 
 8. Enter the rslashplace2.github.io directory cloned to your system
 9. Run ./newboard.sh [canvas width] [canvas height] [cooldown in seconds] to generate a new config.json file e.g `./newboard.sh 500 500 1`
 10. Open config.json in a text editor, set "USE_GIT" to false to disable the canvas backup system
