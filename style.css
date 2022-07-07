@@ -419,9 +419,9 @@ mute-button{
 	padding: 5px;
 	line-height: 15px;
 	background: white;
-	border-radius: 100px;
+	/*border-radius: 100px;
+	z-index: 5;*/
 	text-align: center;
-	z-index: 5;
 }
 
 #svSwitch {
