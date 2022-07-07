@@ -7,7 +7,7 @@ import fsExists from 'fs.promises.exists';
 import fetch from 'node-fetch'; 
 let SECURE = true 
 let BOARD, CHANGES 
-let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN} = JSON.parse(await fs.readFile('./config.json')) 
+let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT} = JSON.parse(await fs.readFile('./config.json')) 
 try{ 
         BOARD = await fs.readFile('./place') 
         CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
@@ -177,7 +177,7 @@ let ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
         await fs.writeFile('place', BOARD) 
-        await new Promise((r, t) => exec("git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r())) 
+        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : "cp place ../place_http_server/place", e => e ? t(e) : r())) 
         //serve old changes for 11 more mins just to be 100% safe 
         let curr = new Uint8Array(CHANGES) 
         setTimeout(() => { 
