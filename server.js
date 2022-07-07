@@ -69,8 +69,7 @@ if(SECURE){
 let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt"] 
 for (let i = 0; i < criticalFiles.length; i++) { 
         if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } }); 
-
-} 
+}
 
 let players = 0 
 let VIP 
@@ -179,7 +178,7 @@ try {ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()}catch(e){}
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
         await fs.writeFile('place', BOARD) 
-        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : "cp place ../place_http_server/place", e => e ? t(e) : r())) 
+        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : "cp place place_http_server/place", e => e ? t(e) : r())) 
         //serve old changes for 11 more mins just to be 100% safe 
         let curr = new Uint8Array(CHANGES) 
         setTimeout(() => { 
