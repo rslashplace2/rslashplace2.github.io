@@ -491,9 +491,10 @@ mute-button{
 		cursor: pointer;
 		box-shadow: 0 0 30px black;
 		position: absolute;
+		width: 150px;
 		height: 24px;
 		padding: 5px;
-		line-height: 15px;
+		line-height: 12.5px;
 		background: white;
 		border-radius: 18px;
 		text-align: center;
