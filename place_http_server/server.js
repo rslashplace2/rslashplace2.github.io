@@ -17,6 +17,11 @@ app.get('/place', (req, res) => {
 	res.sendFile(__dirname + "/place")
 })
 
+app.get('/backups', (req, res) => {
+	res.setHeader("Access-Control-Allow-Origin", "*")
+	app.set(__dirname)
+})
+
 httpServer.listen(8081, () => {
 	console.log(`Server listening on port 8081`)
 })

@@ -424,25 +424,6 @@ mute-button{
 	text-align: center;
 }
 
-#svSwitch {
-	cursor: pointer;
-	box-shadow: 0 0 30px black;
-	position: absolute;
-	width: 150px;
-	height: 30px;
-	padding: 5px;
-	line-height: 15px;
-	background: white;
-	border-radius: 0px 0px 15px 15px;
-	text-align: center;
-	z-index: 5;
-	transition: all .3s ease-out;
-	top: 0px;
-	left: 30px;
-	overflow: hidden;
-	animation: pulse 2s infinite;
-}
-
 @keyframes pulse {
 	0% {transform: scale(1);}
 	50% {transform: scale(1.05);}
@@ -477,6 +458,24 @@ mute-button{
 		padding: 10px;
 		transition: transform .3s ease-out;
 	}
+
+	#svSwitch {
+		cursor: pointer;
+		box-shadow: 0 0 30px black;
+		position: absolute;
+		width: 150px;
+		height: 30px;
+		padding: 5px;
+		line-height: 15px;
+		background: white;
+		border-radius: 0px 0px 15px 15px;
+		text-align: center;
+		z-index: 5;
+		transition: all .3s ease-out;
+		top: 0px;
+		left: 30px;
+		overflow: hidden;
+	}
 }
 
 @media screen and (orientation:portrait) {
@@ -493,6 +492,24 @@ mute-button{
 		border-radius: 16px;
 		padding: 10px;
 		transition: transform .3s ease-out;
+	}
+
+	#svSwitch {
+		cursor: pointer;
+		box-shadow: 0 0 30px black;
+		position: absolute;
+		width: 36px;
+		height: 36px;
+		padding: 5px;
+		line-height: 15px;
+		background: white;
+		border-radius: 18px;
+		text-align: center;
+		z-index: 5;
+		transition: all .3s ease-out;
+		top: 0px;
+		left: 20px;
+		overflow: hidden;
 	}
 }
 
