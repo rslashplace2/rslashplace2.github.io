@@ -931,9 +931,9 @@
 			case "?reddit": redirectLocation = "https://www.reddit.com/r/placetk"; break
 			case "?github": redirectLocation = "https://github.com/rslashplace2"; break
 			case "?email": redirectLocation = "mailto:blob.kat@hotmail.com"; break
+			case "?admin": redirectLocation = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; break
 		}
 		if (redirectLocation !== "") window.location.replace(redirectLocation)
-		if (window.location.pathname.includes("admin")) window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
 		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcdda44"
 		async function sha256(message) {
