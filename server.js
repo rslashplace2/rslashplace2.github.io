@@ -85,7 +85,7 @@ let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim() 
 
 wss.on('connection', async function(p, {headers, url: uri}) { 
-        p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') 
+        p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') //IMPORTANT: if not on cloudflare, use p.ip = p._socket.remoteAddress.split(':',4).join(':')
         if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close() 
         let url = uri.slice(1) 
         let IP = /*p._socket.remoteAddress */url || p.ip 
@@ -157,7 +157,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         return 
                 } 
                 //accept 
-                if(checkPreban(i%2000, Math.floor(i/2000), IP))return p.close()  
+                if(checkPreban(i%WIDTH, Math.floor(i/HEIGHT), IP))return p.close()  
                 CHANGES[i] = c 
                 cooldowns.set(IP, NOW + CD - 500) 
                 newPos.push(i) 
