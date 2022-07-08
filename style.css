@@ -509,8 +509,8 @@ mute-button{
 	}
 }
 .svSwitchOpened {
-	width: 250px;
-	height: 425px;
+	width: 250px !important;
+	height: 425px !important;
 	cursor: default;	
 }
 
