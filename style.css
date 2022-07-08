@@ -461,7 +461,7 @@ mute-button{
 		background: white;
 		border-radius: 0px 0px 15px 15px;
 		text-align: center;
-		z-index: 5;
+		z-index: 6;
 		transition: all .3s ease-out;
 		top: 0px;
 		left: 30px;
@@ -497,13 +497,14 @@ mute-button{
 		background: white;
 		border-radius: 18px;
 		text-align: center;
-		z-index: 5;
+		z-index: 6;
 		transition: all .3s ease-out;
 		top: 20px;
 		left: 20px;
 		overflow: hidden;
 	}
 	.svSwitchClosed {
+		width: 115px !important;
 		height: 24px;
 		cursor: pointer;
 	}
