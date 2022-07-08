@@ -453,11 +453,9 @@ mute-button{
 	}
 
 	#svSwitch {
-		cursor: pointer;
 		box-shadow: 0 0 30px black;
 		position: absolute;
 		width: 150px;
-		height: 30px;
 		padding: 5px;
 		line-height: 15px;
 		background: white;
@@ -469,8 +467,11 @@ mute-button{
 		left: 30px;
 		overflow: hidden;
 	}
+	.svSwitchClosed {
+		height: 30px;
+		cursor: pointer;
+	}
 }
-
 @media screen and (orientation:portrait) {
 	#chatPanel {
 		position: absolute;
@@ -488,11 +489,9 @@ mute-button{
 	}
 
 	#svSwitch {
-		cursor: pointer;
 		box-shadow: 0 0 30px black;
 		position: absolute;
 		width: 150px;
-		height: 24px;
 		padding: 5px;
 		line-height: 12.5px;
 		background: white;
@@ -504,6 +503,15 @@ mute-button{
 		left: 20px;
 		overflow: hidden;
 	}
+	.svSwitchClosed {
+		height: 24px;
+		cursor: pointer;
+	}
+}
+.svSwitchOpened {
+	width: 250px;
+	height: 425px;
+	cursor: default;	
 }
 
 input {
