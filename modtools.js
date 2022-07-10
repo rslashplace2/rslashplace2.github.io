@@ -1,6 +1,6 @@
 let pass = localStorage.vip ? "/" + localStorage.vip : ""
 let mode = pass == "" ? true : false
-if (!mode) return
+if (!mode) throw new Error('(IGNORE THIS ERROR) No modtools key present, aborting.');
 let activityMode = false
 let socket = new WebSocket(localStorage.server + pass)
 socket.onmessage = async (data) => {
