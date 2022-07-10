@@ -17,7 +17,7 @@ socket.onmessage = async (data) => {
 			console.log("a")
 			fakePaint(cods.x, cods.y, "sex", b)
 		}
-		if (code == 6) {
+		else if (code == 6) {
 			let i = 0
 			while (i < data.byteLength - 2) {
 				let ii = data.getUint32(i += 1)
@@ -141,7 +141,7 @@ EraseArea.style = "background: rgb(233 36 36 / 81%); pointer-events: none; posit
 document.getElementById("canvparent2").appendChild(EraseArea)
 
 function showToast(text, duration = 5000, back, color) { //TODO: Fix this
-	console.log(text)
+	alert(text)
 }
 
 function zz(n) {
@@ -170,16 +170,9 @@ async function fetchBackuplist() {
 		alert("HTTP-Error: " + response.status);
 	}
 }
-
 fetchBackuplist()
 
-//FIX THIS - all references to this will be broken as I have changed it from object to arr
-let palette2 = [
-	'109, 0, 26', '190, 0, 57', '255, 69, 0', '255, 168, 0', '255, 214, 53', '255, 248, 184', '0, 163, 104', '0, 204, 120', '126, 237, 86', '0, 117, 111',
-	'0, 158, 170', '0, 204, 192', '36, 80, 164', '54, 144, 234', '81, 233, 244', '73, 58, 193', '106, 92, 255','148, 179, 255', '129, 30, 159', '180, 74, 192', '228, 171, 255', '222, 16, 127', '255, 56, 129', '255, 153, 170',
-	'109, 72, 47','156, 105, 38', '255, 180, 112', '0, 0, 0', '81, 82, 82', '137, 141, 144', '212, 215, 217', '255, 255, 255',
-]
-
+const palette2 = ['109, 0, 26', '190, 0, 57', '255, 69, 0', '255, 168, 0', '255, 214, 53', '255, 248, 184', '0, 163, 104', '0, 204, 120', '126, 237, 86', '0, 117, 111', '0, 158, 170', '0, 204, 192', '36, 80, 164', '54, 144, 234', '81, 233, 244', '73, 58, 193', '106, 92, 255','148, 179, 255', '129, 30, 159', '180, 74, 192', '228, 171, 255', '222, 16, 127', '255, 56, 129', '255, 153, 170', '109, 72, 47','156, 105, 38', '255, 180, 112', '0, 0, 0', '81, 82, 82', '137, 141, 144', '212, 215, 217', '255, 255, 255']
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -364,7 +357,7 @@ async function fillArea(xxx, yyy, w, h) {
 	for (let yy = 0; yy < h; yy++) {
 		for (let xx = 0; xx < w; xx++) {
 			let cc = c.getImageData(xx + xxx, yy + yyy, 1, 1).data
-			let pxl = palette2[`${cc[0]}, ${cc[1]}, ${cc[2]}`];
+			let pxl = palette2.indexOf(`${cc[0]}, ${cc[1]}, ${cc[2]}`);
 			if (pxl == null || pxl == PEN) continue;
 			if (xx + xxx > WIDTH - 1 || yy + yyy > HEIGHT - 1) continue;
 			somethingChanged = true;
@@ -429,7 +422,7 @@ inputt.addEventListener("input", async function() {
 			for (let yyy = 0; yyy < image.height; yyy++) {
 				for (let xxx = 0; xxx < image.width; xxx++) {
 					let pxl = ctxx.getImageData(xxx, yyy, 1, 1).data;
-					let pxl2 = palette2[`${pxl[0]}, ${pxl[1]}, ${pxl[2]}`];
+					let pxl2 = palette2.indexOf(`${pxl[0]}, ${pxl[1]}, ${pxl[2]}`);
 					if (pxl2 == null) continue;
 					arr.push(pxl2)
 					pasteBoard2.push([xxx, yyy, pxl2])
@@ -459,17 +452,17 @@ View.onclick = async function() {
 		imgg.src = b64
 		imgg.id = "viewarea"
 		imgg.style = `
-    pointer-events: none;
-    position: absolute;
-    transform: translate(0px, 0px) scale(1);
-    transform-origin: left top;
-    image-rendering: pixelated;
-    will-change: transform;
-    z-index: 2;
-    left: ${Number(xx.value)}px;
-    top: ${Number(yy.value)}px;
-    filter: reverse(2.5)
-    `
+		pointer-events: none;
+		position: absolute;
+		transform: translate(0px, 0px) scale(1);
+		transform-origin: left top;
+		image-rendering: pixelated;
+		will-change: transform;
+		z-index: 2;
+		left: ${Number(xx.value)}px;
+		top: ${Number(yy.value)}px;
+		filter: reverse(2.5)
+		`
 		document.getElementById("canvparent2").appendChild(imgg)
 		canvas.style.filter = "grayscale(1)"
 	}
@@ -523,12 +516,8 @@ Eraser.onclick = () => {
 	}
 }
 let mouseisdown = false;
-document.getElementById("canvparent2").onmousedown = () => {
-	mouseisdown = true;
-}
-document.getElementById("canvparent2").onmouseup = () => {
-	mouseisdown = false;
-}
+document.getElementById("canvparent2").onmousedown = () => { mouseisdown = true;}
+document.getElementById("canvparent2").onmouseup = () => {mouseisdown = false;}
 document.getElementById("canvparent2").onmousemove = async function(e) {
 	last.x = e.clientX, last.y = e.clientY;
 	var rect = document.getElementById("canvas").getBoundingClientRect();
@@ -548,11 +537,11 @@ document.getElementById("canvparent2").onmousemove = async function(e) {
 	if (BrushMode) {
 		EraseArea.style.height = BrushSize + "px";
 		EraseArea.style.width = BrushSize + "px";
-		let locX = Math.floor(xx) // BrushSize);
-		let locY = Math.floor(yy) // BrushSize);
-		EraseArea.style.transform = "translate(" + (locX /* BrushSize*/ ) + "px, " + (locY /* BrushSize*/ ) + "px) scale(1)"
-		last.eraserX = locX // * BrushSize
-		last.eraserY = locY // * BrushSize
+		let locX = Math.floor(xx)
+		let locY = Math.floor(yy)
+		EraseArea.style.transform = "translate(" + (locX) + "px, " + locY + "px) scale(1)"
+		last.eraserX = locX
+		last.eraserY = locY
 	}
 	last.realX = Math.floor(xx),
 		last.realY = Math.floor(yy);
@@ -564,12 +553,8 @@ document.getElementById("canvparent2").onmousemove = async function(e) {
 		}
 	}
 }
-ModButton.onclick = () => {
-	statePanel()
-}
-document.querySelectorAll('#close-btn')[document.querySelectorAll('#close-btn').length - 1].onclick = () => {
-	statePanel();
-}
+ModButton.onclick = () => { statePanel() }
+document.querySelectorAll('#close-btn')[document.querySelectorAll('#close-btn').length - 1].onclick = () => { statePanel(); }
 document.body.onkeydown = async (e) => {
 	if (e.keyCode == 17) {
 		let clrr = PEN;
