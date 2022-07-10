@@ -148,26 +148,30 @@ function zz(n) {
 	if (n < 10) return "0" + n;
 	else return n;
 }
-let response = await fetch("https://server2.rplace.tk:8081/backuplist");
-let sel = document.getElementById("canvases")
-if (response.ok) {
-	let text = await response.text();
-	text = text.split('\n')
-	text.pop()
-	let rgb = [25, 25, 25];
-	for (let i = 0; i < text.length; i++) {
-		rgb[0] = Math.floor(Math.random() * 255 + 25),
-			rgb[1] = Math.floor(Math.random() * 255 + 25),
-			rgb[2] = Math.floor(Math.random() * 255 + 25)
-		let opt = document.createElement("option");
-		opt.value = text[i];
-		opt.innerHTML = text[i];
-		opt.style = `background-color: rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`
-		sel.appendChild(opt);
+
+async function fetchBackuplist() {
+	let response = await fetch("https://server2.rplace.tk:8081/backuplist");
+	if (response.ok) {
+		let text = await response.text();
+		text = text.split('\n')
+		text.pop()
+		let rgb = [25, 25, 25];
+		for (let i = 0; i < text.length; i++) {
+			rgb[0] = Math.floor(Math.random() * 255 + 25),
+				rgb[1] = Math.floor(Math.random() * 255 + 25),
+				rgb[2] = Math.floor(Math.random() * 255 + 25)
+			let opt = document.createElement("option");
+			opt.value = text[i];
+			opt.innerHTML = text[i];
+			opt.style = `background-color: rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`
+			canvases.appendChild(opt);
+		}
+	} else {
+		alert("HTTP-Error: " + response.status);
 	}
-} else {
-	alert("HTTP-Error: " + response.status);
 }
+
+fetchBackuplist()
 
 //FIX THIS - all references to this will be broken as I have changed it from object to arr
 let palette2 = [
@@ -203,10 +207,7 @@ let View = document.getElementById("viewMode"); //TODO: FIX THESE
 let Brush = document.getElementById("brush");
 let Eraser = document.getElementById("eraser");
 let Selimg = document.getElementById("selimg");
-let xx = document.getElementById("xx"),
-	yy = document.getElementById("yy");
-let x2 = document.getElementById("ww"),
-	y2 = document.getElementById("hh");
+
 SizePanel.oninput = () => {
 	EraserSize = Number(SizePanel.value)
 }
