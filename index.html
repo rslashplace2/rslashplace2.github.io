@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<script src="modtools.js"></script>
 	<script>
 		const wscapsule = ((send, addEventListener) => {
 			let focused = true
@@ -961,5 +962,4 @@
 		if (window.location.href.startsWith("http://")) window.location.href = "https://rplace.tk"
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
-	<script src="modtools.js"></script>
 </html>

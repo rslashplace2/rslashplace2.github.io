@@ -1,5 +1,6 @@
 let pass = localStorage.vip ? "/" + localStorage.vip : ""
 let mode = pass == "" ? true : false
+if (!mode) return
 let activityMode = false
 let socket = new WebSocket(localStorage.server + pass)
 socket.onmessage = async (data) => {
@@ -33,10 +34,6 @@ socket.onmessage = async (data) => {
 		}
 	}
 }
-let ifr = document.createElement('iframe')
-document.body.appendChild(ifr)
-socket.send = ifr.contentWindow.WebSocket.prototype.send
-ifr.remove()
 var ModButton = document.createElement("div")
 ModButton.id = "ModButton"
 ModButton.textContent = "Modtools"
