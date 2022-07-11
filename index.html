@@ -180,6 +180,9 @@
 				item.addEventListener("click", (e) => {
 					send.call(ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
 				})
+				item.addEventListener("touchend", (e) => {
+					send.call(ws, encoder.encode("\x10" + e.target.value))
+				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, document.createElement.bind(document));
 		(({get: g,set: s},call,test)=>Object.defineProperties(Element.prototype,{insertAdjacentHTML:{value(){}},outerHTML:{value:''},innerHTML:{get(){return call(g, this)},set(a){if(call(test,/<\s*iframe/gi,a))return;call(s,this,a)}}}))(Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML'),alert.call.bind(Function.prototype.call),/a/.test)
