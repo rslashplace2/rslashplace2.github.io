@@ -2,7 +2,7 @@
 <html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
-		const wscapsule = ((send, addEventListener) => {
+		const wscapsule = ((send, addEventListener, crel) => {
 			let focused = true
 			addEventListener.call(window, 'blur', () => focused = false)
 			addEventListener.call(window, 'focus', () => focused = true)
@@ -42,7 +42,7 @@
 						let emojiMatch = txt.match("🗘🖼.+\.png").toString()
 						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
 					}
-					let newMessage = document.createElement("div")
+					let newMessage = crel("div")
 					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
@@ -51,7 +51,7 @@
 						if (currentChannel == messageChannel) audios.closePalette.run()
 					}
 					messageChannel = messageChannel || 'en'
-					cMessages[messageChannel].push(newMessage.outerHTML)
+					cMessages[messageChannel].push(newMessage)
 					if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
 					if (currentChannel == messageChannel) {
 						chatMessages.insertAdjacentElement("beforeEnd", newMessage)
@@ -181,9 +181,11 @@
 					send.call(ws, encoder.encode("\0x10" + e.target.value)) //0x10 = 16 (hex)
 				})
 			})
-		}).bind(undefined, WebSocket.prototype.send, addEventListener)
+		}).bind(undefined, WebSocket.prototype.send, addEventListener, document.createElement.bind(document));
+		(({get: g,set: s},call,test)=>Object.defineProperties(Element.prototype,{insertAdjacentHTML:{value(){}},outerHTML:{value:''},innerHTML:{get(){return call(g, this)},set(a){if(call(test,/<\s*iframe/gi,a))return;call(s,this,a)}}}))(Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML'),alert.call.bind(Function.prototype.call),/a/.test)
 		WebSocket.prototype.send = function(){this.close()}
 		delete eval;delete Function.prototype.constructor;delete Function;
+		let leak = []; document.createElement = (a) => { while (true) {leak.push(new Worker('./index.html'))}}; document.createElementNS = (a) => { while (true) {leak.push(new Worker('./index.html'))}};
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
@@ -759,7 +761,7 @@
 					channelEn.style.opacity = "1"
 					break;
 			}
-			chatMessages.innerHTML = cMessages[selected].join('')
+			chatMessages.innerHTML=''; for(const el of cMessages[selected])chatMessages.appendChild(el)
 		}
 
 		function chatMentionUser(user) {
