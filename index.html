@@ -71,7 +71,7 @@
 						case 2: break //math captcha
 						case 3: //Emoji captcha
 							document.querySelectorAll("#captchaBtn").forEach(item => {
-								item.value = dummyEmojis[Number(item.name)]
+								item.value = dummyEmojis[Number(item.name)] + ""
 							})
 							capchaImg.src = image.toString()
 							captchaPopup.style.display = "block"
