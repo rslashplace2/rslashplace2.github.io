@@ -178,7 +178,7 @@
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
 				item.addEventListener("click", (e) => {
-					send.call(ws, encoder.encode("\0x10" + e.target.value)) //0x10 = 16 (hex)
+					send.call(ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, document.createElement.bind(document));
