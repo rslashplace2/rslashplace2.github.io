@@ -61,6 +61,24 @@
 						chatMessages.children[0].remove()
 					}
 					scroll && chatMessages.scrollTo(0,10e8)
+				} else if (code == 16) {
+					let type = data.getUint8(1)
+					let image = decoder.decode(new Uint8Array(data.buffer).slice(2))
+					switch (type) {
+						case 1: break //text capcha
+						case 2: break //math captcha
+						case 2: //Emoji captcha
+							captchaPopup.style.display = "visible;"
+							capchaImg.src = image;
+							break
+						case 254: //server sends back fail
+							localStorage.vip = "!"
+							window.location.reload(true)
+							break
+						case 255: //server sends back pass
+							captchaPopup.style.display = "none";
+							break
+					}
 				}
 			}
 			ws.onclose = (e) => {
@@ -158,11 +176,14 @@
 					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
 				}
 			})
-			
+			document.querySelectorAll("#captchaBtn").forEach(item => {
+				item.addEventListener("click", (e) => {
+					send.call(ws, encoder.encode("\0x10" + e.target.value)) //0x10 = 16 (hex)
+				})
+			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener)
 		WebSocket.prototype.send = function(){this.close()}
 		delete eval;delete Function.prototype.constructor;delete Function;
-		//if(navigator.userAgent.match(/Version\/\d+\.\d Chrome/)) window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
@@ -295,6 +316,24 @@
 			<div id="canvparent2" noselect>
 				<div id="canvselect"> <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;"> <g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g> </svg> </div>
 				<img id="templateImage" width="auto" height="auto" style="pointer-events: none; position: absolute; transform-origin: top left; image-rendering: pixelated; will-change: transform; z-index: 2;" ondrag="return"/>
+			</div>
+			<div noselect id="captchaPopup" style="display: none;">
+				<h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1> <br>
+				<p noselect><em>Please solve this small captcha to help keep rplace.tk fun for all...</em></p><br><hr><br>
+				<h2 id="captchaLabel">Please click the button containing the emoji you see below</h2> <br>
+				<img id="capchaImg"><br><br><br><br>
+				<div style="position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); width: max-content;">
+					<input type="button" id="captchaBtn" value="😎"/>
+					<input type="button" id="captchaBtn" value="🤖"/>
+					<input type="button" id="captchaBtn" value="🗣️"/>
+					<input type="button" id="captchaBtn" value="🔥"/>
+					<input type="button" id="captchaBtn" value="🏠"/><br><br>
+					<input type="button" id="captchaBtn" value="🤡"/>
+					<input type="button" id="captchaBtn" value="👾"/>
+					<input type="button" id="captchaBtn" value="👋"/>
+					<input type="button" id="captchaBtn" value="💩"/>
+					<input type="button" id="captchaBtn" value="⚽"/>
+				</div>
 			</div>
 			<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
 			<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
@@ -757,7 +796,7 @@
 		
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
-		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü." }
+		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü.", "Please click the button containing the emoji you see below": "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın" }
 		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> meniu suprapus, <kbd>Shift</kbd>+<kbd>S</kbd> meniu de comutare server." }
 		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "Μενού επικάλυψης <kbd>Shift</kbd>+<kbd>O</kbd>, μενού εναλλαγής διακομιστή <kbd>Shift</kbd>+<kbd>S</kbd>." }
 		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menú superpuesto, <kbd>Shift</kbd>+<kbd>S</kbd> menú de cambio de servidor." }
@@ -776,7 +815,7 @@
 				}
 			})
 		}
-		translate([chat, liveChatHeader, namePanelHeader, channelTooltip, toastTooltips])
+		translate([chat, liveChatHeader, namePanelHeader, channelTooltip, toastTooltips, captchaLabel])
 
 
 		function component(width, height, colour, x, y, type, falling) {
@@ -939,7 +978,7 @@
 
 		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcdda44"
 		async function sha256(message) {
-			const msgBuffer = new TextEncoder().encode(message) // encode as UTF-8             
+			const msgBuffer = encoder.encode(message) // encode as UTF-8             
 			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
 			const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
 			const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('') // convert bytes to hex string

@@ -5,6 +5,7 @@ import {createServer} from 'https'
 import sha256 from 'sha256' 
 import fsExists from 'fs.promises.exists'; 
 import fetch from 'node-fetch'; 
+
 let SECURE = true 
 let BOARD, CHANGES 
 let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT} = JSON.parse(await fs.readFile('./config.json')) 
@@ -82,7 +83,7 @@ try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let printChatInfo = false
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0) 
-let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim() 
+let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()  
 
 wss.on('connection', async function(p, {headers, url: uri}) { 
         p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') //IMPORTANT: if not on cloudflare, use p.ip = p._socket.remoteAddress.split(':',4).join(':')
@@ -141,7 +142,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                                 i += 2000 
                                 hi++ 
                         } 
-                } 
+                }
                 if(data.length < 6)return //bad packet 
                 let i = data.readUInt32BE(1), c = data[5] 
                 if(i >= BOARD.length || c >= PALETTE_SIZE)return //bad packet 
