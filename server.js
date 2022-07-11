@@ -3,12 +3,14 @@ import {WebSocketServer} from 'ws'
 import {promises as fs} from 'fs' 
 import {createServer} from 'https' 
 import sha256 from 'sha256' 
-import fsExists from 'fs.promises.exists'; 
-import fetch from 'node-fetch'; 
+import fsExists from 'fs.promises.exists'
+import fetch from 'node-fetch'
+import util from 'util'
+import genEmojiCaptcha from './zcaptcha/server.js'
 
 let SECURE = true 
 let BOARD, CHANGES 
-let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT} = JSON.parse(await fs.readFile('./config.json')) 
+let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA} = JSON.parse(await fs.readFile('./config.json')) 
 try{ 
         BOARD = await fs.readFile('./place') 
         CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
@@ -81,6 +83,8 @@ for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.
 let WEBHOOK_URL
 try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let printChatInfo = false
+let toValidate = new Map();
+const encoderUTF8 = new util.TextEncoder();
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0) 
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()  
@@ -94,6 +98,15 @@ wss.on('connection', async function(p, {headers, url: uri}) {
         let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN 
         if(IP.startsWith("%")){BANS.add(p.ip);fs.appendFile("blacklist.txt","\n"+p.ip);return p.close()} 
         if(!IP)return p.close() 
+        if (CAPTCHA) {
+                try {
+                        let answer, imageData
+                        [answer, imageData] = (await genEmojiCaptcha()).split(" ")
+                        if (toValidate.has(IP)) toValidate.delete(IP) //if they try to reconnect while pending, we will give them a new one
+                        toValidate.set(IP, answer) 
+                        p.send(encoderUTF8.encode("\x10" + "\x03" + imageData)) //code, type, image as dataURI
+                } catch (e) {console.log(e)}
+        }
         p.lchat = 0 
         let buf = Buffer.alloc(9) 
         buf[0] = 1 
@@ -132,7 +145,16 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         } 
                         catch(err) { console.log("Could not post to discord: " + err) }
                         return; 
-                }else if(data[0] == 99 && CD == 30){ 
+                } else if (data[0] == 16){ //captcha response
+                	let rsp = data.slice(1).toString()
+                	if (rsp === toValidate.get(IP)) {
+                		toValidate.delete(IP)
+                		let dv = new DataView(new ArrayBuffer(2));
+                		dv.setUint8(0, 16) //16 is the ceptcha packet
+                		dv.setUint8(1, 255) //tell client they have suceeded
+                		p.send(dv)
+                	} else { return p.close() }
+                } else if(data[0] == 99 && CD == 30){ 
                         let w = data[1], h = data[2], i = data.readUInt32BE(3) 
                         if(i%2000+w>=2000)return 
                         if(i+h*2000>=4000000)return 
@@ -178,15 +200,17 @@ try {ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()}catch(e){}
 
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
-        await fs.writeFile('place', BOARD) 
-        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : `cp place_http_server/place place_http_server/place.${new Date().toLocaleString().replace(', ', '.').replace('/', '-')}; cp place place_http_server/place`, e => e ? t(e) : r())) 
+        await fs.writeFile('place', BOARD)
+        let dte = new Date().toLocaleString().replaceAll('/', '.').replaceAll(', ', '.')
+        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : `cp ./place_http_server/place ./place_http_server/place.${dte}; cp place ./place_http_server/place`, e => e ? t(e) : r())) 
+        if (!USE_GIT) await new Promise((r, t) => exec(`touch ./place_http_server/backuplist.txt; echo "place.${dte}" >> ./place_http_server/backuplist.txt;`, e => e ? t(e) : r())) 
         //serve old changes for 11 more mins just to be 100% safe 
         let curr = new Uint8Array(CHANGES) 
         setTimeout(() => { 
                 //after 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
                 for(let i = curr.length - 1; i >= 0; i--)if(curr[i] == CHANGES[i])CHANGES[i] = 255 
         }, 200e3) 
-} 
+}
 setInterval(function(){ 
         if(!newPos.length)return 
         let pos 
@@ -258,4 +282,16 @@ function checkPreban(incomingX, incomingY, ip) {
                 return true 
         } 
         else return false 
+}
+
+// Broadcast a message as the server to a specific client (p) or all players, in a channel
+function announce(msg, channel, p=null) {
+	let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.TK\n${channel}`)
+	let dv = new DataView(byteArray.buffer)
+	dv.setUint8(0, 15)
+	if (p != null) {
+		p.send(dv)
+	} else {
+	        for(let c of wss.clients) c.send(dv)
+	}
 }
