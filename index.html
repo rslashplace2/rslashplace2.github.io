@@ -69,6 +69,7 @@
 						case 2: break //math captcha
 						case 3: //Emoji captcha
 							let idx = 0
+							dummyEmojis = dummyEmojis.replaceAll(",", "")
 							document.querySelectorAll("#captchaBtn").forEach(item => {
 								item.value = dummyEmojis[idx]
 								idx = idx + 1
