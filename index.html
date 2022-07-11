@@ -64,14 +64,13 @@
 				} else if (code == 16) {
 					let type = data.getUint8(1)
 					let [dummyEmojis, image] = (decoder.decode(new Uint8Array(data.buffer).slice(2))).split("\n")
-					dummyEmojis = dummyEmojis.toString().replaceAll(",", "")
-					console.log(code, type, dummyEmojis, image)
+					var dummyArr = dummyEmojis.toString().split(',')
 					switch (type) {
 						case 1: break //text capcha
 						case 2: break //math captcha
 						case 3: //Emoji captcha
 							document.querySelectorAll("#captchaBtn").forEach(item => {
-								item.value = dummyEmojis[Number(item.name)] + ""
+								item.value = dummyArr[Number(item.name)] + ""
 							})
 							capchaImg.src = image.toString()
 							captchaPopup.style.display = "block"
