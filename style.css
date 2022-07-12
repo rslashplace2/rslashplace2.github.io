@@ -476,6 +476,19 @@ mute-button{
 		height: 425px !important;
 		cursor: default;	
 	}
+
+	#captchaPopup {
+		z-index: 7;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translateY(-50%) translateX(-50%);
+		height: fit-content;
+		width: 450px;
+		padding: 24px;
+		border-radius: 8px;
+		background-color: white;
+	}
 }
 @media screen and (orientation:portrait) {
 	#chatPanel {
@@ -517,6 +530,19 @@ mute-button{
 		width: 250px !important;
 		height: 400px !important;
 		cursor: default;	
+	}
+
+	#captchaPopup {
+		z-index: 7;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translateY(-50%) translateX(-50%);
+		height: fit-content;
+		width: 100%;
+		padding: 24px;
+		border-radius: 8px;
+		background-color: white;
 	}
 }
 
@@ -742,18 +768,6 @@ kbd {
 	animation: rainbow-text 5s infinite;
 }
 
-#captchaPopup {
-	z-index: 7;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translateY(-50%) translateX(-50%);
-	height: fit-content;
-	width: 450px;
-	padding: 24px;
-	border-radius: 8px;
-	background-color: white;
-}
 #captchaPopup > div > input {
 	margin-left: 5px;
 	margin-right: 5px;

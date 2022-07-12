@@ -920,18 +920,26 @@
 			templateImage.src = URL.createObjectURL(overlayInput.files[0])
 			templateImage.style.transform = `translate(${overlayInfo.x}px ${overlayInfo.y}px)`
 			templateImage.style.opacity = 0.8
+			generateOverlayUrl()
 		}
 		overlayX.onchange = () => {
 			overlayInfo.x = Number(overlayX.value)
 			templateImage.style.left = overlayInfo.x+"px"
+			generateOverlayUrl()
 		}
 		overlayY.onchange = () => {
 			overlayInfo.y = Number(overlayY.value)
 			templateImage.style.top = overlayInfo.y+"px"
+			generateOverlayUrl()
 		}
 		overlayOpacity.onchange = () => {
 			overlayInfo.opacity = Number(overlayOpacity.value)/100
 			templateImage.style.opacity = overlayInfo.opacity
+			generateOverlayUrl()
+		}
+//TODO: Finish this
+		function generateOverlayUrl() {
+			window.history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
 		
 		let blockedUsers = [], targetedUser
