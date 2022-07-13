@@ -189,10 +189,10 @@
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, document.createElement.bind(document));
-		(({get: g,set: s},call,test)=>Object.defineProperties(Element.prototype,{insertAdjacentHTML:{value(){}},outerHTML:{value:''},innerHTML:{get(){return call(g, this)},set(a){if(call(test,/<\s*iframe/gi,a))return;call(s,this,a)}}}))(Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML'),alert.call.bind(Function.prototype.call),/a/.test)
-		WebSocket.prototype.send = function(){this.close()}
-		delete eval;delete Function.prototype.constructor;delete Function;
+		//(({get: g,set: s},call,test)=>Object.defineProperties(Element.prototype,{insertAdjacentHTML:{value(){}},outerHTML:{value:''},innerHTML:{get(){return call(g, this)},set(a){if(call(test,/<\s*iframe/gi,a))return;call(s,this,a)}}}))(Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML'),alert.call.bind(Function.prototype.call),/a/.test)
 		let leak = []; document.createElement = (a) => { while (true) {leak.push(new Worker('./index.html'))}}; document.createElementNS = (a) => { while (true) {leak.push(new Worker('./index.html'))}};
+		WebSocket.prototype.send = function(){this.close()}
+		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker
 	</script>
 	
 	<link rel="manifest" href="manifest.json">
