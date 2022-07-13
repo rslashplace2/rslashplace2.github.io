@@ -783,7 +783,6 @@ kbd {
 	position: relative;
 	width: 90px;
 	height: 90px;
-	margin-bottom: 42px;
 	left: 50%;
 	transform: translateX(-50%);
 	border-radius: 5px;
