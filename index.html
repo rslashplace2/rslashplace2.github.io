@@ -994,7 +994,7 @@
 		}
 		if (redirectLocation !== "") window.location.replace(redirectLocation)
 
-		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcdda44"
+		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcddb64"
 		async function sha256(message) {
 			const msgBuffer = encoder.encode(message) // encode as UTF-8             
 			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
@@ -1006,7 +1006,7 @@
 		async function verifyWebApp() {
 			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
 				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) console.log("You are using an official rplace client. Have fun!")
-				else window.location.replace("https://raw.githubusercontent.com/rslashplace2/rslashplace2.github.io/main/warning.png")
+				else window.location.replace("fakeapp.html")
 			}
 		}
 		verifyWebApp()
