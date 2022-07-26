@@ -476,6 +476,12 @@ mute-button{
 		height: 425px !important;
 		cursor: default;	
 	}
+	.svSwitchClosed::after {
+		content: "Switch canvas";
+	}
+	.svSwitchOpened::after {
+		content: "Collapse ^";
+	}
 
 	#captchaPopup {
 		z-index: 7;
@@ -530,6 +536,12 @@ mute-button{
 		width: 250px !important;
 		height: 400px !important;
 		cursor: default;	
+	}
+	.svSwitchClosed::after {
+		content: "Switch";
+	}
+	.svSwitchOpened::after {
+		content: "Collapse";
 	}
 
 	#captchaPopup {
