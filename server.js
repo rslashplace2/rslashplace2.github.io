@@ -20,6 +20,8 @@ try{
 } 
 let newPos = [], newCols = [] 
 let wss, cooldowns = new Map() 
+let votes
+try{votes=new Uint32Array((await fs.readFile('./votes')).buffer)}catch(e){votes=new Uint32Array(32)}
 
 function runLengthChanges(){ 
         //compress CHANGES with run-length encoding 
@@ -113,7 +115,8 @@ wss.on('connection', async function(p, {headers, url: uri}) {
         buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1) 
         buf.writeInt32BE(COOLDOWN, 5) 
         p.send(buf) 
-        players++ 
+        players++
+	p.send(bf)
         p.send(runLengthChanges()) 
   p.on("error", _=>_) 
   p.on('message', async function(data) { 
@@ -164,7 +167,11 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                                 i += 2000 
                                 hi++ 
                         } 
-                }
+                }else if(data[0] == 20){
+			p.voted ^= 1 << data[1]
+			if(p.voted & (1 << data[1]))votes[data[1]&31]++
+			else votes[data[1]&31]--
+		}
                 if(data.length < 6)return //bad packet 
                 let i = data.readUInt32BE(1), c = data[5] 
                 if(i >= BOARD.length || c >= PALETTE_SIZE)return //bad packet 
@@ -228,17 +235,20 @@ setInterval(function(){
 }, 1000) 
 
 let I = 0 
-
+let bf = Buffer.alloc(131); bf[0] = 3
 setInterval(async function(){ 
         I++ 
         await fs.writeFile('change', CHANGES) 
-        let buf = Buffer.of(3, players>>8, players) 
-        for (let c of wss.clients) { 
-                c.send(buf) 
+        bf[1] = players>>8
+	bf[2] = players
+	for(let i = 0; i < votes.length; i++)bf.writeUint32BE(votes[i],(i<<2)+3)
+	for (let c of wss.clients) {
+                c.send(bf)
         } 
         if(I % 720 == 0){ 
                 try { 
-                        await pushImage() 
+                        await pushImage()
+			await fs.writeFile('./votes', votes)
                         console.log("["+new Date().toISOString()+"] Successfully saved r/place!") 
                 } catch(e) { 
                         console.log("["+new Date().toISOString()+"] Error pushing image") 
@@ -251,7 +261,7 @@ setInterval(async function(){
 
 import repl from 'basic-repl' 
 
-let a, b, c, test 
+let a, c, test 
 repl('$',(_)=>eval(_)) 
 let O=()=>{console.log("\x1b[31mNothing to confirm!")}, yc = O; 
 Object.defineProperties(globalThis, {y: {get(){yc();yc=O}}, n: {get(){yc=O}}}) 
