@@ -476,10 +476,10 @@ mute-button{
 		height: 425px !important;
 		cursor: default;	
 	}
-	.svSwitchClosed >br::before {
+	.svSwitchClosed+p::before {
 		content: "Switch canvas";
 	}
-	.svSwitchOpened >br::before {
+	.svSwitchOpened+p::before {
 		content: "Collapse ^";
 	}
 
@@ -537,10 +537,10 @@ mute-button{
 		height: 400px !important;
 		cursor: default;	
 	}
-	.svSwitchClosed > br::before {
+	.svSwitchClosed+p::before {
 		content: "Switch";
 	}
-	.svSwitchOpened > br::before {
+	.svSwitchOpened+p::before {
 		content: "Collapse";
 	}
 
