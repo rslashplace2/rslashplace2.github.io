@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" ontouchstart="if(!chatPanel.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
+<html lang="en" ontouchstart="if(maincontent.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
+		let v = 0
 		const wscapsule = ((send, addEventListener, crel) => {
 			let focused = true
 			addEventListener.call(window, 'blur', () => focused = false)
 			addEventListener.call(window, 'focus', () => focused = true)
+			let j = 0;
+			for(let i of more.children){let id = j++; i = i.children[0].children[0];f=(e) => {
+				const vote = i.children[0].getAttribute('d') == d2;i.children[0].setAttribute('d',vote ? d1 : d2);i.style.fill=vote?'#ff4500':'';const u = vote?++i.nextElementSibling.u:--i.nextElementSibling.u;i.nextElementSibling.innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
+					if(!e.isTrusted || (localStorage.vote & (1 << id) && !(v & (1 << id))))return
+					v
+					localStorage.vote |= (1 << id)
+					v |= (1 << id)
+					send.call(ws, new Uint8Array([20, id]))
+				}
+				addEventListener.call(i, 'click', f)}
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
@@ -29,19 +40,26 @@
 					}
 				}else if(code == 3){
 					online = data.getUint16(1)
-					document.getElementById("onlineCounter").textContent = online;
+					onlineCounter.textContent = online
+					onlineCounter2.textContent = online + ' online'
+					let i = 0
+					while(i < (data.byteLength >> 2)){
+						let u = data.getUint32((i << 2) + 3)
+						if(!more.children[i])break
+						more.children[i].children[0].children[1].u = u
+						more.children[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
+						i++
+					}
 				}else if(code == 15){
 					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 					let name;
 					let messageChannel;
 					[txt, name, messageChannel] = txt.split("\n")
+					if(!(messageChannel in cMessages))return
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
 					if(blockedUsers.includes(name)) return
-					if(!txt)return;
-					if(txt.match("🗘🖼.+\.png")) {
-						let emojiMatch = txt.match("🗘🖼.+\.png").toString()
-						txt = txt.replace(emojiMatch, `<img src="custom_emojis/${emojiMatch.slice(4)}" alt=":${emojiMatch.slice(4, -4)}:" width="16" height="16">`)
-					}
+					if(!txt)return
+					txt = txt.replace(/:(.+):/, (_,b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
 					let newMessage = crel("div")
 					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
@@ -77,7 +95,7 @@
 							break
 						case 254: //server sends back fail
 							localStorage.vip = "!"
-							window.location.reload(true)
+							location+=''
 							break
 						case 255: //server sends back pass
 							captchaPopup.style.display = "none"
@@ -86,11 +104,11 @@
 				}
 			}
 			ws.onclose = (e) => {
-				if(CD != Infinity)return location.reload(true)
+				if(CD != Infinity)return location+=''
 				//Something went wrong...
 				CD = 1e100
 				console.error(e)
-				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location.reload(true)
+				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location+=''
 				else {
 					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg" 
 					waitingGame.start()
@@ -108,25 +126,23 @@
 				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				a.setUint8(5, PEN)
 				PEN=-1
-				if (localStorage.placed === "undefined") localStorage.placed = 1
-				else localStorage.placed++
+				localStorage.placed = (localStorage.placed >>> 0) + 1
 				send.call(ws, a)
 			}
 			let pok = document.getElementById('pok')
 			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
 			addEventListener.call(pok, 'click', oclick)
 			function sendMsg(message){
+				if(message.startsWith('vip:')){
+					localStorage.vip = message.slice(4)
+					location+=''
+				}
 				send.call(ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 			addEventListener.call(document.body, 'keypress', function(e) {
 				if(!e.isTrusted)return
 
-				//"Alt+S" key to open server switch menu
-				if (e.code == 'KeyS' && e.shiftKey && !('value' in document.activeElement)) {
-					if (serverMenu.opened) closeServerMenu()
-					else openServerMenu()
-				}
 				//"Alt+O" to open overlay menu
 				if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
 					if (overlayMenu.opened) closeOverlayMenu()
@@ -177,7 +193,7 @@
 						}
 					}
 					if('value' in e.target)e.target.focus()
-					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{target.click()}}
+					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.click()}}
 				}
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
@@ -219,41 +235,12 @@
 		<div id="maincontent">
 			<div id="archiveView" style="display: none;">
 				<h2>Canvas view:</h2>
-				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="position: absolute; top: 10px; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); chatPanel.classList.remove('open')" class="active" style="position: absolute; top: 10px; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 				<div style="overflow: hidden; width: calc(100% - 50px); height: calc(100% - 40px); margin: 0px 25px 25px 25px; border: 2px solid grey; border-radius: 3px;">
 					<img id="archiveViewImg" src="https://media.discordapp.net/attachments/971490691844816916/975200666194686012/deez.png" style="width: 100%; height: 100%; object-position: 0px 0px; cursor: grab;" onmousedown="archiveViewDragging = true" onmouseup="archiveViewDragging = false" onmousemove="archiveViewMouseMove(event)" onwheel="archiveViewWheel()" ondragstart="return false"></img>
 				</div>
 			</div>
-			<div id="svSwitch" class="svSwitchClosed" onclick="this.collapsed = !this.collapsed; if (this.collapsed) { this.classList.add('svSwitchClosed'); this.classList.remove('svSwitchOpened'); } else { this.classList.add('svSwitchOpened'); this.classList.remove('svSwitchClosed');}">
-				<br>
-				<button style="cursor: pointer;" onclick="server('wss:\/\/server.rplace.tk', 'https:\/\/rplace.tk/place'); location.reload(true);"><img src='https://cdn.discordapp.com/attachments/960966748834775052/994560152176967690/unknown.png' height="100" width="230"/></button>
-				<br><br>Main canvas (original) - From the r/place april fools event.<br>
-				<sup style="color: grey;">cooldown: 10s, size: 2000x2000</sup>
-				<br><hr><br>
-				<button style="cursor: pointer;" onclick="server('wss:\/\/server2.rplace.tk', 'https:\/\/server2.rplace.tk:8081/place'); location.reload(true);"><img src='https://cdn.discordapp.com/attachments/989201553044959272/994561541603069952/unknown.png' height="100" width="230"/></button>
-				<br><br>Special discord 2,000 members canvas [limited time].<br>
-				<sup style="color: grey;">cooldown: 1s, size: 500x500</sup><br>
-				<div id="donate" style="width: 100%; height: 25px; border-radius: 25px;" class="rainbow-text" noselect onclick="window.open('https:\/\/discord.gg/xbRrVSXJdZ','_blank')">
-					<svg width="14" height="11" viewBox="0 0 71 55" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0)"><path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="#5865F2"></path></g><defs><clipPath id="clip0"><rect width="71" height="55" fill="white"></rect></clipPath></defs></svg>
-					Discord
-				</div>
-			</div>
-			<!--
-			<script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
-			<script>
-				const jsConfetti = new JSConfetti()
-				function discordConfetti() {
-					jsConfetti.addConfetti({
-						confettiColors: ['#ff0a54', '#ff477e', '#ff7096', '#ff85a1', '#fbb1bd', '#f9bec7'],
-						emojis: ['💥', '⚡️', '🇹🇷', '🌈', '💫', '✨', 'ඞ', '❤️‍🔥'],
-						confettiRadius: 6,
-						confettiNumber: 30,
-					})
-				}
-			</script>
-			-->
 			<div id="posel" noselect>(0,0) 2.5x</div>
-			<span id="toastTooltips" class="tooltip" style="width: 240px; top: 60px;" noselect onmouseleave="this.click();" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);"><kbd>Shift</kbd>+<kbd>O</kbd> overlay menu, <kbd>Shift</kbd>+<kbd>S</kbd> server switch menu.</span>
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
 				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Overlay:</h2>
 				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
@@ -266,58 +253,7 @@
 					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
 				</div>
 			</div>
-			<div id="serverMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-200px)">
-				<h2 title="Switch to an official secondary or private game server." style="display: inline;">Switch Game Server:</h2>
-				<icon-close noselect="" id="close-btn" onclick="closeServerMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
-				<br><br>
-				<input id="serverInput" type="text" placeholder="rplace.tk" onkeypress="if(event.keyCode==13)switchGameServer(this.value), this.value=''">
-			</div>
 			<div id="place" noselect onclick="if(CD-700<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
-			<div id="chat" noselect onclick="showChat()">Chat</div>
-			<div id="chatPanel" style="visibility: visible; transform: translateX(calc(100% + 50px));" ontouchstart="messageInput.blur(); hideChatContext();" onclick="hideChatContext">
-				<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
-					<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
-					<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
-					<br>
-					<div>
-						<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
-						<button id="nameSubmit" onclick="setName(nameInput.value)"><svg enable-background="new 0 0 55.702 55.702" version="1.1" viewBox="0 0 55.702 55.702" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g fill="limegreen"><path d="M27.851,0C12.494,0,0,12.494,0,27.851s12.494,27.851,27.851,27.851s27.851-12.494,27.851-27.851   C55.701,12.494,43.208,0,27.851,0z M27.851,51.213c-12.882,0-23.362-10.48-23.362-23.363c0-12.882,10.48-23.362,23.362-23.362   s23.362,10.481,23.362,23.363S40.733,51.213,27.851,51.213z"/><path d="m36.729 18.97-13 13.001-4.757-4.757c-0.876-0.877-2.297-0.877-3.173 0-0.877 0.876-0.877 2.297 0 3.173l6.344 6.344c0.438 0.438 1.013 0.658 1.587 0.658s1.148-0.219 1.586-0.658l14.587-14.587c0.876-0.877 0.876-2.297 0-3.174-0.877-0.876-2.297-0.876-3.174 0z"/></g></svg></button>
-					</div>
-				</div>
-				<div style="display: flex; flex-direction: row;" noselect>
-					<h2 id="liveChatHeader" style="flex: auto;">Live Chat:</h2>
-					<div style="position: relative; height:30px; width: 150px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 15px; cursor: pointer;">
-						<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7, https://openmoji.org/library/emoji-1F1EE-1F1F7/-->
-						<span id="channelFas" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('fas')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;" xmlns:v="https://vecta.io/nano"><path fill="#d22f27" d="M5 17h62v38H5z"/><path fill="#5c9e31" d="M5 17h62v13H5z"/><path fill="#fff" d="M5 30h62v12H5z"/><g fill="none"><g stroke="#d22f27" stroke-linecap="round" stroke-linejoin="round"><path d="M36 32v8m2-8a4 4 0 0 1 0 8"/><path d="M36 40a4.001 4.001 0 0 0 1.228-6.768M36 40a4.001 4.001 0 0 1-1.228-6.768M34 32a4 4 0 0 0 0 8"/></g><path stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></g></svg> FAS</span>
-						<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('tu')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
-						<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
-						<span id="channelTooltip" class="tooltip" onmouseleave="this.click();" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);">Change channel:</span>
-					</div>
-					<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
-					<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); hideChat()" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
-				</div>
-				<hr style="margin-top: 10px;">
-				<span style="color: red;">[!] </span><span id="channelNotification" style="font-size: x-small;">Lütfen TÜ'da Türkçe, EN'de İngilizce ve FAS'ta Farsça kullanın.</span>
-				<hr>
-				<br>
-				<div>
-					<ins class="adarea" style="height:150px;display:block;position: relative">
-						<!--custom ad for now-->
-						<div style="background: url(https://media.discordapp.net/attachments/960966748834775052/974228266779045939/Screenshot_2022-05-12_at_09.35.05.png) 50%/cover;height: 100%;filter: blur(1px) brightness(0.5);"></div>
-						<div style="position: absolute;top: 0;color: white;font-size: 25px;text-align: center;left: 0;right: 0;margin-top: 30px;"><em>Infinite Anarchy<br>No cooldown</em><br><a href="https://canv.tk" target="blank" style="font-size: 17px;color: #88f;">canv.tk</a></div>
-					</ins>
-				</div>
-				<div id="chatContext" class="contextMenu" style="display:none">
-					<ul>
-						<li><a onclick="chatMentionUser(targetedUser); hideChatContext();">Mention user</a></li>
-						<li><a onclick="blockUser(); hideChatContext();">Block user</a></li>
-						<li onclick="hideChatContext();" style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li>
-						<li onclick="changeMyName(); hideChatContext();" style="display: none;"><a><em>Change my name</em></a></li>
-					</ul>
-				</div>
-				<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 265px); overflow: auto; z-index: -1;"></div>
-				<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
-			</div>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
 				<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
@@ -345,20 +281,17 @@
 					<input type="button" id="captchaBtn" name="9" value="err">
 				</div>
 			</div>
-			<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
-			<div id="bg" style="display:none;position:fixed;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
+			<div id="chat" noselect onclick="chatPanel.classList.add('open')"><svg class="PostFooter__comments-icon-new" viewBox="0 0 16 16" style="width:16px;height:21px" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="M4.00001 0C2.99219 0 2.02564 0.400356 1.31301 1.11299C0.600368 1.82563 0.200012 2.79218 0.200012 3.8V8.6C0.200012 9.60782 0.600368 10.5744 1.31301 11.287C2.02564 11.9996 2.99219 12.4 4.00001 12.4H5.35149L7.5753 14.6238C7.57545 14.624 7.5756 14.6241 7.57575 14.6243C7.81006 14.8586 8.18996 14.8586 8.42428 14.6243L10.6485 12.4H12C13.0078 12.4 13.9744 11.9996 14.687 11.287C15.3997 10.5744 15.8 9.60782 15.8 8.6V3.8C15.8 2.79218 15.3997 1.82563 14.687 1.11299C13.9744 0.400356 13.0078 0 12 0H4.00001ZM8.00001 13.3515L9.97575 11.3757C10.0883 11.2632 10.2409 11.2 10.4 11.2H12C12.6896 11.2 13.3509 10.9261 13.8385 10.4385C14.3261 9.95088 14.6 9.28956 14.6 8.6V3.8C14.6 3.11044 14.3261 2.44912 13.8385 1.96152C13.3509 1.47393 12.6896 1.2 12 1.2H4.00001C3.31045 1.2 2.64913 1.47393 2.16153 1.96152C1.67394 2.44912 1.40001 3.11044 1.40001 3.8V8.6C1.40001 9.28956 1.67394 9.95088 2.16153 10.4385C2.64913 10.9261 3.31045 11.2 4.00001 11.2H5.60001C5.7657 11.2 5.91569 11.2672 6.02427 11.3757C6.02435 11.3758 6.02443 11.3759 6.02452 11.376L8.00001 13.3515Z" fill="inherit" fill-rule="evenodd"></path></svg></div>
+			<div noselect id="helpbtn" onclick="if(modal.style.display=='flex'){modal.style.display='none';bg.style.display='none'}else{modal.style.display='flex';bg.style.display='block'}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
+			<div noselect id="closebtn" onclick="bg.style.opacity='0.5';bg.style.display='block'; messageInput.blur(); chatPanel.classList.remove('open'); document.body.id = 'out'; window.onresize()">...<!--svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg--></div>
+			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6" onclick="if(document.body.id!='out')return;this.style.opacity='1';this.style.display='none';document.body.id='';window.onresize()"></div>
 				<div id="modal" style="display:none"><div id="modal-header">
 					<h2>Place</h2>
 					<icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close>
 				</div>
 				<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-				<div>
-					<a onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')">Donate</a>
-					<span onclick='localStorage.vip=prompt("Enter key?")||""'>&nbsp;/&nbsp;</span>
-					<a onclick="window.open('https:\/\/www.reddit.com/r/placetk','_blank')">Subreddit</a> <br> <br>
-				</div>
 				<div id="modal-footer">
-					<mute-button noselect onclick="muted=!muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
+					<mute-button noselect onclick="muted=!muted;localStorage.muted=+muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
 					<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
 				</div>
 			</div>
@@ -372,7 +305,64 @@
 				</div>
 			</div>
 		</div>
-		<div id="posts"></div>
+		<div noselect id="more">
+			<div onclick="chatPanel.classList.toggle('open')">
+				<img src="live.png"><div><div>Live Chat</div><span id="onlineCounter2">... online</span></div>
+			</div>
+			<div onclick="switchGameServer()">
+				<img src="rplace.png">
+				<div><div>Main Canvas</div>2000x2000 (cooldown: 10s)</div>
+			</div>
+			<div onclick="switchGameServer('server2.rplace.tk server2.rplace.tk')">
+				<img src="rplace2.png">
+				<div><div>2nd Canvas</div>500x500 (cooldown: 1s)</div>
+			</div>
+			<div onclick="window.open('https:/\/discord.gg/xbRrVSXJdZ','_blank')">
+				<img src="discord.png">
+				<div><div>Discord</div>discord.gg/xbRrVSXJdZ</div>
+			</div>
+			<div onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')">
+				<img src="patreon.png">
+				<div><div>Donate</div>Keep r/place alive!</div>
+			</div>
+			<div onclick="window.open('https:/\/reddit.com/r/placetk','_blank')">
+				<img src="reddit.png">
+				<div><div>Subreddit</div>500 members yay!</div>
+			</div>
+		</div>
+		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'" onclick="chatContext.style.display = 'none'">
+			<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
+				<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
+				<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
+				<br>
+				<div>
+					<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
+					<button id="nameSubmit" onclick="setName(nameInput.value)"><svg enable-background="new 0 0 55.702 55.702" version="1.1" viewBox="0 0 55.702 55.702" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g fill="limegreen"><path d="M27.851,0C12.494,0,0,12.494,0,27.851s12.494,27.851,27.851,27.851s27.851-12.494,27.851-27.851   C55.701,12.494,43.208,0,27.851,0z M27.851,51.213c-12.882,0-23.362-10.48-23.362-23.363c0-12.882,10.48-23.362,23.362-23.362   s23.362,10.481,23.362,23.363S40.733,51.213,27.851,51.213z"/><path d="m36.729 18.97-13 13.001-4.757-4.757c-0.876-0.877-2.297-0.877-3.173 0-0.877 0.876-0.877 2.297 0 3.173l6.344 6.344c0.438 0.438 1.013 0.658 1.587 0.658s1.148-0.219 1.586-0.658l14.587-14.587c0.876-0.877 0.876-2.297 0-3.174-0.877-0.876-2.297-0.876-3.174 0z"/></g></svg></button>
+				</div>
+			</div>
+			<div style="display: flex; flex-direction: row;" noselect>
+				<h2 id="liveChatHeader" style="flex: 110px 0 0;">Live Chat:</h2>
+				<div style="position: relative; height:30px; width: 150px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 15px; cursor: pointer;">
+					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7, https://openmoji.org/library/emoji-1F1EE-1F1F7/-->
+					<span id="channelMine" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel(extralang)">FAS</span>
+					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('tr')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
+					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
+					<span id="channelTooltip" class="tooltip" onmouseleave="this.click();" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);">Change channel:</span>
+				</div>
+				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
+				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); chatPanel.classList.remove('open')" class="active" style="flex: initial;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+			</div>
+			<div id="chatContext" class="contextMenu" style="display:none">
+				<ul>
+					<li><a onclick="chatMentionUser(targetedUser); chatContext.style.display = 'none';">Mention user</a></li>
+					<li><a onclick="blockUser(); chatContext.style.display = 'none'">Block user</a></li>
+					<!--li onclick="chatContext.style.display = 'none'" style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li-->
+					<li onclick="namePanel.style.visibility='visible'; nameInput.value = targetedUser; chatContext.style.display = 'none'" style="display: none;"><a><em>Change my name</em></a></li>
+				</ul>
+			</div>
+			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
+		</div>
 	</body>
 	<script>
 		let PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
@@ -382,8 +372,9 @@
 	</script>
 
 	<script>
-		const AREA_HEIGHT = 1
-		maincontent.style.height=AREA_HEIGHT*100+'%'
+		const d1 = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z', d2 = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
+		let i = +localStorage.vote
+		for(const el of more.children)el.insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i&1?'style="fill:#ff4500" ':''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i&1?d1:d2}" fill-rule="evenodd"></path></svg><div>...</div></up>`),i>>=1
 		let touch1 = null, touch2 = null, touchmoved = 3;
 		document.body.ontouchstart = function(e){
 			for(let t of e.changedTouches){
@@ -455,7 +446,7 @@
 		let selX = 0, selY = 0
 		let c = canvas.getContext('2d')
 		function transform(){
-			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-50+innerWidth/2)+"px, "+(y*z*-50+innerHeight*AREA_HEIGHT/2)+"px) scale("+z*50+")"
+			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-50+innerWidth/2)+"px, "+(y*z*-50+maincontent.offsetHeight/2)+"px) scale("+z*50+")"
 			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
 			canvas.style.width = z * canvas.width * 50 + "px"
 			canvas.style.height = z * canvas.height * 50 + "px"
@@ -466,8 +457,8 @@
 		let waitingGame = {
 			canvas: document.getElementById("waitingGameCanvas"),
 			start: function() {
-				this.canvas.width = window.innerWidth
-				this.canvas.height = window.innerHeight*AREA_HEIGHT
+				this.canvas.width = innerWidth
+				this.canvas.height = innerHeight
 				this.context = this.canvas.getContext("2d")
 				this.interval = setInterval(updateGameArea, 14)
 			},
@@ -503,10 +494,10 @@
 			onresize()
 		}
 		onresize = function(){
-			minZoom = Math.min(innerWidth / canvas.width, innerHeight*AREA_HEIGHT / canvas.height) / 100
+			minZoom = Math.min(innerWidth / canvas.width, maincontent.offsetHeight / canvas.height) / 100
 			pos()
-			waitingGame.canvas.width = window.innerWidth
-                        waitingGame.canvas.height = window.innerHeight*AREA_HEIGHT
+			waitingGame.canvas.width = innerWidth
+      waitingGame.canvas.height = maincontent.offsetHeight
 		}
 		let click = false
 		let mx = 0, my = 0;
@@ -514,7 +505,7 @@
 			if(e.target != maincontent && !canvparent2.contains(e.target))return
 			moved--
 			let dx = -(mx - (mx = e.clientX - innerWidth / 2))
-			let dy = -(my - (my = e.clientY - innerHeight*AREA_HEIGHT / 2))
+			let dy = -(my - (my = e.clientY - maincontent.offsetHeight / 2))
 			if(dx != dx || dy != dy)return
 			if(click){
 				x -= dx / (z * 50)
@@ -602,7 +593,7 @@
 		function clicked(clientX, clientY){
 			clearInterval(anim)
 			clientX = Math.floor(x+(clientX-innerWidth/2)/z/50) + 0.5
-			clientY = Math.floor(y+(clientY-innerHeight*AREA_HEIGHT/2)/z/50) + 0.5
+			clientY = Math.floor(y+(clientY-maincontent.offsetHeight/2)/z/50) + 0.5
 			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
 				clientX -= 0.5; clientY -= 0.5
 				if(CD<Date.now())zoomIn(),showPalette()
@@ -641,8 +632,8 @@
 			this.currentTime = 0
 			this.play().catch(e=>e)
 		}
-		let muted = false, unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
-		mutesvg.innerHTML = unmutedhtml
+		let muted = !!+localStorage.muted, unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
+		mutesvg.innerHTML=muted?mutedhtml:unmutedhtml
 		let CD = Infinity
 		let onCooldown = false
 		setInterval(() => {
@@ -708,8 +699,15 @@
 		let online = 1
 		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
-		let cMessages = {fas: [], tu: [], en: []}
-		let currentChannel = "tu"
+		const lang = navigator.language.split('-')[0]
+		let extralang = 'fa'
+		if(lang != 'tr' && lang != 'en'){
+			extralang = lang
+			channelMine.innerText = extralang.toUpperCase()
+		}
+		let cMessages = {[extralang]: [], tr: [], en: []}
+		let currentChannel = lang
+		switchLanguageChannel(currentChannel)
 		wscapsule()
 		function seti(i, b){
 			board[i] = b
@@ -727,18 +725,6 @@
 			let indicator = document.getElementById("colors").children[c].firstChild
 			indicator.textContent = keybinds.charAt(c)
 		}
-		if (window.innerHeight > window.innerWidth) {
-			chatPanel.style.transform = "translateX(calc(100% + 50px))"
-		}
-		function showChat() {
-			chatPanel.style.transform = ""
-		}
-		function hideChat() {
-			if (window.innerHeight*AREA_HEIGHT > window.innerWidth)
-				chatPanel.style.transform = "translateX(calc(100% + 50px))"
-			else
-				chatPanel.style.transform = "translateX(calc(100% + 50px))"
-		}
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
@@ -750,24 +736,20 @@
 		
 		function switchLanguageChannel(selected) {
 			channelTu.style.opacity = "0.5"
-			channelFas.style.opacity = "0.5"
+			channelMine.style.opacity = "0.5"
 			channelEn.style.opacity = "0.5"
 			currentChannel = selected
 			chatMessages.style.direction =  "ltr";
 			switch(selected) {
-				case "fas":
-					channelNotification.innerText = "لطفا از 'en' برای انگلیسی، 'tu' برای ترکی و 'fas' برای فارسی استفاده کنید"
-					channelFas.style.opacity = "1"
-					chatMessages.style.direction =  "rtl";
-					break;
-				case "tu":
-					channelNotification.innerText = "Lütfen TÜ'da Türkçe, EN'de İngilizce ve FAS'ta Farsça kullanın."
+				case "tr":
 					channelTu.style.opacity = "1"
 					break;
 				case "en":
-					channelNotification.innerText = "Please use English in EN, Turkish in TÜ and persian in FAS"
 					channelEn.style.opacity = "1"
 					break;
+				default:
+					channelMine.style.opacity = "1"
+					chatMessages.style.direction = '';
 			}
 			chatMessages.innerHTML=''; for(const el of cMessages[selected])chatMessages.appendChild(el)
 		}
@@ -778,7 +760,7 @@
 			messageInput.setRangeText("@" + user, start, end, "end")
 		}
 		const emojiMap = {
-	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", fan: "🗘🖼fan.png"
+	  	joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸"
 		}
 		messageInput.oninput = () => {
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
@@ -796,12 +778,17 @@
 		}
 
 		function switchGameServer(serverAddress) {
-			let [a, b] = serverAddress.split(" ").reverse()
-			if(!b)[b,a]=[a+'/place','server.'+a]
-			a = "wss://" + a
-			b = "https://" + b
-			server(a, b)
-			location.reload(true)
+			if(serverAddress){
+				let [a, b] = serverAddress.split(" ").reverse()
+				if(!b)[b,a]=[a+'/place','server.'+a]
+				a = "wss://" + a
+				b = "https://" + b
+				server(a, b)
+			}else{
+				delete localStorage.board
+				delete localStorage.server
+			}
+			location+=''
 		}
 		
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
@@ -825,7 +812,7 @@
 				}
 			})
 		}
-		translate([chat, liveChatHeader, namePanelHeader, channelTooltip, toastTooltips, captchaLabel])
+		translate([liveChatHeader, namePanelHeader, channelTooltip, captchaLabel])
 
 
 		function component(width, height, colour, x, y, type, falling) {
@@ -893,19 +880,6 @@
 			archiveViewImg.style.transform = `scale(${archiveViewZoom}%)`
 			console.log(archiveViewZoom)
 		}
-
-		function closeServerMenu() {
-			serverInput.blur();
-			serverMenu.style.transform =  "translateX(-50%) translateY(-200px)"
-			if (overlayMenu.opened) overlayMenu.style.transform = "translateX(-50%) translateY(0px)"
-			serverMenu.opened = false
-		}
-		function openServerMenu() {
-			serverInput.focus();
-			serverMenu.style.transform = "translateX(-50%)"
-			if (overlayMenu.opened) overlayMenu.style.transform = "translateX(-50%) translateY(110px)"
-			serverMenu.opened = true
-		}
 		function closeOverlayMenu() {
 			overlayMenu.style.transform = "translateX(-50%) translateY(-330px)"
 			overlayMenu.opened = false
@@ -940,16 +914,12 @@
 		}
 //TODO: Finish this
 		function generateOverlayUrl() {
-			window.history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
+			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
 		
 		let blockedUsers = [], targetedUser
 		function blockUser() {
 			blockedUsers.push(targetedUser)
-		}
-		function changeMyName()	{
-			let newName = prompt("Please enter your new username:", "anon")
-			localStorage.name = (newName != null ? newName : localStorage.name)
 		}
 		function onChatContext(e, uname) {
 			e.preventDefault()
@@ -966,14 +936,14 @@
 					chatContext.children[0].children[1].children[0].style.color = "grey"
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[3].style.display = "initial"
+					chatContext.children[0].children[2].style.display = ''
 				}
 				else {
-					chatContext.children[0].children[1].style.pointerEvents = "initial"
-					chatContext.children[0].children[1].children[0].style.color = "initial"
+					chatContext.children[0].children[1].style.pointerEvents = ''
+					chatContext.children[0].children[1].children[0].style.color = ''
 					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[3].style.display = "none"
+					chatContext.children[0].children[2].style.display = "none"
 				}
 				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
 				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
@@ -983,40 +953,22 @@
 			chatContext.style.display = "none"
 		}
 
-		let redirectLocation = ""
-		switch (window.location.search) {
-			case "?discord": redirectLocation = "https://discord.com/invite/xbRrVSXJdZ"; break
-			case "?twitter": redirectLocation = "https://twitter.com/rplacetk"; break
-			case "?reddit": redirectLocation = "https://www.reddit.com/r/placetk"; break
-			case "?github": redirectLocation = "https://github.com/rslashplace2"; break
-			case "?email": redirectLocation = "mailto:blob.kat@hotmail.com"; break
-			case "?admin": redirectLocation = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; break
-		}
-		if (redirectLocation !== "") window.location.replace(redirectLocation)
-
-		const verifiedAppHash = "68a8d8ab11ed7a6e9bec9877d47551fc7f61572779d1e13b0c2498139fcddb64"
-		async function sha256(message) {
-			const msgBuffer = encoder.encode(message) // encode as UTF-8             
-			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
-			const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
-			const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('') // convert bytes to hex string
-			return hashHex
-		}
+		let redirectLocation = ({
+			"?discord": "https://discord.com/invite/xbRrVSXJdZ",
+			"?twitter": "https://twitter.com/rplacetk",
+			"?reddit": "https://www.reddit.com/r/placetk",
+			"?github": "https://github.com/rslashplace2",
+			"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+		})[location.search]
+		if (redirectLocation) location.replace(redirectLocation)
 		// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
-		async function verifyWebApp() {
-			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
-				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) console.log("You are using an official rplace client. Have fun!")
-				else window.location.replace("fakeapp.html")
-			}
-		}
-		verifyWebApp()
-		setTimeout(() => (window.connproblems||{style:{}}).style.opacity = 1, 5000)
+		if (location !== parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined")
+			location.replace("fakeapp.html")
+		setTimeout(() => window.connproblems&&(connproblems.style.opacity = 1), 5000)
 		setTimeout(() => {
-			toastTooltips.style.opacity = '0'; toastTooltips.style.display = 'none';
 			channelTooltip.style.opacity = '0'; channelTooltip.style.display = 'none';
 		}, 0);
-		if (window.location.href.startsWith("http://")) window.location.href = "https://rplace.tk"
+		//if (window.location.href.startsWith("http://")) window.location.href = "https://rplace.tk"
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
-	<!--script src="board_final.js"></script-->
 </html>
