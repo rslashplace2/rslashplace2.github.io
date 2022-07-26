@@ -2,6 +2,7 @@
 * { margin: 0; padding: 0; touch-action: none } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; overflow: hidden; position: absolute }
 
 html{
+	overscroll-behavior: none;
 	font-size: 14px;
 	font-family: bold;
 	-webkit-tap-highlight-color: transparent;
