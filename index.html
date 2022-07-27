@@ -19,7 +19,7 @@
 					v |= (1 << id)
 					send.call(ws, new Uint8Array([20, id]))
 				}
-				i.onclick = f}
+				addEventListener.call(i, 'click', f)}
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
@@ -196,7 +196,7 @@
 						}
 					}
 					if('value' in e.target)e.target.focus()
-					else{let target = e.target; while(!target.click)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.click()}}
+					else{let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click'))}}
 				}
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
