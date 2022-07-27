@@ -403,7 +403,7 @@ mute-button{
 	}
 }
 
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #chatPanel {
+#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn {
 	box-shadow: 0 0 30px black;
 }
 
@@ -460,7 +460,9 @@ mute-button{
 }
 #chatPanel.open{
 	transform: translateX(0);
+	box-shadow: 0 0 30px black;
 }
+
 #captchaPopup {
 	z-index: 7;
 	position: absolute;
@@ -727,10 +729,7 @@ kbd {
 	image-rendering: pixelated;
 }
 
-#out #maincontent{
-	height: 60%;
-	box-shadow: 0 0 10px black;
-}
+#out #maincontent{ height: 60%; }
 #out #more{
 	position: absolute;
 	bottom: 0;
