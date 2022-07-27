@@ -196,7 +196,7 @@
 						}
 					}
 					if('value' in e.target)e.target.focus()
-					else{let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click'))}}
+					else{let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}}
 				}
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
