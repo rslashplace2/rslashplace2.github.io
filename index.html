@@ -113,7 +113,7 @@
 				console.error(e)
 				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location+=''
 				else {
-					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg" 
+					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 					waitingGame.start()
 				}
 			}
@@ -156,11 +156,11 @@
 				if (onCooldown) return
 
 				//"Enter" key to place selected block without using mouse
-				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement) 
+				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 					oclick.call(pok, e)
 
 				//Keyboard shortcuts for selecting palette colours
-				let keyIndex = null 
+				let keyIndex = null
 				if(document.activeElement != document.body)return
 				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
 				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
@@ -211,7 +211,7 @@
 		WebSocket.prototype.send = function(){this.close()}
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker
 	</script>
-	
+
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
@@ -307,26 +307,34 @@
 			</div>
 		</div>
 		<div noselect id="more">
-			<div onclick="chatPanel.classList.toggle('open')">
+			<div style="padding-left: 15px;">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="46" width="46"><path style="fill: #d7dfe2;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"/></svg>
+				<input id="postInput" type="text" watermark="Create post"/>
+				<div style="margin-top: 8px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"  height="30" width="30"><path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"  height="30" width="30"><path style="fill: #979a9b;" d="M22.5 34H14q-4.25 0-7.125-2.875T4 24q0-4.25 2.875-7.125T14 14h8.5v3H14q-3 0-5 2t-2 5q0 3 2 5t5 2h8.5Zm-6.3-8.5v-3h15.5v3ZM44 24h-3q0-3-2-5t-5-2h-8.5v-3H34q4.25 0 7.125 2.875T44 24Zm-9.05 16v-6h-6v-3h6v-6h3v6h6v3h-6v6Z"/></svg>
+				</div>
+			</div>
+			<div onclick="chatPanel.classList.toggle('open')" class="post">
 				<img src="live.png"><div><div>Live Chat</div><span id="onlineCounter2">... online</span></div>
 			</div>
-			<div onclick="switchGameServer()">
+			<div onclick="switchGameServer()" class="post">
 				<img src="rplace.png">
 				<div><div>Main Canvas</div>2000x2000 (cooldown: 10s)</div>
 			</div>
-			<div onclick="switchGameServer('server2.rplace.tk:8081/place server2.rplace.tk')">
+			<div onclick="switchGameServer('server2.rplace.tk:8081/place server2.rplace.tk')" class="post">
 				<img src="rplace2.png">
 				<div><div>2nd Canvas</div>500x500 (cooldown: 1s)</div>
 			</div>
-			<div onclick="window.open('https:/\/discord.gg/xbRrVSXJdZ','_blank')">
+			<div onclick="window.open('https:/\/discord.gg/xbRrVSXJdZ','_blank')" class="post">
 				<img src="discord.png">
 				<div><div>Discord</div>discord.gg/xbRrVSXJdZ</div>
 			</div>
-			<div onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')">
+			<div onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" class="post">
 				<img src="patreon.png">
 				<div><div>Donate</div>Keep r/place alive!</div>
 			</div>
-			<div onclick="window.open('https:/\/reddit.com/r/placetk','_blank')">
+			<div onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" class="post">
 				<img src="reddit.png">
 				<div><div>Subreddit</div>500 members yay!</div>
 			</div>
@@ -375,7 +383,7 @@
 	<script>
 		const d1 = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z', d2 = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
 		let i = +localStorage.vote
-		for(const el of more.children)el.insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i&1?'style="fill:#ff4500" ':''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i&1?d1:d2}" fill-rule="evenodd"></path></svg><div>...</div></up>`),i>>=1
+		for(let  el = 1; el < more.children.length; el++) more.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i&1?'style="fill:#ff4500" ':''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i&1?d1:d2}" fill-rule="evenodd"></path></svg><div>...</div></up>`),i>>=1
 		let touch1 = null, touch2 = null, touchmoved = 15;
 		document.body.ontouchstart = function(e){
 			for(let t of e.changedTouches){
@@ -404,7 +412,7 @@
 				arrowkeyDown = true //we say, yeah, it is down
 				setTimeout(function() {
 					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
-					if (!arrowkeyDown) return 
+					if (!arrowkeyDown) return
 					let repeatFunc = setInterval(function() {
 						let match = true
 						let x0 = x, y0 = y
@@ -736,7 +744,7 @@
 			localStorage.name = name
 			namePanel.style.visibility = "hidden"
 		}
-		
+
 		function switchLanguageChannel(selected) {
 			channelTu.style.opacity = "0.5"
 			channelMine.style.opacity = "0.5"
@@ -793,7 +801,7 @@
 			}
 			location+=''
 		}
-		
+
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
 		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
 		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü.", "Please click the button containing the emoji you see below": "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın" }
@@ -919,14 +927,14 @@
 		function generateOverlayUrl() {
 			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
-		
+
 		let blockedUsers = [], targetedUser
 		function blockUser() {
 			blockedUsers.push(targetedUser)
 		}
 		function onChatContext(e, uname) {
 			e.preventDefault()
-	
+
 			if (chatContext.style.display == "block")
 				hideChatContext();
 			else {

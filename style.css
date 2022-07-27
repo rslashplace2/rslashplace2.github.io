@@ -793,12 +793,33 @@ up div{
 	text-align: center;
 	color: #888a8c;
 }
-#more > div > div{
+#more > .post > div {
 	flex: 1;
 	margin: 3px 0;
 }
-#more > div > div > div{color: #000;}
-#more > div > img{
+#more > .post > div > div { color: #000; }
+#more > .post > img {
 	width: 40px;
 	height: 40px;
+}
+
+#postInput {
+	all: unset;
+	background-color: #F6F7F8;
+	border-radius: 4px;
+	border: 1px solid #EDEFF1;
+	box-shadow: none;
+	box-sizing: border-box;
+	color: #1c1c1c;
+	display: block;
+	flex-grow: 1;
+	height: 38px;
+	margin-right: 8px;
+	outline: none;
+	padding: 0 16px;
+	margin-top: 4px;
+}
+#postInput:hover {
+	background-color: #FFFFFF;
+	border: 1px solid #0079D3;
 }
