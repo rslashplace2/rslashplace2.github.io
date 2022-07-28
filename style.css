@@ -762,7 +762,6 @@ kbd {
 	left: 0px;
 	bottom: 0px;
 	padding: 15px 30px 30px 30px;
-	height: 540px;
 	overflow: visible;
 }
 #more #contents > div{
@@ -835,6 +834,7 @@ up div{
 	outline: none;
 	padding: 0 16px;
 	margin-top: 4px;
+	font-size: 16px;
 }
 #postInput:hover {
 	background-color: #FFFFFF;
