@@ -975,9 +975,23 @@
 			"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		})[location.search]
 		if (redirectLocation) location.replace(redirectLocation)
-		// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
-		if (location !== parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined")
-			location.replace("fakeapp.html")
+		
+		const verifiedAppHash = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
+		async function sha256(message) {
+			const msgBuffer = encoder.encode(message) // encode as UTF-8             
+			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
+			const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
+			const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('') // convert bytes to hex string
+			return hashHex
+		}
+		async function verifyWebApp() {
+			// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
+			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
+				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) console.log("You are using an official rplace client. Have fun!")
+				else window.location.replace("fakeapp.html")
+			}
+		}
+		verifyWebApp()
 		setTimeout(() => window.connproblems&&(connproblems.style.opacity = 1), 5000)
 		setTimeout(() => {
 			channelTooltip.style.opacity = '0'; channelTooltip.style.display = 'none';
