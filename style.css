@@ -732,23 +732,40 @@ kbd {
 #out #maincontent{ height: 60%; }
 #out #more{
 	position: absolute;
-	bottom: 0;
 	left: 0;
 	right: 0;
-	height: 40%;
+	height: 100%;
 	display: block;
+	z-index: 20;
+	display: flex;
+	align-items: stretch;
+	flex-direction: column;
 }
-#more{
+#more {
 	display: none;
-	background: #dae0e6;
-	padding: 30px;
 	overflow: auto;
 	touch-action: pan-y;
 }
 #more *{touch-action: pan-y;}
 #out #closebtn{ display: none }
 
-#more > div{
+#more #spaceFiller {
+	display: block;
+	height: 60vh;
+	width: 100%;
+	flex-shrink: 0;
+}
+#more #contents {
+	background: #dae0e6;
+	width: 100%;
+	flex: 1;
+	left: 0px;
+	bottom: 0px;
+	padding: 15px 30px 30px 30px;
+	height: 540px;
+	overflow: visible;
+}
+#more #contents > div{
 	border: 1px #ccc solid;
 	border-radius: 4px;
 	background: #fff;
@@ -793,12 +810,12 @@ up div{
 	text-align: center;
 	color: #888a8c;
 }
-#more > .post > div {
+#more #contents > .post > div {
 	flex: 1;
 	margin: 3px 0;
 }
-#more > .post > div > div { color: #000; }
-#more > .post > img {
+#more #contents > .post > div > div { color: #000; }
+#more #contents > .post > img {
 	width: 40px;
 	height: 40px;
 }
