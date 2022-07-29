@@ -2,6 +2,7 @@
 <html lang="en" ontouchstart="if(maincontent.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
+		if (window.location.href.startsWith("http://")) window.location.replace("https://rplace.tk", true)
 		let v = 0
 		const wscapsule = ((send, addEventListener) => {
 			let focused = true
@@ -996,7 +997,6 @@
 		setTimeout(() => {
 			channelTooltip.style.opacity = '0'; channelTooltip.style.display = 'none';
 		}, 0);
-		//if (window.location.href.startsWith("http://")) window.location.href = "https://rplace.tk"
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 </html>
