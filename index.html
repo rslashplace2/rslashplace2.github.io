@@ -145,18 +145,17 @@
 				send.call(ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
-			addEventListener.call(document.body, 'keypress', function(e) {
+			addEventListener.call(maincontent, 'keypress', function(e) {
 				if(!e.isTrusted)return
 
-				//"Alt+O" to open overlay menu
+				//"Shift+O" to open overlay menu
 				if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
 					if (overlayMenu.opened) closeOverlayMenu()
 					else openOverlayMenu()
 				}
-
+				
 				//Begin palette commands
 				if (onCooldown) return
-
 				//"Enter" key to place selected block without using mouse
 				if (e.keyCode == 13 && palette.style.transform == "" && messageInput != document.activeElement && nameInput != document.activeElement && serverInput != document.activeElement)
 					oclick.call(pok, e)
