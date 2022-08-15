@@ -15,9 +15,17 @@ Setting up a custom server that users can connect to (usually with the server sw
  - Read the instructions *carefully*, if something seems like common sense, you are probably doing it wrong and will mess up the process further down the line.
 
 ## Setting up the server:
-1. Get a web domain.
+1. Get a web domain, this can be done by visiting free domain sites such as noip.com:
+![image](https://user-images.githubusercontent.com/73035340/184674498-37853563-70b9-4f8a-a695-7eb38c99441b.png)
 2. Port forward ports 80 (will be used by certbot), 443 (web socket), 8080 (place file server) to the computer you decide to use to host the server
+![image](https://user-images.githubusercontent.com/73035340/184675516-b4f6063c-0e27-4ecb-8004-47dded1d0839.png)
+![image](https://user-images.githubusercontent.com/73035340/184676979-6683220f-b2f9-44d6-b168-91b18cef22be.png)
 3. Install certbot, nodejs and npm
+
+
+![image](https://user-images.githubusercontent.com/73035340/184677594-f7386cb1-2d33-4ea9-b921-02a46e1703fc.png)
+
+
 4. Use certbot to set up the keys and certificates on the computer you would like to use
 5. Install the latest version of node from the official site onto your computer
 6. Install the latest npm available on your system
