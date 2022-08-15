@@ -44,12 +44,15 @@ Setting up a custom server that users can connect to (usually with the server sw
 6. Enter the rslashplace2.github.io directory cloned to your system
 7. Run ./newboard.sh [canvas width] [canvas height] [cooldown in seconds] to generate a new config.json file e.g `./newboard.sh 500 500 1`
 8. Open config.json in a text editor, set "USE_GIT" to `false` to disable the canvas backup system, set "USE_CAPTCHA" also to `false`
-9. Open server.js in a text editor, comment out the line 'let ORIGIN ='... and any other line conataining that variable with `//` before it
-10. Set `PORT` in server.js to 443, or whatever port you desire,
+9. Open server.js in a text editor.
+10. Set `PORT` in server.js to 443, or whatever port you forwarded for the websocket server
 11. Set the `key:` and `cert:` variables to the path that certbot gave you for your domain keys and certificates
-12. Run server.js with admin privilages, such as "sudo node server.js"
-13. In a new terminal, enter the rplace_http_server directory
-14. Modify the server.js file in this directory, and set the `PORT` to 8080, or whatever port you desire for the place file server
-15. Set the `key:` and `cert:` variables in this file to the path of the keys and certificates used in the main folder's server.js file.
-16. Remain in the place_http_server directory, and run `node .` to start up the server.
-17. If no errors occured, Bon Voilà, you have set up an ruplace custom server acessable from in the game.
+12. Use the editor's find feature to replace the line `if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close()` with `        if(BANS.has(p.ip))return p.close()`
+13. Use the editor's find feature to replace the line `p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':')` with `p.ip = p._socket.remoteAddress.split(':',4).join(':')`, if you have not set up cloudflare (if you are following this, you haven't).
+14. In a new terminal, enter the place_http_server directory
+15. Modify the server.js file in this directory, and set the `PORT` to 8080, or whatever port you forwarded for the place file server
+16. Set the `key:` and `cert:` variables in this file to the path of the keys and certificates certbot gave you (should be same as what was in server.js).
+17. With your terminal that is in the rslashplace2.github.io root directory, run `sudo npm install` to install all dependencies that did not make it into the git repo, and then `sudo node server.js` to start up the websocket server.
+18. With the terminal in the place_http_server directory, run `sudo npm install` to install all dependencies that did not make it into the git repo, and run `sudo node .` to start up the place file server.
+29. If you encountered no errors, Bon Voilà, you have set up an rplace custom server acessable from in the game.
+30. If you did encounter errors, no worries, visit the rplace discord, acessable through out site `https://rplace.tk` and ask one of the admins (our usernames are usually `@BlobKat`/`@zekiahepic`), and we will try our best to assist you!
