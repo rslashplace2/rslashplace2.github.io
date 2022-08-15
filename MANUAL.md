@@ -20,25 +20,36 @@ Setting up a custom server that users can connect to (usually with the server sw
 2. Port forward ports 80 (will be used by certbot), 443 (web socket), 8080 (place file server) to the computer you decide to use to host the server
 ![image](https://user-images.githubusercontent.com/73035340/184675516-b4f6063c-0e27-4ecb-8004-47dded1d0839.png)
 ![image](https://user-images.githubusercontent.com/73035340/184676979-6683220f-b2f9-44d6-b168-91b18cef22be.png)
-3. Install certbot, nodejs and npm
+3. Install the latest versions of (`certbot`), (`nodejs`) and (`npm`), on debian based distrobutions you may need to install from a ppy as the packe manager vesion is likely outdated. If your system doesn't come with git by default, test by entering `git` into the terminal and observing if there is an error, the install the latest version of (`git`) as well.
 
 
 ![image](https://user-images.githubusercontent.com/73035340/184677594-f7386cb1-2d33-4ea9-b921-02a46e1703fc.png)
 
 
 4. Use certbot to set up the keys and certificates on the computer you would like to use
-5. Install the latest version of node from the official site onto your computer
-6. Install the latest npm available on your system
-7. Clone the rslashplace2.github.io github repository, it may take a while ~~because we pack in all node modules~~ 
-8. Enter the rslashplace2.github.io directory cloned to your system
-9. Run ./newboard.sh [canvas width] [canvas height] [cooldown in seconds] to generate a new config.json file e.g `./newboard.sh 500 500 1`
-10. Open config.json in a text editor, set "USE_GIT" to false to disable the canvas backup system
-11. Open server.js in a text editor, comment out the line 'let ORIGIN ='... and any other line conataining that variable with `//` before it
-12. Set `PORT` in server.js to 443, or whatever port you desire,
-13. Set the `key:` and `cert:` variables to the path that certbot gave you for your domain keys and certificates
-14. Run server.js with admin privilages, such as "sudo node server.js"
-15. In a new terminal, enter the rplace_http_server directory
-16. Modify the server.js file in this directory, and set the `PORT` to 8080, or whatever port you desire for the place file server
-17. Set the `key:` and `cert:` variables in this file to the path of the keys and certificates used in the main folder's server.js file.
-18. Remain in the place_http_server directory, and run `node .` to start up the server.
-19. If no errors occured, Bon Voilà, you have set up an ruplace custom server acessable from in the game.
+
+
+![image](https://user-images.githubusercontent.com/73035340/184679276-f5d48324-beb7-421e-a58f-1749705ee75f.png)
+
+
+5. Clone the rslashplace2.github.io github repository, it may take a while ~~because we pack in all node modules~~ 
+
+
+![image](https://user-images.githubusercontent.com/73035340/184679849-e3288df3-2a82-4aaf-a808-ef89e6b29a9f.png)
+
+
+![image](https://user-images.githubusercontent.com/73035340/184679972-495bc98c-b84a-4884-94f2-f176056f8a09.png)
+
+
+6. Enter the rslashplace2.github.io directory cloned to your system
+7. Run ./newboard.sh [canvas width] [canvas height] [cooldown in seconds] to generate a new config.json file e.g `./newboard.sh 500 500 1`
+8. Open config.json in a text editor, set "USE_GIT" to `false` to disable the canvas backup system, set "USE_CAPTCHA" also to `false`
+9. Open server.js in a text editor, comment out the line 'let ORIGIN ='... and any other line conataining that variable with `//` before it
+10. Set `PORT` in server.js to 443, or whatever port you desire,
+11. Set the `key:` and `cert:` variables to the path that certbot gave you for your domain keys and certificates
+12. Run server.js with admin privilages, such as "sudo node server.js"
+13. In a new terminal, enter the rplace_http_server directory
+14. Modify the server.js file in this directory, and set the `PORT` to 8080, or whatever port you desire for the place file server
+15. Set the `key:` and `cert:` variables in this file to the path of the keys and certificates used in the main folder's server.js file.
+16. Remain in the place_http_server directory, and run `node .` to start up the server.
+17. If no errors occured, Bon Voilà, you have set up an ruplace custom server acessable from in the game.
