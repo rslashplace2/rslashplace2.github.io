@@ -3,22 +3,27 @@ const express = require('express')
 const fs = require('fs')
 const https = require('https')
 const cors = require("cors")
+const serveIndex = require('serve-index')
 const app = express()
 
-//Set 'key' and 'cert' this to the path that certbot gave you for your domain certificate and key
-var credentials = { key: fs.readFileSync("/etc/letsencrypt/live/rplace2.ddns.net/privkey.pem"), cert: fs.readFileSync("/etc/letsencrypt/live/rplace2.ddns.net/fullchain.pem")};
-var httpsv = https.createServer(credentials, app)
+const PORT = 8080
 
+//Set 'key' and 'cert' this to the path that certbot gave you for your domain certificate and key
+var credentials = {
+	cert: fs.readFileSync("/etc/letsencrypt/live/rplace2.ddns.net/fullchain.pem"),
+	key: fs.readFileSync("/etc/letsencrypt/live/rplace2.ddns.net/privkey.pem")
+};
 const corsOptions = {
     origin: process.env.CORS_ALLOW_ORIGIN || '*',
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+    methods:['GET'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
+var httpsv = https.createServer(credentials, app)
 
 app.use(cors(corsOptions)); ; 
 
 app.get('/', (req, res) => {
-	res.send("Rplace place file server is running. Visit [url-of-this-site]/place in order to fetch the active place file, [url-of-this-site]/backuplist to view a list of all backups, and fetch from [url-of-this-site]/backups to obtain a backup by it's filename (in backuplist)")
+	res.send(`rPlace canvas file server is running. Visit [url-of-domain]:${PORT}/place in order to fetch the active place file, [url-of-domain]${PORT}/backuplist to view a list of all backups, and fetch from [url-of-domain]${PORT}/backups to obtain a backup by it's filename (in backuplist)`)
 })
 
 app.get('/place', (req, res) => {
@@ -36,6 +41,6 @@ app.use('/backups', express.static(__dirname))
 app.use('/backups', serveIndex(__dirname));
 
 
-httpsv.listen(8081, () => {
-	console.log(`Server listening on port 8081`)
+httpsv.listen(PORT, () => {
+	console.log(`Server listening on port ${PORT}`)
 })
