@@ -11,6 +11,8 @@ Site link: https://rplace.tk/
 *Feel free to contribute!*
 
 
+# Setting up my own custom canvas!
+To set up your own custom canvas to be played on rplace.tk, we have made a guide at our [Manual](MANUAL.md)!
 
 
 # Forking
@@ -19,11 +21,11 @@ Forks of this project must either:
 - Connect to the same server, that is, wss://server.rplace.tk:443
 - Or use the same app, that is, https://rplace.tk
 
-Forks of this project may not be run commercially (That is, it must not generate more than the cost of server upkeep)
+We request forks are not run commercially (That is, it must not generate more than the cost of server upkeep)
 
 ### For example,
 
-- My app (`fork-of-a-place.tk`) connecting to `wss://server.rplace.tk:443` [✅ Allowed, non-commercially]
-- Making `https://rplace.tk` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Allowed, non-commercially]
-- My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not allowed: Uses both different app and different server]
+- My app (`fork-of-a-place.tk`) connecting to `wss://server.rplace.tk:443` [✅ Cool, non-commercially]
+- Making `https://rplace.tk` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Cool, non-commercially]
+- My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not cool: Uses both different app and different server]
 
