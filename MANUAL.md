@@ -43,12 +43,10 @@ Setting up a custom server that users can connect to (usually with the server sw
 
 6. Enter the rslashplace2.github.io directory cloned to your system
 7. Run ./newboard.sh [canvas width] [canvas height] [cooldown in seconds] to generate a new config.json file e.g `./newboard.sh 500 500 1`
-8. Open config.json in a text editor, set "USE_GIT" to `false` to disable the canvas backup system, set "USE_CAPTCHA" also to `false`
+8. Open config.json in a text editor, set "USE_GIT" to `false` to disable the canvas backup system, set "USE_CAPTCHA" also to `false`, make sure "USE_CLOUDFLARE" is set to `false`
 9. Open server.js in a text editor.
 10. Set `PORT` in server.js to 443, or whatever port you forwarded for the websocket server
 11. Set the `key:` and `cert:` variables to the path that certbot gave you for your domain keys and certificates
-12. Use the editor's find feature to replace the line `if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close()` with `        if(BANS.has(p.ip))return p.close()`
-13. Use the editor's find feature to replace the line `p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':')` with `p.ip = p._socket.remoteAddress.split(':',4).join(':')`, if you have not set up cloudflare (if you are following this, you haven't).
 14. In a new terminal, enter the place_http_server directory
 15. Modify the server.js file in this directory, and set the `PORT` to 8080, or whatever port you forwarded for the place file server
 16. Set the `key:` and `cert:` variables in this file to the path of the keys and certificates certbot gave you (should be same as what was in server.js).
