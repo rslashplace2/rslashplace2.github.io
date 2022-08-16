@@ -124,18 +124,16 @@ wss.on('connection', async function(p, {headers, url: uri}) {
   p.on("error", _=>_) 
   p.on('message', async function(data) { 
                 if(data[0] == 15){ 
-                        if(p.lchat + 2500 > NOW || data.length > 400)return 
+                        if(p.lchat + 2500 > NOW || data.length > 400) return 
                         p.lchat = NOW 
                         for(let c of wss.clients) { 
                                 c.send(data) 
                         } 
 
-                        if (WEBHOOK_URL == null) return;
-                        let txt = data.toString().slice(1) 
-                        let name; 
-                        let messageChannel; 
+                        if (!WEBHOOK_URL) return
+                        let txt = data.toString().slice(1), name, messageChannel
                         [txt, name, messageChannel] = txt.split("\n") 
-                        if(name)name = name.replace(/\W+/g,'').toLowerCase() 
+                        if(name) name = name.replace(/\W+/g,'').toLowerCase() 
                         if (!txt) return 
                         try { 
                                 txt = txt.replace("@", "") 
