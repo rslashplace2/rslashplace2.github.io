@@ -9,19 +9,19 @@ import util from 'util'
 import genEmojiCaptcha from './zcaptcha/server.js'
 
 let SECURE = true 
-let BOARD, CHANGES 
-let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA} = JSON.parse(await fs.readFile('./config.json')) 
+let BOARD, CHANGES, VOTES
+let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(await fs.readFile('./config.json'))
 try{ 
         BOARD = await fs.readFile('./place') 
-        CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
+        CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
+        VOTES = new Uint32Array((await fs.readFile('./votes')).buffer)
 } catch(e) { 
         BOARD = new Uint8Array(WIDTH * HEIGHT) 
         CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
+        VOTES = new Uint32Array((await fs.readFile('./votes')).buffer).catch(e => new Uint32Array(32))
 } 
-let newPos = [], newCols = [] 
+let newPos = [], newCols = []
 let wss, cooldowns = new Map() 
-let votes
-try{votes=new Uint32Array((await fs.readFile('./votes')).buffer)}catch(e){votes=new Uint32Array(32)}
 
 function runLengthChanges(){ 
         //compress CHANGES with run-length encoding 
@@ -66,8 +66,8 @@ function runLengthChanges(){
 const PORT = 443 
 if(SECURE){ 
         wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({ 
-        cert: await fs.readFile('../a.pem'), //etc/letsencrypt/live/server.rplace.tk/fullchain.pem'), 
-        key: await fs.readFile('../a.key'), //etc/letsencrypt/live/server.rplace.tk/privkey.pem'), 
+        cert: await fs.readFile('../a.pem'), //Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem 
+        key: await fs.readFile('../a.key'), //Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
         perMessageDeflate: false }).listen(PORT) }) 
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false }) 
 
@@ -84,6 +84,9 @@ let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban) 
 let WEBHOOK_URL
 try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
+let ORIGIN
+try {ORIGIN = (await fs.readFile("../.git-credentials").toString()).trim()}catch(e){}
+
 let printChatInfo = false
 let toValidate = new Map();
 const encoderUTF8 = new util.TextEncoder();
@@ -92,8 +95,8 @@ let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()  
 
 wss.on('connection', async function(p, {headers, url: uri}) { 
-        p.ip = headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') //IMPORTANT: if not on cloudflare, use p.ip = p._socket.remoteAddress.split(':',4).join(':')
-        if(headers['origin'] != 'https://rplace.tk' || BANS.has(p.ip))return p.close() 
+        p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') : p._socket.remoteAddress.split(':',4).join(':')
+        if ((USE_CLOUDFLARE && headers['origin'] != 'https://rplace.tk') || BANS.has(p.ip)) return p.close()
         let url = uri.slice(1) 
         let IP = /*p._socket.remoteAddress */url || p.ip 
         if(url && VIP != null && !VIP.has(sha256(IP)))return p.close() 
@@ -169,8 +172,8 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         } 
                 }else if(data[0] == 20){
 			p.voted ^= 1 << data[1]
-			if(p.voted & (1 << data[1]))votes[data[1]&31]++
-			else votes[data[1]&31]--
+			if(p.voted & (1 << data[1]))VOTES[data[1]&31]++
+			else VOTES[data[1]&31]--
 		}
                 if(data.length < 6)return //bad packet 
                 let i = data.readUInt32BE(1), c = data[5] 
@@ -201,9 +204,6 @@ setInterval(() => {
 }, 50)
 
 import { exec } from 'child_process' 
-
-let ORIGIN 
-try {ORIGIN = (''+await fs.readFile("../.git-credentials")).trim()}catch(e){} 
 
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
@@ -241,14 +241,14 @@ setInterval(async function(){
         await fs.writeFile('change', CHANGES) 
         bf[1] = players>>8
 	bf[2] = players
-	for(let i = 0; i < votes.length; i++)bf.writeUint32BE(votes[i],(i<<2)+3)
+	for(let i = 0; i < VOTES.length; i++)bf.writeUint32BE(VOTES[i],(i<<2)+3)
 	for (let c of wss.clients) {
                 c.send(bf)
         } 
         if(I % 720 == 0){ 
                 try { 
                         await pushImage()
-			await fs.writeFile('./votes', votes)
+			await fs.writeFile('./votes', VOTES)
                         console.log("["+new Date().toISOString()+"] Successfully saved r/place!") 
                 } catch(e) { 
                         console.log("["+new Date().toISOString()+"] Error pushing image") 
@@ -295,13 +295,12 @@ function checkPreban(incomingX, incomingY, ip) {
 }
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
-function announce(msg, channel, p=null) {
+function announce(msg, channel, p = null) {
 	let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.TK\n${channel}`)
 	let dv = new DataView(byteArray.buffer)
 	dv.setUint8(0, 15)
-	if (p != null) {
+	if (p == null)
 		p.send(dv)
-	} else {
-	        for(let c of wss.clients) c.send(dv)
-	}
+	else
+                for(let c of wss.clients) c.send(dv)
 }

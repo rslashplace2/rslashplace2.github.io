@@ -1,10 +1,7 @@
 *.pem
-*.save
-*.1
+*.key
 blacklist.txt
 cooldown_overrides.txt
 vip.txt
 webhook_url.txt
-t
 node_modules
-log.txt
