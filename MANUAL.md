@@ -6,13 +6,12 @@ Setting up a custom server that users can connect to (usually with the server sw
 ### Important notes:
  - To run a rplace custom server, you require:
     * Acess to a `server` or `PC` capable of running node. 
-    * Some `knowledge in computing` and the use of node/javascript
-    * Acess to your/your server's `port forwarding` rules in order to connect your custom server to the internet
+    * Acess to your routers/server's `port forwarding` rules in order to connect your custom server to the internet
     * A `web domain` for https connections [will be outlined later in this document]
- - If you intend to use a windows or macos host, a virtual machine must be used if you do not intend on having to make modifications to many parts of the server, as the server has only been designed to run on **linux**.
+ - If you intend to use a **windows**, we reccomend you use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install), as this server is designed to run on  **macos and linux**.
  - If you encounter a bug, please ask us on the discord or submit a github issue.
  - Make sure that you are running the latest versions of runtimes and libraries, such as the latest node.js, or you may encounter issues.
- - Read the instructions *carefully*, if something seems like common sense, you are probably doing it wrong and will mess up the process further down the line.
+ - Read the instructions *carefully*, the order of what you do *does* matter.
 
 ## Setting up the server:
 1. Get a web domain, this can be done by visiting free domain sites such as noip.com:
