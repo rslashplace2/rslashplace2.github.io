@@ -18,7 +18,7 @@ try{
 } catch(e) { 
         BOARD = new Uint8Array(WIDTH * HEIGHT) 
         CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
-        VOTES = new Uint32Array((await fs.readFile('./votes')).buffer).catch(e => new Uint32Array(32))
+        VOTES = new Uint32Array(32)
 } 
 let newPos = [], newCols = []
 let wss, cooldowns = new Map() 
@@ -83,9 +83,9 @@ const NO_PORT = a => a.split(':')[0].trim()
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT))) 
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban) 
 let WEBHOOK_URL
-try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
+try{WEBHOOK_URL = await (fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let ORIGIN
-try {ORIGIN = (await fs.readFile("../.git-credentials").toString()).trim()}catch(e){}
+try {ORIGIN = await (await fs.readFile("../.git-credentials")).toString().trim()}catch(e){}
 
 let printChatInfo = false
 let toValidate = new Map();
