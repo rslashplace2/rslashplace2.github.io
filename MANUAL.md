@@ -60,7 +60,7 @@ Setting up a custom server that users can connect to (usually with the server sw
 
 17. With your terminal that is in the rslashplace2.github.io root directory, run `sudo npm install` to install all dependencies that did not make it into the git repo, and then `sudo node server.js` to start up the websocket server.
 
-18. With the terminal in the place_http_server directory, run `sudo npm install` to install all dependencies that did not make it into the git repo, and run `sudo node .` to start up the place file server.
+18. With the terminal in the place_http_server directory, run `sudo npm install` to install all dependencies that did not make it into the git repo, and run `sudo node .` to start up the place file server. (NOTE: On the place http server, you may need to do "npm install serve-index cors")
 
 19. If you encountered no errors, Bon Voilà, you have set up an rplace custom server acessable from in the game.
 20. If you did encounter errors, no worries, visit the rplace discord, acessable through out site `https://rplace.tk` and ask one of the admins (our usernames are usually `@BlobKat`/`@zekiahepic`), and we will try our best to assist you!
