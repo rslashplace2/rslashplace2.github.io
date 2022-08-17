@@ -19,6 +19,7 @@ TTYVHangup=yes
 TTYPath=/dev/tty20
 TTYReset=yes
 WorkingDirectory=$1
+ExecStart=
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=2
@@ -40,7 +41,8 @@ TTYVHangup=yes
 TTYPath=/dev/tty21
 TTYReset=yes
 WorkingDirectory=$1/place_http_server/
-ExecStart=/usr/bin/node index.js
+ExecStart=
+ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=2
 
