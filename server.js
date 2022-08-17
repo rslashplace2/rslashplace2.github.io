@@ -297,7 +297,7 @@ function announce(msg, channel, p = null) {
 	let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.TK\n${channel}`)
 	let dv = new DataView(byteArray.buffer)
 	dv.setUint8(0, 15)
-	if (p == null)
+	if (p != null)
 		p.send(dv)
 	else
                 for(let c of wss.clients) c.send(dv)
