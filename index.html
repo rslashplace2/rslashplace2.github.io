@@ -2,6 +2,11 @@
 <html lang="en" ontouchstart="if(maincontent.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
+		let q = 0;
+		for(let [query, val] of new URLSearchParams(location.search)) {
+			if (query == "server" || query == "board") { localStorage.getItem(query) = val; q++; }
+		}
+		if (q > 0) window.location.reload();
 		if (window.location.href.startsWith("http://")) window.location.replace("https://rplace.tk", true)
 		let v = 0
 		const wscapsule = ((send, addEventListener) => {
