@@ -206,9 +206,14 @@ import { exec } from 'child_process'
 async function pushImage(){ 
         for (let i = BOARD.length-1; i >= 0; i--)if(CHANGES[i]!=255)BOARD[i] = CHANGES[i] 
         await fs.writeFile('place', BOARD)
-        let dte = new Date().toLocaleString().replaceAll('/', '.').replaceAll(', ', '.')
-        await new Promise((r, t) => exec(USE_GIT ? "git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io" : `cp ./place_http_server/place ./place_http_server/place.${dte}; cp place ./place_http_server/place`, e => e ? t(e) : r())) 
-        if (!USE_GIT) await new Promise((r, t) => exec(`touch ./place_http_server/backuplist.txt; echo "place.${dte}" >> ./place_http_server/backuplist.txt;`, e => e ? t(e) : r())) 
+
+    	if (USE_GIT) {
+		await new Promise((r, t) => exec("git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r())) 
+	} else {
+		let dte = new Date().toLocaleString().replaceAll('/', '.').replaceAll(', ', '.')
+		await new Promise((r, t) => exec("cp ./place_http_server/place ./place_http_server/place."+dte+"; cp place ./place_http_server/place", e => e ? t(e) : r())) 
+		await new Promise((r, t) => exec(`touch ./place_http_server/backuplist.txt; echo "place.${dte}" >> ./place_http_server/backuplist.txt;`, e => e ? t(e) : r())) 	
+	}
         //serve old changes for 11 more mins just to be 100% safe 
         let curr = new Uint8Array(CHANGES) 
         setTimeout(() => { 
