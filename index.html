@@ -4,7 +4,7 @@
 	<script>
 		let q = 0;
 		for(let [query, val] of new URLSearchParams(location.search)) {
-			if (query == "server" || query == "board") { localStorage.setItem(query, val); q++; }
+			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
 		}
 		if (q > 0) window.location.reload();
 		if (window.location.href.startsWith("http://")) window.location.replace("https://rplace.tk", true)
