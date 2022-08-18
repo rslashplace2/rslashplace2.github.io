@@ -19,7 +19,7 @@ Setting up a custom server that users can connect to (usually with the server sw
 2. Port forward ports 80 (will be used by certbot), 443 (web socket), 8080 (place file server) to the computer you decide to use to host the server
 ![image](https://user-images.githubusercontent.com/73035340/184675516-b4f6063c-0e27-4ecb-8004-47dded1d0839.png)
 ![image](https://user-images.githubusercontent.com/73035340/184676979-6683220f-b2f9-44d6-b168-91b18cef22be.png)
-3. Install the latest versions of (`certbot`), (`nodejs`) and (`npm`), on debian based distrobutions you may need to install from a ppy as the packe manager vesion is likely outdated. If your system doesn't come with git by default, test by entering `git` into the terminal and observing if there is an error, the install the latest version of (`git`) as well.
+3. Install the latest versions of (`certbot`), (`nodejs`) and (`npm`), on debian based distrobutions you may need to install from a ppa as the packe manager vesion is likely outdated. If your system doesn't come with git by default, test by entering `git` into the terminal and observing if there is an error, the install the latest version of (`git`) as well.
 
 
 ![image](https://user-images.githubusercontent.com/73035340/184677594-f7386cb1-2d33-4ea9-b921-02a46e1703fc.png)
