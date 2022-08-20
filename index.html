@@ -580,6 +580,7 @@
 				data[i] = PALETTE[board[i]]
 			}
 			c.putImageData(img, 0, 0)
+			c.getImageData(0,0,1,1) //workaround for blank-canvas bug on chrome on M1 chips
 		}
 		let xa = new Uint32Array(1)
 		let xb = new Uint8Array(xa.buffer)
