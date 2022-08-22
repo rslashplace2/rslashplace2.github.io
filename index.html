@@ -212,7 +212,7 @@
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
 		WebSocket.prototype.send = function(){this.close()}
 		document.execCommand = (_) => { window.location.reload(false) } //document.createElement //document.createElementNS //document.body.innerHTML //document.body.outerHTML
-		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
+		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.call; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
 
 	<link rel="manifest" href="manifest.json">
