@@ -9,7 +9,7 @@
 		if (q > 0) window.location.reload();
 		if (window.location.href.startsWith("http://")) window.location.replace("https://rplace.tk", true)
 		let v = 0
-		const wscapsule = ((send, addEventListener) => {
+		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			addEventListener.call(window, 'blur', () => focused = false)
 			addEventListener.call(window, 'focus', () => focused = true)
@@ -24,7 +24,7 @@
 					if(localStorage.vote & (1 << id) && !(v & (1 << id)))return
 					localStorage.vote |= (1 << id)
 					v |= (1 << id)
-					send.call(ws, new Uint8Array([20, id]))
+					call(send, ws, new Uint8Array([20, id]))
 				}
 				addEventListener.call(i, 'click', f)}
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
@@ -137,17 +137,17 @@
 				a.setUint8(5, PEN)
 				PEN=-1
 				localStorage.placed = (localStorage.placed >>> 0) + 1
-				send.call(ws, a)
+				call(send, ws, a)
 			}
 			let pok = document.getElementById('pok')
 			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
-			addEventListener.call(pok, 'click', oclick)
+			call(addEventListener, pok, 'click', oclick)
 			function sendMsg(message){
 				if(message.startsWith('vip:')){
 					localStorage.vip = message.slice(4)
 					location+=''
 				}
-				send.call(ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
+				call(send, ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel))
 			}
 			messageInput.onkeypress = e => {if(e.keyCode==13)sendMsg(messageInput.value),messageInput.value=''}
 			addEventListener.call(document.body, 'keypress', function(e) {
@@ -162,7 +162,7 @@
 				//Begin palette commands
 				if (onCooldown) return
 				//"Enter" key to place selected block without using mouse
-				if (e.keyCode == 13 && !('value' in document.activeElement)) oclick.call(pok, e)
+				if (e.keyCode == 13 && !('value' in document.activeElement)) call(oclick, pok, e)
 				//Keyboard shortcuts for selecting palette colours
 				let keyIndex = null
 				if(document.activeElement != document.body)return
@@ -198,18 +198,18 @@
 						}
 					}
 					if('value' in e.target)e.target.focus()
-					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){oclick.call(pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
+					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){call(oclick, pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
 				}
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
 				item.addEventListener("click", (e) => {
-					send.call(ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
+					call(send, ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
 				})
 				item.addEventListener("touchend", (e) => {
-					send.call(ws, encoder.encode("\x10" + e.target.value))
+					call(send, ws, encoder.encode("\x10" + e.target.value))
 				})
 			})
-		}).bind(undefined, WebSocket.prototype.send, addEventListener);
+		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
 		WebSocket.prototype.send = function(){this.close()}
 		document.execCommand = (_) => { window.location.reload(false) } //document.createElement //document.createElementNS //document.body.innerHTML //document.body.outerHTML
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
