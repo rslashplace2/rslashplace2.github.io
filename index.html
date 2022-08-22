@@ -11,10 +11,10 @@
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
-			addEventListener.call(window, 'blur', () => focused = false)
-			addEventListener.call(window, 'focus', () => focused = true)
+			call(addEventListener, window, 'blur', () => focused = false)
+			call(addEventListener, window, 'focus', () => focused = true)
 			let j = 0;
-                        const cch = Array.prototype.slice.call(contents.children, 1)
+                        const cch = call(Array.prototype.slice, contents.children, 1)
 			for(let i of cch){let id = j++; i = i.children[0].children[0];f=(e) => {
 					const vote = i.children[0].getAttribute('d') == d2
 					i.children[0].setAttribute('d',vote ? d1 : d2)
@@ -26,7 +26,7 @@
 					v |= (1 << id)
 					call(send, ws, new Uint8Array([20, id]))
 				}
-				addEventListener.call(i, 'click', f)}
+				call(addEventListener, i, 'click', f)}
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
@@ -187,7 +187,7 @@
 				pok.classList.add('enabled')
 				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			})
-			addEventListener.call(document.body, 'touchend', function(e){if(!e.isTrusted)return
+			call(addEventListener, document.body, 'touchend', function(e){if(!e.isTrusted)return
 				for(let t of e.changedTouches){
 					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
 					else if(touch1 && touch1.identifier == t.identifier){
