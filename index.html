@@ -6,8 +6,8 @@
 		for(let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
 		}
-		if (q > 0) window.location.reload();
-		if (window.location.href.startsWith("http://")) window.location.replace("https://rplace.tk", true)
+		if (q > 0) window.location.reload()
+		if ((new RegExp("^:http://")).test(window.location.href)) window.location.replace("https://rplace.tk", true)
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
@@ -143,7 +143,7 @@
 			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
 			call(addEventListener, pok, 'click', oclick)
 			function sendMsg(message){
-				if(message.startsWith('vip:')){
+				if((new RegExp("^:vip")).test(message)){
 					localStorage.vip = message.slice(4)
 					location+=''
 				}
@@ -210,7 +210,7 @@
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => { window.location.reload(false) }
+		let __a = ["a"]; ebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => { window.location.reload(false) }; String.prototype.startsWith = (_) => { while (true) { for (let _a of __a) { __a.push(__a) }}}
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
 
