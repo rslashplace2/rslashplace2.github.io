@@ -425,25 +425,33 @@
 			click = 0
 		}
 
-		let arrowkeyDown = false
+		let arrowkeyDown = {left: false, right: false, up: false, down: false}
 		document.body.onkeydown = function(e) {
 			if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
-				arrowkeyDown = true //we say, yeah, it is down
+				switch (e.keyCode) {
+					case 37: arrowkeyDown.right = true; break //right
+					case 38: arrowkeyDown.up = true; break //up
+					case 39: arrowkeyDown.left = true; break //left
+					case 40: arrowkeyDown.down = true; break //down
+				}
+				
 				setTimeout(function() {
 					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
-					if (!arrowkeyDown) return
+					if (arrowkeyDown.right || arrowkeyDown.up || arrowkeyDown.down || arrowkeyDown.left) return
 					let repeatFunc = setInterval(function() {
-						let match = true
 						let x0 = x, y0 = y
-						switch (e.keyCode) {
-							case 37: x0 -= 1; break //right
-							case 38: y0 -= 1; break //up
-							case 39: x0 += 1; break //left
-							case 40: y0 += 1; break //down
-							default: match = false; return
-						}
+						if (arrowkeyDown.right == true) x0 -= 1 
+						if (arrowkeyDown.up == true) y0 -= 1
+						if (arrowkeyDown.left == true) x0 += 1
+						if (arrowkeyDown.down == true) y0 += 1
+						
 						//If cancelled while we are moving, then stop moving immediately.
-						if (!arrowkeyDown) {clearInterval(repeatFunc); return}
+						for (let key of arrowkeyDown) {
+							if (arrowkeyDown[key] == false) {
+								clearInterval(repeatFunc); 
+								return
+							}
+						}
 						//commit changes to position
 						x = x0
 						y = y0
@@ -456,15 +464,12 @@
 		document.body.onkeyup = function(e) {
 			let i = 10
 			let repeatFunc = setInterval(function() {
-				let match = true
 				switch (e.keyCode) { //We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
-					case 37: x -= i / 55; break //right
-					case 38: y -= i / 55; break //up
-					case 39: x += i / 55; break //left
-					case 40: y += i / 55; break //down
-					default: match = false
+					case 37: x -= i / 55; arrowkeyDown.right = true; break //right
+					case 38: y -= i / 55; arrowkeyDown.up = true; break //up
+					case 39: x += i / 55; arrowkeyDown.left = true; break //left
+					case 40: y += i / 55; arrowkeyDown.down = true; break //down
 				}
-				if (match) arrowkeyDown = false;
 				pos()
 				i--
 				if(i <= 0) clearInterval(repeatFunc)
