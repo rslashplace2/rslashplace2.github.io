@@ -1,3 +1,5 @@
+#!/bin/bash
+#This script will attempt to generate a nwe board (canvas) and accompanying configuration file.
 if [ -z "$1" ] || [-z "$2" ] || [ -z "$3" ]
 then
     echo -e "\x1b[31mPlease provide arguments for canvas width, height, and cooldown, e.g './newboard.sh 400 400 2'"

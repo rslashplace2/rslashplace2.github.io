@@ -1,4 +1,4 @@
-//server 
+// Main rplace server software, (c) BlobKat, Zekiah
 import {WebSocketServer} from 'ws' 
 import {promises as fs} from 'fs' 
 import {createServer} from 'https' 

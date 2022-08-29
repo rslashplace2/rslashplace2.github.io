@@ -1,11 +1,12 @@
 #!/bin/bash
-sudo systemctl stop place
+#This script will attempt to increase the size of your canvas by a given amount.
 if [ -z "$1" ] || [ -z "$2" ]
 then
     echo -e "\x1b[31mPlease supply the width and height (THAT IT WILL INCREASE BY) as arguments in order to use this program. e.g './expandboard.sh 50 50'"
     exit 0
 fi
 
+sudo systemctl stop place
 node -e "
 fs=require('fs');
 let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(fs.readFileSync('./config.json'));
