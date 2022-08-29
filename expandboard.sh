@@ -1,13 +1,8 @@
 #!/bin/bash
 sudo systemctl stop place
-if [ -z "$1" ]
+if [ -z "$1" ] || [ -z "$2" ]
 then
-    echo -e "\x1b[31mPlease supply the width and height (THAT IT WILL INCREASE BY) as arguments in order to use this program."
-    exit 0
-fi
-if [ -z "$2" ]
-then
-    echo -e "\x1b[31mPlease supply the HEIGHT argument."
+    echo -e "\x1b[31mPlease supply the width and height (THAT IT WILL INCREASE BY) as arguments in order to use this program. e.g './expandboard.sh 50 50'"
     exit 0
 fi
 

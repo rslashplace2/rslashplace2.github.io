@@ -62,7 +62,8 @@ function runLengthChanges(){
         } 
         bufs[blast] = bufs[blast].slice(0,bi) 
         return Buffer.concat(bufs) 
-} 
+}
+
 const PORT = 443 
 if(SECURE){ 
         wss = new WebSocketServer({ perMessageDeflate: false, server: createServer({ 
