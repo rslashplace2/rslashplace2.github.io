@@ -13,11 +13,11 @@ let BOARD, CHANGES, VOTES
 let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(await fs.readFile('./config.json'))
 try{ 
         BOARD = await fs.readFile('./place') 
-        CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255))
+        CHANGES = await fs.readFile('./change')
         VOTES = new Uint32Array((await fs.readFile('./votes')).buffer)
 } catch(e) { 
         BOARD = new Uint8Array(WIDTH * HEIGHT) 
-        CHANGES = await fs.readFile('./change').catch(e => new Uint8Array(WIDTH * HEIGHT).fill(255)) 
+        CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) 
         VOTES = new Uint32Array(32)
 } 
 let newPos = [], newCols = []
