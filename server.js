@@ -199,7 +199,10 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 newPos.push(i) 
                 newCols.push(c)
                 //antibot
-                let dv = new DataView(data.buffer)
+                var data2 = new Uint8Array(data.buffer.byteLength + 8)
+                data2.set(data.buffer, 0)
+                data2.set(new Uint8Array(8), data.buffer.byteLength)
+                let dv = new DataView(data2.buffer)
                 dv.setFloat64(6, +NOW) //+NOW is data to number
                 p.pHistory.push(dv.buffer)
                 if (p.pHistory.length >= 20) p.pHistory.shift() //remove oldest hist, lim to 50
@@ -333,8 +336,8 @@ function checkActiveBuildBot(p) { //all about self, building in random placement
         let match = 0
         for (let i = 0; i < p.pHistory.length; i++) {
                 let dv = new DataView(p.pHistory[i].buffer), nDv = new DataView(p.pHistory[i+1].buffer)
-                let x = p.pHistory[i].readUInt32BE(1)%WIDTH, y = Math.floor(p.pHistory[i].readUInt32BE(1)/HEIGHT)
-                let nx = p.pHistory[i+1].readUInt32BE(1)%WIDTH, ny = Math.floor(p.pHistory[i+1].readUInt32BE(1)/HEIGHT)
+                let x = dv.getUint32(1)%WIDTH, y = Math.floor(dv.getUint32(1)/HEIGHT)
+                let nx = nDv.getUint32(1)%WIDTH, ny = Math.floor(nDv.getUint32(1)/HEIGHT)
                 //if more than 12px radius, in less than CD+5ms, raise match
                 if (Math.abs(nx - x) >= 10 && Math.abs(ny - y) >= 10 && nDv.getFloat64(6) - dv.getFloat64(6) <= COOLDOWN + 5) match++
                 if (p.pHistory[i][5] != p.pHistory[i+1][5]) match++
