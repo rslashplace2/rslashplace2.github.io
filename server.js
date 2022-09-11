@@ -90,7 +90,7 @@ try {ORIGIN = await (await fs.readFile("../.git-credentials")).toString().trim()
 
 let printChatInfo = false
 let toValidate = new Map();
-const encoderUTF8 = new util.TextEncoder();
+const encoderUTF8 = new util.TextEncoder()
 
 let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0) 
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()  
@@ -192,13 +192,17 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 }
                 //accept 
                 if (checkAntiGriefBot(p)) return p.close()
+                if (checkActiveBuildBot(p)) return p.close()
                 if(checkPreban(i%WIDTH, Math.floor(i/HEIGHT), IP)) return p.close()  
                 CHANGES[i] = c 
                 cooldowns.set(IP, NOW + CD - 500) 
                 newPos.push(i) 
                 newCols.push(c)
-                p.pHistory.push(data)
-                if (p.pHistory.length >= 10) p.pHistory.shift() //remove oldest hist, lim to 50
+                //antibot
+                let dv = new DataView(data.buffer)
+                dv.setFloat64(6, +NOW) //+NOW is data to number
+                p.pHistory.push(dv.buffer)
+                if (p.pHistory.length >= 20) p.pHistory.shift() //remove oldest hist, lim to 50
   }) 
         p.on('close', function(){ players-- }) 
 }) 
@@ -304,8 +308,9 @@ function checkPreban(incomingX, incomingY, ip) {
         return false 
 }
 
+//Serverside attempts at most common bot tropés detection
 function checkAntiGriefBot(p) {
-        if (NOW - p.cDate < 9e5) return //< 15 probably human
+        if (NOW - p.cDate < 3e5) return false //< 5 probably human
 
         let oPosHistory = [], match = 0
         for (let o of wss.clients) {
@@ -321,6 +326,22 @@ function checkAntiGriefBot(p) {
         if (match >= p.pHistory.length) return true
         return false
 }
+
+function checkActiveBuildBot(p) {
+        if (NOW - p.cDate < 3e5) return false
+
+        let match = 0
+        for (let i = 0; i < p.pHistory.length; i++) {
+                let dv = new DataView(p.pHistory[i].buffer), nDv = new DataView(p.pHistory[i+1].buffer)
+                let x = p.pHistory[i].readUInt32BE(1)%WIDTH, y = Math.floor(p.pHistory[i].readUInt32BE(1)/HEIGHT)
+                let nx = pHistory[i+1].readUInt32BE(1)%WIDTH, ny = Math.floor(pHistory[i+1].readUInt32BE(1)/HEIGHT)
+                //if more than 12px radius, in less than CD+5ms, raise match
+                if (Math.abs(nx - x) >= 10 && Math.abs(ny - y) >= 10 && nDv.getFloat64(6) - dv.getFloat64(6) <= COOLDOWN + 5) match++
+        }
+        if (match >= p.pHistory.length / 2) return true
+        return false
+}
+
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
 function announce(msg, channel, p = null) {
