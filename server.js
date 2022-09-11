@@ -313,9 +313,12 @@ function checkAntiGriefBot(p) {
                 for(const oData of o.pHistory) oPosHistory.push(oData.readUInt32BE(1))
         }
         for (let pData of p.pHistory) {
+                //if every pixel we have placed, has just been a reset of something in someone else's history, likely
                 if (oPosHistory.includes(pData.readUInt32BE(1))) match++
+                //if every single colour in history is just a reset to what is alr on the board, likely
+                if (BOARD[pData.readUInt32BE(1)] == pData[5]) match++ 
         }
-        if (match == p.pHistory.length) return true
+        if (match >= p.pHistory.length) return true
         return false
 }
 
