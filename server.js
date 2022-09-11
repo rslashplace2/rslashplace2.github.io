@@ -113,7 +113,9 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         p.send(encoderUTF8.encode("\x10" + "\x03" + imageData)) //code, type, image as dataURI
                 } catch (e) {console.log(e)}
         }
-        p.lchat = 0 
+        p.lchat = 0 //last chat
+        p.cdate = NOW //connection date
+        p.pHistory = [] //place history
         let buf = Buffer.alloc(9) 
         buf[0] = 1 
         buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1) 
@@ -187,13 +189,16 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i] 
                         p.send(data) 
                         return 
-                } 
+                }
                 //accept 
-                if(checkPreban(i%WIDTH, Math.floor(i/HEIGHT), IP))return p.close()  
+                if (checkAntiGriefBot(p)) return p.close()
+                if(checkPreban(i%WIDTH, Math.floor(i/HEIGHT), IP)) return p.close()  
                 CHANGES[i] = c 
                 cooldowns.set(IP, NOW + CD - 500) 
                 newPos.push(i) 
-                newCols.push(c) 
+                newCols.push(c)
+                p.pHistory.push(data)
+                if (p.pHistory.length >= 10) p.pHistory.shift() //remove oldest hist, lim to 50
   }) 
         p.on('close', function(){ players-- }) 
 }) 
@@ -295,8 +300,23 @@ function checkPreban(incomingX, incomingY, ip) {
                 } 
                 console.log(`Pixel placed in preban area at ${incomingX},${incomingY} by ${ip}`) 
                 return true 
-        } 
-        else return false 
+        }
+        return false 
+}
+
+function checkAntiGriefBot(p) {
+        if (NOW - p.cdate < 9e5) return //< 15 probably human
+
+        let oPosHistory = [], match = 0
+        for (let o of wss.clients) {
+                if (o == p) continue
+                for(const oData of o.pHistory) oPosHistory.push(oData.readUInt32BE(1))
+        }
+        for (let pData of p.pHistory) {
+                if (oPosHistory.includes(pData.readUInt32BE(1))) match++
+        }
+        if (match == p.pHistory.length) return true
+        return false
 }
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
