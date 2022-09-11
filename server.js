@@ -305,7 +305,7 @@ function checkPreban(incomingX, incomingY, ip) {
 }
 
 function checkAntiGriefBot(p) {
-        if (NOW - p.cdate < 9e5) return //< 15 probably human
+        if (NOW - p.cDate < 9e5) return //< 15 probably human
 
         let oPosHistory = [], match = 0
         for (let o of wss.clients) {
