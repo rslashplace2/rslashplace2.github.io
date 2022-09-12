@@ -87,6 +87,7 @@ let WEBHOOK_URL
 try{WEBHOOK_URL = await (fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let ORIGIN
 try {ORIGIN = await (await fs.readFile("../.git-credentials")).toString().trim()}catch(e){}
+let HIST_LEN = 30
 
 let printChatInfo = false
 let toValidate = new Map();
@@ -205,7 +206,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 let dv = new DataView(data2.buffer)
                 dv.setFloat64(6, +NOW) //+NOW is data to number
                 p.pHistory.push(dv.buffer)
-                if (p.pHistory.length >= 20) p.pHistory.shift() //remove oldest hist, lim to 50
+                if (p.pHistory.length >= HIST_LEN) p.pHistory.shift() //remove oldest hist, lim to 50
   }) 
         p.on('close', function(){ players-- }) 
 }) 
