@@ -327,7 +327,7 @@ function checkAntiGriefBot(p) { ///all about others, undoing all
                 //if every single colour in history is just a reset to what is alr on the board, likely
                 if (BOARD[dv.getUint32(1)] == pData[5]) match++ 
         }
-        if (match >= p.pHistory.length + 2) return true
+        if (match >= Math.min(p.pHistory.length, 10) + 2) return true
         return false
 }
 
@@ -347,7 +347,7 @@ function checkActiveBuildBot(p) { //all about self, building in random placement
                 if (nDv.getFloat64(6) - dv.getFloat64(6) == lDteInterval) match += 2
                 lDteInterval = nDv.getFloat64(6) - dv.getFloat64(6)
         }
-        if (match >= p.pHistory.length + 4) return true
+        if (match >= Math.min(p.pHistory.length, 10) + 4) return true
         return false
 }
 
