@@ -340,13 +340,14 @@ function checkActiveBuildBot(p) { //all about self, building in random placement
                 let dv = new DataView(p.pHistory[i].buffer), nDv = new DataView(p.pHistory[i+1].buffer)
                 let x = dv.getUint32(1)%WIDTH, y = Math.floor(dv.getUint32(1)/HEIGHT)
                 let nx = nDv.getUint32(1)%WIDTH, ny = Math.floor(nDv.getUint32(1)/HEIGHT)
+                let dteInterval = nDv.getFloat64(6) - dv.getFloat64(6)
                 //if more than 12px radius, in less than CD+5ms, raise match
-                if (Math.abs(nx - x) >= 10 && Math.abs(ny - y) >= 10 && nDv.getFloat64(6) - dv.getFloat64(6) <= COOLDOWN + 5) match++
+                if (Math.abs(nx - x) >= 10 && Math.abs(ny - y) >= 10 && dteInterval <= COOLDOWN + 20) match++
                 //if colours are seemingly more random, raise match
                 if (p.pHistory[i][5] != p.pHistory[i+1][5]) match++
-                //if placing at the same exact interval each time, raise match
-                if (nDv.getFloat64(6) - dv.getFloat64(6) == lDteInterval) match += 2
-                lDteInterval = nDv.getFloat64(6) - dv.getFloat64(6)
+                //if placing at the same interval each time, raise match
+                if (lDteInterval >= dteInterval - 15 && lDteInterval <= dteInterval + 15) match += 2
+                lDteInterval = dteInterval
         }
         if (match >= Math.min(p.pHistory.length, 10) + 4) return true
         return false
