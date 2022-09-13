@@ -564,24 +564,18 @@ a {
 	transform: scale(1.2);
 }
 
-#archiveView {
+#timelapsePanel {
 	position: absolute;
-	z-index: 10;
+	z-index: 20;
 	padding: 10px;
-	background-color: white;
-	width: 80%;
-	height: 85%;
+	background: linear-gradient(white 0%, white 79%, gray 80%, #DAE0E6 80%);
+	width: 360px;
+	height: 540px;
 	left: 50%;
 	top: 50%;
 	transform: translateY(-50%) translateX(-50%);
-	border-radius: 10px;
+	border-radius: 4px;
 }
-
-#archiveViewImg {
-	object-fit: none;
-	image-rendering: pixelated;
-}
-
 
 .tooltip {
 	cursor: pointer;
