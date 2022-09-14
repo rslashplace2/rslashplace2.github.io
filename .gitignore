@@ -4,4 +4,6 @@ blacklist.txt
 cooldown_overrides.txt
 vip.txt
 webhook_url.txt
-node_modules
+node_modules/
+place_http_server/timelapse_gen/bin/
+place_http_server/timelapse_gen/obj/
