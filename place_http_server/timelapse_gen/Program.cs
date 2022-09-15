@@ -10,25 +10,34 @@ public static class Program
         Generate("VID", "", "", 30, 10, 10, 30, 30, 2000, 2000);
     }
     
-    public static async void Generate(string outName, string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
+    public static void Generate(string outName, string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
     {
         var parentDir = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
-        var backups = await File.ReadAllLinesAsync(Path.Join(parentDir, "backuplist.txt"));
+        var backups = File.ReadAllLines(Path.Join(parentDir, "backuplist.txt"));
+        using var gif = new Image<Rgba32>(eX - sX, eY - sY);
+        bool? inRange = null;
         foreach (var backup in backups)
         {
-            var board = await File.ReadAllBytesAsync(Path.Join(parentDir, backup));
+            if (backup == backupStart) inRange = true;
+            if (backup == backupEnd) inRange = false;
+            if (inRange is null or false) continue;
+            
+            var board = File.ReadAllBytes(Path.Join(parentDir, backup));
             using var image = new Image<Rgba32>(eX - sX, eY - sY);
-            var i = eX * sY + sX;
+            var i = sizeX * sY + sX;
             while (i < board.Length)
             {
-                image[i % eX - sX, i / eY - sY] = Colours[board[i]];
+                image[(i % sizeX) - sX, (i / sizeX) - sY] = Colours[board[i]];
                 i++;
-                if (i % eX <= eX) continue;
-                if (i / eX == eY) break;
-                i += sX - eX + sX;
+                if (i % sizeX < eX) continue; //if we exceed width, go to next row, otherwise continue
+                if (i / sizeX == eY - 1) break; //if we exceed end bottom, we are done drawing this
+                i += sizeX - (eX - sX);
             }
-            await image.SaveAsPngAsync(Path.Join(parentDir, outName));
+            gif.Frames.AddFrame(image.Frames.RootFrame);
         }
+        using var stream = File.Open(outName, FileMode.OpenOrCreate, FileAccess.Write);
+        stream.Seek(0, SeekOrigin.Begin);
+        gif.SaveAsGif(stream);
     }
 
     private static readonly Rgba32[] Colours =
