@@ -5,11 +5,6 @@ namespace TimelapseGen;
 
 public static class Program
 {
-    public static void Main(string[] args)
-    {
-        Generate("VID", "", "", 30, 10, 10, 30, 30, 2000, 2000);
-    }
-    
     public static void Generate(string outName, string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
     {
         var parentDir = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
