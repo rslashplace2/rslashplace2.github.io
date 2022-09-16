@@ -847,3 +847,13 @@ up div{
 	background-color: #FFFFFF;
 	border: 1px solid #0079D3;
 }
+
+.virtselect {
+	max-width: 100% !important;
+	margin-bottom: 5px;
+}
+
+.virtselect input {
+	box-shadow: none !important;
+	border-radius: 0px !important;
+}
