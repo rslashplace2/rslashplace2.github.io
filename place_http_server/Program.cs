@@ -3,6 +3,7 @@ using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Text.Json;
 
 namespace PlaceHttpServer;
 
@@ -81,11 +82,11 @@ public static class Program
 			var ctx = await listener.GetContextAsync();
 			var req = ctx.Request;
 			var resp = ctx.Response;
-
+			resp.AddHeader("Access-Control-Allow-Origin", "*");
+			
 			switch (req.HttpMethod)
 			{
 				case "GET":
-					resp.AddHeader("Access-Control-Allow-Origin", "*");
 					switch (req.Url?.AbsolutePath)
 					{
 						case "/":
@@ -126,12 +127,28 @@ public static class Program
 				case "POST":
 					if (req.Url?.AbsolutePath == "/timelapse")
 					{
-						//var lapse = new TimelapseGen().GenerateTimelapse();
-					
+						var obj = await JsonSerializer.DeserializeAsync<TimelapseInfo>(req.InputStream);
+						if (obj is null) return;
+						var lapse = await new TimelapseGen().GenerateTimelapse(obj.OutName, obj.BackupStart, obj.BackupEnd, obj.Fps, obj.SX, obj.SY, obj.EX, obj.EY);
+						resp.ContentLength64 = lapse.Length;
+						await resp.OutputStream.WriteAsync(lapse);
 					}
 					break;
 				
 			}
 		}
 	}
+}
+
+//string outName, string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY
+public class TimelapseInfo
+{
+	public string OutName { get; set; }
+	public string BackupStart { get; set; }
+	public string BackupEnd { get; set; }
+	public uint Fps { get; set; }
+	public int SX { get; set; }
+	public int SY { get; set; }
+	public int EX { get; set; }
+	public int EY { get; set; }
 }

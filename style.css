@@ -403,7 +403,7 @@ mute-button{
 	}
 }
 
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn {
+#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel {
 	box-shadow: 0 0 30px black;
 }
 
@@ -575,6 +575,7 @@ a {
 	top: 50%;
 	transform: translateY(-50%) translateX(-50%);
 	border-radius: 4px;
+	border: 2px solid gray;
 }
 
 .tooltip {
