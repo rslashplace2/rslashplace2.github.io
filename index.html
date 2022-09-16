@@ -432,9 +432,12 @@
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.dragging = true" onmouseup="this.dragging = false" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
-			<select id="tlStartSel" style="width: calc(50% - 2px); margin-right: 2px; display: inline;"> <option value="">Select timelapse start backup</option> </select> <br>
-			<select id="tlEndSel" style="width: calc(50% - 2px); margin-left: 2px; display: inline;"> <option value="">Select timelapse end backup</option> </select> <br>
-			<input type="number" style="width: 100%; margin-left: 10px; transform: translateX(-10px);" min="1" max="30" placeholder="Desired timelapse framerate" /> <br>
+			<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select>
+			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>
+			<input type="number" style="width: 100%; margin-bottom: 10px; border: 1px solid gray; border-radius: 4px;" min="1" max="30" placeholder="Desired timelapse framerate" />
+			<div style="text-align: center;">
+				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
+			</div>
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" value="Create"/>
 		</div>
 	</body>
@@ -954,12 +957,12 @@
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 		function tlMouseMove(e) {
 			if (!tlSelect.dragging) {
-				tlSelect.style.cursor = "all-scroll"
+				tlSelect.style.cursor = "default"
 				return
 			}
             tlSelect.style.left = clamp(e.clientX - tlImage.getBoundingClientRect().left, 0, WIDTH - tlSelect.style.width) + "px"
             tlSelect.style.top = clamp(e.clientY - tlImage.getBoundingClientRect().top, 0, HEIGHT - tlSelect.style.height) + "px"
-			tlSelect.style.cursor = "default"
+			tlSelect.style.cursor = "all-scroll"
 		}
 
 		function closeOverlayMenu() {
