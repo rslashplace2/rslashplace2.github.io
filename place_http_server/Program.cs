@@ -87,28 +87,29 @@ public static class Program
 			switch (req.HttpMethod)
 			{
 				case "GET":
-					switch (req.Url?.AbsolutePath)
+					switch (req.Url?.AbsolutePath.Split("/").ElementAtOrDefault(1))
 					{
-						case "/":
-							var send = Encoding.UTF8.GetBytes($"rPlace canvas file server is running. Visit [url-of-domain]:{Port}/place in order to fetch the active place file, [url-of-domain]{Port}/backuplist to view a list of all backups, and fetch from [url-of-domain]{Port}/backups to obtain a backup by it's filename (in backuplist)");
-							resp.ContentType = "text/html";
-							resp.ContentEncoding = Encoding.UTF8;
-							resp.ContentLength64 = send.LongLength;
-							await resp.OutputStream.WriteAsync(send);
-							break;
-						case "/place":
+						case "place":
 							var board = await File.ReadAllBytesAsync(Path.Join(Directory.GetCurrentDirectory(), "place"));
 							resp.ContentLength64 = board.LongLength;
 							await resp.OutputStream.WriteAsync(board);
 							break;
-						case "/backuplist":
+						case "backuplist":
 							var list = Encoding.UTF8.GetBytes(await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "backuplist.txt")));
 							resp.ContentType = "text/plain";
 							resp.ContentEncoding = Encoding.UTF8;
 							resp.ContentLength64 = list.Length;
 							await resp.OutputStream.WriteAsync(list);
 							break;
-						case "/backups":
+						case "backups":
+							var innerUrl = req.Url.AbsolutePath.Split("/").ElementAtOrDefault(2);
+							if (innerUrl != null && innerUrl.StartsWith("place"))
+							{
+								var backup = await File.ReadAllBytesAsync(Path.Join(Directory.GetCurrentDirectory(), innerUrl));
+								resp.ContentLength64 = backup.LongLength;
+								await resp.OutputStream.WriteAsync(backup);
+								break;
+							}
 							var dir = Directory.GetFiles(Directory.GetCurrentDirectory()).ToList();
 							for (var fn = 0; fn < dir.Count; fn++) 
 								dir[fn] = $"<a href=\"{dir[fn]}\">{new DirectoryInfo(dir[fn]).Name}</a>";
@@ -121,9 +122,15 @@ public static class Program
 							resp.ContentLength64 = backups.Length;
 							await resp.OutputStream.WriteAsync(backups);
 							break;
+						default:
+							var send = Encoding.UTF8.GetBytes($"rPlace canvas file server is running. Visit [url-of-domain]:{Port}/place in order to fetch the active place file, [url-of-domain]{Port}/backuplist to view a list of all backups, and fetch from [url-of-domain]{Port}/backups to obtain a backup by it's filename (in backuplist)");
+							resp.ContentType = "text/html";
+							resp.ContentEncoding = Encoding.UTF8;
+							resp.ContentLength64 = send.LongLength;
+							await resp.OutputStream.WriteAsync(send);
+							break;
 					}
 					break;
-				
 				case "POST":
 					if (req.Url?.AbsolutePath == "/timelapse")
 					{
@@ -134,7 +141,6 @@ public static class Program
 						await resp.OutputStream.WriteAsync(lapse);
 					}
 					break;
-				
 			}
 		}
 	}
