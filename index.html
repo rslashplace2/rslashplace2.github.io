@@ -400,9 +400,8 @@
 			</div>
 			<div id="tlStartSel" style="max-width: 100% !important; margin-bottom: 5px; "></div>
 			<div id="tlEndSel" style="max-width: 100% !important; margin-bottom: 5px;"></div>
-			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select>
-			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
-			<input type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8);" min="1" max="30" placeholder="Desired timelapse framerate" />
+			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select> <select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
+			<input type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8); border: 1px solid #ddd;" min="1" max="30" placeholder="Desired timelapse framerate" />
 			<div id="tlPlayDir" style="text-align: center;">
 				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.reverse = false; this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.reverse = true; this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
 			</div>
@@ -938,24 +937,21 @@
 			tlImage.src = canvas.toDataURL('image/png')
 			tlSelect.style.width = WIDTH + "px"
 			tlSelect.style.height = HEIGHT + "px"
-
+			
+			//TODO: Replace hard coded fetch url with localstorage board
+			let backups = []
+			fetch('https://server2.rplace.tk:8081/backuplist')
+				.then((response) => response.text())
+				.then((data) => { for (let b of data.split(" ")) backups.push({ label: b, value: b })}) 
 			VirtualSelect.init({
 				ele: '#tlStartSel',
 				emptyValue: "Select timelapse start backup",
-				options: [
-					{ label: 'Options 1', value: '1' },
-					{ label: 'Options 2', value: '2' },
-					{ label: 'Options 3', value: '3' },
-				],
+				options: backups,
 			})
 			VirtualSelect.init({
 				ele: '#tlEndSel',
 				emptyValue: "Select timelapse end backup",
-				options: [
-					{ label: 'Options 1', value: '1' },
-					{ label: 'Options 2', value: '2' },
-					{ label: 'Options 3', value: '3' },
-				],
+				options: backups,
 			})
 		}
 		async function confirmTlCreate() {
