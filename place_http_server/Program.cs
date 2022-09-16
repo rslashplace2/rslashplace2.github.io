@@ -12,6 +12,7 @@ public static class Program
 	private static string Cert { get; } = "/path/to/your/cert.pem";
 	private static string Key { get; } = "/path/to/your/key.pem";
 	private static int Port { get; } = 8080;
+	private static bool UseHttps { get; } = false;
 	private static string ConfigFile => Path.Join(Directory.GetCurrentDirectory(), "config.txt");
 	private static HttpListener? listener;
 
@@ -49,7 +50,7 @@ public static class Program
 		{
 			File.WriteAllText(
 				ConfigFile,
-				"cert: " + Cert + Environment.NewLine + "key: " + Key + Environment.NewLine + "port: " + Port
+				"cert: " + Cert + Environment.NewLine + "key: " + Key + Environment.NewLine + "port: " + Port + Environment.NewLine + "use_https: " + UseHttps
 			);
 			Console.ForegroundColor = ConsoleColor.Green;
 			Console.WriteLine("Config created! Please check {0} and run this program again!", ConfigFile);
@@ -60,12 +61,13 @@ public static class Program
 		Cert = config[0].Split(":")[1];
 		Key = config[1].Split(":")[1];
 		Port = int.Parse(config[2].Split(":")[1]);
+		UseHttps = bool.Parse(config[3].Split(":")[1]);
 	}
 	
 	public static void Main(string[] args)
 	{
 		listener = new HttpListener();
-		listener.Prefixes.Add("http://*:" + Port + "/");
+		listener.Prefixes.Add((UseHttps ? "https://*:" : "http://*:") + Port + "/");
 		listener.Start();
 		Console.ForegroundColor = ConsoleColor.Blue;
 		Console.WriteLine("Server Started!");
