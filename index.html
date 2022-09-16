@@ -942,15 +942,16 @@
 			let backups = []
 			fetch('https://server2.rplace.tk:8081/backuplist')
 				.then((response) => response.text())
-				.then((data) => { for (let b of data.split("\n")) { backups.push({ label: "🖼️" + b, value: b })}}) 
+				.then((data) => { for (let b of data.split("\n")) backups.push(b)})
 			VirtualSelect.init({
 				ele: '#tlStartSel',
-				emptyValue: "Select timelapse start backup",
+				placeholder: "Select timelapse start backup",
+				search: true,
 				options: backups,
 			})
 			VirtualSelect.init({
 				ele: '#tlEndSel',
-				emptyValue: "Select timelapse end backup",
+				placeholder: "Select timelapse end backup",
 				options: backups,
 			})
 		}
