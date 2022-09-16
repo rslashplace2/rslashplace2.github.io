@@ -79,6 +79,18 @@ btn{
 	transform: scale(1.2) rotate(-10deg);
 }
 
+select {
+	background-color: white;
+	border-radius: 10px;
+	font-size: 16px;
+	border: 1px solid gray;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	height: 35px;
+	padding: 5px;
+	font-family: bold;
+	color: #747474;
+}
+
 input{
 	-webkit-appearance: none;
 	background: transparent;

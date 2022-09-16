@@ -432,8 +432,8 @@
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.dragging = true" onmouseup="this.dragging = false" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
-			<select id="tlStartSel"> <option value="">Select timelapse start backup</option> </select> <br>
-			<select id="tlEndSel"> <option value="">Select timelapse end backup</option> </select> <br>
+			<select id="tlStartSel" style="width: calc(50% - 2px); margin-right: 2px; display: inline;"> <option value="">Select timelapse start backup</option> </select> <br>
+			<select id="tlEndSel" style="width: calc(50% - 2px); margin-left: 2px; display: inline;"> <option value="">Select timelapse end backup</option> </select> <br>
 			<input type="number" style="width: 100%; margin-left: 10px; transform: translateX(-10px);" min="1" max="30" placeholder="Desired timelapse framerate" /> <br>
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" value="Create"/>
 		</div>
