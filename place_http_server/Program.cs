@@ -138,7 +138,7 @@ public static class Program
 					{
 						var obj = await JsonSerializer.DeserializeAsync<TimelapseInfo>(req.InputStream);
 						if (obj is null) return;
-						var lapse = await new TimelapseGen().GenerateTimelapse(obj.OutName, obj.BackupStart, obj.BackupEnd, obj.Fps, obj.SX, obj.SY, obj.EX, obj.EY);
+						var lapse = await new TimelapseGen().GenerateTimelapse(obj.BackupStart, obj.BackupEnd, obj.Fps, obj.SX, obj.SY, obj.EX, obj.EY);
 						resp.ContentLength64 = lapse.Length;
 						await resp.OutputStream.WriteAsync(lapse);
 					}

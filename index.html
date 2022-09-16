@@ -201,11 +201,42 @@
 					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){call(oclick, pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
 				}
 			})
-			call(addEventListener, toggleTlPanel, 'click', function(e){
+			//These do not have to be in wscapsule, fatch is allowed outside afaik
+			call(addEventListener, toggleTlPanel, 'click', function(e) {
 				timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
 				tlImage.src = canvas.toDataURL('image/png')
-				tlSelect.style.width = WIDTH + "px";
-				tlSelect.style.height = HEIGHT + "px";
+				tlSelect.style.width = WIDTH + "px"
+				tlSelect.style.height = HEIGHT + "px"
+			})
+			call(addEventListener, tlConfirm, 'click', async function(e) {
+				let response = await fetch("https://server2.rplace.tk:8081/timelapse", { //TODO: Switch with "board localstorage var"
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json; charset=utf-8"
+					},
+					body: JSON.stringify({
+						"backupStart": "place.09.07.2022.16:15:55",
+						"backupEnd": "place.28.08.2022.02:45:11",
+						"fps": 10,
+						"sX": 0,
+						"sY": 0,
+						"eX": WIDTH,
+						"eY": HEIGHT,
+						"sizeX": WIDTH,
+						"sizeY": HEIGHT
+					})
+				})
+				.then(resp => resp.blob())
+				.then(blob => {
+					const url = window.URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.style.display = 'none';
+					a.href = url;
+					a.download = 'place_timelapse.gif';
+					document.body.appendChild(a);
+					a.click();
+				})
+				.catch((e) => console.log("Timelapse failed, " + e));
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
 				item.addEventListener("click", (e) => {
@@ -404,7 +435,7 @@
 			<select id="tlStartSel"> <option value="">Select timelapse start backup</option> </select> <br>
 			<select id="tlEndSel"> <option value="">Select timelapse end backup</option> </select> <br>
 			<input type="number" style="width: 100%; margin-left: 10px; transform: translateX(-10px);" min="1" max="30" placeholder="Desired timelapse framerate" /> <br>
-			<input type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" value="Create"/>
+			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" value="Create"/>
 		</div>
 	</body>
 	<script>

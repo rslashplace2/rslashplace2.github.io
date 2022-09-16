@@ -42,7 +42,7 @@ public sealed class TimelapseGen
     };
 
     
-    public async Task<byte[]> GenerateTimelapse(string outName, string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
+    public async Task<byte[]> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
     {
         var parentDir = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
         var backups = await File.ReadAllLinesAsync(Path.Join(parentDir, "backuplist.txt"));
