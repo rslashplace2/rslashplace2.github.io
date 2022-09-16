@@ -201,43 +201,6 @@
 					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){call(oclick, pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
 				}
 			})
-			//These do not have to be in wscapsule, fatch is allowed outside afaik
-			call(addEventListener, toggleTlPanel, 'click', function(e) {
-				timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
-				tlImage.src = canvas.toDataURL('image/png')
-				tlSelect.style.width = WIDTH + "px"
-				tlSelect.style.height = HEIGHT + "px"
-			})
-			call(addEventListener, tlConfirm, 'click', async function(e) {
-				let response = await fetch("https://server2.rplace.tk:8081/timelapse", { //TODO: Switch with "board localstorage var"
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json; charset=utf-8"
-					},
-					body: JSON.stringify({
-						"backupStart": "place.09.07.2022.16:15:55",
-						"backupEnd": "place.28.08.2022.02:45:11",
-						"fps": 10,
-						"sX": 0,
-						"sY": 0,
-						"eX": WIDTH,
-						"eY": HEIGHT,
-						"sizeX": WIDTH,
-						"sizeY": HEIGHT
-					})
-				})
-				.then(resp => resp.blob())
-				.then(blob => {
-					const url = window.URL.createObjectURL(blob);
-					const a = document.createElement('a');
-					a.style.display = 'none';
-					a.href = url;
-					a.download = 'place_timelapse.gif';
-					document.body.appendChild(a);
-					a.click();
-				})
-				.catch((e) => console.log("Timelapse failed, " + e));
-			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
 				item.addEventListener("click", (e) => {
 					call(send, ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
@@ -250,6 +213,9 @@
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
+	
+	<script src="https://raw.githubusercontent.com/sa-si-dev/virtual-select/master/dist/virtual-select.min.js"></script>
+	<link rel="stylesheet" href="https://raw.githubusercontent.com/sa-si-dev/virtual-select/master/dist/virtual-select.min.css">
 
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
@@ -385,7 +351,7 @@
 					<img src="canv.png">
 					<div><div>Canv.tk</div>Visit our sister site, the proof of concept this site itself was built off, canv.tk here!</div>
 				</div>
-				<div id="toggleTlPanel" class="post">
+				<div onclick="toggleTlPanel()" class="post">
 					<img src="timelapse.png">
 					<div><div>Timelapse tool</div>Combine a sequence from the history of the canvas to create your own timelapse video!</div>
 				</div>
@@ -424,7 +390,7 @@
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
 		</div>
-		<div id="timelapsePanel" style="display: none;">
+		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
 			<icon-close noselect="" id="close-btn" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			<div style="width: 100%; height: 40%; transform: translateX(-10px); margin: 10px; border: 1px solid gray; border-radius: 2px; overflow: scroll;">
@@ -432,13 +398,15 @@
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.dragging = true" onmouseup="this.dragging = false" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
-			<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select>
-			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>
+			<div id="tlStartSel"></div>
+			<div id="tlEndSel"></div>
+			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select>
+			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
 			<input type="number" style="width: 100%; margin-bottom: 10px; border: 1px solid gray; border-radius: 4px;" min="1" max="30" placeholder="Desired timelapse framerate" />
-			<div style="text-align: center;">
-				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
+			<div id="tlPlayDir" style="text-align: center;">
+				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.reverse = false; this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.reverse = true; this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
 			</div>
-			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" value="Create"/>
+			<input type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" onclick="confirmTlCreate()" value="Create"/>
 		</div>
 	</body>
 	<script>
@@ -955,6 +923,7 @@
 		waitingGame.start()
 
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
+
 		function tlMouseMove(e) {
 			if (!tlSelect.dragging) {
 				tlSelect.style.cursor = "default"
@@ -963,6 +932,59 @@
             tlSelect.style.left = clamp(e.clientX - tlImage.getBoundingClientRect().left, 0, WIDTH - tlSelect.style.width) + "px"
             tlSelect.style.top = clamp(e.clientY - tlImage.getBoundingClientRect().top, 0, HEIGHT - tlSelect.style.height) + "px"
 			tlSelect.style.cursor = "all-scroll"
+		}
+		function toggleTlPanel() {
+			timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
+			tlImage.src = canvas.toDataURL('image/png')
+			tlSelect.style.width = WIDTH + "px"
+			tlSelect.style.height = HEIGHT + "px"
+
+			VirtualSelect.init({
+				ele: '#tlStartSel',
+				options: [
+					{ label: 'Options 1', value: '1' },
+					{ label: 'Options 2', value: '2' },
+					{ label: 'Options 3', value: '3' },
+				],
+			})
+			VirtualSelect.init({
+				ele: '#tlEndSel',
+				options: [
+					{ label: 'Options 1', value: '1' },
+					{ label: 'Options 2', value: '2' },
+					{ label: 'Options 3', value: '3' },
+				],
+			})
+		}
+		async function confirmTlCreate() {
+			let response = await fetch("https://server2.rplace.tk:8081/timelapse", { //TODO: Switch with "board localstorage var"
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json; charset=utf-8"
+				},
+				body: JSON.stringify({
+					"backupStart": "place.09.07.2022.16:15:55",
+					"backupEnd": "place.28.08.2022.02:45:11",
+					"fps": 10,
+					"sX": 0,
+					"sY": 0,
+					"eX": WIDTH,
+					"eY": HEIGHT,
+					"sizeX": WIDTH,
+					"sizeY": HEIGHT
+				})
+			})
+			.then(resp => resp.blob())
+			.then(blob => {
+				const url = window.URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.style.display = 'none'
+				a.href = url
+				a.download = 'place_timelapse.gif'
+				document.body.appendChild(a)
+				a.click();
+			})
+			.catch((e) => console.log("Timelapse failed, " + e))
 		}
 
 		function closeOverlayMenu() {
