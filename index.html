@@ -398,11 +398,11 @@
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.dragging = true" onmouseup="this.dragging = false" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
-			<div id="tlStartSel"></div>
-			<div id="tlEndSel"></div>
+			<div id="tlStartSel" style="max-width: 100% !important; margin-bottom: 5px; "></div>
+			<div id="tlEndSel" style="max-width: 100% !important; margin-bottom: 5px;"></div>
 			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select>
 			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
-			<input type="number" style="width: 100%; margin-bottom: 10px; border: 1px solid gray; border-radius: 4px;" min="1" max="30" placeholder="Desired timelapse framerate" />
+			<input type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8);" min="1" max="30" placeholder="Desired timelapse framerate" />
 			<div id="tlPlayDir" style="text-align: center;">
 				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.reverse = false; this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.reverse = true; this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
 			</div>
@@ -941,6 +941,7 @@
 
 			VirtualSelect.init({
 				ele: '#tlStartSel',
+				emptyValue: "Select timelapse start backup",
 				options: [
 					{ label: 'Options 1', value: '1' },
 					{ label: 'Options 2', value: '2' },
@@ -949,6 +950,7 @@
 			})
 			VirtualSelect.init({
 				ele: '#tlEndSel',
+				emptyValue: "Select timelapse end backup",
 				options: [
 					{ label: 'Options 1', value: '1' },
 					{ label: 'Options 2', value: '2' },
