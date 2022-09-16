@@ -201,7 +201,7 @@
 					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){call(oclick, pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
 				}
 			})
-			call(addEventListener, toggleTlPanel, 'onclick', function(e){
+			call(addEventListener, toggleTlPanel, 'click', function(e){
 				timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
 				tlImage.src = canvas.toDataURL('image/png')
 			})
@@ -919,8 +919,8 @@
 
 		function tlMouseMove(e) {
 			if (!tlImage.dragging) return
-			tlSelect.style.top = e.clientX
-			tlSelect.style.left = e.clientY
+			tlSelect.style.top = e.clientX + "px"
+			tlSelect.style.left = e.clientY + "px"
 		}
 
 		function closeOverlayMenu() {
