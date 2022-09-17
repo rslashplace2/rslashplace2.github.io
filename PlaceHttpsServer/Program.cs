@@ -10,6 +10,21 @@ using PlaceHttpsServer;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
+var configFile = Path.Join(Directory.GetCurrentDirectory(), "config.txt");
+if (!File.Exists(configFile))
+{
+	File.WriteAllText(configFile, "cert: " + Environment.NewLine + "key: " + Environment.NewLine + "port: " + Environment.NewLine + "use_https: ");
+	Console.ForegroundColor = ConsoleColor.Green;
+	Console.WriteLine("Config created! Please check {0} and run this program again!", configFile);
+	Console.ResetColor();
+	Environment.Exit(0);
+}
+
+var config = File.ReadAllLines(configFile).Select(line => { line = line.Split(": ")[1]; return line; }).ToArray();
+app.Urls.Add($"{(bool.Parse(config[3]) ? "https" : "http")}://*:{int.Parse(config[2])}");
+builder.Configuration["Kestrel:Certificates:Default:Path"] = config[0];
+builder.Configuration["Kestrel:Certificates:Default:KeyPath"] = config[1];
+
 const string backuplistTemplate = @"
 	<h1>rPlace canvas place file/backup list.</h1>
 	<p>See [domain-url]/backuplist.txt for cleanly formatted list of backups saved here.</p>

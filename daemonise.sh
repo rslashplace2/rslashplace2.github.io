@@ -45,7 +45,7 @@ TTYPath=/dev/tty21
 TTYReset=yes
 WorkingDirectory=$1/PlaceHttpsServer/
 ExecStart=
-ExecStart=$dotnet_dir run --urls=\"https://localhost:8081\"
+ExecStart=$dotnet_dir run
 Restart=always
 RestartSec=2
 
