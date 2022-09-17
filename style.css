@@ -31,6 +31,7 @@ body{
 	right: 0;
 	overflow: hidden;
 	z-index: 1;
+	transition: height .5s;
 }
 #posts{
 	position: absolute;
@@ -736,7 +737,11 @@ kbd {
 	image-rendering: pixelated;
 }
 
-#out #maincontent{ height: 60%; }
+#out #maincontent {
+	height: 60%;
+	transition: height .5s;
+
+}
 #out #more{
 	position: absolute;
 	left: 0;
@@ -747,21 +752,29 @@ kbd {
 	display: flex;
 	align-items: stretch;
 	flex-direction: column;
+	visibility: visible;
 }
 #more {
-	display: none;
+	display: flex;
+	visibility: hidden;
 	overflow: auto;
 	touch-action: pan-y;
 }
 #more *{touch-action: pan-y;}
 #out #closebtn{ display: none }
 
-#more #spaceFiller {
+#out #more #spaceFiller {
 	display: block;
 	height: 60vh;
 	width: 100%;
 	flex-shrink: 0;
 }
+
+#spaceFiller {
+	height: 100vh;
+	transition: height .5s;
+}
+
 #more #contents {
 	background: #dae0e6;
 	width: 100%;
