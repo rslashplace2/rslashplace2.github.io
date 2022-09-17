@@ -40,9 +40,9 @@ StandardInput=tty-force
 TTYVHangup=yes
 TTYPath=/dev/tty21
 TTYReset=yes
-WorkingDirectory=$1/place_http_server/
+WorkingDirectory=$1/PlaceHttpsServer/
 ExecStart=
-ExecStart=/usr/bin/node server.js
+ExecStart=/usr/bin/dotnet run
 Restart=always
 RestartSec=2
 

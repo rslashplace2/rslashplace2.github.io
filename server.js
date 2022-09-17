@@ -225,9 +225,9 @@ async function pushImage(){
 		await new Promise((r, t) => exec("git commit place -m 'Hourly backup';git push --force "+ORIGIN+"/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r())) 
 	} else {
 		let dte = new Date().toLocaleString().replaceAll('/', '.').replaceAll(', ', '.')
-		await fs.copyFile("./place_http_server/place", "./place_http_server/place." + dte, 0, err => { if (err) { console.log(err); return; }})
-		await fs.copyFile("./place", "./place_http_server/place", 0, err => { if (err) { console.log(err); return; }})
-		await fs.appendFile("./place_http_server/backuplist.txt", "\nplace." + dte, err => { if (err) { console.log(err); return; }})
+		await fs.copyFile("./PlaceHttpsServer/place", "./PlaceHttpsServer/place." + dte, 0, err => { if (err) { console.log(err); return; }})
+		await fs.copyFile("./place", "./PlaceHttpsServer/place", 0, err => { if (err) { console.log(err); return; }})
+		await fs.appendFile("./PlaceHttpsServer/backuplist.txt", "\nplace." + dte, err => { if (err) { console.log(err); return; }})
 	}
         //serve old changes for 11 more mins just to be 100% safe 
         let curr = new Uint8Array(CHANGES) 

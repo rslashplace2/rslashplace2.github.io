@@ -13,7 +13,7 @@ var app = builder.Build();
 const string backuplistTemplate = @"
 	<h1>rPlace canvas place file/backup list.</h1>
 	<p>See [domain-url]/backuplist.txt for cleanly formatted list of backups saved here.</p>
-	<span style=""color: red;"">(Do not try to iterate directly through this directory with code, for the sake of your own sanity, please instead use plaintext [domain-url]/backuplist)</span>
+	<span style=""color: red;"">(Do not try to iterate directly through this directory with code, for the sake of your own sanity, please instead use the plaintext list at /backuplist instead.)</span>
 	<br> <br>
 	<input type=""text"" placeholder=""Search.."" onkeyup=""search(this.value)"">
 	<br> <br>
@@ -39,7 +39,7 @@ const string backuplistTemplate = @"
 ";
 const string indexTemplate = @"
 	<h1>rPlace canvas file server is running.</h1>
-	<p>Visit /place in order to fetch the active place file,/backuplist to view a list of all backups, and fetch from /backups/<span style=""background-color: lightgray; border-radius: 4px;"">place file name</span> to obtain a backup by it's filename (in backuplist).</p>
+	<p>Visit /place in order to fetch the active place file, /backuplist to view a list of all backups, and fetch from /backups/<span style=""background-color: lightgray; border-radius: 4px;"">place file name</span> to obtain a backup by it's filename (in backuplist).</p>
 	<pre>
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠓⠒⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⢠⢤⣤⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -65,7 +65,7 @@ const string indexTemplate = @"
 	<a href=""backups"">backups</a>
 	<a href=""backuplist"">backuplist</a>
 	<br>
-	<p>©zekiahepic/Zekiah-A, BlobKat - rplace.tk ❤️</p>
+	<p>©Zekiah-A, BlobKat - rplace.tk ❤️</p>
 ";
 
 
@@ -78,7 +78,7 @@ app.MapGet("/place", () =>
 });
 
 // Lists all available backups. 
-app.MapGet("/backups", async () =>
+app.MapGet("/backups", () =>
 {
 	var dir = Directory.GetFiles(Directory.GetCurrentDirectory()).ToList();
     for (var fn = 0; fn < dir.Count; fn++)
@@ -86,7 +86,7 @@ app.MapGet("/backups", async () =>
         dir[fn] = $"<a href=\"{new DirectoryInfo(dir[fn]).Name}\">{new DirectoryInfo(dir[fn]).Name}</a>";
     }
 
-    return Results.Content(backuplistTemplate + dir.Aggregate((a, b) => a + "<br>\n" + b), "text/html");
+    return Task.FromResult(Results.Content(backuplistTemplate + dir.Aggregate((a, b) => a + "<br>\n" + b), "text/html"));
 });
 
 // To download a specific backup.
