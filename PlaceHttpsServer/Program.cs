@@ -1,14 +1,6 @@
-using System;
-using System.IO;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using PlaceHttpsServer;
-
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
 
 var configFile = Path.Join(Directory.GetCurrentDirectory(), "config.txt");
 if (!File.Exists(configFile))
@@ -21,9 +13,13 @@ if (!File.Exists(configFile))
 }
 
 var config = File.ReadAllLines(configFile).Select(line => { line = line.Split(": ")[1]; return line; }).ToArray();
-app.Urls.Add($"{(bool.Parse(config[3]) ? "https" : "http")}://*:{int.Parse(config[2])}");
+
+var builder = WebApplication.CreateBuilder(args);
 builder.Configuration["Kestrel:Certificates:Default:Path"] = config[0];
 builder.Configuration["Kestrel:Certificates:Default:KeyPath"] = config[1];
+
+var app = builder.Build();
+app.Urls.Add($"{(bool.Parse(config[3]) ? "https" : "http")}://*:{int.Parse(config[2])}");
 
 const string backuplistTemplate = @"
 	<h1>rPlace canvas place file/backup list.</h1>
