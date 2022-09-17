@@ -31,7 +31,6 @@ body{
 	right: 0;
 	overflow: hidden;
 	z-index: 1;
-	transition: height .5s;
 }
 #posts{
 	position: absolute;
