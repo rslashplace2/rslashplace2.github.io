@@ -7,6 +7,9 @@ then
     exit 0
 fi
 
+node_dir=$(which node)
+dotnet_dir=$(which dotnet)
+
 echo -e "
 [Unit]
 Description=main place websocket server, see http-place for the static http server.
@@ -20,7 +23,7 @@ TTYPath=/dev/tty20
 TTYReset=yes
 WorkingDirectory=$1
 ExecStart=
-ExecStart=/usr/bin/node server.js
+ExecStart=$node_dir server.js
 Restart=always
 RestartSec=2
 
@@ -40,9 +43,10 @@ StandardInput=tty-force
 TTYVHangup=yes
 TTYPath=/dev/tty21
 TTYReset=yes
+Environment=ASPNETCORE_URLS=http://localhost:8081/
 WorkingDirectory=$1/PlaceHttpsServer/
 ExecStart=
-ExecStart=/usr/bin/dotnet run
+ExecStart=$dotnet_dir run
 Restart=always
 RestartSec=2
 
