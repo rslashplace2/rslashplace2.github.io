@@ -468,7 +468,7 @@ mute-button{
 	z-index: 99;
 	padding: 10px;
 	transform: translateX(calc(100% + 20px));
-	transition: translate .2s;
+	transition: transform .2s;
 }
 #chatPanel.open{
 	transform: translateX(0);
