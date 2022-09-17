@@ -43,10 +43,9 @@ StandardInput=tty-force
 TTYVHangup=yes
 TTYPath=/dev/tty21
 TTYReset=yes
-Environment=ASPNETCORE_URLS=http://localhost:8081/
 WorkingDirectory=$1/PlaceHttpsServer/
 ExecStart=
-ExecStart=$dotnet_dir run
+ExecStart=$dotnet_dir run --urls=\"https://localhost:8081\"
 Restart=always
 RestartSec=2
 
