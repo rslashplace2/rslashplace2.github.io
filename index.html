@@ -67,13 +67,16 @@
 					[txt, name, messageChannel] = txt.split("\n")
 					if(!(messageChannel in cMessages))return
 					if(name)name = name.replace(/\W+/g,'').toLowerCase()
-					if(blockedUsers.includes(name)) return
 					if(!txt)return
 					txt = txt.replace(/:(.+):/, (_,b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
 					let newMessage = document.createElement("div")
 					newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 					let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
+					if(name !== localStorage.name && blockedUsers.includes(name)) {
+						newMessage.style.color = "transparent"
+						newMessage.style.textShadow = "0px 0px 6px black"
+					}
 					if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
 						newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 						if (currentChannel == messageChannel) audios.closePalette.run()
