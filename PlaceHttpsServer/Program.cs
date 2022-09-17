@@ -17,6 +17,13 @@ var config = File.ReadAllLines(configFile).Select(line => { line = line.Split(":
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration["Kestrel:Certificates:Default:Path"] = config[0];
 builder.Configuration["Kestrel:Certificates:Default:KeyPath"] = config[1];
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://rplace.tk", "*");
+    });
+});
 
 var app = builder.Build();
 app.Urls.Add($"{(bool.Parse(config[3]) ? "https" : "http")}://*:{int.Parse(config[2])}");

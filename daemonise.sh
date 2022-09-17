@@ -43,6 +43,7 @@ StandardInput=tty-force
 TTYVHangup=yes
 TTYPath=/dev/tty21
 TTYReset=yes
+Environment=DOTNET_CLI_HOME=/temp
 WorkingDirectory=$1/PlaceHttpsServer/
 ExecStart=
 ExecStart=$dotnet_dir run
