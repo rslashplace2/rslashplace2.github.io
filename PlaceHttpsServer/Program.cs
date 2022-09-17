@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 app.Urls.Add($"{(bool.Parse(config[3]) ? "https" : "http")}://*:{int.Parse(config[2])}");
+app.UseCors(policy => policy.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(_ => true).AllowCredentials());
 
 const string backuplistTemplate = @"
 	<h1>rPlace canvas place file/backup list.</h1>
