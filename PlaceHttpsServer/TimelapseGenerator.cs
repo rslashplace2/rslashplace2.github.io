@@ -33,14 +33,13 @@ internal static class TimelapseGenerator
         }
 
         using var gif = new Image<Rgba32>(endX - startX, endY - startY);
-        // ReSharper disable once TooWideLocalVariableScope
         var inRange = false;
         
         foreach (var backup in backups)
         {
-            inRange = backup == backupStart;
             if (!inRange)
             {
+                inRange = backup == backupStart;
                 continue;
             }
             
@@ -52,10 +51,12 @@ internal static class TimelapseGenerator
             }
 
             using var image = new Image<Rgba32>(endX - startX, endY - startY);
-            var i = sizeX * startY + startX;
+            image.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = (int) (100 / fps);
+            image.Frames.RootFrame.Metadata.GetGifMetadata().ColorTableLength = 32;
 
             var board = await File.ReadAllBytesAsync(path);
-
+            var i = sizeX * startY + startX;
+            
             while (i < board.Length)
             {
                 image[(i % sizeX) - startX, (i / sizeX) - startY] = Colours[board[i]];
@@ -70,10 +71,10 @@ internal static class TimelapseGenerator
                 {
                     break; // If we exceed end bottom, we are done drawing this
                 }
-
+                
                 i += sizeX - (endX - startX);
             }
-
+            
             gif.Frames.AddFrame(image.Frames.RootFrame);
         }
 
