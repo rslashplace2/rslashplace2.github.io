@@ -965,6 +965,10 @@
 		}
 		let tlTimerStart
 		async function confirmTlCreate() {
+			if (!confirm("Important note: There are over 6000 backups of the canvas, with one being made every 15 minutes, long timelapses (ones with a large difference between start and end date) will take a long time to load, or even fail!\n\n\nPress OK to make a timelapse with current settings, or CANCEL to change your options.")) {
+				return;
+			}
+			
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
 			tlConfirm.style.pointerEvents = "none"
 			tlTimerStart = Date.now()
