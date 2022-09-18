@@ -121,7 +121,7 @@ app.MapGet("/backuplist", async () =>
 
 app.MapPost("/timelapse", async (context) =>
 {
-	var json = JsonSerializer.Deserialize<TimelapseInfo>(context.Request.Body);
+	var json = await JsonSerializer.DeserializeAsync<TimelapseInfo>(context.Request.Body);
 	if (json is null) return;
 	await new TimelapseGen().GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, 500, 750);
 });
