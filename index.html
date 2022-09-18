@@ -399,7 +399,7 @@
 			<icon-close noselect="" id="close-btn" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
 			<div style="width: 100%; height: 40%; transform: translateX(-10px); margin: 10px; border: 1px solid gray; border-radius: 2px; overflow: scroll;">
 				<img id="tlImage" style="position: relative;">
-					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.dragging = true" onmouseup="this.dragging = false" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
+					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.setAttribute('dragging',  true);" onmouseup="this.setAttribute('dragging', false); onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
 			<div id="tlStartSel" class="virtselect"></div>
@@ -929,7 +929,7 @@
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 
 		function tlMouseMove(e) {
-			if (!tlSelect.dragging) {
+			if (!tlSelect.getAttribute('dragging') == "true") {
 				tlSelect.style.cursor = "default"
 				return
 			}

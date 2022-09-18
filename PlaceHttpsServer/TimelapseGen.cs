@@ -71,14 +71,12 @@ public static class TimelapseGen
                 i += sizeX - (eX - sX);
             }
             gif.Frames.AddFrame(image.Frames.RootFrame);
-            image.Dispose();
         }
         var stream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(stream);
         await stream.FlushAsync();
         stream.Position = 0;
-        gif.Dispose();
         return stream;
     }
 }
