@@ -78,7 +78,7 @@
 						placeMessage.style.top = y + "px"
 						canvparent2.appendChild(placeMessage)
 
-						setInterval(function() { //Remove message after given time TODO: Make customisable
+						setTimeout(function() { //Remove message after given time TODO: Make customisable
 							canvparent2.removeChild(placeMessage)
 						}, 5e3);
 					}
