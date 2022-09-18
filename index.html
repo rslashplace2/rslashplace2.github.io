@@ -974,7 +974,7 @@
 				"sY": 0,
 				"eX": WIDTH,
 				"eY": HEIGHT,
-				"reverse": tlPlayDir.getAttribute('reverse')
+				"reverse": tlPlayDir.getAttribute('reverse') == "true"
 			})
 			let response = await fetch("https://server2.rplace.tk:8081/timelapse/" + options, { method: "GET"})
 			.then(resp => resp.blob())
