@@ -12,4 +12,5 @@ public class TimelapseInfo
     public int SY { get; set; }
     public int EX { get; set; }
     public int EY { get; set; }
+    public bool Reverse { get; set; }
 }

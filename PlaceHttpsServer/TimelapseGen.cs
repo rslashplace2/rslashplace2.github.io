@@ -42,9 +42,10 @@ public sealed class TimelapseGen
     };
 
     
-    public async Task<Stream> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
+    public async Task<Stream> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, bool reverse, int sizeX, int sizeY)
     {
         var backups = await File.ReadAllLinesAsync(Path.Join(Directory.GetCurrentDirectory(), "backuplist.txt"));
+        if (reverse) Array.Reverse(backups);
         using var gif = new Image<Rgba32>(eX - sX, eY - sY);
         bool? inRange = null;
         foreach (var backup in backups)
@@ -67,7 +68,7 @@ public sealed class TimelapseGen
             }
             gif.Frames.AddFrame(image.Frames.RootFrame);
         }
-        await using var stream = new MemoryStream();
+        var stream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(stream);
         return stream;

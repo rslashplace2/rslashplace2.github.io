@@ -406,8 +406,8 @@
 			<div id="tlEndSel" class="virtselect"></div>
 			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select> <select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
 			<input id="tlFps" type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8); border: 1px solid #ddd;" min="1" max="30" placeholder="Desired timelapse framerate" />
-			<div id="tlPlayDir" style="text-align: center;">
-				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.reverse = false; this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.reverse = true; this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
+			<div id="tlPlayDir" style="text-align: center;" reverse="true">
+				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.setAttribute('reverse', false); this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.setAttribute('reverse', true); this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
 			</div>
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" onclick="confirmTlCreate()" value="Create"/>
 		</div>
@@ -973,7 +973,8 @@
 				"sX": 0,
 				"sY": 0,
 				"eX": WIDTH,
-				"eY": HEIGHT
+				"eY": HEIGHT,
+				"reverse": tlPlayDir.getAttribute('reverse')
 			})
 			let response = await fetch("https://server2.rplace.tk:8081/timelapse/" + options, { method: "GET"})
 			.then(resp => resp.blob())
