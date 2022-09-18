@@ -49,6 +49,7 @@ public sealed class TimelapseGen
         bool? inRange = null;
         foreach (var backup in backups)
         {
+            if (string.IsNullOrEmpty(backup)) continue;
             if (backup == backupStart) inRange = true;
             if (backup == backupEnd) inRange = false;
             if (inRange is null or false) continue;
