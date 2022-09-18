@@ -963,11 +963,12 @@
 					})
 				})
 		}
+		let tlTimerStart
 		async function confirmTlCreate() {
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
 			tlConfirm.style.pointerEvents = "none"
-			let now = Date.now()
-			let tlTimerInterval = setInterval(updateTlTimer(now), 100)
+			tlTimerStart = Date.now()
+			let tlTimerInterval = setInterval(updateTlTimer, 100)
 
 			let options = JSON.stringify({
 				"backupStart": tlStartSel.value,
@@ -996,8 +997,8 @@
 			})
 			.catch((e) => {console.log("Timelapse failed, " + e); tlConfirm.value = "Create"; tlConfirm.style.pointerEvents = "auto"; clearInterval(tlTimerInterval); tlTimer.innerText = "0.0s"; })
 		}
-		function updateTlTimer(startTime) {
-			var elapsedTime = Date.now() - startTime
+		function updateTlTimer() {
+			var elapsedTime = Date.now() - tlTimerStart
 			document.getElementById("tlTimer").innerText = ((elapsedTime / 1000).toFixed(3)) + "s"
 		}
 
