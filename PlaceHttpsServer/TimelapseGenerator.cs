@@ -25,7 +25,6 @@ internal static class TimelapseGenerator
         var backups =
             (await File.ReadAllLinesAsync(Path.Join(CurrentDirectory, "backuplist.txt")))
             .TakeWhile(backup => backup != backupEnd)
-            .Where(backup => backup == backupStart)
             .ToArray();
 
         if (reverse)
@@ -34,9 +33,17 @@ internal static class TimelapseGenerator
         }
 
         using var gif = new Image<Rgba32>(endX - startX, endY - startY);
-
+        // ReSharper disable once TooWideLocalVariableScope
+        var inRange = false;
+        
         foreach (var backup in backups)
         {
+            inRange = backup == backupStart;
+            if (!inRange)
+            {
+                continue;
+            }
+            
             var path = Path.Join(CurrentDirectory, backup);
 
             if (!File.Exists(path))
