@@ -405,7 +405,7 @@
 			<div id="tlStartSel" class="virtselect"></div>
 			<div id="tlEndSel" class="virtselect"></div>
 			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select> <select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
-			<input type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8); border: 1px solid #ddd;" min="1" max="30" placeholder="Desired timelapse framerate" />
+			<input id="tlFps" type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8); border: 1px solid #ddd;" min="1" max="30" placeholder="Desired timelapse framerate" />
 			<div id="tlPlayDir" style="text-align: center;">
 				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.reverse = false; this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.reverse = true; this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
 			</div>
@@ -957,6 +957,7 @@
 					VirtualSelect.init({
 						ele: '#tlEndSel',
 						placeholder: "Select timelapse end backup",
+						search: true,
 						options: backups,
 					})
 				})
@@ -968,9 +969,9 @@
 					"Content-Type": "application/json; charset=utf-8"
 				},
 				body: JSON.stringify({
-					"backupStart": "place.09.07.2022.16:15:55",
-					"backupEnd": "place.28.08.2022.02:45:11",
-					"fps": 10,
+					"backupStart": tlStartSel.value,
+					"backupEnd": tlEndSel.value,
+					"fps": tlFps.value,
 					"sX": 0,
 					"sY": 0,
 					"eX": WIDTH,
