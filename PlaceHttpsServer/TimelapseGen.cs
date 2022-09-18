@@ -54,7 +54,11 @@ public sealed class TimelapseGen
             if (backup == backupStart) inRange = true;
             if (backup == backupEnd) inRange = false;
             if (inRange is null or false) continue;
-            
+            if (!File.Exists(Path.Join(Directory.GetCurrentDirectory(), backup)))
+            {
+                Console.WriteLine("ERR: Place file: {0} is missing. Please remove from backuplist!", backup);
+                continue;
+            }
             var board = await File.ReadAllBytesAsync(Path.Join(Directory.GetCurrentDirectory(), backup));
             using var image = new Image<Rgba32>(eX - sX, eY - sY);
             var i = sizeX * sY + sX;
