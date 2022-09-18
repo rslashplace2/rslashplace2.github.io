@@ -966,7 +966,8 @@
 		async function confirmTlCreate() {
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
 			tlConfirm.style.pointerEvents = "none"
-			let tlTimerInterval = setInterval(updateTlTimer(Date.now()), 100)
+			let now = Date.now()
+			let tlTimerInterval = setInterval(updateTlTimer(now), 100)
 
 			let options = JSON.stringify({
 				"backupStart": tlStartSel.value,
