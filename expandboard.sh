@@ -20,3 +20,5 @@ for(let y = 0; y < OLDHEIGHT; y++)newBoard.set(BOARD.subarray(y*OLDWIDTH,(y+1)*O
 fs.writeFileSync('place',newBoard)
 " $1 $2
 sudo systemctl start place
+
+echo -e "\x1b[32m VERY IMPORTANT: Make sure to refresh changes, and run pushImage() in the server repl right after running this script, update the board seen by those on the site!"
