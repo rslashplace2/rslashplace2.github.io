@@ -71,6 +71,8 @@ public sealed class TimelapseGen
         var stream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(stream);
+        await stream.FlushAsync();
+        stream.Position = 0;
         return stream;
     }
 }
