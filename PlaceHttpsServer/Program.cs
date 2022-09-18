@@ -128,8 +128,8 @@ app.MapGet("/timelapse/{tlInfo}", async (string tlInfo) =>
 	writer.Flush();
 	stream.Position = 0;
 	var json = await JsonSerializer.DeserializeAsync<TimelapseInfo>(stream, options);
-	return json is null ? Results.Empty : Results.File(
-		await new TimelapseGen().GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, json.Reverse, 500, 750)
+	return Results.File(
+		await TimelapseGen.GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, json.Reverse, 500, 750)
 	);
 });
 

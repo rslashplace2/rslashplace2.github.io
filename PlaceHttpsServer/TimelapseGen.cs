@@ -3,7 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace PlaceHttpsServer;
 
-public sealed class TimelapseGen
+public static class TimelapseGen
 {
     private static readonly Rgba32[] Colours = 
     {
@@ -42,7 +42,7 @@ public sealed class TimelapseGen
     };
 
     
-    public async Task<Stream> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, bool reverse, int sizeX, int sizeY)
+    public static async Task<Stream> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, bool reverse, int sizeX, int sizeY)
     {
         var backups = await File.ReadAllLinesAsync(Path.Join(Directory.GetCurrentDirectory(), "backuplist.txt"));
         if (reverse) Array.Reverse(backups);
@@ -71,12 +71,14 @@ public sealed class TimelapseGen
                 i += sizeX - (eX - sX);
             }
             gif.Frames.AddFrame(image.Frames.RootFrame);
+            image.Dispose();
         }
         var stream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(stream);
         await stream.FlushAsync();
         stream.Position = 0;
+        gif.Dispose();
         return stream;
     }
 }
