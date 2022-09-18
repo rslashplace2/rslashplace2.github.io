@@ -44,8 +44,7 @@ public sealed class TimelapseGen
     
     public async Task<Stream> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
     {
-        var parentDir = Directory.GetCurrentDirectory();
-        var backups = await File.ReadAllLinesAsync(Path.Join(parentDir, "backuplist.txt"));
+        var backups = await File.ReadAllLinesAsync(Path.Join(Directory.GetCurrentDirectory(), "backuplist.txt"));
         using var gif = new Image<Rgba32>(eX - sX, eY - sY);
         bool? inRange = null;
         foreach (var backup in backups)
@@ -54,7 +53,7 @@ public sealed class TimelapseGen
             if (backup == backupEnd) inRange = false;
             if (inRange is null or false) continue;
             
-            var board = await File.ReadAllBytesAsync(Path.Join(parentDir, backup));
+            var board = await File.ReadAllBytesAsync(Path.Join(Directory.GetCurrentDirectory(), backup));
             using var image = new Image<Rgba32>(eX - sX, eY - sY);
             var i = sizeX * sY + sX;
             while (i < board.Length)
