@@ -124,7 +124,7 @@ app.MapPost("/timelapse", async (context) =>
 	var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 	var json = await JsonSerializer.DeserializeAsync<TimelapseInfo>(context.Request.Body, options);
 	if (json is null) return;
-	await new TimelapseGen().GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, 500, 750);
+	context.Response.Body = await new TimelapseGen().GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, 500, 750);
 });
 
 app.Run();
