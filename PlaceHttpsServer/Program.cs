@@ -119,18 +119,10 @@ app.MapGet("/backuplist", async () =>
 	await File.ReadAllTextAsync(Path.Join(Directory.GetCurrentDirectory(), "backuplist.txt"))
 );
 
-app.MapGet("/timelapse/{tlInfo}", async (string tlInfo) =>
+app.MapPost("/timelapse", async (TimelapseInformation timelapseInfo) =>
 {
-	var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-	using var stream = new MemoryStream();
-	var writer = new StreamWriter(stream);
-	writer.Write(tlInfo);
-	writer.Flush();
-	stream.Position = 0;
-	var json = await JsonSerializer.DeserializeAsync<TimelapseInfo>(stream, options);
-	return Results.File(
-		await TimelapseGen.GenerateTimelapse(json.BackupStart, json.BackupEnd, json.Fps, json.SX, json.SY, json.EX, json.EY, json.Reverse, 500, 750)
-	);
+	var stream = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 500, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
+	return Results.File(stream);
 });
 
 app.Run();
