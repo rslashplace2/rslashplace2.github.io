@@ -44,7 +44,7 @@ public sealed class TimelapseGen
     
     public async Task<byte[]> GenerateTimelapse(string backupStart, string backupEnd, uint fps, int sX, int sY, int eX, int eY, int sizeX, int sizeY)
     {
-        var parentDir = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
+        var parentDir = Directory.GetCurrentDirectory();
         var backups = await File.ReadAllLinesAsync(Path.Join(parentDir, "backuplist.txt"));
         using var gif = new Image<Rgba32>(eX - sX, eY - sY);
         bool? inRange = null;
