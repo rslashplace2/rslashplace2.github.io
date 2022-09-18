@@ -964,7 +964,7 @@
 		}
 		async function confirmTlCreate() {
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
-			tlConfirm.pointerEvents = "none"
+			tlConfirm.style.pointerEvents = "none"
 			let response = await fetch("https://server2.rplace.tk:8081/timelapse", { //TODO: Switch with "board localstorage var"
 				method: "POST",
 				headers: {
@@ -990,9 +990,9 @@
 				document.body.appendChild(a)
 				a.click();
 				tlConfirm.value = "Create"
-				tlConfirm.pointerEvents = "auto"
+				tlConfirm.style.pointerEvents = "auto"
 			})
-			.catch((e) => {console.log("Timelapse failed, " + e); tlConfirm.value = "Create"; tlConfirm.pointerEvents = "auto" })
+			.catch((e) => {console.log("Timelapse failed, " + e); tlConfirm.value = "Create"; tlConfirm.style.pointerEvents = "auto" })
 		}
 
 		function closeOverlayMenu() {
