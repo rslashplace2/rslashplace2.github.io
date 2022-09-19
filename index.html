@@ -188,6 +188,14 @@
 				))
 			}
 
+			messageTypePanel.children[0].onclick = e => {
+				sendPlaceMsg(messageInput.value)
+				messageInput.value = ""
+			}
+			messageTypePanel.children[1].onclick = e => {
+				sendMsg(messageInput.value)
+				messageInput.value = ""
+			}
 			messageInput.onkeypress = e => {
 				if(e.keyCode == 13) {
 					//shift + enter send as place chat, enter send as normal live chat
@@ -436,7 +444,7 @@
 			</div>
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<div id="messageTypePanel" style="visibility: hidden;">
-				<input type="button" class="messageTypeBtn" style="left: 5px;" value="🫧 Put on canvas">
+				<input  type="button" class="messageTypeBtn" style="left: 5px;" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" style="right: 5px;" value="📨 Send in live chat">
 			</div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200" style="color: black;">
