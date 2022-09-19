@@ -20,7 +20,7 @@ internal static class TimelapseGenerator
 
     private static readonly string CurrentDirectory = Directory.GetCurrentDirectory();
 
-    public static async Task<byte[]> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)
+    public static async Task<Stream> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)
     {
         var backups =
             (await File.ReadAllLinesAsync(Path.Join(CurrentDirectory, "backuplist.txt")))
@@ -82,7 +82,8 @@ internal static class TimelapseGenerator
         memoryStream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(memoryStream);
         await memoryStream.FlushAsync();
+        memoryStream.Position = 0;
         
-        return memoryStream.ToArray();
+        return memoryStream;
     }
 }

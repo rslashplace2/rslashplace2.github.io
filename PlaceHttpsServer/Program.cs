@@ -121,8 +121,25 @@ app.MapGet("/backuplist", async () =>
 
 app.MapPost("/timelapse", async (TimelapseInformation timelapseInfo) =>
 {
-	var timelapseBytes = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 750, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
-	return Results.File(timelapseBytes);
+	var stream = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 750, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
+	return Results.File(stream);
+});
+
+Configuration.Default.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions
+{
+	MaximumPoolSizeMegabytes = 512
+});
+MemoryDiagnostics.UndisposedAllocation += allocationStackTrace =>
+{
+	Console.WriteLine($@"Undisposed allocation detected at:{Environment.NewLine}{allocationStackTrace}");
+};
+Task.Run(() =>
+{
+	while (true)
+	{
+		Console.WriteLine(@"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+		Thread.Sleep(60000);
+	}
 });
 
 app.Run();
