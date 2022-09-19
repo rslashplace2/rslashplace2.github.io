@@ -64,7 +64,7 @@
 					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 					let name;
 					let messageChannel;
-					[txt, name, messageChannel, type, x, y] = txt.split("\n")
+					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if(!(messageChannel in cMessages))return
 					if(name) name = name.replace(/\W+/g,'').toLowerCase()
 					if(!txt) return
@@ -74,8 +74,8 @@
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
 						const placeMessage = document.createElement("placechat")
 						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};"></span> ${txt}`
-						placeMessage.style.left = x + "px"
-						placeMessage.style.top = y + "px"
+						placeMessage.style.left = placeX + "px"
+						placeMessage.style.top = placeY + "px"
 						canvparent2.appendChild(placeMessage)
 
 						//setTimeout(function() { //Remove message after given time TODO: Make customisable
@@ -190,7 +190,6 @@
 			messageInput.onkeypress = e => {
 				if(e.keyCode == 13) {
 					messageInput.value = ""
-					
 					if (e.shiftKey) { //shift + enter send as place chat, enter send as normal live chat
 						sendPlaceMsg(messageInput.value)
 						return
