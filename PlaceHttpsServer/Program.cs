@@ -1,6 +1,8 @@
 using System.Text;
-using System.Text.Json;
 using PlaceHttpsServer;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Diagnostics;
+using SixLabors.ImageSharp.Memory;
 
 var configFile = Path.Join(Directory.GetCurrentDirectory(), "config.txt");
 if (!File.Exists(configFile))
@@ -137,7 +139,7 @@ Task.Run(() =>
 {
 	while (true)
 	{
-		Console.WriteLine(@"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
+		Console.WriteLine($@"Number of undisposed ImageSharp buffers: {MemoryDiagnostics.TotalUndisposedAllocationCount}");
 		Thread.Sleep(60000);
 	}
 });
