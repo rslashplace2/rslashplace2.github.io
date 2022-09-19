@@ -61,51 +61,56 @@
 						i++
 					}
 				}else if(code == 15){
-					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-					let name, messageChannel, type, placeX, placeY
-					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
-					if(!(messageChannel in cMessages))return
-					if(name) name = name.replace(/\W+/g,'').toLowerCase()
-					if(!txt) return
-					txt = txt.replace(/:(.+):/, (_,b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
-					
-					if (type == 'place') {
-						//Place chat, chat that is placed on the canvas at the position as a "bubble"
-						const placeMessage = document.createElement("placechat")
-						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};"></span> ${txt}`
-						placeMessage.style.left = placeX + "px"
-						placeMessage.style.top = placeY + "px"
-						canvparent2.appendChild(placeMessage)
+					try {
+						let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+						let name, messageChannel, type, placeX, placeY
+						[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
+						if(!(messageChannel in cMessages))return
+						if(name) name = name.replace(/\W+/g,'').toLowerCase()
+						if(!txt) return
+						txt = txt.replace(/:(.+):/, (_,b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
+						
+						if (type == 'place') {
+							//Place chat, chat that is placed on the canvas at the position as a "bubble"
+							const placeMessage = document.createElement("placechat")
+							placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};"></span> ${txt}`
+							placeMessage.style.left = placeX + "px"
+							placeMessage.style.top = placeY + "px"
+							canvparent2.appendChild(placeMessage)
 
-						setTimeout(function() { //Remove message after given time TODO: Make customisable
-							canvparent2.removeChild(placeMessage)
-						}, 5e3);
+							setTimeout(function() { //Remove message after given time TODO: Make customisable
+								canvparent2.removeChild(placeMessage)
+							}, 5e3);
+						}
+						else if (!type || type == 'live') {
+							//Normal chat - goes to live chat panel
+							let newMessage = document.createElement("div")
+							newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
+							let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
+
+							if(name !== localStorage.name && blockedUsers.includes(name)) {
+								newMessage.style.color = "transparent"
+								newMessage.style.textShadow = "0px 0px 6px black"
+							}
+							if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
+								newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
+								if (currentChannel == messageChannel) audios.closePalette.run()
+							}
+							messageChannel = messageChannel || 'en'
+							cMessages[messageChannel].push(newMessage)
+							if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+							if (currentChannel == messageChannel) {
+								chatMessages.insertAdjacentElement("beforeEnd", newMessage)
+							}
+
+							if(chatMessages.children.length>100){
+								chatMessages.children[0].remove()
+							}
+							scroll && chatMessages.scrollTo(0,10e8)
+						}
 					}
-					else if (!type || type == 'live') {
-						//Normal chat - goes to live chat panel
-						let newMessage = document.createElement("div")
-						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
-						let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
-
-						if(name !== localStorage.name && blockedUsers.includes(name)) {
-							newMessage.style.color = "transparent"
-							newMessage.style.textShadow = "0px 0px 6px black"
-						}
-						if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
-							newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
-							if (currentChannel == messageChannel) audios.closePalette.run()
-						}
-						messageChannel = messageChannel || 'en'
-						cMessages[messageChannel].push(newMessage)
-						if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
-						if (currentChannel == messageChannel) {
-							chatMessages.insertAdjacentElement("beforeEnd", newMessage)
-						}
-
-						if(chatMessages.children.length>100){
-							chatMessages.children[0].remove()
-						}
-						scroll && chatMessages.scrollTo(0,10e8)
+					catch(e){
+						console.log(e)
 					}
 				} else if (code == 16) {
 					let type = data.getUint8(1)
