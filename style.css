@@ -520,6 +520,39 @@ a {
 	flex: initial;
 }
 
+#messageTypePanel {
+	padding: 5px;
+	background: white;
+	border: 1px solid lightgray;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	height: 100px;
+	width: 100%;
+	border-radius: 5px 5px 10px 10px;
+}
+
+.messageTypeBtn {
+	width: calc(50% - 10px);
+	margin-bottom: 5px;
+	cursor: pointer;
+	position: absolute;
+	box-shadow: none;
+	border: 1px solid lightgray;
+}
+
+.messageOptions {
+	width: 35px;
+	height: 35px;
+	position: absolute;
+	text-align: center;
+	line-height: 35px;
+	cursor: pointer;
+	font-weight: bolder;
+	border-radius: 10px;
+	box-shadow: 0px 0px 5px gray;
+}
+
 #nameInput {
 	position: absolute;
 	width: calc(100% - 65px);
@@ -876,13 +909,15 @@ placechat {
 	height: 4px;
 	border-radius: 1.5px;
 	font-size: 2px;
-	padding: 0px 1px 1px 1px;
+	padding: 0px 1px 0px 1px;
 	text-align: center;
 	left: 0px;
 	top: 1px;
 	z-index: 3;
 	box-shadow: 0px 0px 1px black; /*TODO: Very laggy, make optionable */
-	transform: translateX(-50%) translateY(-175%);
+	transform: translateX(-50%) translateY(-150%);
+	line-height: 4px;
+	max-width: 65px;
 }
 
 placechat::after {

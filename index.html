@@ -71,6 +71,8 @@
 					
 					if (type == 'place') {
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
+						txt = txt.substring(0, 56)
+
 						const placeMessage = document.createElement("placechat")
 						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}`
 						placeMessage.style.left = placeX + "px"
@@ -79,7 +81,7 @@
 
 						setTimeout(function() { //Remove message after given time TODO: Make customisable
 							canvparent2.removeChild(placeMessage)
-						}, 5e3);
+						}, localStorage.placeChatTime || 5e3)
 					}
 					else if (!type || type == 'live') {
 						//Normal chat - goes to live chat panel
@@ -254,7 +256,7 @@
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)){console.error("ERR: unverified keys in local storage"); window.location.reload(false);}}
+		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)){console.error("ERR: unverified keys in local storage"); window.location.reload(false);}}
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
@@ -433,11 +435,12 @@
 				</ul>
 			</div>
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
-			<div style="display: none; padding: 5px; background: white; border: 1px solid lightgray; position: absolute;bottom: 0px;left: 0px;height: 100px;width: 100%;border-radius: 5px 5px 10px 10px;">
-				<input type="button" style="width: calc(50% - 10px); margin-bottom: 5px;cursor: pointer;left: 5px;position: absolute;box-shadow: none;border: 1px solid lightgray;" value="🫧 Put on canvas">
-				<input type="button" style="width: calc(50% - 10px);cursor: pointer;right: 5px;position: absolute;box-shadow: none;border: 1px solid lightgray;" value="📨 Send in live chat">
+			<div id="messageTypePanel" style="visibility: hidden;">
+				<input type="button" class="messageTypeBtn" style="left: 5px;" value="🫧 Put on canvas">
+				<input type="button" class="messageTypeBtn" style="right: 5px;" value="📨 Send in live chat">
 			</div>
-			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200">
+			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200" style="color: black;">
+			<div class="messageOptions" class="bottom: 10px; right: 10px;" onclick="messageTypePanel.style.visibility = messageTypePanel.style.visibility == 'visible' ? 'hidden' : 'visible';">...</div>			
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
