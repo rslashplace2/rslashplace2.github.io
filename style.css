@@ -873,7 +873,6 @@ up div{
 placechat {
 	background: white;
 	position: absolute;
-	width: 40px;
 	height: 4px;
 	border-radius: 1.5px;
 	font-size: 2px;
@@ -898,8 +897,6 @@ placechat::after {
 }
 
 placechat span {
-	width: 100%;
-	height: 100%;
 	font-size: 2px;
 	color: green;
 }
