@@ -78,9 +78,9 @@
 						placeMessage.style.top = y + "px"
 						canvparent2.appendChild(placeMessage)
 
-						setTimeout(function() { //Remove message after given time TODO: Make customisable
-							canvparent2.removeChild(placeMessage)
-						}, 5e3);
+						//setTimeout(function() { //Remove message after given time TODO: Make customisable
+						//	canvparent2.removeChild(placeMessage)
+						//}, 5e3);
 					}
 					else if (!type || type == 'live') {
 						//Normal chat - goes to live chat panel
@@ -167,7 +167,14 @@
 					localStorage.vip = message.slice(4)
 					location+=''
 				}
-				call(send, ws, encoder.encode("\x0f" + message + (localStorage.name ? "\n" + localStorage.name : "") + "\n" + currentChannel + "\n" + "live"))
+				call(send, ws, encoder.encode(
+					"\x0f" + message +
+					(localStorage.name ? "\n" + localStorage.name : "") +
+					"\n" + currentChannel +
+					"\n" + "live" +
+					"\n" + 0 +
+					"\n" + 0
+					))
 			}
 			function sendPlaceMsg(message) {
 				call(send, ws, encoder.encode(
@@ -182,12 +189,13 @@
 
 			messageInput.onkeypress = e => {
 				if(e.keyCode == 13) {
+					messageInput.value = ""
+					
 					if (e.shiftKey) { //shift + enter send as place chat, enter send as normal live chat
 						sendPlaceMsg(messageInput.value)
 						return
 					}
 					sendMsg(messageInput.value)
-					messageInput.value = ""
 				}
 			}
 			call(addEventListener, document.body, 'keypress', function(e) {
