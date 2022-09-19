@@ -72,7 +72,7 @@
 					if (type == 'place') {
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
 						const placeMessage = document.createElement("placechat")
-						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};"></span> ${txt}`
+						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}`
 						placeMessage.style.left = placeX + "px"
 						placeMessage.style.top = placeY + "px"
 						canvparent2.appendChild(placeMessage)
