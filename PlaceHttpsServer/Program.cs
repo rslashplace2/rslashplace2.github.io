@@ -121,8 +121,8 @@ app.MapGet("/backuplist", async () =>
 
 app.MapPost("/timelapse", async (TimelapseInformation timelapseInfo) =>
 {
-	var stream = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 500, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
-	return Results.File(stream);
+	var timelapseBytes = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 750, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
+	return Results.File(timelapseBytes);
 });
 
 app.Run();
