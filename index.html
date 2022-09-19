@@ -188,13 +188,11 @@
 
 			messageInput.onkeypress = e => {
 				if(e.keyCode == 13) {
-					if (e.shiftKey) { //shift + enter send as place chat, enter send as normal live chat
-						sendPlaceMsg(messageInput.value)
-						return
-					}
-					sendMsg(messageInput.value)
+					//shift + enter send as place chat, enter send as normal live chat
+					if (e.shiftKey) sendPlaceMsg(messageInput.value)
+					else sendMsg(messageInput.value)
+					messageInput.value = ""
 				}
-				messageInput.value = ""
 			}
 			call(addEventListener, document.body, 'keypress', function(e) {
 				if(!e.isTrusted)return
