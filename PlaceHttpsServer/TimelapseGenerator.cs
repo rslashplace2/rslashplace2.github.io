@@ -20,8 +20,7 @@ internal static class TimelapseGenerator
 
     private static readonly string CurrentDirectory = Directory.GetCurrentDirectory();
 
-    public static async Task<Stream> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)
-    {
+    public static async Task<byte[]> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)    {
         var backups =
             (await File.ReadAllLinesAsync(Path.Join(CurrentDirectory, "backuplist.txt")))
             .TakeWhile(backup => backup != backupEnd)
@@ -51,39 +50,48 @@ internal static class TimelapseGenerator
             }
 
             using var image = new Image<Rgba32>(endX - startX, endY - startY);
-            image.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = (int) (100 / fps);
-            image.Frames.RootFrame.Metadata.GetGifMetadata().ColorTableLength = 32;
+            //image.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = (int) (100 / fps);
+            //image.Frames.RootFrame.Metadata.GetGifMetadata().ColorTableLength = 32;
 
             var board = await File.ReadAllBytesAsync(path);
             var i = sizeX * startY + startX;
+
+                        //Hacky patch to account for canvas extensions
+                        var mySizeX = board.Length switch
+                        {
+                                250000 => 500,
+                                562500 => 750,
+                                _ => 500
+                        };
+                        var myEndX = Math.Clamp(endX, 0, sizeX);
+                        var myStartX = Math.Clamp(startX, 0, sizeX);
             
             while (i < board.Length)
             {
-                image[(i % sizeX) - startX, (i / sizeX) - startY] = Colours[board[i]];
+                image[(i % mySizeX) - myStartX, (i / mySizeX) - startY] = Colours[board[i]];
                 i++;
 
-                if (i % sizeX < endX)
+                if (i % mySizeX < myEndX)
                 {
                     continue; // If we exceed width, go to next row, otherwise continue
                 }
 
-                if (i / sizeX == endY - 1)
+                if (i / mySizeX == endY - 1)
                 {
                     break; // If we exceed end bottom, we are done drawing this
                 }
                 
-                i += sizeX - (endX - startX);
+                i += mySizeX - (myEndX - myStartX);
             }
             
             gif.Frames.AddFrame(image.Frames.RootFrame);
         }
 
-        var memoryStream = new MemoryStream();
+        using var memoryStream = new MemoryStream();
         memoryStream.Seek(0, SeekOrigin.Begin);
         await gif.SaveAsGifAsync(memoryStream);
         await memoryStream.FlushAsync();
-        memoryStream.Position = 0;
         
-        return memoryStream;
+        return memoryStream.ToArray();
     }
 }
