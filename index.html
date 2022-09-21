@@ -258,9 +258,17 @@
 			document.querySelectorAll("#captchaBtn").forEach(item => {
 				item.addEventListener("click", (e) => {
 					call(send, ws, encoder.encode("\x10" + e.target.value)) //0x10 = 16 (hex)
+					
+					document.querySelectorAll("#captchaBtn").forEach(item => { //pointer-events: none;
+						item.style.pointerEvents = "none"
+					})
 				})
 				item.addEventListener("touchend", (e) => {
 					call(send, ws, encoder.encode("\x10" + e.target.value))
+					
+					document.querySelectorAll("#captchaBtn").forEach(item => {
+						item.style.pointerEvents = "none"
+					})
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
