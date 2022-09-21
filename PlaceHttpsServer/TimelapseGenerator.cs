@@ -1,12 +1,20 @@
 //Credit: Optimisations & Refactor by StarlkYT
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using System.Collections.Generic;
+using FFMpegCore;
+using FFMpegCore.Pipes;
+using SkiaSharp;
 
 namespace PlaceHttpsServer;
 
+/// <summary>
+/// Dependencies:
+/// Windows: ffmpeg,
+/// MacOS: ffmpeg, mono-libgdiplus,
+/// Linux: ffmpeg libgdiplus
+/// </summary>
 internal static class TimelapseGenerator
 {
-    private static readonly Rgba32[] Colours =
+    private static readonly SKColor[] Colours =
     {
         new(109, 0, 26), new(190, 0, 57), new(255, 69, 0), new(255, 168, 0),
         new(255, 214, 53), new(255, 248, 184), new(0, 163, 104), new(0, 204, 120),
@@ -17,13 +25,12 @@ internal static class TimelapseGenerator
         new (109, 72, 47), new(156, 105, 38), new(255, 180, 112), new(0, 0, 0),
         new(81, 82, 82), new(137, 141, 144), new(212, 215, 217), new(255, 255, 255)
     };
-
-    private static readonly string CurrentDirectory = Directory.GetCurrentDirectory();
-
-    public static async Task<byte[]> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)    {
-        var backups =
-            (await File.ReadAllLinesAsync(Path.Join(CurrentDirectory, "backuplist.txt")))
-            .TakeWhile(backup => backup != backupEnd)
+    
+    public static async Task<Stream> GenerateTimelapseAsync(string backupStart, string backupEnd, uint fps, int sizeX, int startX, int startY, int endX, int endY, bool reverse)
+    {
+        var backups = Directory.GetFiles(Directory.GetCurrentDirectory())
+            .SkipWhile(backup => Path.GetFileName(backup) != backupStart)
+            .TakeWhile(backup => Path.GetFileName(backup) != backupEnd)
             .ToArray();
 
         if (reverse)
@@ -31,67 +38,60 @@ internal static class TimelapseGenerator
             Array.Reverse(backups);
         }
 
-        using var gif = new Image<Rgba32>(endX - startX, endY - startY);
-        var inRange = false;
-        
-        foreach (var backup in backups)
-        {
-            if (!inRange)
-            {
-                inRange = backup == backupStart;
-                continue;
-            }
-            
-            var path = Path.Join(CurrentDirectory, backup);
+        var frames = new List<SKBitmapFrame>();
 
+        foreach (var path in backups)
+        {
             if (!File.Exists(path))
             {
+                Console.WriteLine("[Error] Failed to find canvas backup @" + path);
                 continue;
             }
 
-            using var image = new Image<Rgba32>(endX - startX, endY - startY);
-            //image.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = (int) (100 / fps);
-            //image.Frames.RootFrame.Metadata.GetGifMetadata().ColorTableLength = 32;
-
+            using var bitmap = new SKBitmap(endX - startX, endY - startY);
             var board = await File.ReadAllBytesAsync(path);
             var i = sizeX * startY + startX;
+            
+            var calculateSizeX = board.Length switch
+            {
+                250000 => 500,
+                562500 => 750,
+                _ => 500
+            };
 
-                        //Hacky patch to account for canvas extensions
-                        var mySizeX = board.Length switch
-                        {
-                                250000 => 500,
-                                562500 => 750,
-                                _ => 500
-                        };
-                        var myEndX = Math.Clamp(endX, 0, sizeX);
-                        var myStartX = Math.Clamp(startX, 0, sizeX);
             
             while (i < board.Length)
             {
-                image[(i % mySizeX) - myStartX, (i / mySizeX) - startY] = Colours[board[i]];
+                bitmap.SetPixel((i % calculateSizeX) - startX, (i / calculateSizeX) - startY, Colours[board[i]]);
                 i++;
 
-                if (i % mySizeX < myEndX)
+                if (i % calculateSizeX < endX)
                 {
                     continue; // If we exceed width, go to next row, otherwise continue
                 }
 
-                if (i / mySizeX == endY - 1)
+                if (i / calculateSizeX == endY - 1)
                 {
                     break; // If we exceed end bottom, we are done drawing this
                 }
                 
-                i += mySizeX - (myEndX - myStartX);
+                i += calculateSizeX - (endX - startX);
             }
-            
-            gif.Frames.AddFrame(image.Frames.RootFrame);
-        }
 
-        using var memoryStream = new MemoryStream();
-        memoryStream.Seek(0, SeekOrigin.Begin);
-        await gif.SaveAsGifAsync(memoryStream);
-        await memoryStream.FlushAsync();
+            using var frame = new SKBitmapFrame(bitmap);
+            frames.Add(frame);
+        }
         
-        return memoryStream.ToArray();
+        var framesSource = new RawVideoPipeSource(frames) { FrameRate = fps };
+        var stream = new MemoryStream();
+        var outSink = new StreamPipeSink(stream);
+        await FFMpegArguments
+            .FromPipeInput(framesSource)
+            .OutputToPipe(outSink, options => options
+                .WithVideoCodec("libvpx-vp9")
+                .ForceFormat("webm"))
+            .ProcessAsynchronously();
+        
+        return stream;
     }
 }
