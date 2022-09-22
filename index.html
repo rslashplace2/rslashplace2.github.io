@@ -916,7 +916,11 @@
 				delete localStorage.board
 				delete localStorage.server
 			}
-			location+=''
+			let queries = location.toString().split('?');
+			if (queries.length > 1)
+				location = location.toString().split('?')[0]
+			else
+				location += ''
 		}
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
