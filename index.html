@@ -916,9 +916,9 @@
 				delete localStorage.board
 				delete localStorage.server
 			}
-			let queries = location.toString().split('?');
+			let queries = location.toString().split('?')
 			if (queries.length > 1)
-				location = location.toString().split('?')[0]
+				location.replace(location.toString().split('?')[0], false)
 			else
 				location += ''
 		}
