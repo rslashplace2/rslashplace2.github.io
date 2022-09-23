@@ -887,6 +887,7 @@ up div{
 	padding: 0 16px;
 	margin-top: 4px;
 	font-size: 16px;
+	min-width: 5px;
 }
 #postInput:hover {
 	background-color: #FFFFFF;
@@ -935,4 +936,22 @@ placechat::after {
 placechat span {
 	font-size: 2px;
 	color: green;
+}
+
+postcopy {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	opacity: 0.7;
+}
+
+postcopy span {
+	width: 132px;
+	height: 24px;
+	position: absolute;
+	right: 48px;
+	top: 50%;
+	transform: translateY(-50%);
+	line-height: 24px;
 }
