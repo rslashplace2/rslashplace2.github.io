@@ -381,7 +381,7 @@
 				<div onclick="switchGameServer()" class="post">
 					<img src="rplace.png">
 					<div><div>Main Canvas</div>2000x2000 (cooldown: 10s)
-						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server.rplace.tk:443&board=https://rplace.tk/place'); this.children[1].style.opacity = '1'; setTimeout(this.children[1].style.opacity = '0', 1000)" title="copy canvas link">
+						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server.rplace.tk:443&board=https://rplace.tk/place'); this.getElementsByTagName('span')[0].style.opacity = '1'; setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)" title="copy canvas link">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" opacity="0.6"><path d="M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z"/></svg>
 							<span style="opacity: 0;">Copied to clipboard!</span>
 						</postcopy>
@@ -390,7 +390,7 @@
 				<div onclick="switchGameServer('server2.rplace.tk:8081/place server2.rplace.tk')" class="post">
 					<img src="rplace2.png">
 					<div><div>2nd Canvas</div>500x750 (cooldown: 800ms)
-						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server2.rplace.tk&board=https://server2.rplace.tk:8081/place'); this.children[1].style.opacity = '1'; setTimeout(this.children[1].style.opacity = '0', 1000)" title="copy canvas link">
+						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server2.rplace.tk&board=https://server2.rplace.tk:8081/place'); this.getElementsByTagName('span')[0].style.opacity = '1'; setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)" title="copy canvas link">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" opacity="0.6"><path d="M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z"/></svg>
 							<span style="opacity: 0;">Copied to clipboard!</span>
 						</postcopy>
