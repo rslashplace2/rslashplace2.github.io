@@ -1,9 +1,5 @@
 using System.Text;
 using PlaceHttpsServer;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Diagnostics;
-using SixLabors.ImageSharp.Memory;
-
 
 var configFile = Path.Join(Directory.GetCurrentDirectory(), "config.txt");
 if (!File.Exists(configFile))
@@ -133,17 +129,5 @@ app.MapPost("/timelapse", async (TimelapseInformation timelapseInfo) =>
         var stream = await TimelapseGenerator.GenerateTimelapseAsync(timelapseInfo.BackupStart, timelapseInfo.BackupEnd, timelapseInfo.Fps, 750, timelapseInfo.StartX, timelapseInfo.StartY, timelapseInfo.EndX, timelapseInfo.EndY, timelapseInfo.Reverse);
         return Results.File(stream);
 });
-
-
-Configuration.Default.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions()
-{
-    MaximumPoolSizeMegabytes = 2048
-});
-Configuration.Default.PreferContiguousImageBuffers = true;
-
-MemoryDiagnostics.UndisposedAllocation += allocationStackTrace =>
-{
-        Console.WriteLine($"Undisposed allocation detected at:{Environment.NewLine}{allocationStackTrace}");
-};
 
 app.Run();
