@@ -7,7 +7,7 @@
 			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
 		}
 		if (q > 0) window.location.reload()
-		if ((new RegExp("^:http://")).test(window.location.href)) window.location.replace("https://rplace.tk", true)
+		//if ((new RegExp("^:http://")).test(window.location.href)) window.location.replace("https://rplace.tk", true)
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
