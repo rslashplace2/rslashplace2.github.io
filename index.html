@@ -272,7 +272,7 @@
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)){console.error("ERR: unverified keys in local storage"); window.location.reload(false);}}
+		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)) { console.error("ERR: unverified keys in local storage"); }}
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
