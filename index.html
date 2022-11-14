@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ontouchstart="if(maincontent.contains(event.target))event.preventDefault()" ontouchend="event.preventDefault()">
+<html lang="en" ontouchstart="if(maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
 		let q = 0;
@@ -14,7 +14,7 @@
 			call(addEventListener, window, 'blur', () => focused = false)
 			call(addEventListener, window, 'focus', () => focused = true)
 			let j = 0;
-                        const cch = call(Array.prototype.slice, contents.children, 1)
+			const cch = call(Array.prototype.slice, contents.children, 1)
 			for(let i of cch){let id = j++; i = i.children[0].children[0];f=(e) => {
 					const vote = i.children[0].getAttribute('d') == d2
 					i.children[0].setAttribute('d',vote ? d1 : d2)
@@ -33,22 +33,30 @@
 				delete sessionStorage.err;
 				data = new DataView(await data.arrayBuffer())
 				let code = data.getUint8(0)
-				if(code == 1){
+				if (code == 0) {
+					//This should give us an array of integers, for each canvas palette colour
+					PALETTE = new Uint32Array(data.buffer.slice(1))
+					generateIndicators()
+					generatePalette()
+				}
+				if(code == 1) {
 					CD = data.getUint32(1) * 1000
 					COOLDOWN = data.getUint32(5)
-				}else if(code == 2){
+				}
+				else if(code == 2) {
 					//run length coding
-					if(!load)load = data
+					if(!load) load = data
 					else runLengthChanges(data, load)
-				}else if(code == 7){
+				}
+				else if(code == 7) {
 					CD = data.getUint32(1) * 1000
 					seti(data.getUint32(5), data.getUint8(9))
-				}else if(code == 6){
+				}
+				else if(code == 6) {
 					let i = 0
-					while(i < data.byteLength - 2){
-						seti(data.getUint32(i += 1), data.getUint8(i += 4))
-					}
-				}else if(code == 3){
+					while(i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
+				}
+				else if(code == 3) {
 					online = data.getUint16(1)
 					onlineCounter.textContent = online
 					onlineCounter2.textContent = online + ' online'
@@ -57,17 +65,18 @@
 						let u = data.getUint32((i << 2) + 3)
 						if(!cch[i])break
 						cch[i].children[0].children[1].u = u
-	                                        cch[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
+	                    cch[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
 						i++
 					}
-				}else if(code == 15){
+				}
+				else if(code == 15) {
 					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if(!(messageChannel in cMessages)) return
 					if(name) name = name.replace(/\W+/g,'').toLowerCase()
 					if(!txt) return
-					txt = txt.replace(/:(.+):/, (_,b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
+					txt = txt.replace(/:(.+):/, (_, b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
 					
 					if (type == 'place') {
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
@@ -79,9 +88,10 @@
 						placeMessage.style.top = placeY + "px"
 						canvparent2.appendChild(placeMessage)
 
-						setTimeout(function() { //Remove message after given time TODO: Make customisable
-							canvparent2.removeChild(placeMessage)
-						}, localStorage.placeChatTime || 5e3)
+						//Remove message after given time. TODO: Make customisable
+						setTimeout(() => {
+							canvparent2.removeChild(placeMessage) 
+						}, localStorage.placeChatTime || 7e3)
 					}
 					else if (!type || type == 'live') {
 						//Normal chat - goes to live chat panel
@@ -109,7 +119,8 @@
 						}
 						scroll && chatMessages.scrollTo(0,10e8)
 					}
-				} else if (code == 16) {
+				}
+				else if (code == 16) {
 					let type = data.getUint8(1)
 					let [dummyEmojis, image] = (decoder.decode(new Uint8Array(data.buffer).slice(2))).split("\n")
 					var dummyArr = dummyEmojis.toString().split(',')
@@ -160,13 +171,17 @@
 				call(send, ws, a)
 			}
 			let pok = document.getElementById('pok')
-			let oclick = e => {if(!e.isTrusted)return;if(pok.classList.contains('enabled')) put(); hideIndicators()}
+			let oclick = e => {
+				if(!e.isTrusted) return
+				if(pok.classList.contains('enabled')) put()
+				hideIndicators()
+			}
 			call(addEventListener, pok, 'click', oclick)
 
 			function sendMsg(message){
 				if((new RegExp("^:vip")).test(message)){
 					localStorage.vip = message.slice(4)
-					location+=''
+					location += ""
 				}
 				call(send, ws, encoder.encode(
 					"\x0f" + message +
@@ -287,7 +302,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=2.1" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=2.2" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2" />
@@ -416,7 +431,7 @@
 					<img src="reddit.png">
 					<div><div>Subreddit</div>500 members yay!</div>
 				</div>
-                       	        <div class="post" onclick="window.open('https://www.reddit.com/r/burdurland/', '_blank')">
+					<div class="post" onclick="window.open('https://www.reddit.com/r/burdurland/', '_blank')">
 					<img src="burdurland.png">
 					<div><div>Burdu<strong style="color: #FF4500">r</strong>land</div>THE CANVAS ARC IS REALLLLL!!!! | ♥️ Canvas 2 @ rplace.tk</div>
 				</div>
@@ -492,7 +507,7 @@
 		</div>
 	</body>
 	<script>
-		let PALETTE = [0xff1a006d,0xff3900be,0xff0045ff,0xff00a8ff,0xff35d6ff,0xffb8f8ff,0xff68a300,0xff78cc00,0xff56ed7e,0xff6f7500,0xffaa9e00,0xffc0cc00,0xffa45024,0xffea9036,0xfff4e951,0xffc13a49,0xffff5c6a,0xffffb394,0xff9f1e81,0xffc04ab4,0xffffabe4,0xff7f10de,0xff8138ff,0xffaa99ff,0xff2f486d,0xff26699c,0xff70b4ff,0xff000000,0xff525251,0xff908d89,0xffd9d7d4,0xffffffff]
+		let PALETTE = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff]
 		let WIDTH = 2000
 		let HEIGHT = 2000
 		let COOLDOWN = 10e3
@@ -734,8 +749,13 @@
 			clientY = Math.floor(y+(clientY-maincontent.offsetHeight/2)/z/50) + 0.5
 			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
 				clientX -= 0.5; clientY -= 0.5
-				if(CD<Date.now())zoomIn(),showPalette()
-				else audios.invalid.run()
+				if(CD < Date.now()) {
+					zoomIn() 
+					showPalette()
+				}
+				else {
+					audios.invalid.run()
+				}
 				return
 			}
 			(CD > Date.now() ? audios.invalid : audios.highlight).run()
@@ -747,14 +767,14 @@
 			},15)
 		}
 		function zoomIn(){
-			if(z >= 0.4)return
+			if(z >= 0.4) return
 			clearInterval(anim)
 			let dz = 0.005
 			anim = setInterval(function(){
 				if(dz < 0.2)dz *= 1.1
 				z *= 1 + dz
 				pos()
-				if(z >= 0.4)clearInterval(anim)
+				if(z >= 0.4) clearInterval(anim)
 			}, 15)
 		}
 		let audios = {
@@ -765,15 +785,18 @@
 			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
 			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
 		}
-		HTMLAudioElement.prototype.run = Audio.prototype.run = async function(){
-			if(muted)return
+		HTMLAudioElement.prototype.run = Audio.prototype.run = async function() {
+			if(muted) return
 			this.currentTime = 0
-			this.play().catch(e=>e)
+			this.play().catch(e => e)
 		}
-		let muted = !!+localStorage.muted, unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
-		mutesvg.innerHTML=muted?mutedhtml:unmutedhtml
-		let CD = Infinity
+		let muted = !! + localStorage.muted
+		let unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'		let CD = Infinity
 		let onCooldown = false
+		let PEN = -1
+
+		mutesvg.innerHTML = muted ? mutedhtml : unmutedhtml
+
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
 			place.innerHTML = (CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile")
@@ -783,14 +806,17 @@
 				if (!document.hasFocus()) audios.cooldownEnd.run()
 			}
 		}, 300)
-
 		function showPalette(){
 			palette.style.transform = ""
 			audios.highlight.run()
 		}
-		let PEN = -1
-		colors.innerHTML = PALETTE.map((a,i)=>`<div style='background:rgba(${a&255},${(a>>8)&255},${(a>>16)&255},1)${a==0xffffffff?";outline:1px #ddd solid;outline-offset:-1px":""}'><span style="background-color: rgba(255, 255, 255, 0.2); border-radius: 20px; width: 15px; height: 15px; position: absolute; text-align: center; line-height: 1; visibility: hidden;"></span></div>`).join('')
-		colors.onclick = function(e){
+		function generatePalette() {
+			colors.innerHTML = PALETTE.map((a, i) =>
+				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
+			).join("")
+		}
+		generatePalette()
+		colors.onclick = (e) => {
 			let i = [...this.children].indexOf(e.target)
 			if(i<0)return
 			let el = this.children[PEN]
@@ -822,24 +848,26 @@
 			}
 			renderAll()
 			loadingScreen.style.opacity = 0
-			setTimeout(()=>loadingScreen.remove(),300)
-			setTimeout(()=>waitingGame.stop(),300)
+			setTimeout(()=> loadingScreen.remove(), 300)
+			setTimeout(()=> waitingGame.stop(), 300)
 		}
 		let load = false
-		fetch(localStorage.board || 'place').then(a=>a.arrayBuffer()).then(a => {
+		fetch(localStorage.board || 'place')
+		.then(a => a.arrayBuffer()).then(a => {
 			if(load) runLengthChanges(load, a)
 			else load = a
-		}).catch(e => {
+		})
+		.catch(e => {
 			loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 			waitingGame.start()
 		})
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		let online = 1
-		let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
+		let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
 		let extralang = 'fa'
-		if(lang != 'tr' && lang != 'en'){
+		if (lang != 'tr' && lang != 'en') {
 			extralang = lang
 			channelMine.innerText = extralang.toUpperCase()
 		}
@@ -847,22 +875,27 @@
 		let currentChannel = lang
 		switchLanguageChannel(currentChannel)
 		wscapsule()
+
 		function seti(i, b){
 			board[i] = b
 			xa[0] = PALETTE[b]
 			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
 			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
 		}
+
 		function hideIndicators() {
 			for (let c = 0; c < colors.children.length; c++) {
 				colors.children[c].firstChild.style.visibility = "hidden"
 			}
 		}
-		for (let c = 0; c < colors.children.length; c++) {
-			let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
-			let indicator = colors.children[c].firstChild
-			indicator.textContent = keybinds.charAt(c)
+		function generateIndicators() {
+			for (let c = 0; c < colors.children.length; c++) {
+				let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
+				let indicator = colors.children[c].firstChild
+				indicator.textContent = keybinds.charAt(c)
+			}
 		}
+		generateIndicators()
 		let encoder = new TextEncoder(), decoder = new TextDecoder()
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
@@ -881,15 +914,16 @@
 			switch(selected) {
 				case "tr":
 					channelTu.style.opacity = "1"
-					break;
+					break
 				case "en":
 					channelEn.style.opacity = "1"
-					break;
+					break
 				default:
 					channelMine.style.opacity = "1"
-					chatMessages.style.direction = '';
+					chatMessages.style.direction = ''
 			}
-			chatMessages.innerHTML=''; for(const el of cMessages[selected])chatMessages.appendChild(el)
+			chatMessages.innerHTML= ""
+			for(const el of cMessages[selected]) { chatMessages.appendChild(el) }
 		}
 
 		function chatMentionUser(user) {
@@ -898,7 +932,7 @@
 			messageInput.setRangeText("@" + user, start, end, "end")
 		}
 		const emojiMap = {
-	  	joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸"
+	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸"
 		}
 		messageInput.oninput = () => {
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
@@ -916,13 +950,14 @@
 		}
 
 		function switchGameServer(serverAddress) {
-			if(serverAddress){
+			if(serverAddress) {
 				let [a, b] = serverAddress.split(" ").reverse()
 				if(!b)[b,a]=[a+'/place','server.'+a]
 				a = "wss://" + a
 				b = "https://" + b
 				server(a, b)
-			}else{
+			}
+			else {
 				delete localStorage.board
 				delete localStorage.server
 			}
@@ -930,7 +965,7 @@
 			if (queries.length > 1)
 				location.replace(location.toString().split('?')[0], false)
 			else
-				location += ''
+				location += ""
 		}
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
@@ -1125,7 +1160,8 @@
 			templateImage.style.opacity = overlayInfo.opacity
 			generateOverlayUrl()
 		}
-//TODO: Finish this
+
+		//TODO: Finish this
 		function generateOverlayUrl() {
 			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
@@ -1137,8 +1173,9 @@
 		function onChatContext(e, uname) {
 			e.preventDefault()
 
-			if (chatContext.style.display == "block")
-				hideChatContext();
+			if (chatContext.style.display == "block") {
+				hideChatContext()
+			}
 			else {
 				targetedUser = uname
 				chatContext.style.display = 'block'
@@ -1191,10 +1228,12 @@
 			}
 		}
 		verifyWebApp()
-		setTimeout(() => window.connproblems&&(connproblems.style.opacity = 1), 5000)
+
+		setTimeout(() => window.connproblems && (connproblems.style.opacity = 1), 5000)
 		setTimeout(() => {
-			channelTooltip.style.opacity = '0'; channelTooltip.style.display = 'none';
-		}, 0);
+			channelTooltip.style.opacity = '0'
+			channelTooltip.style.display = 'none'
+		}, 0)
 		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 </html>

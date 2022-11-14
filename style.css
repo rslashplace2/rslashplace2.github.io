@@ -1,7 +1,7 @@
 
 * { margin: 0; padding: 0; touch-action: none } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; overflow: hidden; position: absolute }
 
-html{
+html {
 	overscroll-behavior: none;
 	font-size: 14px;
 	font-family: bold;
@@ -9,8 +9,10 @@ html{
 	-webkit-touch-callout: none;
 }
 
-[noselect]{user-select: none;
-	-webkit-user-select: none;}
+[noselect] {
+	user-select: none;
+	-webkit-user-select: none;
+}
 
 body{
 	transition: background-color .3s;
@@ -347,12 +349,14 @@ mute-button{
 	right: 0;
 	z-index: 7;
 }
-#colors{
+
+#colors {
 	padding: 14px 14px 0 14px;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 }
+
 #palette .buttons{
 	display: flex;
 	flex-direction: row;
@@ -392,11 +396,24 @@ mute-button{
 	margin: 2px;
 	cursor: pointer;
 }
+
 #colors div.sel{
 	margin: 0;
 	border: 2px white solid;
 	box-shadow: rgb(0 0 0 / 50%) 0px 4px 10px;
 	box-sizing: content-box;
+}
+
+/*Palette indicators*/
+#colors span {
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	width: 15px;
+	height: 15px;
+	position: absolute;
+	text-align: center;
+	line-height: 1;
+	visibility: hidden;
 }
 
 @media (max-width: 1000px){
