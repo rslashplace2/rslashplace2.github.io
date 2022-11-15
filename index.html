@@ -818,9 +818,9 @@
 		}
 		generatePalette()
 		colors.onclick = (e) => {
-			let i = [...this.children].indexOf(e.target)
+			let i = [...colors.children].indexOf(e.target)
 			if(i<0)return
-			let el = this.children[PEN]
+			let el = colors.children[PEN]
 			if(el){
 				el.classList.remove('sel')
 			}
