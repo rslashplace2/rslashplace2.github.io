@@ -124,7 +124,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
         p.send(buf) 
         players++
 	p.send(bf)
-        p.send(runLengthChanges()) 
+        p.send(runLengthChanges())
   p.on("error", _=>_) 
   p.on('message', async function(data) { 
                 if(data[0] == 15){ 
