@@ -521,8 +521,8 @@
 		let touch1 = null, touch2 = null, touchmoved = 15;
 		document.body.ontouchstart = function(e){
 			for(let t of e.changedTouches){
-				if(!touch1)touch1 = t, touchmoved = 15
-				else if(!touch2)touch2 = t
+				if(!touch1) touch1 = t, touchmoved = 15
+				else if(!touch2) touch2 = t
 				else [touch1, touch2] = [touch2, t]
 			}
 		}
@@ -532,7 +532,7 @@
 			click = e.button + 1
 		}
 		document.onmouseup = function(e){
-			if(e.target != maincontent && !canvparent2.contains(e.target))return (moved = 3, click = 0)
+			if(e.target != maincontent && !canvparent2.contains(e.target)) return (moved = 3, click = 0)
 			if(moved > 0 && canvparent2.contains(e.target)){
 				clicked(e.clientX, e.clientY)
 			}
@@ -946,14 +946,10 @@
 			}
 		}
 
-		function chatReplyMessage(message) {
-			console.log(message)
-		}
-
 		function switchGameServer(serverAddress) {
 			if(serverAddress) {
 				let [a, b] = serverAddress.split(" ").reverse()
-				if(!b)[b,a]=[a+'/place','server.'+a]
+				if(!b) [b, a] = [a + '/place', 'server.' + a]
 				a = "wss://" + a
 				b = "https://" + b
 				server(a, b)
@@ -967,6 +963,21 @@
 				location.replace(location.toString().split('?')[0], false)
 			else
 				location += ""
+		}
+
+		function server(serverAddress, boardAddress, vip = "", storage = localStorage) {
+			if(!serverAddress) {
+				storage.vip = storage.vvip
+				delete storage.vvip
+				delete storage.server
+				delete storage.board
+				return
+			}
+			
+			storage.vvip = storage.vvip || storage.vip
+			storage.vip = vip
+			storage.server = serverAddress
+			storage.board = boardAddress
 		}
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
@@ -1171,6 +1182,7 @@
 		function blockUser() {
 			blockedUsers.push(targetedUser)
 		}
+		
 		function onChatContext(e, uname) {
 			e.preventDefault()
 
@@ -1235,6 +1247,5 @@
 			channelTooltip.style.opacity = '0'
 			channelTooltip.style.display = 'none'
 		}, 0)
-		let server = (a,b,x='',l=localStorage)=>{if(!a){l.vip=l.vvip;delete l.vvip;delete l.server;delete l.board;return}l.vvip=l.vvip||l.vip;l.vip=x;l.server=a;l.board=b}
 	</script>
 </html>
