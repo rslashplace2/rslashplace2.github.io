@@ -294,6 +294,24 @@ input[type=range]::-webkit-slider-thumb {
 	line-height: 20px;
 	margin: 0px 0px 20px;
 }
+
+#modal-install {
+	height: 40px;
+	background: white;
+	align-self: center;
+	width: 60%;
+	border: 1px solid lightgray;
+	border-radius: 40px;
+	text-align: center;
+	line-height: 40px;
+	cursor: pointer;
+	transition: .1s border;
+}
+
+#modal-install:hover {
+	border: 2px solid #ff4500;
+}
+
 #modal-footer {
 	margin-top: 16px;
 	display: flex;
