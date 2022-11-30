@@ -5,8 +5,7 @@
   "theme_color": "#ff4500",
   "background_color": "#ffffff",
   "display": "fullscreen",
-  "scope": "https://rplace.tk",
-  "start_url": "https://rplace.tk",
+  "start_url": "/",
   "icons": [{
       "src": "favicon.png",
       "type": "image/png",

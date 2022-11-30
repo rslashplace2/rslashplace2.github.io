@@ -2,12 +2,11 @@
 <html lang="en" ontouchstart="if(maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
-		let q = 0;
+		let q = 0
 		for(let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
 		}
-		if (q > 0) window.location.reload()
-		//if ((new RegExp("^:http://")).test(window.location.href)) window.location.replace("https://rplace.tk", true)
+		if (q > 0) window.location.reload()		
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
@@ -19,8 +18,8 @@
 					const vote = i.children[0].getAttribute('d') == d2
 					i.children[0].setAttribute('d',vote ? d1 : d2)
 					i.style.fill=vote?'#ff4500':''
-					const u = vote?++i.nextElementSibling.u:--i.nextElementSibling.u
-					i.nextElementSibling.innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
+					const u = vote ? ++i.nextElementSibling.u : --i.nextElementSibling.u
+					i.nextElementSibling.innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u / 100) / 10 + 'k') : (u < 1e6 ? Math.floor(u / 1000) + 'k' : Math.floor(u / 100e3) / 10 + 'M')
 					if(localStorage.vote & (1 << id) && !(v & (1 << id)))return
 					localStorage.vote |= (1 << id)
 					v |= (1 << id)
@@ -30,7 +29,7 @@
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 			ws.onmessage = async function({data}){
-				delete sessionStorage.err;
+				delete sessionStorage.err
 				data = new DataView(await data.arrayBuffer())
 				let code = data.getUint8(0)
 				if (code == 0) {
@@ -934,14 +933,14 @@
 			messageInput.setRangeText("@" + user, start, end, "end")
 		}
 		const emojiMap = {
-	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸"
+	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", america: "🇺🇸"
 		}
 		messageInput.oninput = () => {
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
 
 			for (const [emojiCode, value] of Object.entries(emojiMap)) {
 				if (messageInput.value.includes(":"+emojiCode+":")) {
-					messageInput.value = messageInput.value.replace(":"+emojiCode+":", value)
+					messageInput.value = messageInput.value.replace(":" + emojiCode + ":", value)
 					messageInput.style.color =  "black"
 				}
 			}
@@ -1073,9 +1072,8 @@
 			tlSelect.style.width = WIDTH + "px"
 			tlSelect.style.height = HEIGHT + "px"
 			
-			//TODO: Replace hard coded fetch url with localstorage board
 			let backups = []
-			fetch('https://server2.rplace.tk:8081/backuplist')
+			fetch(localStorage.board + '/backuplist')
 				.then((response) => response.text())
 				.then((data) => { for (let b of data.split("\n")) backups.push(b)})
 				.then(() => {
@@ -1150,7 +1148,7 @@
 			overlayMenu.opened = true
 		}
 
-		let overlayInfo = {x: 0, y: 0, w: 0, h: 0, opacity: 0.8} //TODO: Useless var, replace with direct access
+		let overlayInfo = { x: 0, y: 0, w: 0, h: 0, opacity: 0.8 } // TODO: Useless var, replace with direct access
 		overlayInput.onchange = () => {
 			if (!overlayInput.files || !overlayInput.files[0]) return
 			templateImage.src = URL.createObjectURL(overlayInput.files[0])
