@@ -367,6 +367,7 @@
 					<icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close>
 				</div>
 				<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
+				<div id="modal-install" onclick="if(pwaPrompter != null) { pwaPrompter.prompt() }">Install rplace.tk web app</div>
 				<div id="modal-footer">
 					<mute-button noselect onclick="muted=!muted;localStorage.muted=+muted;mutesvg.innerHTML=muted?mutedhtml:unmutedhtml"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
 					<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
@@ -1241,6 +1242,13 @@
 			}
 		}
 		verifyWebApp()
+
+		// Prompt user if they want to install site as PWA if they press the modal button
+		let pwaPrompter = null
+		window.addEventListener("beforeinstallprompt", (e) => {
+			e.preventDefault()
+			pwaPrompter = e
+		})
 
 		setTimeout(() => window.connproblems && (connproblems.style.opacity = 1), 5000)
 		setTimeout(() => {
