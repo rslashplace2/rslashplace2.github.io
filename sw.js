@@ -33,12 +33,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(async () => {
         try {
             let res = await fetch(event.request)
-            let cache = await caches.open("cache")
+            let cache = await caches.open("v1")
             cache.put(event.request.url, res.clone())
             return res
         }
         catch(error) {
-            return caches.match(event.request)
+            return caches.match(event.request) || await fetch(event.request)
         }
     })
 })
