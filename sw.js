@@ -30,7 +30,7 @@ self.addEventListener("install", (event) => {
 
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(async function() {
+    /*event.respondWith(async function() {
         try {
             return await fetch(event.request)
         }
@@ -39,5 +39,5 @@ self.addEventListener('fetch', (event) => {
             let cachedResponse = await dataCache.match(event.request)
             if (cachedResponse) return cachedResponse    
         }
-    })
+    })*/
 })
