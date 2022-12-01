@@ -8,6 +8,7 @@
 		}
 		if (q > 0) window.location.reload()		
 		let v = 0
+		if ('serviceWorker' in navigator) navigator.serviceWorker.register("./sw.js") // Register PWA Service worker
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
