@@ -29,11 +29,15 @@ self.addEventListener("install", (event) => {
 })
 
 
-self.addEventListener("fetch", (event) => {
-    event.respondWith(async () => {
-        let dataCache = await caches.open("v1")
-        let cachedResponse = await dataCache.match(event.request)
-        if (cachedResponse) return cachedResponse
-        return await fetch(event.request);
+self.addEventListener('fetch', (event) => {
+    event.respondWith(async function() {
+        try {
+            return await fetch(event.request)
+        }
+        catch(exception) {
+            let dataCache = await caches.open("v1")
+            let cachedResponse = await dataCache.match(event.request)
+            if (cachedResponse) return cachedResponse    
+        }
     })
 })
