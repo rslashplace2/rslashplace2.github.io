@@ -6,6 +6,7 @@
   "background_color": "#ffffff",
   "display": "fullscreen",
   "start_url": "/",
+  "scope": "/",
   "icons": [{
       "src": "favicon.png",
       "type": "image/png",
