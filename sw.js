@@ -29,7 +29,7 @@ self.addEventListener("install", (event) => {
 })
 
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
     event.respondWith(async () => {
         try {
             let res = await fetch(event.request)
