@@ -25,6 +25,87 @@ body{
 	top: 0;
 	background: #333;
 }
+
+select {
+	background-color: white;
+	border-radius: 10px;
+	font-size: 16px;
+	border: 1px solid gray;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	height: 35px;
+	padding: 5px;
+	font-family: bold;
+	color: #747474;
+}
+
+input{
+	-webkit-appearance: none;
+	background: transparent;
+	outline: none;
+	border-top: 2px #333 solid;
+	border-left: 2px #333 solid;
+	border-bottom: 2px #777 solid;
+	border-right: 2px #777 solid;
+	font: unset;
+	color: unset;
+	width: 4rem;
+	border-radius: 0;
+}
+
+input[type=file]::file-selector-button {
+	padding: 4px;
+	border-radius: 5px;
+	background-color: white;
+	border: 0px solid black;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+}
+
+input[type=range]::-moz-range-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+	btn {
+		background: #000;
+		color: white;
+	}
+}
+
+@font-face {
+	font-family: mono;
+	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditMono-Bold.woff2);
+}
+@font-face {
+	font-family: bold;
+	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Bold.woff2);
+}
+@font-face {
+	font-family: reddit;
+	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Regular.woff2);
+}
+
 #maincontent{
 	position: absolute;
 	top: 0;
@@ -81,69 +162,6 @@ btn{
 	transform: scale(1.2) rotate(-10deg);
 }
 
-select {
-	background-color: white;
-	border-radius: 10px;
-	font-size: 16px;
-	border: 1px solid gray;
-	box-shadow: 0 0 10px rgba(0,0,0,0.4);
-	height: 35px;
-	padding: 5px;
-	font-family: bold;
-	color: #747474;
-}
-
-input{
-	-webkit-appearance: none;
-	background: transparent;
-	outline: none;
-	border-top: 2px #333 solid;
-	border-left: 2px #333 solid;
-	border-bottom: 2px #777 solid;
-	border-right: 2px #777 solid;
-	font: unset;
-	color: unset;
-	width: 4rem;
-	border-radius: 0;
-}
-
-input[type=file]::file-selector-button {
-	padding: 4px;
-	border-radius: 5px;
-	background-color: white;
-	border: 0px solid black;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-}
-input[type=range]::-moz-range-thumb {
-	position: relative;
-	-webkit-appearance: none;
-	appearance: none;
-	width: 25px;
-	height: 25px;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	border: 1px solid darkgray;
-	border-radius: 5px;
-	background: white;
-	cursor: pointer;
-}
-
-input[type=range]::-webkit-slider-thumb {
-	position: relative;
-	-webkit-appearance: none;
-	appearance: none;
-	width: 25px;
-	height: 25px;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	border: 1px solid darkgray;
-	border-radius: 5px;
-	background: white;
-	cursor: pointer;
-}
-
-@media (prefers-color-scheme: dark) {
-	btn{background: #000;color: white}
-}
-
 #canvparent1{
 	position: absolute;
 	font-size: 0;
@@ -187,18 +205,6 @@ input[type=range]::-webkit-slider-thumb {
 	left: -144px;
 	transform: scale(0.02) translate(-13px,9px) rotate(3.21deg);
 	z-index: 1;
-}
-@font-face {
-	font-family: mono;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditMono-Bold.woff2);
-}
-@font-face {
-	font-family: bold;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Bold.woff2);
-}
-@font-face {
-	font-family: reddit;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Regular.woff2);
 }
 #posel{
 	position: absolute;
@@ -263,7 +269,8 @@ input[type=range]::-webkit-slider-thumb {
 	z-index: 7;
 	box-sizing: content-box;
 }
-@media (max-width: 499px){
+
+@media (max-width:500px){
 	#modal{
 		padding: 16px;
 		min-width: 200px;
@@ -271,6 +278,7 @@ input[type=range]::-webkit-slider-thumb {
 	}
 	#modal-footer { margin-top: 16px }
 }
+
 #close-btn{
 	width: 20px;
   height: 20px;
