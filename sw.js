@@ -6,9 +6,23 @@ self.addEventListener("install", (event) => {
         .open("v1")
         .then((cache) =>
             cache.addAll([
-            "./index.html",
-            "./styles.css",
-            "./custom_emojis/fan.png",
+            "/index.html",
+            "/style.css",
+            "/custom_emojis/fan.png",
+            "/warning.png",
+            "/timelapse.png",
+            "/rplace2.png",
+            "/rplace.png",
+            "/reddit.png",
+            "/proxy-image.jpg",
+            "/patreon.png",
+            "/news.png",
+            "/live.png",
+            "/hammer-and-wrench.png",
+            "/favicon.png",
+            "/canv.png",
+            "/discord.png",
+            "/burdurland.png",
             ])
         )
     )
