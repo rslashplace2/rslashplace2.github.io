@@ -6,10 +6,9 @@ self.addEventListener("install", (event) => {
         .open("v1")
         .then((cache) =>
             cache.addAll([
-            "/",
-            "/index.html",
-            "/styles.css",
-            "/custom_emojis/fan.png",
+            "./index.html",
+            "./styles.css",
+            "./custom_emojis/fan.png",
             ])
         )
     )
