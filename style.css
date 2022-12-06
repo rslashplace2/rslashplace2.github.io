@@ -530,11 +530,30 @@ mute-button{
 	border-radius: 8px;
 	background-color: white;
 }
+
+/* Captcha buttons container on captcha popup */
+#captchaPopup > div {
+	display: grid;
+	row-gap: 8px;
+	column-gap: 8px;
+	grid-template-columns: auto auto auto auto auto;
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 32px;
+}
+
+/* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
+#captchaPopup > div > input {
+	width: auto !important;
+}
+
 @media screen and (max-width:700px) {
 	#captchaPopup {
 		width: 100%;
 		height: unset;
 	}
+
 	#chatPanel{
 		left: 20px;
 		width: unset;
