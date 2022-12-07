@@ -530,11 +530,43 @@ mute-button{
 	border-radius: 8px;
 	background-color: white;
 }
-@media screen and (max-width:700px) {
+
+/* Captcha buttons container on captcha popup */
+#captchaPopup > div {
+	display: grid;
+	row-gap: 8px;
+	column-gap: 8px;
+	grid-template-columns: auto auto auto auto auto;
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 32px;
+}
+
+/* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
+#captchaPopup > div > input {
+	width: auto;
+}
+
+@media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
 	#captchaPopup {
-		width: 100%;
+		width: calc(100% - 16px);
 		height: unset;
+		padding: 16px;
 	}
+
+	#captchaPopup > div {
+		row-gap: 4px;
+		column-gap: 4px;
+		width: 100%;
+		margin-left: 0px;
+		margin-right: 0px;
+	}
+
+	#captchaPopup > div > input {
+		margin: 0px !important;
+	}	
+
 	#chatPanel{
 		left: 20px;
 		width: unset;
