@@ -546,6 +546,12 @@ mute-button{
 /* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
 #captchaPopup > div > input {
 	width: auto;
+	cursor: pointer;
+	transition: transform cubic-bezier(0.215, 0.610, 0.355, 1) .1s;
+}
+
+#captchaPopup > div > input:hover {
+	transform: scale(1.1);
 }
 
 @media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
@@ -562,10 +568,6 @@ mute-button{
 		margin-left: 0px;
 		margin-right: 0px;
 	}
-
-	#captchaPopup > div > input {
-		margin: 0px !important;
-	}	
 
 	#chatPanel{
 		left: 20px;
@@ -823,15 +825,6 @@ kbd {
 	animation: rainbow-text 5s infinite;
 }
 
-#captchaPopup > div > input {
-	margin-left: 5px;
-	margin-right: 5px;
-	transition: all cubic-bezier(0.215, 0.610, 0.355, 1) .1s;
-}
-#captchaPopup > div > input:hover {
-	cursor: pointer;
-	transform: scale(1.1);
-}
 #capchaImg {
 	display: block;
 	border: 1px solid grey;
