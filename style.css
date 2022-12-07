@@ -545,14 +545,27 @@ mute-button{
 
 /* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
 #captchaPopup > div > input {
-	width: auto !important;
+	width: auto;
 }
 
-@media screen and (max-width:700px) {
+@media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
 	#captchaPopup {
 		width: 100%;
 		height: unset;
+		padding: 16px;
 	}
+
+	#captchaPopup > div {
+		row-gap: 4px;
+		column-gap: 4px;
+		width: 100%;
+		margin-left: 0px;
+		margin-right: 0px;
+	}
+
+	#captchaPopup > div > input {
+		margin: 0px;
+	}	
 
 	#chatPanel{
 		left: 20px;
