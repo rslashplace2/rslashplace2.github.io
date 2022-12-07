@@ -550,7 +550,7 @@ mute-button{
 
 @media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
 	#captchaPopup {
-		width: 100%;
+		width: calc(100% - 16px);
 		height: unset;
 		padding: 16px;
 	}
@@ -564,7 +564,7 @@ mute-button{
 	}
 
 	#captchaPopup > div > input {
-		margin: 0px;
+		margin: 0px !important;
 	}	
 
 	#chatPanel{
