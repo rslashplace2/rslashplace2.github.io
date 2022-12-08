@@ -2,6 +2,29 @@
 <html lang="en" ontouchstart="if(maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
+		const SERVER_OFFLINE_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
+		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
+		const VERIFIED_APP_HASH = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
+
+		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
+		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü.", "Please click the button containing the emoji you see below": "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın" }
+		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> meniu suprapus, <kbd>Shift</kbd>+<kbd>S</kbd> meniu de comutare server." }
+		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "Μενού επικάλυψης <kbd>Shift</kbd>+<kbd>O</kbd>, μενού εναλλαγής διακομιστή <kbd>Shift</kbd>+<kbd>S</kbd>." }
+		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menú superpuesto, <kbd>Shift</kbd>+<kbd>S</kbd> menú de cambio de servidor." }
+		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :", "Change channel:": "Changer de chaîne:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menu superposé, <kbd>Shift</kbd>+<kbd>S</kbd> menu de changement de serveur." }
+	
+	
+		const AUDIOS = {
+			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
+			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
+			selectColor: new Audio('https://hot-potato.reddit.com/media/interactions/select-color.mp3'),
+			closePalette: new Audio('https://hot-potato.reddit.com/media/interactions/close-pallette.mp3'),
+			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
+			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
+		}
+		const EMOJIS = { joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", america: "🇺🇸" }
+	</script>
+	<script>
 		let q = 0
 		for(let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
@@ -13,22 +36,31 @@
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
 			call(addEventListener, window, 'focus', () => focused = true)
-			let j = 0;
+			let j = 0
 			const cch = call(Array.prototype.slice, contents.children, 1)
-			for(let i of cch){let id = j++; i = i.children[0].children[0];f=(e) => {
+
+			for (let i of cch) {
+				let id = j++
+				i = i.children[0].children[0]
+				let applyVote = (e) => {
 					const vote = i.children[0].getAttribute('d') == d2
-					i.children[0].setAttribute('d',vote ? d1 : d2)
-					i.style.fill=vote?'#ff4500':''
+					i.children[0].setAttribute('d', vote ? d1 : d2)
+					i.style.fill = vote ? "#ff4500" : ""
 					const u = vote ? ++i.nextElementSibling.u : --i.nextElementSibling.u
 					i.nextElementSibling.innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u / 100) / 10 + 'k') : (u < 1e6 ? Math.floor(u / 1000) + 'k' : Math.floor(u / 100e3) / 10 + 'M')
-					if(localStorage.vote & (1 << id) && !(v & (1 << id)))return
+					if (localStorage.vote & (1 << id) && !(v & (1 << id))) return
 					localStorage.vote |= (1 << id)
 					v |= (1 << id)
+
 					call(send, ws, new Uint8Array([20, id]))
 				}
-				call(addEventListener, i, 'click', f)}
+
+				call(addEventListener, i, 'click', applyVote)
+			}
+
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
+
 			ws.onmessage = async function({data}){
 				delete sessionStorage.err
 				data = new DataView(await data.arrayBuffer())
@@ -76,7 +108,7 @@
 					if(!(messageChannel in cMessages)) return
 					if(name) name = name.replace(/\W+/g,'').toLowerCase()
 					if(!txt) return
-					txt = txt.replace(/:(.+):/, (_, b) => `<img src="custom_emojis/${b}.png" alt=":${b}:" width="16" height="16">`)
+					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
 					
 					if (type == 'place') {
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
@@ -105,7 +137,7 @@
 						}
 						if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
 							newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
-							if (currentChannel == messageChannel) audios.closePalette.run()
+							if (currentChannel == messageChannel) AUDIOS.closePalette.run()
 						}
 						messageChannel = messageChannel || 'en'
 						cMessages[messageChannel].push(newMessage)
@@ -151,7 +183,7 @@
 				console.error(e)
 				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location+=''
 				else {
-					loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
+					loadingScreen.children[0].src = SERVER_OFFLINE_B64
 					waitingGame.start()
 				}
 			}
@@ -160,13 +192,13 @@
 				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
 				set(Math.floor(x), Math.floor(y), PEN)
 				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
-				audios.cooldownStart.run()
+				AUDIOS.cooldownStart.run()
 				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
 				let a = new DataView(new Uint8Array(6).buffer)
 				a.setUint8(0, 4)
 				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				a.setUint8(5, PEN)
-				PEN=-1
+				PEN = -1
 				localStorage.placed = (localStorage.placed >>> 0) + 1
 				call(send, ws, a)
 			}
@@ -250,14 +282,18 @@
 					el.classList.remove('sel')
 				}
 				PEN = keyIndex;
-				audios.selectColor.run()
+				AUDIOS.selectColor.run()
 				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
 				document.getElementById("colors").children[keyIndex].classList.add('sel')
 				pok.classList.add('enabled')
-				canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+				canvselect.children[0].style.display='none'
+				canvselect.style.outline='8px white solid'
+				canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			})
-			call(addEventListener, document.body, 'touchend', function(e){if(!e.isTrusted)return
-				for(let t of e.changedTouches){
+			call(addEventListener, document.body, 'touchend', function(e){
+				if (!e.isTrusted) return
+				
+				for (let t of e.changedTouches){
 					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
 					else if(touch1 && touch1.identifier == t.identifier){
 						[touch1, touch2] = [touch2, null]
@@ -266,8 +302,18 @@
 							clicked(t.clientX, t.clientY)
 						}
 					}
-					if('value' in e.target)e.target.focus()
-					let target = e.target; while(!target.dispatchEvent)target = target.parentElement;if(target == pok){call(oclick, pok,e)}else{if(touchmoved>0)target.dispatchEvent(new MouseEvent('click',{bubbles:true}))}
+					if ('value' in e.target) e.target.focus()
+					
+					let target = e.target
+					while (!target.dispatchEvent) {
+						target = target.parentElement;
+						if (target == pok) {
+							call(oclick, pok,e) 
+						}
+						else {
+							if(touchmoved > 0) target.dispatchEvent(new MouseEvent('click', { bubbles:true } ))
+						}
+					}
 				}
 			})
 			document.querySelectorAll("#captchaBtn").forEach(item => {
@@ -287,7 +333,7 @@
 				})
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)) { console.error("ERR: unverified keys in local storage"); }}
+		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)) { localStorage.removeItem(key) }}
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
@@ -330,7 +376,7 @@
 					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
 				</div>
 			</div>
-			<div id="place" noselect onclick="if(CD-700<Date.now())zoomIn(),showPalette();else audios.invalid.run()">Connecting...</div>
+			<div id="place" noselect onclick="if(CD - 700 < Date.now()) zoomIn(), showPalette(); else AUDIOS.invalid.run()">Connecting...</div>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
 				<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
@@ -378,7 +424,7 @@
 
 				</div>
 				<div class="buttons">
-					<div class="pcancel" onclick="audios.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
+					<div class="pcancel" onclick="AUDIOS.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
 					<div id="pok" class="pok"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
 				</div>
 			</div>
@@ -515,56 +561,73 @@
 	</script>
 
 	<script>
-		const d1 = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z', d2 = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
+		const d1 = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z',
+			d2 = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
 		let i = +localStorage.vote
-                
-		for(let el = 1; el < contents.children.length; el++) contents.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i&1?'style="fill:#ff4500" ':''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i&1?d1:d2}" fill-rule="evenodd"></path></svg><div>...</div></up>`),i>>=1
-		let touch1 = null, touch2 = null, touchmoved = 15;
-		document.body.ontouchstart = function(e){
-			for(let t of e.changedTouches){
-				if(!touch1) touch1 = t, touchmoved = 15
-				else if(!touch2) touch2 = t
+
+		for (let el = 1; el < contents.children.length; el++) contents.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i&1?'style="fill:#ff4500" ':''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i&1?d1:d2}" fill-rule="evenodd"></path></svg><div>...</div></up>`), i >>= 1
+		let touch1 = null,
+			touch2 = null,
+			touchmoved = 15;
+		document.body.ontouchstart = function(e) {
+			for (let t of e.changedTouches) {
+				if (!touch1) touch1 = t, touchmoved = 15
+				else if (!touch2) touch2 = t
 				else [touch1, touch2] = [touch2, t]
 			}
 		}
 		let moved = 3
-		document.body.onmousedown = function(e){
+		document.body.onmousedown = function(e) {
 			moved = 3
 			click = e.button + 1
 		}
-		document.onmouseup = function(e){
-			if(e.target != maincontent && !canvparent2.contains(e.target)) return (moved = 3, click = 0)
-			if(moved > 0 && canvparent2.contains(e.target)){
+		document.onmouseup = function(e) {
+			if (e.target != maincontent && !canvparent2.contains(e.target)) return (moved = 3, click = 0)
+			if (moved > 0 && canvparent2.contains(e.target)) {
 				clicked(e.clientX, e.clientY)
 			}
 			moved = 3
 			click = 0
 		}
 
-		let arrowkeyDown = {left: false, right: false, up: false, down: false}
+		let arrowkeyDown = {
+			left: false,
+			right: false,
+			up: false,
+			down: false
+		}
 		document.body.onkeydown = function(e) {
 			if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
 				switch (e.keyCode) {
-					case 37: arrowkeyDown.right = true; break //right
-					case 38: arrowkeyDown.up = true; break //up
-					case 39: arrowkeyDown.left = true; break //left
-					case 40: arrowkeyDown.down = true; break //down
+					case 37:
+						arrowkeyDown.right = true;
+						break //right
+					case 38:
+						arrowkeyDown.up = true;
+						break //up
+					case 39:
+						arrowkeyDown.left = true;
+						break //left
+					case 40:
+						arrowkeyDown.down = true;
+						break //down
 				}
-				
+
 				setTimeout(function() {
 					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
 					if (arrowkeyDown.right || arrowkeyDown.up || arrowkeyDown.down || arrowkeyDown.left) return
 					let repeatFunc = setInterval(function() {
-						let x0 = x, y0 = y
-						if (arrowkeyDown.right == true) x0 -= 1 
+						let x0 = x,
+							y0 = y
+						if (arrowkeyDown.right == true) x0 -= 1
 						if (arrowkeyDown.up == true) y0 -= 1
 						if (arrowkeyDown.left == true) x0 += 1
 						if (arrowkeyDown.down == true) y0 += 1
-						
+
 						//If cancelled while we are moving, then stop moving immediately.
 						for (let key of arrowkeyDown) {
 							if (arrowkeyDown[key] == false) {
-								clearInterval(repeatFunc); 
+								clearInterval(repeatFunc);
 								return
 							}
 						}
@@ -581,26 +644,40 @@
 			let i = 10
 			let repeatFunc = setInterval(function() {
 				switch (e.keyCode) { //We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
-					case 37: x -= i / 55; arrowkeyDown.right = true; break //right
-					case 38: y -= i / 55; arrowkeyDown.up = true; break //up
-					case 39: x += i / 55; arrowkeyDown.left = true; break //left
-					case 40: y += i / 55; arrowkeyDown.down = true; break //down
+					case 37:
+						x -= i / 55;
+						arrowkeyDown.right = true;
+						break //right
+					case 38:
+						y -= i / 55;
+						arrowkeyDown.up = true;
+						break //up
+					case 39:
+						x += i / 55;
+						arrowkeyDown.left = true;
+						break //left
+					case 40:
+						y += i / 55;
+						arrowkeyDown.down = true;
+						break //down
 				}
 				pos()
 				i--
-				if(i <= 0) clearInterval(repeatFunc)
+				if (i <= 0) clearInterval(repeatFunc)
 			}, 16)
 		}
 		oncontextmenu = e => e.preventDefault()
-		let selX = 0, selY = 0
+		let selX = 0,
+			selY = 0
 		let c = canvas.getContext('2d')
-		function transform(){
-			canvparent1.style.transform = canvparent2.style.transform = "translate("+(x*z*-50+innerWidth/2)+"px, "+(y*z*-50+maincontent.offsetHeight/2)+"px) scale("+z*50+")"
-			canvselect.style.transform = "translate("+Math.floor(x)+"px, "+Math.floor(y)+"px) scale(0.01)"
+
+		function transform() {
+			canvparent1.style.transform = canvparent2.style.transform = "translate(" + (x * z * -50 + innerWidth / 2) + "px, " + (y * z * -50 + maincontent.offsetHeight / 2) + "px) scale(" + z * 50 + ")"
+			canvselect.style.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px) scale(0.01)"
 			canvas.style.width = z * canvas.width * 50 + "px"
 			canvas.style.height = z * canvas.height * 50 + "px"
-			canvas.style.transform = "translate("+x*z*-50+"px, "+y*z*-50+"px)"
-			canvas.style.imageRendering = z < 1/50/devicePixelRatio ? "initial" : ""
+			canvas.style.transform = "translate(" + x * z * -50 + "px, " + y * z * -50 + "px)"
+			canvas.style.imageRendering = z < 1 / 50 / devicePixelRatio ? "initial" : ""
 		}
 		let x, y, z, board, minZoom;
 
@@ -618,9 +695,12 @@
 				physicsCubes = []
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			},
-			clear: function() { this.context.clearRect(0, 0, this.canvas.width, this.canvas.height) }
+			clear: function() {
+				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			}
 		}
-		function setsize(w, h = w){
+
+		function setsize(w, h = w) {
 			canvas.width = WIDTH = w
 			canvas.height = HEIGHT = h
 			canvparent1.style.width = w + "px"
@@ -629,170 +709,183 @@
 			canvparent2.style.height = h + "px"
 			board = new Uint8Array(w * h).fill(255)
 			let i = board.length
-			x = +localStorage.x || WIDTH/2
-			y = +localStorage.y || HEIGHT/2
+			x = +localStorage.x || WIDTH / 2
+			y = +localStorage.y || HEIGHT / 2
 			z = +localStorage.z || 0.2
-			for(let [k, v] of new URLSearchParams(location.search)){
-				v *= 1; if(v != v)continue
-				switch(k){
-					case 'x': x = v; break
-					case 'y': y = v; break
-					case 'z': z = v; break
-					case 'err': onerror = alert; break
-					case 'debug': break
+			for (let [k, v] of new URLSearchParams(location.search)) {
+				v *= 1
+				if (v != v) continue
+				switch (k) {
+					case 'x':
+						x = v;
+						break
+					case 'y':
+						y = v;
+						break
+					case 'z':
+						z = v;
+						break
+					case 'err':
+						onerror = alert;
+						break
+					case 'debug':
+						break
 				}
 			}
 			onresize()
 		}
-		onresize = function(){
+		onresize = function() {
 			minZoom = Math.min(innerWidth / canvas.width, maincontent.offsetHeight / canvas.height) / 100
 			pos()
 			waitingGame.canvas.width = innerWidth
-      waitingGame.canvas.height = maincontent.offsetHeight
+			waitingGame.canvas.height = maincontent.offsetHeight
 		}
 		let click = false
-		let mx = 0, my = 0;
-		document.body.onmousemove = function(e){
-			if(e.target != maincontent && !canvparent2.contains(e.target))return
+		let mx = 0, my = 0
+		document.body.onmousemove = function(e) {
+			if (e.target != maincontent && !canvparent2.contains(e.target)) return
 			moved--
 			let dx = -(mx - (mx = e.clientX - innerWidth / 2))
 			let dy = -(my - (my = e.clientY - maincontent.offsetHeight / 2))
-			if(dx != dx || dy != dy)return
-			if(click){
+			if (dx != dx || dy != dy) return
+			if (click) {
 				x -= dx / (z * 50)
 				y -= dy / (z * 50)
 				pos()
 				clearInterval(anim)
 			}
 		}
-		document.body.onwheel = function(e){
-			if(e.target != maincontent && !canvparent2.contains(e.target))return
+		document.body.onwheel = function(e) {
+			if (e.target != maincontent && !canvparent2.contains(e.target)) return
 			let d = Math.max(minZoom / z, Math.min(3 ** Math.max(-0.5, Math.min(0.5, e.deltaY * -0.01)), 1 / z))
 			z *= d
 			x += mx * (d - 1) / z / 50
 			y += my * (d - 1) / z / 50
 			pos()
 		}
-		function pos(){
-			if(z < minZoom)z = minZoom
-			if(z > 1)z = 1
+
+		function pos() {
+			if (z < minZoom) z = minZoom
+			if (z > 1) z = 1
 			let right = x - canvas.width + 0.01
 			let left = x
 			let up = y - canvas.height + 0.01
 			let down = y
-			if(right >= left) x = 0
-			else if(right > 0) x -= right
-			else if(left < 0) x -= left
-			if(up >= down) y = 0
-			else if(up > 0) y -= up
-			else if(down < 0) y -= down
+			if (right >= left) x = 0
+			else if (right > 0) x -= right
+			else if (left < 0) x -= left
+			if (up >= down) y = 0
+			else if (up > 0) y -= up
+			else if (down < 0) y -= down
 			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.ceil(z*500)/100}x`
 			localStorage.x = Math.floor(x) + 0.5
 			localStorage.y = Math.floor(y) + 0.5
 			localStorage.z = z
 			transform()
 		}
-		function renderAll(){
+
+		function renderAll() {
 			let img = new ImageData(canvas.width, canvas.height)
 			let data = new Uint32Array(img.data.buffer)
 			let len = board.length
-			for(let i = 0; i < len; i++){
+			for (let i = 0; i < len; i++) {
 				data[i] = PALETTE[board[i]]
 			}
 			c.putImageData(img, 0, 0)
-			c.getImageData(0,0,1,1) //workaround for blank-canvas bug on chrome on M1 chips
+			c.getImageData(0, 0, 1, 1) //workaround for blank-canvas bug on chrome on M1 chips
 		}
 		let xa = new Uint32Array(1)
 		let xb = new Uint8Array(xa.buffer)
-		function set(x, y, b){
+
+		function set(x, y, b) {
 			board[x % canvas.width + (y % canvas.height) * canvas.width] = b
 			xa[0] = PALETTE[b]
 			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
-			c.clearRect(x,y,1,1)
-			c.fillRect(x,y,1,1)
+			c.clearRect(x, y, 1, 1)
+			c.fillRect(x, y, 1, 1)
 		}
 
-		document.body.ontouchmove = e => {for(let t of e.changedTouches){
-			clearInterval(anim)
-			a: if(!touch2 && touch1 && touch1.identifier == t.identifier){
-				touchmoved -= Math.abs(t.clientY - touch1.clientY) + Math.abs(t.clientX - touch1.clientX)
-				if(e.target != maincontent && !canvparent2.contains(e.target))break a
-				x -= (t.clientX - touch1.clientX) / (z * 50)
-				y -= (t.clientY - touch1.clientY) / (z * 50)
-				pos()
-			}else if(touch1 && touch2){
-				if(e.target != maincontent && !canvparent2.contains(e.target))break a
-				let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
-				if(!touch)break a
-				let other = touch == touch1 ? touch2 : touch1
-				x -= (t.clientX - touch.clientX) / (z * 50)
-				y -= (t.clientY - touch.clientY) / (z * 50)
-				touchmoved -= Math.abs(t.clientY - touch.clientY) + Math.abs(t.clientX - touch.clientX)
-				let dx = touch.clientX - other.clientX
-				let dy = touch.clientY - other.clientY
-				let a = dx * dx + dy * dy
-				dx = t.clientX - other.clientX
-				dy = t.clientY - other.clientY
-				a = Math.sqrt((dx * dx + dy * dy) / a)
-				z *= a
-				pos()
+		document.body.ontouchmove = e => {
+			for (let t of e.changedTouches) {
+				clearInterval(anim)
+				a: if (!touch2 && touch1 && touch1.identifier == t.identifier) {
+					touchmoved -= Math.abs(t.clientY - touch1.clientY) + Math.abs(t.clientX - touch1.clientX)
+					if (e.target != maincontent && !canvparent2.contains(e.target)) break a
+					x -= (t.clientX - touch1.clientX) / (z * 50)
+					y -= (t.clientY - touch1.clientY) / (z * 50)
+					pos()
+				}
+				else if (touch1 && touch2) {
+					if (e.target != maincontent && !canvparent2.contains(e.target)) break a
+					let touch = touch1.identifier == t.identifier ? touch1 : (touch2.identifier == t.identifier ? touch2 : null)
+					if (!touch) break a
+					let other = touch == touch1 ? touch2 : touch1
+					x -= (t.clientX - touch.clientX) / (z * 50)
+					y -= (t.clientY - touch.clientY) / (z * 50)
+					touchmoved -= Math.abs(t.clientY - touch.clientY) + Math.abs(t.clientX - touch.clientX)
+					let dx = touch.clientX - other.clientX
+					let dy = touch.clientY - other.clientY
+					let a = dx * dx + dy * dy
+					dx = t.clientX - other.clientX
+					dy = t.clientY - other.clientY
+					a = Math.sqrt((dx * dx + dy * dy) / a)
+					z *= a
+					pos()
+				}
+				if (touch1 && touch1.identifier == t.identifier) touch1 = t
+				else if (touch2 && touch2.identifier == t.identifier) touch2 = t
 			}
-			if(touch1 && touch1.identifier == t.identifier)touch1 = t
-			else if(touch2 && touch2.identifier == t.identifier)touch2 = t
-		}}
+		}
 
 		setsize(WIDTH, HEIGHT)
 		renderAll()
 		let anim = null
-		function clicked(clientX, clientY){
+
+		function clicked(clientX, clientY) {
 			clearInterval(anim)
-			clientX = Math.floor(x+(clientX-innerWidth/2)/z/50) + 0.5
-			clientY = Math.floor(y+(clientY-maincontent.offsetHeight/2)/z/50) + 0.5
-			if(clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5){
-				clientX -= 0.5; clientY -= 0.5
-				if(CD < Date.now()) {
-					zoomIn() 
+			clientX = Math.floor(x + (clientX - innerWidth / 2) / z / 50) + 0.5
+			clientY = Math.floor(y + (clientY - maincontent.offsetHeight / 2) / z / 50) + 0.5
+			if (clientX == Math.floor(x) + 0.5 && clientY == Math.floor(y) + 0.5) {
+				clientX -= 0.5;
+				clientY -= 0.5
+				if (CD < Date.now()) {
+					zoomIn()
 					showPalette()
-				}
-				else {
-					audios.invalid.run()
+				} else {
+					AUDIOS.invalid.run()
 				}
 				return
 			}
-			(CD > Date.now() ? audios.invalid : audios.highlight).run()
-			anim = setInterval(function(){
+			(CD > Date.now() ? AUDIOS.invalid : AUDIOS.highlight).run()
+			anim = setInterval(function() {
 				x += (clientX - x) / 10
 				y += (clientY - y) / 10
 				pos()
-				if(Math.abs(clientX - x) + Math.abs(clientY - y) < 0.1)clearInterval(anim)
-			},15)
-		}
-		function zoomIn(){
-			if(z >= 0.4) return
-			clearInterval(anim)
-			let dz = 0.005
-			anim = setInterval(function(){
-				if(dz < 0.2)dz *= 1.1
-				z *= 1 + dz
-				pos()
-				if(z >= 0.4) clearInterval(anim)
+				if (Math.abs(clientX - x) + Math.abs(clientY - y) < 0.1) clearInterval(anim)
 			}, 15)
 		}
-		let audios = {
-			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
-			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
-			selectColor: new Audio('https://hot-potato.reddit.com/media/interactions/select-color.mp3'),
-			closePalette: new Audio('https://hot-potato.reddit.com/media/interactions/close-pallette.mp3'),
-			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
-			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
+
+		function zoomIn() {
+			if (z >= 0.4) return
+			clearInterval(anim)
+			let dz = 0.005
+			anim = setInterval(function() {
+				if (dz < 0.2) dz *= 1.1
+				z *= 1 + dz
+				pos()
+				if (z >= 0.4) clearInterval(anim)
+			}, 15)
 		}
+
 		HTMLAudioElement.prototype.run = Audio.prototype.run = async function() {
-			if(muted) return
+			if (muted) return
 			this.currentTime = 0
 			this.play().catch(e => e)
 		}
+
 		let muted = localStorage.muted ?? false
-		let unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>', mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
+		let unmutedhtml = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>',
+			mutedhtml = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
 		let onCooldown = false
 		let PEN = -1
 		let CD = Infinity
@@ -802,16 +895,18 @@
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
 			place.innerHTML = (CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile")
-			if(CD > Date.now() && !onCooldown)onCooldown = true
-			if(CD < Date.now() && onCooldown){
+			if (CD > Date.now() && !onCooldown) onCooldown = true
+			if (CD < Date.now() && onCooldown) {
 				onCooldown = false
-				if (!document.hasFocus()) audios.cooldownEnd.run()
+				if (!document.hasFocus()) AUDIOS.cooldownEnd.run()
 			}
 		}, 300)
-		function showPalette(){
+
+		function showPalette() {
 			palette.style.transform = ""
-			audios.highlight.run()
+			AUDIOS.highlight.run()
 		}
+
 		function generatePalette() {
 			colors.innerHTML = PALETTE.map((a, i) =>
 				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
@@ -820,65 +915,70 @@
 		generatePalette()
 		colors.onclick = (e) => {
 			let i = [...colors.children].indexOf(e.target)
-			if(i<0)return
+			if (i < 0) return
 			let el = colors.children[PEN]
-			if(el){
+			if (el) {
 				el.classList.remove('sel')
 			}
 			PEN = i
 			canvselect.style.background = e.target.style.background
 			e.target.classList.add('sel')
 			pok.classList.add('enabled')
-			canvselect.children[0].style.display='none';canvselect.style.outline='8px white solid';canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+			canvselect.children[0].style.display = 'none';
+			canvselect.style.outline = '8px white solid';
+			canvselect.style.boxShadow = '0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			hideIndicators()
-			audios.selectColor.run()
+			AUDIOS.selectColor.run()
 		}
-		function runLengthChanges(data, a){
-			let i = 9, boardI = 0
+
+		function runLengthChanges(data, a) {
+			let i = 9,
+				boardI = 0
 			waitingGame.start()
-			let w = data.getUint32(1), h = data.getUint32(5)
-			if(w != WIDTH || h != HEIGHT)setsize(w, h)
+			let w = data.getUint32(1),
+				h = data.getUint32(5)
+			if (w != WIDTH || h != HEIGHT) setsize(w, h)
 			board = new Uint8Array(a)
-			while(i < data.byteLength){
+			while (i < data.byteLength) {
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
-				if(c == 1)c = data.getUint8(i++)
-				else if(c == 2)c = data.getUint16(i++),i++
-				else if(c == 3)c = data.getUint32(i++),i+=3
+				if (c == 1) c = data.getUint8(i++)
+				else if (c == 2) c = data.getUint16(i++), i++
+				else if (c == 3) c = data.getUint32(i++), i += 3
 				boardI += c
 				board[boardI++] = cell & 63
 			}
 			renderAll()
 			loadingScreen.style.opacity = 0
-			setTimeout(()=> loadingScreen.remove(), 300)
-			setTimeout(()=> waitingGame.stop(), 300)
+			setTimeout(() => loadingScreen.remove(), 300)
+			setTimeout(() => waitingGame.stop(), 300)
 		}
 		let load = false
 		fetch(localStorage.board || 'place')
-		.then(a => a.arrayBuffer()).then(a => {
-			if(load) runLengthChanges(load, a)
-			else load = a
-		})
-		.catch(e => {
-			loadingScreen.children[0].src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
-			waitingGame.start()
-		})
-		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
+			.then(a => a.arrayBuffer()).then(a => {
+				if (load) runLengthChanges(load, a)
+				else load = a
+			})
+			.catch(e => {
+				loadingScreen.children[0].src = SERVER_OFFLINE_B64
+				waitingGame.start()
+			})
 		let online = 1
 		let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
-		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()
+		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
+		let censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
 		let extralang = 'fa'
 		if (lang != 'tr' && lang != 'en') {
 			extralang = lang
 			channelMine.innerText = extralang.toUpperCase()
 		}
-		let cMessages = {[extralang]: [], tr: [], en: []}
+		let cMessages = { [extralang]: [], tr: [], en: [] }
 		let currentChannel = lang
 		switchLanguageChannel(currentChannel)
 		wscapsule()
 
-		function seti(i, b){
+		function seti(i, b) {
 			board[i] = b
 			xa[0] = PALETTE[b]
 			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
@@ -890,6 +990,7 @@
 				colors.children[c].firstChild.style.visibility = "hidden"
 			}
 		}
+
 		function generateIndicators() {
 			for (let c = 0; c < colors.children.length; c++) {
 				let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
@@ -898,10 +999,12 @@
 			}
 		}
 		generateIndicators()
-		let encoder = new TextEncoder(), decoder = new TextDecoder()
+		let encoder = new TextEncoder(),
+			decoder = new TextDecoder()
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
+
 		function setName(name) {
 			localStorage.name = name
 			namePanel.style.visibility = "hidden"
@@ -912,8 +1015,8 @@
 			channelMine.style.opacity = "0.5"
 			channelEn.style.opacity = "0.5"
 			currentChannel = selected
-			chatMessages.style.direction =  "ltr";
-			switch(selected) {
+			chatMessages.style.direction = "ltr";
+			switch (selected) {
 				case "tr":
 					channelTu.style.opacity = "1"
 					break
@@ -924,8 +1027,10 @@
 					channelMine.style.opacity = "1"
 					chatMessages.style.direction = ''
 			}
-			chatMessages.innerHTML= ""
-			for(const el of cMessages[selected]) { chatMessages.appendChild(el) }
+			chatMessages.innerHTML = ""
+			for (const el of cMessages[selected]) {
+				chatMessages.appendChild(el)
+			}
 		}
 
 		function chatMentionUser(user) {
@@ -933,29 +1038,26 @@
 			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
 			messageInput.setRangeText("@" + user, start, end, "end")
 		}
-		const emojiMap = {
-	  		joy: "😂", cool: "😎", sunglasses: "😎", heart: "❤️", moyai: "🗿", bruh: "🗿", turkey: "🇹🇷", skull: "💀", amongus: "ඞ", sus: "ඞ", iran: "🇮🇷", uk: "🇬🇧", usa: "🇺🇸", america: "🇺🇸"
-		}
+
 		messageInput.oninput = () => {
 			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
 
-			for (const [emojiCode, value] of Object.entries(emojiMap)) {
-				if (messageInput.value.includes(":"+emojiCode+":")) {
+			for (const [emojiCode, value] of Object.entries(EMOJIS)) {
+				if (messageInput.value.includes(":" + emojiCode + ":")) {
 					messageInput.value = messageInput.value.replace(":" + emojiCode + ":", value)
-					messageInput.style.color =  "black"
+					messageInput.style.color = "black"
 				}
 			}
 		}
 
 		function switchGameServer(serverAddress) {
-			if(serverAddress) {
+			if (serverAddress) {
 				let [a, b] = serverAddress.split(" ").reverse()
-				if(!b) [b, a] = [a + '/place', 'server.' + a]
+				if (!b)[b, a] = [a + '/place', 'server.' + a]
 				a = "wss://" + a
 				b = "https://" + b
 				server(a, b)
-			}
-			else {
+			} else {
 				delete localStorage.board
 				delete localStorage.server
 			}
@@ -967,14 +1069,14 @@
 		}
 
 		function server(serverAddress, boardAddress, vip = "", storage = localStorage) {
-			if(!serverAddress) {
+			if (!serverAddress) {
 				storage.vip = storage.vvip
 				delete storage.vvip
 				delete storage.server
 				delete storage.board
 				return
 			}
-			
+
 			storage.vvip = storage.vvip || storage.vip
 			storage.vip = vip
 			storage.server = serverAddress
@@ -982,16 +1084,10 @@
 		}
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
-		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
-		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü.", "Please click the button containing the emoji you see below": "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın" }
-		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> meniu suprapus, <kbd>Shift</kbd>+<kbd>S</kbd> meniu de comutare server." }
-		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "Μενού επικάλυψης <kbd>Shift</kbd>+<kbd>O</kbd>, μενού εναλλαγής διακομιστή <kbd>Shift</kbd>+<kbd>S</kbd>." }
-		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menú superpuesto, <kbd>Shift</kbd>+<kbd>S</kbd> menú de cambio de servidor." }
-		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :", "Change channel:": "Changer de chaîne:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menu superposé, <kbd>Shift</kbd>+<kbd>S</kbd> menu de changement de serveur." }
 		function translate(elementArray) {
 			elementArray.forEach(element => {
 				let key = element.innerHTML
-				switch(navigator.language.split('-')[0]) {
+				switch (navigator.language.split('-')[0]) {
 					case "fa": element.innerHTML = TRANSLATIONS_FAS[key] //persian
 					case "tr": element.innerHTML = TRANSLATIONS_TK[key] //turkish
 					case "ro": element.innerHTML = TRANSLATIONS_ROM[key] //romanian
@@ -1002,8 +1098,8 @@
 				}
 			})
 		}
-		translate([liveChatHeader, namePanelHeader, channelTooltip, captchaLabel])
 
+		translate([liveChatHeader, namePanelHeader, channelTooltip, captchaLabel])
 
 		function component(width, height, colour, x, y, type, falling) {
 			this.type = type
@@ -1016,10 +1112,10 @@
 			this.gravity = 0.12
 			this.gravitySpeed = 0
 
-			this.update = function () {
+			this.update = function() {
 				//gravity calculations
 				this.gravitySpeed += this.gravity
-				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed):0
+				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed) : 0
 				this.x += this.speedX
 				//floor
 				var floor = waitingGame.canvas.height - this.height
@@ -1033,7 +1129,8 @@
 				//overlapping
 				physicsCubes.forEach(other => {
 					if (other != this) {
-						let calcH = (this.height + other.height) / 2, calcW = (this.width + other.width)/2
+						let calcH = (this.height + other.height) / 2,
+							calcW = (this.width + other.width) / 2
 						if (Math.abs(this.y - other.y) < calcH && Math.abs(other.x - this.x) < calcW) { //Colliding
 							this.speedY = 0
 							this.gravitySpeed = 0
@@ -1047,9 +1144,10 @@
 				ctx.fillRect(this.x, this.y, this.width, this.height)
 			}
 		}
+
 		function updateGameArea() {
 			waitingGame.clear()
-			physicsCubes.forEach(cube => { cube.update() })
+			physicsCubes.forEach(cube => cube.update())
 		}
 		waitingGame.canvas.onmousedown = function(e) {
 			physicsCubes.push(new component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y)))
@@ -1063,20 +1161,23 @@
 				tlSelect.style.cursor = "default"
 				return
 			}
-            tlSelect.style.left = clamp(e.clientX - tlImage.getBoundingClientRect().left, 0, WIDTH - tlSelect.style.width) + "px"
-            tlSelect.style.top = clamp(e.clientY - tlImage.getBoundingClientRect().top, 0, HEIGHT - tlSelect.style.height) + "px"
+			tlSelect.style.left = clamp(e.clientX - tlImage.getBoundingClientRect().left, 0, WIDTH - tlSelect.style.width) + "px"
+			tlSelect.style.top = clamp(e.clientY - tlImage.getBoundingClientRect().top, 0, HEIGHT - tlSelect.style.height) + "px"
 			tlSelect.style.cursor = "all-scroll"
 		}
+
 		function toggleTlPanel() {
 			timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
 			tlImage.src = canvas.toDataURL('image/png')
 			tlSelect.style.width = WIDTH + "px"
 			tlSelect.style.height = HEIGHT + "px"
-			
+
 			let backups = []
 			fetch(localStorage.board + '/backuplist')
 				.then((response) => response.text())
-				.then((data) => { for (let b of data.split("\n")) backups.push(b)})
+				.then((data) => {
+					for (let b of data.split("\n")) backups.push(b)
+				})
 				.then(() => {
 					VirtualSelect.init({
 						ele: '#tlStartSel',
@@ -1097,44 +1198,51 @@
 			if (!confirm("Important note: There are over 6000 backups of the canvas, with one being made every 15 minutes, long timelapses (ones with a large difference between start and end date) will take a long time to load, or even fail!\n\n\nPress OK to make a timelapse with current settings, or CANCEL to change your options.")) {
 				return;
 			}
-			
+
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
 			tlConfirm.style.pointerEvents = "none"
 			tlTimerStart = Date.now()
 			let tlTimerInterval = setInterval(updateTlTimer, 100)
 
 			let response = await fetch("https://server2.rplace.tk:8081/timelapse/", {
-				method: 'POST',
-				body: JSON.stringify({
-					"backupStart": tlStartSel.value,
-					"backupEnd": tlEndSel.value,
-					"fps": Number(tlFps.value),
-					"startX": 0,
-					"startY": 0,
-					"endX": WIDTH,
-					"endY": HEIGHT,
-					"reverse": tlPlayDir.getAttribute('reverse') == "true"
-				}),
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				}
-			})
-			.then(resp => resp.blob())
-			.then(blob => {
-				const url = window.URL.createObjectURL(blob)
-				const a = document.createElement('a')
-				a.style.display = 'none'
-				a.href = url
-				a.download = 'place_timelapse.gif'
-				document.body.appendChild(a)
-				a.click();
-				tlConfirm.value = "Create"
-				tlConfirm.style.pointerEvents = "auto"
-				clearInterval(tlTimerInterval)
-				tlTimer.innerText = "0.0s"
-			})
-			.catch((e) => {console.log("Timelapse failed, " + e); tlConfirm.value = "Create"; tlConfirm.style.pointerEvents = "auto"; clearInterval(tlTimerInterval); tlTimer.innerText = "0.0s"; })
+					method: 'POST',
+					body: JSON.stringify({
+						"backupStart": tlStartSel.value,
+						"backupEnd": tlEndSel.value,
+						"fps": Number(tlFps.value),
+						"startX": 0,
+						"startY": 0,
+						"endX": WIDTH,
+						"endY": HEIGHT,
+						"reverse": tlPlayDir.getAttribute('reverse') == "true"
+					}),
+					headers: {
+						'Content-type': 'application/json; charset=UTF-8',
+					}
+				})
+				.then(resp => resp.blob())
+				.then(blob => {
+					const url = window.URL.createObjectURL(blob)
+					const a = document.createElement('a')
+					a.style.display = 'none'
+					a.href = url
+					a.download = 'place_timelapse.gif'
+					document.body.appendChild(a)
+					a.click();
+					tlConfirm.value = "Create"
+					tlConfirm.style.pointerEvents = "auto"
+					clearInterval(tlTimerInterval)
+					tlTimer.innerText = "0.0s"
+				})
+				.catch((e) => {
+					console.log("Timelapse failed, " + e);
+					tlConfirm.value = "Create";
+					tlConfirm.style.pointerEvents = "auto";
+					clearInterval(tlTimerInterval);
+					tlTimer.innerText = "0.0s";
+				})
 		}
+
 		function updateTlTimer() {
 			var elapsedTime = Date.now() - tlTimerStart
 			document.getElementById("tlTimer").innerText = ((elapsedTime / 1000).toFixed(3)) + "s"
@@ -1144,6 +1252,7 @@
 			overlayMenu.style.transform = "translateX(-50%) translateY(-330px)"
 			overlayMenu.opened = false
 		}
+
 		function openOverlayMenu() {
 			overlayMenu.style.transform = "translateX(-50%)"
 			overlayMenu.opened = true
@@ -1159,16 +1268,16 @@
 		}
 		overlayX.onchange = () => {
 			overlayInfo.x = Number(overlayX.value)
-			templateImage.style.left = overlayInfo.x+"px"
+			templateImage.style.left = overlayInfo.x + "px"
 			generateOverlayUrl()
 		}
 		overlayY.onchange = () => {
 			overlayInfo.y = Number(overlayY.value)
-			templateImage.style.top = overlayInfo.y+"px"
+			templateImage.style.top = overlayInfo.y + "px"
 			generateOverlayUrl()
 		}
 		overlayOpacity.onchange = () => {
-			overlayInfo.opacity = Number(overlayOpacity.value)/100
+			overlayInfo.opacity = Number(overlayOpacity.value) / 100
 			templateImage.style.opacity = overlayInfo.opacity
 			generateOverlayUrl()
 		}
@@ -1178,18 +1287,19 @@
 			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
 
-		let blockedUsers = [], targetedUser
+		let blockedUsers = [],
+			targetedUser
+
 		function blockUser() {
 			blockedUsers.push(targetedUser)
 		}
-		
+
 		function onChatContext(e, uname) {
 			e.preventDefault()
 
 			if (chatContext.style.display == "block") {
 				hideChatContext()
-			}
-			else {
+			} else {
 				targetedUser = uname
 				chatContext.style.display = 'block'
 				chatContext.children[0].children[0].children[0].textContent = "Mention " + uname
@@ -1200,8 +1310,7 @@
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
 					//Allow user to change their own name
 					chatContext.children[0].children[2].style.display = ''
-				}
-				else {
+				} else {
 					chatContext.children[0].children[1].style.pointerEvents = ''
 					chatContext.children[0].children[1].children[0].style.color = ''
 					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
@@ -1212,6 +1321,7 @@
 				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
 			}
 		}
+
 		function hideChatContext() {
 			chatContext.style.display = "none"
 		}
@@ -1224,8 +1334,7 @@
 			"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		})[location.search]
 		if (redirectLocation) location.replace(redirectLocation)
-		
-		const verifiedAppHash = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
+
 		async function sha256(message) {
 			const msgBuffer = encoder.encode(message) // encode as UTF-8             
 			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
@@ -1236,7 +1345,7 @@
 		async function verifyWebApp() {
 			// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
 			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
-				if (await sha256(window.location.search.slice(1)) === verifiedAppHash) console.log("You are using an official rplace client. Have fun!")
+				if (await sha256(window.location.search.slice(1)) === VERIFIED_APP_HASH) console.log("You are using an official rplace client. Have fun!")
 				else window.location.replace("fakeapp.html")
 			}
 		}
