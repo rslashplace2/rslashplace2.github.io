@@ -104,7 +104,7 @@
 						// and we render board, otherwise, we tell fetch that when it completes, we should go
 						// in non-legacy mode and render the board then.
 						if (load) {
-							board = load
+							board = new Uint8Array(load)
 							renderAll()
 							loadingScreen.style.opacity = 0
 							setTimeout(() => loadingScreen.remove(), 300)
@@ -824,8 +824,7 @@
 		function renderAll() {
 			let img = new ImageData(canvas.width, canvas.height)
 			let data = new Uint32Array(img.data.buffer)
-			let len = board.length
-			for (let i = 0; i < len; i++) {
+			for (let i = 0; i < board.length; i++) {
 				data[i] = PALETTE[board[i]]
 			}
 
@@ -1000,7 +999,7 @@
 				}
 
 				// Non-legacy mode see packet 1
-				board = data
+				board = new Uint8Array(data)
 				renderAll()
 				loadingScreen.style.opacity = 0
 				setTimeout(() => loadingScreen.remove(), 300)
