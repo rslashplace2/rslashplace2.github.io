@@ -92,19 +92,23 @@
 				if(code == 1) {
 					CD = data.getUint32(1) * 1000
 					COOLDOWN = data.getUint32(5)
+
+					// New server packs canvas width and height in code 1
+					if (data.byteLength == 17) {
+						let width = data.getUint32(9)
+						let height = data.getUint32(13)
+
+						setsize(width, height)
+						renderAll()
+						loadingScreen.style.opacity = 0
+						setTimeout(() => loadingScreen.remove(), 300)
+						setTimeout(() => waitingGame.stop(), 300)
+					}
 				}
 				else if(code == 2) {
 					//run length coding
 					if(!load) load = data
 					else runLengthChanges(data, load)
-				}
-				else if(code == 7) {
-					CD = data.getUint32(1) * 1000
-					seti(data.getUint32(5), data.getUint8(9))
-				}
-				else if(code == 6) {
-					let i = 0
-					while(i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
 				}
 				else if(code == 3) {
 					online = data.getUint16(1)
@@ -118,6 +122,14 @@
 	                    cch[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
 						i++
 					}
+				}
+				else if(code == 6) {
+					let i = 0
+					while(i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
+				}
+				else if(code == 7) {
+					CD = data.getUint32(1) * 1000
+					seti(data.getUint32(5), data.getUint8(9))
 				}
 				else if(code == 15) {
 					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
@@ -946,10 +958,8 @@
 
 		function runLengthChanges(data, a) {
 			let i = 9,
-				boardI = 0
-			waitingGame.start()
-			let w = data.getUint32(1),
-				h = data.getUint32(5)
+			boardI = 0
+			let w = data.getUint32(1), h = data.getUint32(5)
 			if (w != WIDTH || h != HEIGHT) setsize(w, h)
 			board = new Uint8Array(a)
 			while (i < data.byteLength) {
@@ -961,18 +971,20 @@
 				boardI += c
 				board[boardI++] = cell & 63
 			}
+
 			renderAll()
 			loadingScreen.style.opacity = 0
 			setTimeout(() => loadingScreen.remove(), 300)
 			setTimeout(() => waitingGame.stop(), 300)
 		}
 		let load = false
-		fetch(localStorage.board || 'place')
-			.then(a => a.arrayBuffer()).then(a => {
-				if (load) runLengthChanges(load, a)
-				else load = a
+		fetch(localStorage.board || "place")
+			.then(data => data.arrayBuffer())
+			.then(data => {
+				if (load) runLengthChanges(load, data)
+				else load = data
 			})
-			.catch(e => {
+			.catch(error => {
 				loadingScreen.children[0].src = SERVER_OFFLINE_B64
 				waitingGame.start()
 			})
@@ -981,8 +993,8 @@
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
 		let censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
-		let extralang = 'fa'
-		if (lang != 'tr' && lang != 'en') {
+		let extralang = "fa"
+		if (lang != "tr" && lang != "en") {
 			extralang = lang
 			channelMine.innerText = extralang.toUpperCase()
 		}
