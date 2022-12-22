@@ -93,16 +93,26 @@
 					CD = data.getUint32(1) * 1000
 					COOLDOWN = data.getUint32(5)
 
-					// New server packs canvas width and height in code 1
+					// New server packs canvas width and height in code 1, making it 17
 					if (data.byteLength == 17) {
 						let width = data.getUint32(9)
 						let height = data.getUint32(13)
 
 						setsize(width, height)
-						renderAll()
-						loadingScreen.style.opacity = 0
-						setTimeout(() => loadingScreen.remove(), 300)
-						setTimeout(() => waitingGame.stop(), 300)
+
+						// If fetch board occurred before this packet, board data is already saved in 'load',
+						// and we render board, otherwise, we tell fetch that when it completes, we should go
+						// in non-legacy mode and render the board then.
+						if (load) {
+							board = load
+							renderAll()
+							loadingScreen.style.opacity = 0
+							setTimeout(() => loadingScreen.remove(), 300)
+							setTimeout(() => waitingGame.stop(), 300)
+							return
+						}
+
+						legacy = false
 					}
 				}
 				else if(code == 2) {
@@ -224,13 +234,13 @@
 				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
 				AUDIOS.cooldownStart.run()
 				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
-				let a = new DataView(new Uint8Array(6).buffer)
-				a.setUint8(0, 4)
-				a.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
-				a.setUint8(5, PEN)
+				let pixelView = new DataView(new Uint8Array(6).buffer)
+				pixelView.setUint8(0, 4)
+				pixelView.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
+				pixelView.setUint8(5, PEN)
 				PEN = -1
 				localStorage.placed = (localStorage.placed >>> 0) + 1
-				call(send, ws, a)
+				call(send, ws, pixelView)
 			}
 			let pok = document.getElementById('pok')
 			let oclick = e => {
@@ -694,9 +704,9 @@
 			}, 16)
 		}
 		oncontextmenu = e => e.preventDefault()
-		let selX = 0,
-			selY = 0
-		let c = canvas.getContext('2d')
+		let selX = 0
+		let selY = 0
+		const canvasCtx = canvas.getContext('2d')
 
 		function transform() {
 			canvparent1.style.transform = canvparent2.style.transform = "translate(" + (x * z * -50 + innerWidth / 2) + "px, " + (y * z * -50 + maincontent.offsetHeight / 2) + "px) scale(" + z * 50 + ")"
@@ -818,8 +828,10 @@
 			for (let i = 0; i < len; i++) {
 				data[i] = PALETTE[board[i]]
 			}
-			c.putImageData(img, 0, 0)
-			c.getImageData(0, 0, 1, 1) //workaround for blank-canvas bug on chrome on M1 chips
+
+			canvasCtx.putImageData(img, 0, 0)
+			// Workaround for blank-canvas bug on chrome on M1 chips
+			canvasCtx.getImageData(0, 0, 1, 1)
 		}
 		let xa = new Uint32Array(1)
 		let xb = new Uint8Array(xa.buffer)
@@ -827,9 +839,9 @@
 		function set(x, y, b) {
 			board[x % canvas.width + (y % canvas.height) * canvas.width] = b
 			xa[0] = PALETTE[b]
-			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
-			c.clearRect(x, y, 1, 1)
-			c.fillRect(x, y, 1, 1)
+			canvasCtx.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
+			canvasCtx.clearRect(x, y, 1, 1)
+			canvasCtx.fillRect(x, y, 1, 1)
 		}
 
 		document.body.ontouchmove = e => {
@@ -977,12 +989,22 @@
 			setTimeout(() => loadingScreen.remove(), 300)
 			setTimeout(() => waitingGame.stop(), 300)
 		}
-		let load = false
+		let load = false, legacy = true
 		fetch(localStorage.board || "place")
 			.then(data => data.arrayBuffer())
 			.then(data => {
-				if (load) runLengthChanges(load, data)
-				else load = data
+				if (legacy) {
+					if (load) runLengthChanges(load, data)
+					else load = data
+					return
+				}
+
+				// Non-legacy mode see packet 1
+				board = data
+				renderAll()
+				loadingScreen.style.opacity = 0
+				setTimeout(() => loadingScreen.remove(), 300)
+				setTimeout(() => waitingGame.stop(), 300)
 			})
 			.catch(error => {
 				loadingScreen.children[0].src = SERVER_OFFLINE_B64
@@ -1006,8 +1028,8 @@
 		function seti(i, b) {
 			board[i] = b
 			xa[0] = PALETTE[b]
-			c.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
-			c.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
+			canvasCtx.fillStyle = "#" + (xb[0] < 16 ? "0" : "") + xb[0].toString(16) + (xb[1] < 16 ? "0" : "") + xb[1].toString(16) + (xb[2] < 16 ? "0" : "") + xb[2].toString(16) + (xb[3] < 16 ? "0" : "") + xb[3].toString(16)
+			canvasCtx.fillRect(i % WIDTH, Math.floor(i / WIDTH), 1, 1)
 		}
 
 		function hideIndicators() {
