@@ -203,8 +203,8 @@
 							break
 						// Emoji captcha
 						case 3:
-							let emojis = (decoder.decode(new Uint8Array(data.buffer).slice(2, 10))).split("\n")
-							let imageData = new Uint8Array(data.buffer).slice(11)
+							let emojis = (decoder.decode(new Uint8Array(data.buffer).slice(2, 12))).split("\n")
+							let imageData = new Uint8Array(data.buffer).slice(13)
 							
 							for (let emoji of emojis) {
 								let el = docment.createElement("input")
