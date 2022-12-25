@@ -190,6 +190,15 @@ btn{
 	left: 50%;
 }
 
+#templateImage {
+	pointer-events: none;
+	position: absolute;
+	transform-origin: top left;
+	image-rendering: pixelated;
+	will-change: transform;
+	z-index: 2;
+}
+
 #canvselect{
 	width: 100px;
 	height: 100px;
@@ -513,9 +522,39 @@ mute-button{
 	transform: translateX(calc(100% + 20px));
 	transition: transform .2s;
 }
+
 #chatPanel.open{
 	transform: translateX(0);
 	box-shadow: 0 0 30px black;
+}
+
+#namePanel {
+	z-index:1;
+	position: absolute;
+	bottom: 0;
+	text-align: center;
+	width: 100%;
+	padding: 10px;
+	background-color: white;
+	border-radius: 15px;
+	height: 120px;
+	left: 0
+}
+
+.channels-options {
+	position: relative;
+	height:30px;
+	width: 150px;
+	border-radius: 20px;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	display: flex;
+	flex-direction: row;
+	margin-right: 15px;
+	cursor: pointer;
+}
+
+.channels-options > span {
+	flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent;
 }
 
 #captchaPopup {
@@ -972,6 +1011,8 @@ up div{
 	border-radius: 0px !important;
 }
 
+
+
 placechat {
 	background: white;
 	position: absolute;
@@ -1024,3 +1065,4 @@ postcopy span {
 	line-height: 24px;
 	transition: 1s opacity;
 }
+

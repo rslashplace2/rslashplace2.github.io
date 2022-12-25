@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ontouchstart="if(maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
+<html lang="en" ontouchstart="if (maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
 	<script>
 		const SERVER_OFFLINE_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
@@ -25,6 +25,7 @@
 			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
 			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
 		}
+
 		const EMOJIS = {
 			joy: "😂",
 			cool: "😎",
@@ -43,13 +44,25 @@
 		}
 	</script>
 	<script>
-		let q = 0
-		for(let [query, val] of new URLSearchParams(location.search)) {
-			if (query == "server" || query == "board") { if (localStorage.getItem(query) != val) q++; localStorage.setItem(query, val) }
+		let queryChanged = false
+
+		for (let [query, val] of new URLSearchParams(location.search)) {
+			if (query == "server" || query == "board") {
+				if (localStorage.getItem(query) == val) continue
+				
+				localStorage.setItem(query, val)
+				queryChanged = true
+			}
 		}
-		if (q > 0) window.location.reload()		
+
+		if (queryChanged)
+			window.location.reload()	
+		
+		// Register PWA Service worker
+		if ('serviceWorker' in navigator)
+			navigator.serviceWorker.register("./sw.js")
+
 		let v = 0
-		if ('serviceWorker' in navigator) navigator.serviceWorker.register("./sw.js") // Register PWA Service worker
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
@@ -89,7 +102,7 @@
 					generateIndicators()
 					generatePalette()
 				}
-				if(code == 1) {
+				if (code == 1) {
 					CD = data.getUint32(1) * 1000
 					COOLDOWN = data.getUint32(5)
 
@@ -115,39 +128,39 @@
 						legacy = false
 					}
 				}
-				else if(code == 2) {
+				else if (code == 2) {
 					//run length coding
-					if(!load) load = data
+					if (!load) load = data
 					else runLengthChanges(data, load)
 				}
-				else if(code == 3) {
+				else if (code == 3) {
 					online = data.getUint16(1)
 					onlineCounter.textContent = online
 					onlineCounter2.textContent = online + ' online'
 					let i = 0
-					while(i < (data.byteLength >> 2)){
+					while (i < (data.byteLength >> 2)){
 						let u = data.getUint32((i << 2) + 3)
-						if(!cch[i])break
+						if (!cch[i])break
 						cch[i].children[0].children[1].u = u
 	                    cch[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
 						i++
 					}
 				}
-				else if(code == 6) {
+				else if (code == 6) {
 					let i = 0
-					while(i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
+					while (i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
 				}
-				else if(code == 7) {
+				else if (code == 7) {
 					CD = data.getUint32(1) * 1000
 					seti(data.getUint32(5), data.getUint8(9))
 				}
-				else if(code == 15) {
+				else if (code == 15) {
 					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
-					if(!(messageChannel in cMessages)) return
-					if(name) name = name.replace(/\W+/g,'').toLowerCase()
-					if(!txt) return
+					if (!(messageChannel in cMessages)) return
+					if (name) name = name.replace(/\W+/g,'').toLowerCase()
+					if (!txt) return
 					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
 					
 					if (type == 'place') {
@@ -171,7 +184,7 @@
 						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 						let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
 
-						if(name !== localStorage.name && blockedUsers.includes(name)) {
+						if (name !== localStorage.name && blockedUsers.includes(name)) {
 							newMessage.style.color = "transparent"
 							newMessage.style.textShadow = "0px 0px 6px black"
 						}
@@ -181,12 +194,12 @@
 						}
 						messageChannel = messageChannel || 'en'
 						cMessages[messageChannel].push(newMessage)
-						if(cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+						if (cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
 						if (currentChannel == messageChannel) {
 							chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 						}
 
-						if(chatMessages.children.length>100){
+						if (chatMessages.children.length > 100){
 							chatMessages.children[0].remove()
 						}
 						scroll && chatMessages.scrollTo(0,10e8)
@@ -217,6 +230,7 @@
 									call(send, ws, encoder.encode("\x10" + event.target.value))
 									captchaOptions.style.pointerEvents = "none"
 								})
+
 								el.addEventListener("touchend", (event) => {
 									call(send, ws, encoder.encode("\x10" + event.target.value))
 									captchaOptions.style.pointerEvents = "none"
@@ -234,23 +248,40 @@
 				}
 			}
 			ws.onclose = (e) => {
-				if(CD != Infinity)return location+=''
+				if (CD != Infinity) {
+					window.location.reload(true)
+				}
+
 				//Something went wrong...
 				CD = 1e100
 				console.error(e)
-				if(e.code == 1006 && !sessionStorage.err)sessionStorage.err='1',location+=''
+				if (e.code == 1006 && !sessionStorage.err) {
+					sessionStorage.err = "1"
+					window.location.reload(true)
+				}
 				else {
 					loadingScreen.children[0].src = SERVER_OFFLINE_B64
 					waitingGame.start()
 				}
 			}
+
 			function put(){
-				if(!focused || CD>Date.now())return
-				canvselect.style.background='';palette.style.transform='translateY(100%)';colors.children[PEN].classList.remove('sel');pok.classList.remove('enabled')
+				if (!focused || CD > Date.now()) {
+					return
+				}
+				
+				canvselect.style.background = ""
+				palette.style.transform = "translateY(100%)"
+				colors.children[PEN].classList.remove("sel")
+
+				pok.classList.remove("enabled")
 				set(Math.floor(x), Math.floor(y), PEN)
-				canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''
+				canvselect.children[0].style.display='block'
+				canvselect.style.outline = ""
+				canvselect.style.boxShadow = ""
 				AUDIOS.cooldownStart.run()
 				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
+
 				let pixelView = new DataView(new Uint8Array(6).buffer)
 				pixelView.setUint8(0, 4)
 				pixelView.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
@@ -259,16 +290,18 @@
 				localStorage.placed = (localStorage.placed >>> 0) + 1
 				call(send, ws, pixelView)
 			}
+
 			let pok = document.getElementById('pok')
+			
 			let oclick = e => {
-				if(!e.isTrusted) return
-				if(pok.classList.contains('enabled')) put()
+				if (!e.isTrusted) return
+				if (pok.classList.contains('enabled')) put()
 				hideIndicators()
 			}
 			call(addEventListener, pok, 'click', oclick)
 
 			function sendMsg(message){
-				if((new RegExp("^:vip")).test(message)){
+				if ((new RegExp("^:vip")).test(message)){
 					localStorage.vip = message.slice(4)
 					location += ""
 				}
@@ -281,6 +314,7 @@
 					"\n" + 0
 				))
 			}
+
 			function sendPlaceMsg(message) {
 				call(send, ws, encoder.encode(
 					"\x0f" + message +
@@ -296,20 +330,23 @@
 				sendPlaceMsg(messageInput.value)
 				messageInput.value = ""
 			}
+
 			messageTypePanel.children[1].onclick = e => {
 				sendMsg(messageInput.value)
 				messageInput.value = ""
 			}
+
 			messageInput.onkeypress = e => {
-				if(e.keyCode == 13) {
+				if (e.keyCode == 13) {
 					//shift + enter send as place chat, enter send as normal live chat
 					if (e.shiftKey) sendPlaceMsg(messageInput.value)
 					else sendMsg(messageInput.value)
 					messageInput.value = ""
 				}
 			}
+
 			call(addEventListener, document.body, 'keypress', function(e) {
-				if(!e.isTrusted)return
+				if (!e.isTrusted)return
 
 				//"Shift+O" to open overlay menu
 				if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
@@ -323,7 +360,7 @@
 				if (e.keyCode == 13 && !('value' in document.activeElement)) call(oclick, pok, e)
 				//Keyboard shortcuts for selecting palette colours
 				let keyIndex = null
-				if(document.activeElement != document.body)return
+				if (document.activeElement != document.body)return
 				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
 				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
 				if (keyIndex == null) return
@@ -333,9 +370,9 @@
 					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
 				}
 				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
-				if(i<0) return
+				if (i<0) return
 				let el = document.getElementById("colors").children[PEN]
-				if(el) {
+				if (el) {
 					el.classList.remove('sel')
 				}
 				PEN = keyIndex;
@@ -343,19 +380,20 @@
 				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
 				document.getElementById("colors").children[keyIndex].classList.add('sel')
 				pok.classList.add('enabled')
-				canvselect.children[0].style.display='none'
-				canvselect.style.outline='8px white solid'
-				canvselect.style.boxShadow='0px 2px 4px 0px rgb(0 0 0 / 50%)'
+				canvselect.children[0].style.display = "none"
+				canvselect.style.outline= "8px white solid"
+				canvselect.style.boxShadow= "0px 2px 4px 0px rgb(0 0 0 / 50%)"
 			})
+
 			call(addEventListener, document.body, 'touchend', function(e){
 				if (!e.isTrusted) return
 				
 				for (let t of e.changedTouches){
-					a: if(touch2 && touch2.identifier == t.identifier)touch2 = null
-					else if(touch1 && touch1.identifier == t.identifier){
+					a: if (touch2 && touch2.identifier == t.identifier)touch2 = null
+					else if (touch1 && touch1.identifier == t.identifier){
 						[touch1, touch2] = [touch2, null]
-						if(touchmoved > 0 && canvparent2.contains(e.target)){
-							if(e.target != maincontent && !canvparent2.contains(e.target))break a
+						if (touchmoved > 0 && canvparent2.contains(e.target)){
+							if (e.target != maincontent && !canvparent2.contains(e.target))break a
 							clicked(t.clientX, t.clientY)
 						}
 					}
@@ -368,13 +406,14 @@
 							call(oclick, pok,e) 
 						}
 						else {
-							if(touchmoved > 0) target.dispatchEvent(new MouseEvent('click', { bubbles:true } ))
+							if (touchmoved > 0) target.dispatchEvent(new MouseEvent('click', { bubbles:true } ))
 						}
 					}
 				}
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vvip", "vote", "x", "y", "z", "placeChatTime"]; for (const [key, value] of Object.entries({ ...localStorage })){if (!verifiedKeys.includes(key)) { localStorage.removeItem(key) }}
+		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vip2", "vote", "x", "y", "z", "placeChatTime"]
+		for (const [key, value] of Object.entries({ ...localStorage })) { if (!verifiedKeys.includes(key)) { localStorage.removeItem(key) }}
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
@@ -407,7 +446,11 @@
 			<div id="posel" noselect>(0,0) 2.5x</div>
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
 				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Overlay:</h2>
-				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>
 				<br><br>
 				<input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
 				<input id="overlayX" value="" type="number" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
@@ -417,14 +460,23 @@
 					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
 				</div>
 			</div>
-			<div id="place" noselect onclick="if(CD - 700 < Date.now()) zoomIn(), showPalette(); else AUDIOS.invalid.run()">Connecting...</div>
+			<div id="place" noselect onclick="
+				if (CD - 700 < Date.now()) {
+					zoomIn()
+					showPalette()
+				}
+				else
+					AUDIOS.invalid.run()
+			">Connecting...</div>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
 				<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
 			</div>
 			<div id="canvparent2" noselect>
-				<div id="canvselect"> <svg fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" height="120%" width="120%" style="position: absolute;top: -10%;left: -10%;"> <g stroke-opacity=".6" stroke-width="2"> <g stroke="#000"> <path d="m3 9v-6h6"></path> <path d="m14.9999 3h6v6"></path> <path d="m20.9999 15.0001v6h-6"></path> <path d="m9 21.0001h-6v-6"></path> </g> <path d="m1 9v-8h8" stroke="#fff"></path> <path d="m15 1h8v8" stroke="#fff"></path> <path d="m23 15v8h-8" stroke="#fff"></path> <path d="m9 23h-8v-8" stroke="#fff"></path> </g> </svg> </div>
-				<img id="templateImage" width="auto" height="auto" style="pointer-events: none; position: absolute; transform-origin: top left; image-rendering: pixelated; will-change: transform; z-index: 2;" ondrag="return"/>
+				<div id="canvselect">
+					<img src="svg/pixel-select.svg" style="position: absolute; top: -10%; left: -10%;">
+				</div>
+				<img id="templateImage" width="auto" height="auto" ondrag="return">
 			</div>
 			<div noselect id="captchaPopup" style="display: none;">
 				<h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1> <br>
@@ -434,33 +486,92 @@
 				<a style="position: absolute; left: 50%; transform: translateX(-50%); white-space: pre;" href=".">(generate new captcha)</a>
 				<div id="captchaOptions"></div>
 			</div>
-			<div id="chat" noselect onclick="chatPanel.classList.add('open')"><svg class="PostFooter__comments-icon-new" viewBox="0 0 16 16" style="width:16px;height:21px" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="M4.00001 0C2.99219 0 2.02564 0.400356 1.31301 1.11299C0.600368 1.82563 0.200012 2.79218 0.200012 3.8V8.6C0.200012 9.60782 0.600368 10.5744 1.31301 11.287C2.02564 11.9996 2.99219 12.4 4.00001 12.4H5.35149L7.5753 14.6238C7.57545 14.624 7.5756 14.6241 7.57575 14.6243C7.81006 14.8586 8.18996 14.8586 8.42428 14.6243L10.6485 12.4H12C13.0078 12.4 13.9744 11.9996 14.687 11.287C15.3997 10.5744 15.8 9.60782 15.8 8.6V3.8C15.8 2.79218 15.3997 1.82563 14.687 1.11299C13.9744 0.400356 13.0078 0 12 0H4.00001ZM8.00001 13.3515L9.97575 11.3757C10.0883 11.2632 10.2409 11.2 10.4 11.2H12C12.6896 11.2 13.3509 10.9261 13.8385 10.4385C14.3261 9.95088 14.6 9.28956 14.6 8.6V3.8C14.6 3.11044 14.3261 2.44912 13.8385 1.96152C13.3509 1.47393 12.6896 1.2 12 1.2H4.00001C3.31045 1.2 2.64913 1.47393 2.16153 1.96152C1.67394 2.44912 1.40001 3.11044 1.40001 3.8V8.6C1.40001 9.28956 1.67394 9.95088 2.16153 10.4385C2.64913 10.9261 3.31045 11.2 4.00001 11.2H5.60001C5.7657 11.2 5.91569 11.2672 6.02427 11.3757C6.02435 11.3758 6.02443 11.3759 6.02452 11.376L8.00001 13.3515Z" fill="inherit" fill-rule="evenodd"></path></svg></div>
-			<div noselect id="helpbtn" onclick="if(modal.style.display == 'flex') { modal.style.display='none'; bg.style.display='none' } else { modal.style.display = 'flex'; bg.style.display='block' }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 .875A9.125 9.125 0 1019.125 10 9.135 9.135 0 0010 .875zm0 17A7.875 7.875 0 1117.875 10 7.884 7.884 0 0110 17.875z"></path><path d="M10.479 13.635a1.085 1.085 0 00-.547-.141 1.035 1.035 0 00-.537.145 1.009 1.009 0 00-.379.388 1.1 1.1 0 00-.137.547 1.018 1.018 0 00.143.533 1.045 1.045 0 00.387.38 1.056 1.056 0 00.536.14 1.076 1.076 0 00.54-.14 1.008 1.008 0 00.387-.385 1.08 1.08 0 00.14-.541 1.05 1.05 0 00-.533-.926zM11.507 5.641a3.213 3.213 0 00-1.425-.309 3.15 3.15 0 00-1.535.368 2.646 2.646 0 00-1.028.974 2.52 2.52 0 00-.363 1.312h1.463a1.172 1.172 0 01.181-.661 1.327 1.327 0 01.516-.468 1.623 1.623 0 011.415-.017 1.212 1.212 0 01.5.431 1.1 1.1 0 01.181.618 1.063 1.063 0 01-.119.5 1.56 1.56 0 01-.3.4 9.531 9.531 0 01-.492.43 6.846 6.846 0 00-.656.585 2.292 2.292 0 00-.431.656 2.206 2.206 0 00-.178.919v.766h1.429v-.793a1.281 1.281 0 01.13-.58 1.824 1.824 0 01.321-.459c.128-.132.3-.3.533-.493a7.691 7.691 0 00.633-.584 2.279 2.279 0 00.41-.622 2.015 2.015 0 00.167-.85A2.262 2.262 0 0012.5 6.5a2.41 2.41 0 00-.993-.859z"></path></svg></div>
-			<div noselect id="closebtn" onclick="bg.style.opacity='0.5'; bg.style.display='block'; messageInput.blur(); chatPanel.classList.remove('open'); document.body.id = 'out'; window.onresize()">...<!--svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg--></div>
+			<div id="chat" noselect onclick="chatPanel.classList.add('open')">
+				<img src="svg/chat.svg" style="width:16px; height:21px">
+			</div>
+			<div noselect id="helpbtn" onclick="
+				if (modal.style.display == 'flex') {
+					modal.style.display = 'none'
+					bg.style.display = 'none'
+				}
+				else {
+					modal.style.display = 'flex'
+					bg.style.display = 'block'
+				}
+			">
+				<img src="svg/help.svg">
+			</div>
+			<div noselect id="closebtn" onclick="
+				bg.style.opacity = '0.5'
+				bg.style.display = 'block'
+				messageInput.blur()
+				chatPanel.classList.remove('open')
+				document.body.id = 'out'
+				window.onresize()
+			">...</div>
 			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
 				<div id="modal" style="display:none"><div id="modal-header">
 					<h2>Place</h2>
-					<icon-close noselect id="close-btn" onclick="modal.style.display='none';bg.style.display='none'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></icon-close>
+					<icon-close noselect id="close-btn" onclick="
+						modal.style.display='none'
+						bg.style.display='none'
+					">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+							<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path>
+						</svg>
+					</icon-close>
 				</div>
 				<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-				<div id="modal-install" onclick="if(pwaPrompter != null) pwaPrompter.prompt()">Install rplace.tk web app</div>
+				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.tk web app</div>
 				<div id="modal-footer">
-					<mute-button noselect onclick="muted =! muted; localStorage.muted =+ muted; mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG"><svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg></mute-button>
+					<mute-button noselect onclick="
+						muted =! muted
+						localStorage.muted =+ muted
+						mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
+					">
+						<svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
+					</mute-button>
 					<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
 				</div>
 			</div>
 			<div id="palette" style="transform: translateY(100%)" noselect>
-				<div id="colors">
-
-				</div>
+				<div id="colors"></div>
 				<div class="buttons">
-					<div class="pcancel" onclick="AUDIOS.closePalette.run();canvselect.style.background='';palette.style.transform='translateY(100%)';if(PEN!=-1){colors.children[PEN].classList.remove('sel');PEN=-1};pok.classList.remove('enabled');canvselect.children[0].style.display='block';canvselect.style.outline='';canvselect.style.boxShadow=''; hideIndicators()"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path></svg></div>
-					<div id="pok" class="pok"><svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20"><path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path></svg></div>
+					<div class="pcancel" onclick="
+						AUDIOS.closePalette.run()
+						canvselect.style.background = ''
+						palette.style.transform = 'translateY(100%)'
+						if (PEN != -1) {
+							colors.children[PEN].classList.remove('sel')
+							PEN = -1
+						}
+						pok.classList.remove('enabled')
+						canvselect.children[0].style.display = 'block'
+						canvselect.style.outline = ''
+						canvselect.style.boxShadow = ''
+						hideIndicators()
+					">
+						<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
+							<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path>
+						</svg>
+					</div>
+					<div id="pok" class="pok">
+						<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
+							<path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path>
+						</svg>
+					</div>
 				</div>
 			</div>
 		</div>
 		<div noselect id="more">
-			<div id="spaceFiller" onclick="if(document.body.id!='out') return; bg.style.opacity='1'; bg.style.display='none'; document.body.id=''; window.onresize()"></div>
+			<div id="spaceFiller" onclick="
+				if (document.body.id != 'out')
+					return
+				bg.style.opacity = '1'
+				bg.style.display = 'none'
+				document.body.id = ''
+				window.onresize()
+			"></div>
 			<div id="contents">
 				<div style="padding-left: 15px;" onclick="window.open('https:\/\/www.reddit.com/r/placetk/submit','_blank')">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="46" width="46"><path style="fill: #d7dfe2;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"/></svg>
@@ -473,20 +584,31 @@
 				<div onclick="switchGameServer()" class="post">
 					<img src="rplace.png">
 					<div><div>Main Canvas</div>2000x2000 (cooldown: 10s)
-						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server.rplace.tk:443&board=https://rplace.tk/place'); this.getElementsByTagName('span')[0].style.opacity = '1'; setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)" title="copy canvas link">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" opacity="0.6"><path d="M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z"/></svg>
+						<postcopy onclick="
+							event.stopPropagation()
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/rplace.tk/place')
+							this.getElementsByTagName('span')[0].style.opacity = '1'
+							setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)
+						" title="copy canvas link">
+							<img src="svg/clipboard.svg">
 							<span style="opacity: 0;">Copied to clipboard!</span>
 						</postcopy>
 					</div>
 				</div>
 				<div onclick="switchGameServer('server.poemanthology.org:8081/place server.poemanthology.org')" class="post">
 					<img src="rplace2.png">
-					<div><div>2nd Canvas</div>500x750 (cooldown: 800ms)
-						<postcopy onclick="event.stopPropagation(); navigator.clipboard.writeText('https://rplace.tk/?server=wss://server.poemanthology.org&board=https://server.poemanthology.org:8081/place'); this.getElementsByTagName('span')[0].style.opacity = '1'; setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)" title="copy canvas link">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" opacity="0.6"><path d="M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z"/></svg>
+					<div>
+						<div>2nd Canvas</div> 500x750 (cooldown: 800ms)
+						<postcopy onclick="
+							event.stopPropagation()
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org&board=https:\/\/server.poemanthology.org:8081/place')
+							this.getElementsByTagName('span')[0].style.opacity = '1'
+							setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)
+						" title="copy canvas link">
+							<img src="svg/clipboard.svg">
 							<span style="opacity: 0;">Copied to clipboard!</span>
 						</postcopy>
-				</div>
+					</div>
 				</div>
 				<div onclick="toggleTlPanel()" class="post">
 					<img src="timelapse.png">
@@ -508,7 +630,7 @@
 					<img src="reddit.png">
 					<div><div>Subreddit</div>500 members yay!</div>
 				</div>
-					<div class="post" onclick="window.open('https://www.reddit.com/r/burdurland/', '_blank')">
+					<div class="post" onclick="window.open('https:\/\/www.reddit.com/r/burdurland/', '_blank')">
 					<img src="burdurland.png">
 					<div><div>Burdu<strong style="color: #FF4500">r</strong>land</div>THE CANVAS ARC IS REALLLLL!!!! | ♥️ Canvas 2 @ rplace.tk</div>
 				</div>
@@ -520,45 +642,83 @@
 					<img src="proxy-image.jpg">
 					<div><div>Moderator shitpost of the Week! - 18/08/2022 00:00</div>Modtools 2 THIS WEEK!!!! :pogchamp:</div>
 				</div>
-			       <div onclick="window.open('https://canv.tk/','_blank')" class="post">
+			       <div onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post">
 					<img src="canv.png">
 					<div><div>Canv.tk</div>Visit our sister site, the proof of concept this site itself was built off, canv.tk here!</div>
 				</div>
 			</div>
 		</div>
 		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'" onclick="chatContext.style.display = 'none'">
-			<div id="namePanel" style="z-index:1;position: absolute; bottom: 0; text-align: center; width: 100%; padding: 10px; background-color: white; border-radius: 15px; height: 120px; left: 0">
+			<div id="namePanel">
 				<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
 				<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
 				<br>
 				<div>
-					<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if(event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
-					<button id="nameSubmit" onclick="setName(nameInput.value || 'anon')"><svg enable-background="new 0 0 55.702 55.702" version="1.1" viewBox="0 0 55.702 55.702" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g fill="limegreen"><path d="M27.851,0C12.494,0,0,12.494,0,27.851s12.494,27.851,27.851,27.851s27.851-12.494,27.851-27.851   C55.701,12.494,43.208,0,27.851,0z M27.851,51.213c-12.882,0-23.362-10.48-23.362-23.363c0-12.882,10.48-23.362,23.362-23.362   s23.362,10.481,23.362,23.363S40.733,51.213,27.851,51.213z"/><path d="m36.729 18.97-13 13.001-4.757-4.757c-0.876-0.877-2.297-0.877-3.173 0-0.877 0.876-0.877 2.297 0 3.173l6.344 6.344c0.438 0.438 1.013 0.658 1.587 0.658s1.148-0.219 1.586-0.658l14.587-14.587c0.876-0.877 0.876-2.297 0-3.174-0.877-0.876-2.297-0.876-3.174 0z"/></g></svg></button>
+					<input id="nameInput" type="text" placeholder="Enter nickname..." onkeypress="if (event.keyCode==13)setName(this.value),this.value=''" maxlength="15">
+					<button id="nameSubmit" onclick="setName(nameInput.value || 'anon')">
+						<img src="svg/green-checkmark.svg">
+					</button>
 				</div>
 			</div>
 			<div style="display: flex; flex-direction: row;" noselect>
 				<h2 id="liveChatHeader" style="flex: 110px 0 0;">Live Chat:</h2>
-				<div style="position: relative; height:30px; width: 150px; border-radius: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.4); display: flex; flex-direction: row; margin-right: 15px; cursor: pointer;">
-					<!-- Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see https://openmoji.org/library/#emoji=1F1EC-1F1E7, https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7, https://openmoji.org/library/emoji-1F1EE-1F1F7/-->
-					<span id="channelMine" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel(extralang)">FAS</span>
-					<span id="channelTu" style="flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent; opacity: 1;" onclick="switchLanguageChannel('tr')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#d22f27" d="M5 17h62v38H5z"/><g fill="#fff" stroke="#fff" stroke-linejoin="round"><path stroke-linecap="round" d="M40.64 33.05l3.052 4.019-4.934-1.532 4.932-1.541-3.046 4.025-.004-4.972"/><path d="M31.29 44.64a8.643 8.643 0 1 1 3.958-16.34 11 11 0 1 0 0 15.38 8.715 8.715 0 0 1-3.958.951z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>TÜ</span>
-					<span id="channelEn" style="flex: auto; line-height: 30px; text-align: center; border-radius: 0px 20px 20px 0px; background-color: transparent; opacity: 0.5;" onclick="switchLanguageChannel('en')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" style="height: 20px; display: inline; top: 5px; position: relative;"><path fill="#1e50a0" d="M5 17h62v38H5z"/><path fill="#fff" d="M40 28.856V32h10.181L67 21.691V17h-7.654L40 28.856z"/><path fill="#d22f27" d="M67 17h0-3.827L40 31.203V32h3.482L67 17.586V17z"/><path fill="#fff" d="M59.347 55H67h0v-4.692L50.182 40H40v3.143L59.347 55z"/><path fill="#d22f27" d="M67 55v-2.347L46.355 40h-4.787l24.474 15H67h0z"/><path fill="#fff" d="M32 43.144V40H21.819L5 50.309V55h7.654L32 43.144z"/><path fill="#d22f27" d="M5 55h0 3.827L32 40.797V40h-3.482L5 54.414V55z"/><path fill="#fff" d="M12.653 17H5h0v4.692L21.818 32H32v-3.143L12.653 17z"/><path fill="#d22f27" d="M5 17v2.347L25.646 32h4.786L5.958 17H5h0z"/><g fill="#fff"><path d="M5 31h62v10H5z"/><path d="M31 17h10v38H31z"/></g><g fill="#d22f27"><path d="M5 33h62v6H5z"/><path d="M33 17h6v38h-6z"/></g><path fill="none" stroke="#000" stroke-linejoin="round" stroke-width="2" d="M5 17h62v38H5z"/></svg>EN</span>
-					<span id="channelTooltip" class="tooltip" onmouseleave="this.click();" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);">Change channel:</span>
+				<div class="channels-options">
+					<!--
+						Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see
+						https://openmoji.org/library/#emoji=1F1EC-1F1E7,
+						https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7,
+						https://openmoji.org/library/emoji-1F1EE-1F1F7/
+					-->
+					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extralang)">FAS</span>
+					<span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
+						<img src="svg/flag-tu.svg" style="height: 20px; display: inline; top: 5px; position: relative;">TÜ
+					</span>
+					<span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
+						<img src="svg/flag-gb.svg" style="height: 20px; display: inline; top: 5px; position: relative;">EN
+					</span>
+					<span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);">Change channel:</span>
 				</div>
-				<div id="onlinepanel" noselect> <p id="onlineCounter">...</p> <svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg> </div>
-				<icon-close noselect="" id="close-btn" onclick="messageInput.blur(); chatPanel.classList.remove('open')" class="active" style="position: absolute; top: 8px; right: 8px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+				<div id="onlinepanel" noselect>
+					<p id="onlineCounter">...</p>
+					<svg id="playerIcon" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="display: inline;">
+						<path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
+					</svg>
+				</div>
+				<icon-close noselect="" id="close-btn" onclick="
+					messageInput.blur()
+					chatPanel.classList.remove('open')
+				" class="active" style="position: absolute; top: 8px; right: 8px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>
 			</div>
 			<div id="chatContext" class="contextMenu" style="display:none">
 				<ul>
-					<li><a onclick="chatMentionUser(targetedUser); chatContext.style.display = 'none';">Mention user</a></li>
-					<li><a onclick="blockUser(); chatContext.style.display = 'none'">Block user</a></li>
-					<!--li onclick="chatContext.style.display = 'none'" style="pointer-events: none;"><a style="color: grey;">Open user channel</a></li-->
-					<li onclick="namePanel.style.visibility='visible'; nameInput.value = targetedUser; chatContext.style.display = 'none'" style="display: none;"><a><em>Change my name</em></a></li>
+					<li><a onclick="
+							chatMentionUser(targetedUser)
+							chatContext.style.display = 'none'
+						">Mention user</a>
+					</li>
+					<li><a onclick="
+							if (blockedUsers.includes(targetedUser))
+								blockedUsers.splice(blockedUsers.indexOf(targetedUser), 1)
+							else blockedUsers.push(targetedUser)
+								chatContext.style.display = 'none'
+						">Block user</a>
+					</li>
+					<li style="display: none;">
+						<a onclick="
+							namePanel.style.visibility = 'visible'
+							nameInput.value = targetedUser
+							chatContext.style.display = 'none'
+						"><em>Change my name</em></a>
+					</li>
 				</ul>
 			</div>
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
 			<div id="messageTypePanel" style="visibility: hidden;">
-				<input  type="button" class="messageTypeBtn" title="shift+enter to quick send" style="left: 5px;" value="🫧 Put on canvas">
+				<input type="button" class="messageTypeBtn" title="shift+enter to quick send" style="left: 5px;" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" title="enter to quick send" style="right: 5px;" value="📨 Send in live chat">
 			</div>
 			<input id="messageInput" type="text" placeholder="Enter message..." enterkeyhint="send" maxlength="200" style="color: black;">
@@ -566,7 +726,11 @@
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
-			<icon-close noselect="" id="close-btn" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active"><path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path></svg></icon-close>
+			<icon-close noselect="" id="close-btn" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+					<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+				</svg>
+			</icon-close>
 			<div style="width: 100%; height: 40%; transform: translateX(-10px); margin: 10px; border: 1px solid gray; border-radius: 2px; overflow: scroll;">
 				<img id="tlImage" style="position: relative;">
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.setAttribute('dragging',  true);" onmouseup="this.setAttribute('dragging', false);" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
@@ -592,10 +756,16 @@
 
 	<script>
 		let i = +localStorage.vote
-		for (let el = 1; el < contents.children.length; el++) contents.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i & 1 ? 'style="fill:#ff4500" ' : ''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i & 1 ? VOTED_SVG : UNVOTED_SVG}" fill-rule="evenodd"></path></svg><div>...</div></up>`), i >>= 1
-		let touch1 = null,
-			touch2 = null,
-			touchmoved = 15;
+
+		for (let el = 1; el < contents.children.length; el++) {
+			contents.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i & 1 ? 'style="fill:#ff4500" ' : ''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i & 1 ? VOTED_SVG : UNVOTED_SVG}" fill-rule="evenodd"></path></svg><div>...</div></up>`)
+			i >>= 1
+		}
+
+		let touch1 = null
+		let touch2 = null
+		let touchmoved = 15
+
 		document.body.ontouchstart = function(e) {
 			for (let t of e.changedTouches) {
 				if (!touch1) touch1 = t, touchmoved = 15
@@ -603,16 +773,22 @@
 				else [touch1, touch2] = [touch2, t]
 			}
 		}
+
 		let moved = 3
+
 		document.body.onmousedown = function(e) {
 			moved = 3
 			click = e.button + 1
 		}
+		
 		document.onmouseup = function(e) {
-			if (e.target != maincontent && !canvparent2.contains(e.target)) return (moved = 3, click = 0)
+			if (e.target != maincontent && !canvparent2.contains(e.target))
+				return (moved = 3, click = 0)
+
 			if (moved > 0 && canvparent2.contains(e.target)) {
 				clicked(e.clientX, e.clientY)
 			}
+
 			moved = 3
 			click = 0
 		}
@@ -622,49 +798,6 @@
 			right: false,
 			up: false,
 			down: false
-		}
-		document.body.onkeydown = function(e) {
-			if (e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40) {
-				switch (e.keyCode) {
-					case 37:
-						arrowkeyDown.right = true;
-						break //right
-					case 38:
-						arrowkeyDown.up = true;
-						break //up
-					case 39:
-						arrowkeyDown.left = true;
-						break //left
-					case 40:
-						arrowkeyDown.down = true;
-						break //down
-				}
-
-				setTimeout(function() {
-					//if it is STILL down after 500ms, and hasn't been cancelled by document body onkeyup (released arrow key), we may continue.
-					if (arrowkeyDown.right || arrowkeyDown.up || arrowkeyDown.down || arrowkeyDown.left) return
-					let repeatFunc = setInterval(function() {
-						let x0 = x,
-							y0 = y
-						if (arrowkeyDown.right == true) x0 -= 1
-						if (arrowkeyDown.up == true) y0 -= 1
-						if (arrowkeyDown.left == true) x0 += 1
-						if (arrowkeyDown.down == true) y0 += 1
-
-						//If cancelled while we are moving, then stop moving immediately.
-						for (let key of arrowkeyDown) {
-							if (arrowkeyDown[key] == false) {
-								clearInterval(repeatFunc);
-								return
-							}
-						}
-						//commit changes to position
-						x = x0
-						y = y0
-						pos()
-					}, 100)
-				}, 500)
-			}
 		}
 
 		document.body.onkeyup = function(e) {
@@ -693,7 +826,11 @@
 				if (i <= 0) clearInterval(repeatFunc)
 			}, 16)
 		}
-		oncontextmenu = e => e.preventDefault()
+
+		oncontextmenu = function(e) {
+			e.preventDefault()
+		}
+
 		let selX = 0
 		let selY = 0
 		const canvasCtx = canvas.getContext('2d')
@@ -706,22 +843,26 @@
 			canvas.style.transform = "translate(" + x * z * -50 + "px, " + y * z * -50 + "px)"
 			canvas.style.imageRendering = z < 1 / 50 / devicePixelRatio ? "initial" : ""
 		}
+
 		let x, y, z, board, minZoom;
 
 		let physicsCubes = []
 		let waitingGame = {
 			canvas: waitingGameCanvas,
+
 			start: function() {
 				this.canvas.width = innerWidth
 				this.canvas.height = innerHeight
 				this.context = this.canvas.getContext("2d")
 				this.interval = setInterval(updateGameArea, 14)
 			},
+
 			stop: function() {
 				clearInterval(this.interval)
 				physicsCubes = []
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			},
+			
 			clear: function() {
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			}
@@ -767,8 +908,11 @@
 			waitingGame.canvas.width = innerWidth
 			waitingGame.canvas.height = maincontent.offsetHeight
 		}
+
 		let click = false
-		let mx = 0, my = 0
+		let mx = 0
+		let my = 0
+
 		document.body.onmousemove = function(e) {
 			if (e.target != maincontent && !canvparent2.contains(e.target)) return
 			moved--
@@ -794,10 +938,12 @@
 		function pos() {
 			if (z < minZoom) z = minZoom
 			if (z > 1) z = 1
+
 			let right = x - canvas.width + 0.01
 			let left = x
 			let up = y - canvas.height + 0.01
 			let down = y
+
 			if (right >= left) x = 0
 			else if (right > 0) x -= right
 			else if (left < 0) x -= left
@@ -822,6 +968,7 @@
 			// Workaround for blank-canvas bug on chrome on M1 chips
 			canvasCtx.getImageData(0, 0, 1, 1)
 		}
+
 		let xa = new Uint32Array(1)
 		let xb = new Uint8Array(xa.buffer)
 
@@ -938,7 +1085,9 @@
 				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
 			).join("")
 		}
+
 		generatePalette()
+
 		colors.onclick = (e) => {
 			let i = [...colors.children].indexOf(e.target)
 			if (i < 0) return
@@ -978,7 +1127,9 @@
 			setTimeout(() => loadingScreen.remove(), 300)
 			setTimeout(() => waitingGame.stop(), 300)
 		}
-		let load = false, legacy = true
+
+		let load = false
+		let legacy = true
 		fetch(localStorage.board || "place")
 			.then(data => data.arrayBuffer())
 			.then(data => {
@@ -999,6 +1150,7 @@
 				loadingScreen.children[0].src = SERVER_OFFLINE_B64
 				waitingGame.start()
 			})
+		
 		let online = 1
 		let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
@@ -1051,7 +1203,8 @@
 			channelMine.style.opacity = "0.5"
 			channelEn.style.opacity = "0.5"
 			currentChannel = selected
-			chatMessages.style.direction = "ltr";
+			chatMessages.style.direction = "ltr"
+
 			switch (selected) {
 				case "tr":
 					channelTu.style.opacity = "1"
@@ -1064,6 +1217,7 @@
 					chatMessages.style.direction = ''
 			}
 			chatMessages.innerHTML = ""
+
 			for (const el of cMessages[selected]) {
 				chatMessages.appendChild(el)
 			}
@@ -1093,7 +1247,8 @@
 				a = "wss://" + a
 				b = "https://" + b
 				server(a, b)
-			} else {
+			}
+			else {
 				delete localStorage.board
 				delete localStorage.server
 			}
@@ -1106,14 +1261,14 @@
 
 		function server(serverAddress, boardAddress, vip = "", storage = localStorage) {
 			if (!serverAddress) {
-				storage.vip = storage.vvip
-				delete storage.vvip
+				storage.vip = storage.vip2
+				delete storage.vip2
 				delete storage.server
 				delete storage.board
 				return
 			}
 
-			storage.vvip = storage.vvip || storage.vip
+			storage.vip2 = storage.vip2 || storage.vip
 			storage.vip = vip
 			storage.server = serverAddress
 			storage.board = boardAddress
@@ -1204,7 +1359,7 @@
 
 		function toggleTlPanel() {
 			timelapsePanel.style.display = timelapsePanel.style.display == 'none' ? 'block' : 'none'
-			tlImage.src = canvas.toDataURL('image/png')
+			tlImage.src = canvas.toDataURL("image/png")
 			tlSelect.style.width = WIDTH + "px"
 			tlSelect.style.height = HEIGHT + "px"
 
@@ -1264,7 +1419,7 @@
 					a.href = url
 					a.download = 'place_timelapse.gif'
 					document.body.appendChild(a)
-					a.click();
+					a.click()
 					tlConfirm.value = "Create"
 					tlConfirm.style.pointerEvents = "auto"
 					clearInterval(tlTimerInterval)
@@ -1302,16 +1457,19 @@
 			templateImage.style.opacity = 0.8
 			generateOverlayUrl()
 		}
+
 		overlayX.onchange = () => {
 			overlayInfo.x = Number(overlayX.value)
 			templateImage.style.left = overlayInfo.x + "px"
 			generateOverlayUrl()
 		}
+
 		overlayY.onchange = () => {
 			overlayInfo.y = Number(overlayY.value)
 			templateImage.style.top = overlayInfo.y + "px"
 			generateOverlayUrl()
 		}
+
 		overlayOpacity.onchange = () => {
 			overlayInfo.opacity = Number(overlayOpacity.value) / 100
 			templateImage.style.opacity = overlayInfo.opacity
@@ -1323,19 +1481,16 @@
 			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
 		}
 
-		let blockedUsers = [],
-			targetedUser
-
-		function blockUser() {
-			blockedUsers.push(targetedUser)
-		}
+		let blockedUsers = []
+		let targetedUser
 
 		function onChatContext(e, uname) {
 			e.preventDefault()
 
 			if (chatContext.style.display == "block") {
 				hideChatContext()
-			} else {
+			}
+			else {
 				targetedUser = uname
 				chatContext.style.display = 'block'
 				chatContext.children[0].children[0].children[0].textContent = "Mention " + uname
@@ -1345,10 +1500,11 @@
 					chatContext.children[0].children[1].children[0].style.color = "grey"
 					chatContext.children[0].children[1].children[0].innerHTML = "Block " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[2].style.display = ''
-				} else {
-					chatContext.children[0].children[1].style.pointerEvents = ''
-					chatContext.children[0].children[1].children[0].style.color = ''
+					chatContext.children[0].children[2].style.display = ""
+				}
+				else {
+					chatContext.children[0].children[1].style.pointerEvents = ""
+					chatContext.children[0].children[1].children[0].style.color = ""
 					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
 					//Allow user to change their own name
 					chatContext.children[0].children[2].style.display = "none"
@@ -1369,15 +1525,17 @@
 			"?github": "https://github.com/rslashplace2",
 			"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		})[location.search]
+
 		if (redirectLocation) location.replace(redirectLocation)
 
 		async function sha256(message) {
 			const msgBuffer = encoder.encode(message) // encode as UTF-8             
-			const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer) // hash the message
+			const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer) // hash the message
 			const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
-			const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('') // convert bytes to hex string
+			const hashHex = hashArray.map(buffer => buffer.toString(16).padStart(2, '0')).join("") // convert bytes to hex string
 			return hashHex
 		}
+
 		async function verifyWebApp() {
 			// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
 			if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
@@ -1394,10 +1552,10 @@
 			pwaPrompter = e
 		})
 
-		setTimeout(() => window.connproblems && (connproblems.style.opacity = 1), 5000)
+		setTimeout(() => connproblems.style.opacity = 1, 5000)
 		setTimeout(() => {
-			channelTooltip.style.opacity = '0'
-			channelTooltip.style.display = 'none'
+			channelTooltip.style.opacity = "0"
+			channelTooltip.style.display = "none"
 		}, 0)
 	</script>
 </html>
