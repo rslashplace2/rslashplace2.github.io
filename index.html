@@ -1138,10 +1138,7 @@
 
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
-			place.innerHTML =
-				(CD >= 1e100 ? (CD == Infinity ?
-					translate("connecting") :
-					'<span style="color:#f50">' + translate("connectingFail") + '</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : placeTile)
+			place.innerHTML = (CD >= 1e100 ? (CD == Infinity ? translate("connecting") : '<span style="color:#f50">' + translate("connectingFail") + '</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : translate("placeTile"))
 			if (CD > Date.now() && !onCooldown) onCooldown = true
 			if (CD < Date.now() && onCooldown) {
 				onCooldown = false
@@ -1628,7 +1625,7 @@
 		setTimeout(() => {
 			connproblems.style.opacity = 1
 		}, 5000)
-		
+
 		setTimeout(() => {
 			channelTooltip.style.opacity = "0"
 			channelTooltip.style.display = "none"
