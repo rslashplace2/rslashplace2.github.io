@@ -10,13 +10,81 @@
 		const VOTED_SVG = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z'
 		const UNVOTED_SVG = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
 
-		const TRANSLATIONS_FAS = { "Connecting...": "در حال وصل شدن", "Could not connect!": "متصل نشد", "Downloading image...": "در حال بارگزاری عکس ها", "Place a tile": "نقاشی کردن", "Donate": "حمایت", "Chat": "چت", "Live Chat:": "چت زنده", "Enter a nickname to continue:": "لطفا نام خود را برای چت کردن وارد کنید", "Change channel:": "تغییر کانال:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "منوی همپوشانی <kbd>Shift</kbd>+<kbd>O</kbd>، منوی سوئیچ سرور <kbd>Shift</kbd>+<kbd>S</kbd>." }
-		const TRANSLATIONS_TK = { "Connecting...": "Bağlanıyor...", "Could not connect!": "Bağlanamadı!", "Downloading image...": "Resim indiriliyor...", "Place a tile": "Bir karo yerleştir", "Donate": "Bağış yap", "Chat": "Sohbet", "Live Chat:": "Canlı sohbet:", "Enter a nickname to continue:": "Devam etmek için bir takma ad girin:", "Change channel:": "Kanalı değiştir:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> bindirme menüsü, <kbd>Shift</kbd>+<kbd>S</kbd> sunucu değiştirme menüsü.", "Please click the button containing the emoji you see below": "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın" }
-		const TRANSLATIONS_ROM = { "Connecting...": "Se conectează...", "Could not connect!": "Nu s-a putut conecta!", "Downloading image...": "Se descarcă imaginea...", "Place a tile": "Pune un pixel", "Donate": "Donează", "Chat": "Conversații", "Live Chat:": "Conversații în direct:", "Enter a nickname to continue:": "Introdu un nume pentru a continua:", "Change channel:": "Schimbați canalul:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> meniu suprapus, <kbd>Shift</kbd>+<kbd>S</kbd> meniu de comutare server." }
-		const TRANSLATIONS_GR = { "Connecting...": "Συνδετικός...", "Could not connect!": "Δεν μπορούσε να συνδεθεί!", "Downloading image...": "Λήψη εικόνας...", "Place a tile": "τοποθετώ ένα πίξελ", "Donate": "δανεισω", "Chat": "συζήτηση", "Live Chat:": "ζωντανή συζήτηση", "Enter a nickname to continue:": "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:", "Change channel:": "Αλλαγή καναλιού:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "Μενού επικάλυψης <kbd>Shift</kbd>+<kbd>O</kbd>, μενού εναλλαγής διακομιστή <kbd>Shift</kbd>+<kbd>S</kbd>." }
-		const TRANSLATIONS_SP = { "Connecting...": "Conectando...", "Could not connect!": "¡No podía conectar!", "Downloading image...": "Descargando imagen...", "Place a tile": "Coloca un pixel", "Donate": "Donar", "Chat": "Chat", "Live Chat:": "Chat en vivo:", "Enter a nickname to continue:": "Introduce un apodo para continuar:", "Change channel:": "Cambia el canal:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menú superpuesto, <kbd>Shift</kbd>+<kbd>S</kbd> menú de cambio de servidor." }
-		const TRANSLATIONS_FR = { "Connecting...": "De liaison...", "Could not connect!": "Impossible de se connecter!", "Downloading image...": "Télécharger l'image...", "Place a tile": "Place un pixel", "Donate": "Faire un don", "Chat": "Discuter", "Live Chat:": "Chat en direct:", "Enter a nickname to continue:": "Entrez un surnom pour continuer :", "Change channel:": "Changer de chaîne:", "<kbd>Shift</kbd>+<kbd>O</kbd> overlay menu": "<kbd>Shift</kbd>+<kbd>O</kbd> menu superposé, <kbd>Shift</kbd>+<kbd>S</kbd> menu de changement de serveur." }
-	
+		const TRANSLATIONS = {
+			fa: {
+				connecting: "در حال وصل شدن",
+				connectingFail: "متصل نشد",
+				downloadingImage: "در حال بارگزاری عکس ها",
+				placeTile: "نقاشی کردن",
+				donate: "حمایت",
+				chat: "چت",
+				liveChat: "چت زنده",
+				enterNickname: "لطفا نام خود را برای چت کردن وارد کنید",
+				changeChannel: "تغییر کانال:",
+				captchaPrompt: "لطفا روی دکمه حاوی ایموجی که در زیر می بینید کلیک کنید"
+			},
+			tr: {
+				connecting: "Bağlanıyor...",
+				connectingFail: "Bağlanamadı!",
+				downloadingImage: "Resim indiriliyor...",
+				placeTile: "Bir karo yerleştir",
+				donate: "Bağış yap",
+				chat: "Sohbet",
+				liveChat: "Canlı sohbet:",
+				enterNickname: "Devam etmek için bir takma ad girin:",
+				changeChannel: "Kanalı değiştir:",
+				captchaPrompt: "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın"
+			},
+			ro: {
+				connecting: "Se conectează...",
+				connectingFail: "Nu s-a putut conecta!",
+				downloadingImage: "Se descarcă imaginea...",
+				placeTile: "Pune un pixel",
+				donate: "Donează",
+				chat: "Conversații",
+				liveChat: "Conversații în direct:",
+				enterNickname: "Introdu un nume pentru a continua:",
+				changeChannel: "Schimbați canalul:",
+				captchaPrompt: "Dați clic pe butonul care conține emoji-ul pe care îl vedeți mai jos"
+			},
+			el: {
+				connecting: "Συνδετικός...",
+				connectingFail: "Δεν μπορούσε να συνδεθεί!",
+				downloadingImage: "Λήψη εικόνας...",
+				placeTile: "τοποθετώ ένα πίξελ",
+				donate: "δανεισω",
+				chat: "συζήτηση",
+				liveChat: "ζωντανή συζήτηση",
+				enterNickname: "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:",
+				changeChannel: "Αλλαγή καναλιού:",
+				captchaPrompt: "Κάντε κλικ στο κουμπί που περιέχει το emoji που βλέπετε παρακάτω"
+			},
+			es: {
+				connecting: "Conectando...",
+				connectingFail: "¡No podía conectar!",
+				downloadingImage: "Descargando imagen...",
+				placeTile: "Coloca un pixel",
+				donate: "Donar",
+				chat: chat,
+				liveChat: "Chat en vivo:",
+				enterNickname: "Introduce un apodo para continuar:",
+				changeChannel: "Cambia el canal:",
+				captchaPrompt: "Haga clic en el botón que contiene el emoji que ve a continuación"
+			},
+			fr: {
+				connecting: "De liaison...",
+				connectingFail: "Impossible de se connecter!",
+				downloadingImage: "Télécharger l'image...",
+				placeTile: "Place un pixel",
+				donate: "Faire un don",
+				chat: "Discuter",
+				liveChat: "Chat en direct:",
+				enterNickname: "Entrez un surnom pour continuer :",
+				changeChannel: "Changer de chaîne:",
+				captchaPrompt: "Veuillez cliquer sur le bouton contenant l'emoji que vous voyez ci-dessous"
+			}
+		}
+
 		const AUDIOS = {
 			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
 			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
@@ -467,7 +535,7 @@
 				}
 				else
 					AUDIOS.invalid.run()
-			">Connecting...</div>
+			" translate="connecting">Connecting...</div>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
 				<img id="edge" height="226" width="290" src="https://www.redditstatic.com/mona-lisa/assets/img/snoo-edge.png" />
@@ -486,7 +554,7 @@
 				<a style="position: absolute; left: 50%; transform: translateX(-50%); white-space: pre;" href=".">(generate new captcha)</a>
 				<div id="captchaOptions"></div>
 			</div>
-			<div id="chat" noselect onclick="chatPanel.classList.add('open')">
+			<div id=chat noselect onclick="chatPanel.classList.add('open')">
 				<img src="svg/chat.svg" style="width:16px; height:21px">
 			</div>
 			<div noselect id="helpbtn" onclick="
@@ -650,7 +718,7 @@
 		</div>
 		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'" onclick="chatContext.style.display = 'none'">
 			<div id="namePanel">
-				<h2 id="namePanelHeader">Enter a nickname to continue:</h2>
+				<h2 id="namePanelHeader" translate="enterNickname">Enter a nickname to continue:</h2>
 				<h4 id="nicknameSubheading" style="color: lightgrey;">Please be respectful and try not to spam!</h4>
 				<br>
 				<div>
@@ -676,7 +744,10 @@
 					<span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
 						<img src="svg/flag-gb.svg" style="height: 20px; display: inline; top: 5px; position: relative;">EN
 					</span>
-					<span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="this.style.opacity = '0'; setTimeout(() => { this.style.display = 'none'; }, 200);">Change channel:</span>
+					<span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="
+						this.style.opacity = '0'
+						setTimeout(() => { this.style.display = 'none'; }, 200)
+					" translate="changeChannel">Change channel:</span>
 				</div>
 				<div id="onlinepanel" noselect>
 					<p id="onlineCounter">...</p>
@@ -1067,7 +1138,10 @@
 
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
-			place.innerHTML = (CD >= 1e100 ? (CD == Infinity ? 'Connecting...' : '<span style="color:#f50">Could not connect!</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : "Place a tile")
+			place.innerHTML =
+				(CD >= 1e100 ? (CD == Infinity ?
+					translate("connecting") :
+					'<span style="color:#f50">' + translate("connectingFail") + '</span>') : left > 0 ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` : placeTile)
 			if (CD > Date.now() && !onCooldown) onCooldown = true
 			if (CD < Date.now() && onCooldown) {
 				onCooldown = false
@@ -1275,22 +1349,21 @@
 		}
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
-		function translate(elementArray) {
-			elementArray.forEach(element => {
-				let key = element.innerHTML
-				switch (navigator.language.split('-')[0]) {
-					case "fa": element.innerHTML = TRANSLATIONS_FAS[key] //persian
-					case "tr": element.innerHTML = TRANSLATIONS_TK[key] //turkish
-					case "ro": element.innerHTML = TRANSLATIONS_ROM[key] //romanian
-					case "el": element.innerHTML = TRANSLATIONS_GR[key] //greek
-					case "es": element.innerHTML = TRANSLATIONS_SP[key] //spanish
-					case "fr": element.innerHTML = TRANSLATIONS_FR[key] //french
-					default: element.innerHTML = key
-				}
+		function translate(key) {
+			if (TRANSLATIONS[navigator.language.split('-')[0]] != null)
+				return TRANSLATIONS[navigator.language.split('-')[0]][key] || key
+		}
+
+		function translateAll() {
+			document.querySelectorAll("[translate]").forEach((element) => {
+				let key = element.getAttribute("translate")
+				if (TRANSLATIONS[navigator.language.split('-')[0]] == null) return
+
+				element.innerHTML =  TRANSLATIONS[navigator.language.split('-')[0]][key] || element.innerHTML
 			})
 		}
 
-		translate([liveChatHeader, namePanelHeader, channelTooltip, captchaLabel])
+		translateAll()
 
 		function component(width, height, colour, x, y, type, falling) {
 			this.type = type
@@ -1552,7 +1625,7 @@
 			pwaPrompter = e
 		})
 
-		setTimeout(() => connproblems.style.opacity = 1, 5000)
+		setTimeout(() => connproblems?.style.opacity = 1, 5000)
 		setTimeout(() => {
 			channelTooltip.style.opacity = "0"
 			channelTooltip.style.display = "none"
