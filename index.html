@@ -467,27 +467,26 @@
 
 			call(addEventListener, document.body, 'touchend', function(e){
 				if (!e.isTrusted) return
-				
-				for (let t of e.changedTouches){
-					a: if (touch2 && touch2.identifier == t.identifier)touch2 = null
-					else if (touch1 && touch1.identifier == t.identifier){
+
+				for (let t of e.changedTouches) {
+					assign2: if (touch2 && touch2.identifier == t.identifier) touch2 = null
+					else if (touch1 && touch1.identifier == t.identifier) {
 						[touch1, touch2] = [touch2, null]
 						if (touchmoved > 0 && canvparent2.contains(e.target)){
-							if (e.target != maincontent && !canvparent2.contains(e.target))break a
+							if (e.target != maincontent && !canvparent2.contains(e.target)) break assign2
 							clicked(t.clientX, t.clientY)
 						}
 					}
 					if ('value' in e.target) e.target.focus()
-					
 					let target = e.target
 					while (!target.dispatchEvent) {
-						target = target.parentElement;
-						if (target == pok) {
-							call(oclick, pok,e) 
-						}
-						else {
-							if (touchmoved > 0) target.dispatchEvent(new MouseEvent('click', { bubbles:true } ))
-						}
+						target = target.parentElement
+					}
+					if (target == pok) {
+						call(oclick, pok, e)
+					}
+					else {
+						if (touchmoved > 0) target.dispatchEvent(new MouseEvent('click', { bubbles:true } ))
 					}
 				}
 			})
@@ -1637,7 +1636,8 @@
 		})
 
 		setTimeout(() => {
-			connproblems.style.opacity = 1
+			if (window.connproblems)
+				connproblems.style.opacity = 1
 		}, 5000)
 
 		setTimeout(() => {
