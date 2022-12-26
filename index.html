@@ -1625,7 +1625,10 @@
 			pwaPrompter = e
 		})
 
-		setTimeout(() => (window.connproblems && connproblems.style.opacity = 1), 5000)
+		setTimeout(() => {
+			connproblems.style.opacity = 1
+		}, 5000)
+		
 		setTimeout(() => {
 			channelTooltip.style.opacity = "0"
 			channelTooltip.style.display = "none"
