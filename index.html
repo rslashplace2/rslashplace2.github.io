@@ -177,8 +177,7 @@
 				data = new DataView(await data.arrayBuffer())
 				let code = data.getUint8(0)
 				if (code == 0) {
-					//This should give us an array of integers, for each canvas palette colour
-					PALETTE = new Uint32Array(data.buffer.slice(1))
+					PALETTE = [...new Uint32Array(data.buffer.slice(1))]
 					generateIndicators()
 					generatePalette()
 				}
