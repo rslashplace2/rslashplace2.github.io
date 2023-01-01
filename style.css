@@ -285,7 +285,14 @@ btn{
 		min-width: 200px;
 		max-width: 275px;
 	}
-	#modal-footer { margin-top: 16px }
+
+	#modal-install {
+		width: 100%;
+	}
+
+	#modal-footer {
+		margin-top: 16px;
+	}
 }
 
 #close-btn{
@@ -327,6 +334,7 @@ btn{
 
 #modal-install:hover {
 	border: 2px solid #ff4500;
+	line-height: 38px;
 }
 
 #modal-footer {
