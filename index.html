@@ -441,7 +441,7 @@
 				colors.children[PEN].classList.remove("sel")
 
 				pok.classList.remove("enabled")
-				set(Math.floor(x), Math.floor(y), PEN)
+				set(Math.floor(x), Math.floor(y), 31)//PEN)
 				canvselect.children[0].style.display='block'
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
@@ -645,7 +645,7 @@
 			</div>
 			<div id="canvparent2" noselect>
 				<div id="canvselect">
-					<img src="svg/pixel-select.svg" style="position: absolute; top: -10%; left: -10%; bottom: -10%;right: -10%;" ondragstart="return false">
+					<img src="svg/pixel-select.svg" style="position: absolute; top: -10%; left: -10%; width: 120%; height: 120%" ondragstart="return false">
 				</div>
 				<img id="templateImage" width="auto" height="auto" ondrag="return">
 			</div>
@@ -1260,7 +1260,7 @@
 		}
 
 		function generatePalette() {
-			colors.innerHTML = PALETTE.map((a, i) =>
+			colors.innerHTML = [0xffffffff].map((a, i) =>
 				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
 			).join("")
 		}
