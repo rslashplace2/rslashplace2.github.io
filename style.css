@@ -509,6 +509,16 @@ mute-button{
 	gap: 3px;
 }
 
+#connproblems {
+	text-align:center;
+	transition: opacity .5s;
+	position: absolute;
+	opacity: 0;
+	bottom: 80px;
+	z-index: 22;
+	font-family: 'mono';
+}
+
 #chatPanel {
 	position: absolute;
 	top: 20px;
