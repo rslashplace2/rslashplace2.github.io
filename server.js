@@ -10,8 +10,8 @@ import genEmojiCaptcha from './zcaptcha/server.js'
 
 let SECURE = true 
 let BOARD, CHANGES, VOTES
-let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(await fs.readFile('./config.json'))
-try{ 
+let { WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE } = JSON.parse(await fs.readFile('./config.json'))
+try { 
         BOARD = await fs.readFile('./place') 
         CHANGES = await fs.readFile('./change')
         VOTES = new Uint32Array((await fs.readFile('./votes')).buffer)
@@ -125,6 +125,16 @@ wss.on('connection', async function(p, {headers, url: uri}) {
         players++
 	p.send(bf)
         p.send(runLengthChanges())
+        
+        // If a custom palette is defined, then we send to client
+        if (Array.isArray(PALETTE)) {
+                let paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
+                paletteBuffer[0] = 0
+                for (let i = 0; i < PALETTE.length; i++) {
+                        paletteBuffer.writeUInt32BE(PALETTE[i])
+                }
+                p.send(paletteBuffer)
+        }
   p.on("error", _=>_) 
   p.on('message', async function(data) { 
                 if(data[0] == 15){ 
