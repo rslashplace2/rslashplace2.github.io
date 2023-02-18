@@ -393,7 +393,7 @@ mute-button{
 	z-index: 7;
 }
 
-#colors {
+#colours {
 	padding: 14px 14px 0 14px;
 	display: flex;
 	flex-direction: row;
@@ -431,7 +431,7 @@ mute-button{
 	cursor: pointer;
 }
 
-#colors div{
+#colours div{
 	height: 32px;
 	flex-grow: 1;
 	width: 24px;
@@ -440,7 +440,7 @@ mute-button{
 	cursor: pointer;
 }
 
-#colors div.sel{
+#colours div.sel{
 	margin: 0;
 	border: 2px white solid;
 	box-shadow: rgb(0 0 0 / 50%) 0px 4px 10px;
@@ -448,7 +448,7 @@ mute-button{
 }
 
 /*Palette indicators*/
-#colors span {
+#colours span {
 	background-color: rgba(255, 255, 255, 0.2);
 	border-radius: 20px;
 	width: 15px;
@@ -460,17 +460,17 @@ mute-button{
 }
 
 @media (max-width: 1000px){
-	#colors div{
+	#colours div{
 		flex-basis: calc(100% / 16 - 4px);
 	}
 }
 @media (max-width: 500px){
-	#colors div{
+	#colours div{
 		flex-basis: calc(100% / 8 - 4px);
 	}
 }
 @media (max-width: 300px){
-	#colors div{
+	#colours div{
 		flex-basis: calc(100% / 4 - 4px);
 	}
 }

@@ -137,25 +137,6 @@
 				enterNickname: "Entrez le pseudo...",
 				enterMessage: "Saisissez le message..."
 			},
-			/*zh: {
-				connecting: "",
-				connectingFail: "",
-				downloadingImage: "",
-				placeTile: "",
-				donate: "",
-				chat: "",
-				liveChat: "",
-				nicknameToContinue: "",
-				changeChannel: "",
-				captchaPrompt: "",
-				webappInstall: "安装 rplace.tk 网络应用",
-				connectionProblems: "",
-				tryClickingHere: "",
-				pleaseBeRespectful: "",
-				enterNickname: "",
-				enterMessage: ""
-
-			},*/
 			ru: {
 				connecting: "Подключение...",
 				connectingFail: "Не могу подключиться!",
@@ -249,12 +230,12 @@
 		}
 
 		const AUDIOS = {
-			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
-			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
-			selectColor: new Audio('https://hot-potato.reddit.com/media/interactions/select-color.mp3'),
-			closePalette: new Audio('https://hot-potato.reddit.com/media/interactions/close-pallette.mp3'),
-			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
-			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
+			invalid: new Audio("./sounds/invalid.mp3"),
+			highlight: new Audio("./sounds/highlight.mp3"),
+			selectColour: new Audio("./sounds/select-colour.mp3"),
+			closePalette: new Audio("./sounds/close-palette.mp3"),
+			cooldownStart: new Audio("./sounds/cooldown-start.mp3"),
+			cooldownEnd: new Audio("./sounds/cooldown-end.mp3")
 		}
 
 		const EMOJIS = {
@@ -502,10 +483,10 @@
 				
 				canvselect.style.background = ""
 				palette.style.transform = "translateY(100%)"
-				colors.children[PEN].classList.remove("sel")
+				colours.children[PEN].classList.remove("sel")
 
 				pok.classList.remove("enabled")
-				set(Math.floor(x), Math.floor(y), 31)//PEN)
+				set(Math.floor(x), Math.floor(y), PEN)
 				canvselect.children[0].style.display='block'
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
@@ -596,19 +577,19 @@
 				if (keyIndex == null) return
 				if (palette.style.transform=='translateY(100%)')
 					showPalette()
-				for (let c = 0; c < document.getElementById("colors").children.length; c++) {
-					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
+				for (let c = 0; c < document.getElementById("colours").children.length; c++) {
+					document.getElementById("colours").children[c].firstChild.style.visibility = "visible"
 				}
-				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
+				let i = [...(document.getElementById("colours").children)].indexOf(document.getElementById("colours").children[keyIndex])
 				if (i<0) return
-				let el = document.getElementById("colors").children[PEN]
+				let el = document.getElementById("colours").children[PEN]
 				if (el) {
 					el.classList.remove('sel')
 				}
 				PEN = keyIndex;
-				AUDIOS.selectColor.run()
-				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
-				document.getElementById("colors").children[keyIndex].classList.add('sel')
+				AUDIOS.selectColour.run()
+				canvselect.style.background = document.getElementById("colours").children[keyIndex].style.background
+				document.getElementById("colours").children[keyIndex].classList.add('sel')
 				pok.classList.add('enabled')
 				canvselect.children[0].style.display = "none"
 				canvselect.style.outline= "8px white solid"
@@ -770,14 +751,14 @@
 				</div>
 			</div>
 			<div id="palette" style="transform: translateY(100%)" noselect>
-				<div id="colors"></div>
+				<div id="colours"></div>
 				<div class="buttons">
 					<div class="pcancel" onclick="
 						AUDIOS.closePalette.run()
 						canvselect.style.background = ''
 						palette.style.transform = 'translateY(100%)'
 						if (PEN != -1) {
-							colors.children[PEN].classList.remove('sel')
+							colours.children[PEN].classList.remove('sel')
 							PEN = -1
 						}
 						pok.classList.remove('enabled')
@@ -909,7 +890,7 @@
 						https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7,
 						https://openmoji.org/library/emoji-1F1EE-1F1F7/
 					-->
-					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extralang)">FAS</span>
+					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">FAS</span>
 					<span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
 						<img src="svg/flag-tu.svg" style="height: 20px; display: inline; top: 5px; position: relative;">TÜ
 					</span>
@@ -996,7 +977,6 @@
 		let HEIGHT = 2000
 		let COOLDOWN = 10e3
 	</script>
-
 	<script>
 		let i = +localStorage.vote
 
@@ -1046,7 +1026,8 @@
 		document.body.onkeyup = function(e) {
 			let i = 10
 			let repeatFunc = setInterval(function() {
-				switch (e.keyCode) { //We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+				// We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+				switch (e.keyCode) {
 					case 37:
 						x -= i / 55;
 						arrowkeyDown.right = true;
@@ -1324,17 +1305,17 @@
 		}
 
 		function generatePalette() {
-			colors.innerHTML = [0xffffffff].map((a, i) =>
-				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
+			colours.innerHTML = PALETTE.map((colour, i) =>
+				`<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
 			).join("")
 		}
 
 		generatePalette()
 
-		colors.onclick = (e) => {
-			let i = [...colors.children].indexOf(e.target)
+		colours.onclick = (e) => {
+			let i = [...colours.children].indexOf(e.target)
 			if (i < 0) return
-			let el = colors.children[PEN]
+			let el = colours.children[PEN]
 			if (el) {
 				el.classList.remove('sel')
 			}
@@ -1346,7 +1327,7 @@
 			canvselect.style.outline = '8px white solid';
 			canvselect.style.boxShadow = '0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			hideIndicators()
-			AUDIOS.selectColor.run()
+			AUDIOS.selectColour.run()
 		}
 
 		function runLengthChanges(data, a) {
@@ -1399,12 +1380,12 @@
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
 		let censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
-		let extralang = "fa"
+		let extraLanguage = "fa"
 		if (lang != "tr" && lang != "en") {
-			extralang = lang
-			channelMine.innerText = extralang.toUpperCase()
+			extraLanguage = lang
+			channelMine.innerText = extraLanguage.toUpperCase()
 		}
-		let cMessages = { [extralang]: [], tr: [], en: [] }
+		let cMessages = { [extraLanguage]: [], tr: [], en: [] }
 		let currentChannel = lang
 		switchLanguageChannel(currentChannel)
 		wscapsule()
@@ -1417,15 +1398,15 @@
 		}
 
 		function hideIndicators() {
-			for (let c = 0; c < colors.children.length; c++) {
-				colors.children[c].firstChild.style.visibility = "hidden"
+			for (let c = 0; c < colours.children.length; c++) {
+				colours.children[c].firstChild.style.visibility = "hidden"
 			}
 		}
 
 		function generateIndicators() {
-			for (let c = 0; c < colors.children.length; c++) {
+			for (let c = 0; c < colours.children.length; c++) {
 				let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
-				let indicator = colors.children[c].firstChild
+				let indicator = colours.children[c].firstChild
 				indicator.textContent = keybinds.charAt(c)
 			}
 		}
