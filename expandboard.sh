@@ -9,11 +9,11 @@ fi
 sudo systemctl stop place
 node -e "
 fs=require('fs');
-let {WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(fs.readFileSync('./config.json'));
+let {WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE} = JSON.parse(fs.readFileSync('./config.json'));
 let OLDWIDTH = WIDTH, OLDHEIGHT = HEIGHT
 let BOARD = fs.readFileSync('place');
 HEIGHT += process.argv[0]>>>0;WIDTH += process.argv[1]>>>0;
-fs.writeFileSync('config.json',JSON.stringify({WIDTH, HEIGHT, PALETTE_SIZE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE}));
+fs.writeFileSync('config.json',JSON.stringify({WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE}));
 /*Fill in the empty area now that we have expanded the board's height in config*/
 let newBoard = new Uint8Array(WIDTH * HEIGHT).fill(31)
 for(let y = 0; y < OLDHEIGHT; y++)newBoard.set(BOARD.subarray(y*OLDWIDTH,(y+1)*OLDWIDTH), y*WIDTH)
