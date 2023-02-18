@@ -137,25 +137,6 @@
 				enterNickname: "Entrez le pseudo...",
 				enterMessage: "Saisissez le message..."
 			},
-			/*zh: {
-				connecting: "",
-				connectingFail: "",
-				downloadingImage: "",
-				placeTile: "",
-				donate: "",
-				chat: "",
-				liveChat: "",
-				nicknameToContinue: "",
-				changeChannel: "",
-				captchaPrompt: "",
-				webappInstall: "安装 rplace.tk 网络应用",
-				connectionProblems: "",
-				tryClickingHere: "",
-				pleaseBeRespectful: "",
-				enterNickname: "",
-				enterMessage: ""
-
-			},*/
 			ru: {
 				connecting: "Подключение...",
 				connectingFail: "Не могу подключиться!",
@@ -249,12 +230,12 @@
 		}
 
 		const AUDIOS = {
-			invalid: new Audio('https://hot-potato.reddit.com/media/interactions/invalid.mp3'),
-			highlight: new Audio('https://hot-potato.reddit.com/media/interactions/highlight.mp3'),
-			selectColor: new Audio('https://hot-potato.reddit.com/media/interactions/select-color.mp3'),
-			closePalette: new Audio('https://hot-potato.reddit.com/media/interactions/close-pallette.mp3'),
-			cooldownStart: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-start.mp3'),
-			cooldownEnd: new Audio('https://hot-potato.reddit.com/media/interactions/cooldown-end.mp3')
+			invalid: new Audio("./sounds/invalid.mp3"),
+			highlight: new Audio("./sounds/highlight.mp3"),
+			selectColour: new Audio("./sounds/select-colour.mp3"),
+			closePalette: new Audio("./sounds/close-palette.mp3"),
+			cooldownStart: new Audio("./sounds/cooldown-start.mp3"),
+			cooldownEnd: new Audio("./sounds/cooldown-end.mp3")
 		}
 
 		const EMOJIS = {
@@ -606,7 +587,7 @@
 					el.classList.remove('sel')
 				}
 				PEN = keyIndex;
-				AUDIOS.selectColor.run()
+				AUDIOS.selectColour.run()
 				canvselect.style.background = document.getElementById("colours").children[keyIndex].style.background
 				document.getElementById("colours").children[keyIndex].classList.add('sel')
 				pok.classList.add('enabled')
@@ -909,7 +890,7 @@
 						https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7,
 						https://openmoji.org/library/emoji-1F1EE-1F1F7/
 					-->
-					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extralang)">FAS</span>
+					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">FAS</span>
 					<span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
 						<img src="svg/flag-tu.svg" style="height: 20px; display: inline; top: 5px; position: relative;">TÜ
 					</span>
@@ -1045,7 +1026,8 @@
 		document.body.onkeyup = function(e) {
 			let i = 10
 			let repeatFunc = setInterval(function() {
-				switch (e.keyCode) { //We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+				// We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+				switch (e.keyCode) {
 					case 37:
 						x -= i / 55;
 						arrowkeyDown.right = true;
@@ -1345,7 +1327,7 @@
 			canvselect.style.outline = '8px white solid';
 			canvselect.style.boxShadow = '0px 2px 4px 0px rgb(0 0 0 / 50%)'
 			hideIndicators()
-			AUDIOS.selectColor.run()
+			AUDIOS.selectColour.run()
 		}
 
 		function runLengthChanges(data, a) {
@@ -1398,12 +1380,12 @@
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
 		let censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
-		let extralang = "fa"
+		let extraLanguage = "fa"
 		if (lang != "tr" && lang != "en") {
-			extralang = lang
-			channelMine.innerText = extralang.toUpperCase()
+			extraLanguage = lang
+			channelMine.innerText = extraLanguage.toUpperCase()
 		}
-		let cMessages = { [extralang]: [], tr: [], en: [] }
+		let cMessages = { [extraLanguage]: [], tr: [], en: [] }
 		let currentChannel = lang
 		switchLanguageChannel(currentChannel)
 		wscapsule()
