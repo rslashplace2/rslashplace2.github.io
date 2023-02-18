@@ -131,7 +131,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                 let paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
                 paletteBuffer[0] = 0
                 for (let i = 0; i < PALETTE.length; i++) {
-                        paletteBuffer.writeUInt32BE(PALETTE[i])
+                        paletteBuffer.writeUInt32BE(PALETTE[i], i + 1)
                 }
                 p.send(paletteBuffer)
         }
@@ -324,6 +324,7 @@ function checkPreban(incomingX, incomingY, ip) {
 
 //Serverside attempts at most common bot tropés detection
 function checkAntiGriefBot(p) { ///all about others, undoing all
+		return;
         if (NOW - p.cDate < 3e5) return false //< 5 probably human
 
         let oPosHistory = [], match = 0
@@ -343,6 +344,7 @@ function checkAntiGriefBot(p) { ///all about others, undoing all
 }
 
 function checkActiveBuildBot(p) { //all about self, building in random placement pattern
+		return;
         if (NOW - p.cDate < 6e4) return false
 
         let match = 0, lDteInterval = 0
