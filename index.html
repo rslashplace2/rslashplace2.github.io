@@ -502,10 +502,10 @@
 				
 				canvselect.style.background = ""
 				palette.style.transform = "translateY(100%)"
-				colors.children[PEN].classList.remove("sel")
+				colours.children[PEN].classList.remove("sel")
 
 				pok.classList.remove("enabled")
-				set(Math.floor(x), Math.floor(y), 31)//PEN)
+				set(Math.floor(x), Math.floor(y), PEN)
 				canvselect.children[0].style.display='block'
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
@@ -596,19 +596,19 @@
 				if (keyIndex == null) return
 				if (palette.style.transform=='translateY(100%)')
 					showPalette()
-				for (let c = 0; c < document.getElementById("colors").children.length; c++) {
-					document.getElementById("colors").children[c].firstChild.style.visibility = "visible"
+				for (let c = 0; c < document.getElementById("colours").children.length; c++) {
+					document.getElementById("colours").children[c].firstChild.style.visibility = "visible"
 				}
-				let i = [...(document.getElementById("colors").children)].indexOf(document.getElementById("colors").children[keyIndex])
+				let i = [...(document.getElementById("colours").children)].indexOf(document.getElementById("colours").children[keyIndex])
 				if (i<0) return
-				let el = document.getElementById("colors").children[PEN]
+				let el = document.getElementById("colours").children[PEN]
 				if (el) {
 					el.classList.remove('sel')
 				}
 				PEN = keyIndex;
 				AUDIOS.selectColor.run()
-				canvselect.style.background = document.getElementById("colors").children[keyIndex].style.background
-				document.getElementById("colors").children[keyIndex].classList.add('sel')
+				canvselect.style.background = document.getElementById("colours").children[keyIndex].style.background
+				document.getElementById("colours").children[keyIndex].classList.add('sel')
 				pok.classList.add('enabled')
 				canvselect.children[0].style.display = "none"
 				canvselect.style.outline= "8px white solid"
@@ -770,14 +770,14 @@
 				</div>
 			</div>
 			<div id="palette" style="transform: translateY(100%)" noselect>
-				<div id="colors"></div>
+				<div id="colours"></div>
 				<div class="buttons">
 					<div class="pcancel" onclick="
 						AUDIOS.closePalette.run()
 						canvselect.style.background = ''
 						palette.style.transform = 'translateY(100%)'
 						if (PEN != -1) {
-							colors.children[PEN].classList.remove('sel')
+							colours.children[PEN].classList.remove('sel')
 							PEN = -1
 						}
 						pok.classList.remove('enabled')
@@ -996,7 +996,6 @@
 		let HEIGHT = 2000
 		let COOLDOWN = 10e3
 	</script>
-
 	<script>
 		let i = +localStorage.vote
 
@@ -1324,17 +1323,17 @@
 		}
 
 		function generatePalette() {
-			colors.innerHTML = [0xffffffff].map((a, i) =>
-				`<div style='background:rgba(${a & 255},${(a >> 8) & 255},${(a >> 16) & 255}, 1)${a == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
+			colours.innerHTML = PALETTE.map((colour, i) =>
+				`<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
 			).join("")
 		}
 
 		generatePalette()
 
-		colors.onclick = (e) => {
-			let i = [...colors.children].indexOf(e.target)
+		colours.onclick = (e) => {
+			let i = [...colours.children].indexOf(e.target)
 			if (i < 0) return
-			let el = colors.children[PEN]
+			let el = colours.children[PEN]
 			if (el) {
 				el.classList.remove('sel')
 			}
@@ -1417,15 +1416,15 @@
 		}
 
 		function hideIndicators() {
-			for (let c = 0; c < colors.children.length; c++) {
-				colors.children[c].firstChild.style.visibility = "hidden"
+			for (let c = 0; c < colours.children.length; c++) {
+				colours.children[c].firstChild.style.visibility = "hidden"
 			}
 		}
 
 		function generateIndicators() {
-			for (let c = 0; c < colors.children.length; c++) {
+			for (let c = 0; c < colours.children.length; c++) {
 				let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
-				let indicator = colors.children[c].firstChild
+				let indicator = colours.children[c].firstChild
 				indicator.textContent = keybinds.charAt(c)
 			}
 		}
