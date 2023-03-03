@@ -53,11 +53,11 @@ input{
 }
 
 input[type=file]::file-selector-button {
-	padding: 4px;
 	border-radius: 5px;
 	background-color: white;
 	border: 0px solid black;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	height: 100%;
 }
 
 input[type=range]::-moz-range-thumb {
@@ -572,7 +572,12 @@ mute-button{
 }
 
 .channels-options > span {
-	flex: auto; line-height: 30px; text-align: center; border-radius: 20px 0px 0px 20px; background-color: transparent;
+	flex: auto;
+	line-height: 30px;
+	text-align: center;
+	border-radius: 20px 0px 0px 20px;
+	background-color: transparent;
+	white-space: nowrap;
 }
 
 #captchaPopup {
@@ -664,6 +669,15 @@ a {
 	height: 100px;
 	width: 100%;
 	border-radius: 5px 5px 10px 10px;
+	overflow: clip;
+	transition: .3s height, .0s visibility, .2s opacity;
+	transition-delay: 0s, .2s;
+}
+
+#messageTypePanel[closed] {
+	height: 0px;
+	visibility: hidden;
+	opacity: 0;
 }
 
 .messageTypeBtn {

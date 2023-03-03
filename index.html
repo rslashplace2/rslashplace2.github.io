@@ -257,7 +257,6 @@
 	</script>
 	<script>
 		let queryChanged = false
-
 		for (let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") {
 				if (localStorage.getItem(query) == val) continue
@@ -266,9 +265,9 @@
 				queryChanged = true
 			}
 		}
-
-		if (queryChanged)
-			window.location.reload()	
+		if (queryChanged) {
+			window.location.reload()
+		}
 		
 		// Register PWA Service worker
 		if ('serviceWorker' in navigator)
@@ -309,11 +308,9 @@
 				data = new DataView(await data.arrayBuffer())
 				let code = data.getUint8(0)
 				if (code == 0) {
-					let defaultPalette = PALETTE // Canvas whiteout patch
 					PALETTE = [...new Uint32Array(data.buffer.slice(1))]
 					generateIndicators()
 					generatePalette()
-					PALETTE = defaultPalette // Canvas whiteout patch
 				}
 				if (code == 1) {
 					CD = data.getUint32(1) * 1000
@@ -640,7 +637,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=2.6" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=2.7" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2" />
@@ -674,8 +671,8 @@
 				<input id="overlayX" value="" type="number" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
 				<input id="overlayY" value="" type="number" placeholder="Image Y" style="width: calc(50% - 5px)"/> <br><br>
 				<div style="width: 100%; position: relative;">
-					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" oninput="overlaySliderValue.textContent = this.value; overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`;"/>
-					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none;">80</span>
+					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" oninput="overlaySliderValue.textContent = Math.min(this.value, 99); overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`;"/>
+					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none; width: 16px; text-align: center;">80</span>
 				</div>
 			</div>
 			<div id="place" noselect onclick="
@@ -943,12 +940,12 @@
 				</ul>
 			</div>
 			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
-			<div id="messageTypePanel" style="visibility: hidden;">
-				<input type="button" class="messageTypeBtn" title="shift+enter to quick send" style="left: 5px;" value="🫧 Put on canvas">
-				<input type="button" class="messageTypeBtn" title="enter to quick send" style="right: 5px;" value="📨 Send in live chat">
+			<div id="messageTypePanel" closed>
+				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" value="🫧 Put on canvas">
+				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" value="📨 Send in live chat">
 			</div>
 			<input id="messageInput" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
-			<div class="messageOptions" style="bottom: 10px; right: 10px;" onclick="messageTypePanel.style.visibility = messageTypePanel.style.visibility == 'visible' ? 'hidden' : 'visible';">...</div>			
+			<div class="messageOptions" style="bottom: 10px; right: 10px;" onclick="messageTypePanel.toggleAttribute('closed')">...</div>			
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
@@ -1062,37 +1059,113 @@
 		const canvasCtx = canvas.getContext('2d')
 
 		function transform() {
-			canvparent1.style.transform = canvparent2.style.transform = "translate(" + (x * z * -50 + innerWidth / 2) + "px, " + (y * z * -50 + maincontent.offsetHeight / 2) + "px) scale(" + z * 50 + ")"
-			canvselect.style.transform = "translate(" + Math.floor(x) + "px, " + Math.floor(y) + "px) scale(0.01)"
-			canvas.style.width = z * canvas.width * 50 + "px"
-			canvas.style.height = z * canvas.height * 50 + "px"
-			canvas.style.transform = "translate(" + x * z * -50 + "px, " + y * z * -50 + "px)"
-			canvas.style.imageRendering = z < 1 / 50 / devicePixelRatio ? "initial" : ""
+			const scale = z * 50;
+			const translateX = x * z * -50;
+			const translateY = y * z * -50;
+			const width = z * canvas.width * 50;
+			const height = z * canvas.height * 50;
+
+			canvparent1.style.transform = `translate(${translateX + innerWidth / 2}px, ${translateY + maincontent.offsetHeight / 2}px) scale(${scale})`;
+			canvparent2.style.transform = canvparent1.style.transform;
+			canvselect.style.transform = `translate(${Math.floor(x)}px, ${Math.floor(y)}px) scale(0.01)`;
+			canvas.style.width = `${width}px`;
+			canvas.style.height = `${height}px`;
+			canvas.style.transform = `translate(${translateX}px, ${translateY}px)`;
+			canvas.style.imageRendering = z < 1 / 50 / devicePixelRatio ? "initial" : "";
 		}
 
 		let x, y, z, board, minZoom;
 
-		let physicsCubes = []
-		let waitingGame = {
-			canvas: waitingGameCanvas,
+		class WaitingGame {
+			constructor(canvas) {
+				this.canvas = canvas
+				this.started = false
+				this.ctx = canvas.getContext("2d")
+			}
 
-			start: function() {
+			start() {
+				if (this.started) {
+					return
+				}
 				this.canvas.width = innerWidth
 				this.canvas.height = innerHeight
 				this.context = this.canvas.getContext("2d")
 				this.interval = setInterval(updateGameArea, 14)
-			},
+				this.started = true
+			}
 
-			stop: function() {
+			stop() {
 				clearInterval(this.interval)
 				physicsCubes = []
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-			},
-			
-			clear: function() {
+				this.started = false
+			}
+
+			clear() {
 				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			}
 		}
+
+		class Component {
+			constructor(width, height, colour, x, y, waitingGame) {
+				this.width = width
+				this.height = height
+				this.x = x
+				this.y = y
+				this.speedX = 0
+				this.speedY = 0
+				this.gravity = 0.36
+				this.gravitySpeed = 0
+				this.colour = colour
+				this.waitingGame = waitingGame
+			}
+
+			update() {
+				//gravity calculations
+				this.gravitySpeed += this.gravity
+				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed) : 0
+				this.x += this.speedX
+				
+				//floor
+				let floor = waitingGame.canvas.height - this.height
+				if (this.y > floor) {
+					this.y = floor
+					this.speedY = 0
+					this.gravitySpeed = 0
+				}
+
+				//grid snap
+				this.x = Math.floor(this.x / this.width) * this.width
+
+				//overlapping
+				physicsCubes.forEach(other => {
+					if (other != this) {
+						let calcH = (this.height + other.height) / 2,
+						calcW = (this.width + other.width) / 2
+						if (Math.abs(this.y - other.y) < calcH && Math.abs(other.x - this.x) < calcW) { //Colliding
+						this.speedY = 0
+						this.gravitySpeed = 0
+						this.y = (other.y - other.height) - 0.01
+						}
+					}
+				})
+
+				//render update
+				this.waitingGame.ctx.fillStyle = this.colour
+				this.waitingGame.ctx.fillRect(this.x, this.y, this.width, this.height)
+			}
+		}
+
+		let physicsCubes = []
+		const waitingGame = new WaitingGame(waitingGameCanvas)
+		function updateGameArea() {
+			waitingGame.clear()
+			physicsCubes.forEach(cube => cube.update())
+		}
+		waitingGame.canvas.onmousedown = function(e) {
+			physicsCubes.push(new Component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y), waitingGame))
+		}
+		waitingGame.start()
 
 		function setsize(w, h = w) {
 			canvas.width = WIDTH = w
@@ -1128,6 +1201,7 @@
 			}
 			onresize()
 		}
+
 		onresize = function() {
 			minZoom = Math.min(innerWidth / canvas.width, maincontent.offsetHeight / canvas.height) / 100
 			pos()
@@ -1162,20 +1236,16 @@
 		}
 
 		function pos() {
-			if (z < minZoom) z = minZoom
-			if (z > 1) z = 1
+			z = Math.min(Math.max(z, minZoom), 1)
 
-			let right = x - canvas.width + 0.01
-			let left = x
-			let up = y - canvas.height + 0.01
-			let down = y
+			const right = x - canvas.width + 0.01
+			const left = x
+			const up = y - canvas.height + 0.01
+			const down = y
 
-			if (right >= left) x = 0
-			else if (right > 0) x -= right
-			else if (left < 0) x -= left
-			if (up >= down) y = 0
-			else if (up > 0) y -= up
-			else if (down < 0) y -= down
+			x -= right >= left ? 0 : right > 0 ? right : left < 0 ? left : 0
+			y -= up >= down ? 0 : up > 0 ? up : down < 0 ? down : 0
+
 			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.ceil(z*500)/100}x`
 			localStorage.x = Math.floor(x) + 0.5
 			localStorage.y = Math.floor(y) + 0.5
@@ -1520,59 +1590,6 @@
 		}
 
 		translateAll()
-
-		function component(width, height, colour, x, y, type, falling) {
-			this.type = type
-			this.width = width
-			this.height = height
-			this.x = x
-			this.y = y
-			this.speedX = 0
-			this.speedY = 0
-			this.gravity = 0.12
-			this.gravitySpeed = 0
-
-			this.update = function() {
-				//gravity calculations
-				this.gravitySpeed += this.gravity
-				this.y += (waitingGame.canvas.height - this.y > 30) ? (this.speedY + this.gravitySpeed) : 0
-				this.x += this.speedX
-				//floor
-				var floor = waitingGame.canvas.height - this.height
-				if (this.y > floor) {
-					this.y = floor
-					this.speedY = 0
-					this.gravitySpeed = 0
-				}
-				//grid snap
-				this.x = Math.floor(this.x / this.width) * this.width
-				//overlapping
-				physicsCubes.forEach(other => {
-					if (other != this) {
-						let calcH = (this.height + other.height) / 2,
-							calcW = (this.width + other.width) / 2
-						if (Math.abs(this.y - other.y) < calcH && Math.abs(other.x - this.x) < calcW) { //Colliding
-							this.speedY = 0
-							this.gravitySpeed = 0
-							this.y = (other.y - other.height) - 0.01
-						}
-					}
-				})
-				//render update
-				ctx = waitingGame.context
-				ctx.fillStyle = colour
-				ctx.fillRect(this.x, this.y, this.width, this.height)
-			}
-		}
-
-		function updateGameArea() {
-			waitingGame.clear()
-			physicsCubes.forEach(cube => cube.update())
-		}
-		waitingGame.canvas.onmousedown = function(e) {
-			physicsCubes.push(new component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y)))
-		}
-		waitingGame.start()
 
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 
