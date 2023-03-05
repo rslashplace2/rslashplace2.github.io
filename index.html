@@ -303,9 +303,10 @@
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
-			ws.onmessage = async function({data}){
+			ws.onmessage = async function({data}) {
 				delete sessionStorage.err
 				data = new DataView(await data.arrayBuffer())
+				
 				let code = data.getUint8(0)
 				if (code == 0) {
 					PALETTE = [...new Uint32Array(data.buffer.slice(1))]
@@ -320,28 +321,13 @@
 					if (data.byteLength == 17) {
 						let width = data.getUint32(9)
 						let height = data.getUint32(13)
-
-						setsize(width, height)
-
-						// If fetch board occurred before this packet, board data is already saved in 'load',
-						// and we render board, otherwise, we tell fetch that when it completes, we should go
-						// in non-legacy mode and render the board then.
-						if (load) {
-							board = new Uint8Array(load)
-							renderAll()
-							loadingScreen.style.opacity = 0
-							setTimeout(() => loadingScreen.remove(), 300)
-							setTimeout(() => waitingGame.stop(), 300)
-							return
-						}
-
-						legacy = false
+						setSize(width, height)
+						runLengthDecodeBoard(await preloadedBoard, width * height)
 					}
 				}
 				else if (code == 2) {
-					//run length coding
-					if (!load) load = data
-					else runLengthChanges(data, load)
+					// Old server "changes" packet - preloadedBoard = http board, data = changes
+					runLengthChanges(data, await preloadedBoard)
 				}
 				else if (code == 3) {
 					online = data.getUint16(1)
@@ -380,7 +366,7 @@
 						txt = txt.substring(0, 56)
 
 						const placeMessage = document.createElement("placechat")
-						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span> ${txt}`
+						placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]};">[${name || "anon"}]</span><span>${txt}</span>`
 						placeMessage.style.left = placeX + "px"
 						placeMessage.style.top = placeY + "px"
 						canvparent2.appendChild(placeMessage)
@@ -1175,7 +1161,7 @@
 		}
 		waitingGame.start()
 
-		function setsize(w, h = w) {
+		function setSize(w, h = w) {
 			canvas.width = WIDTH = w
 			canvas.height = HEIGHT = h
 			canvparent1.style.width = w + "px"
@@ -1319,7 +1305,7 @@
 			}
 		}
 
-		setsize(WIDTH, HEIGHT)
+		setSize(WIDTH, HEIGHT)
 		renderAll()
 		let anim = null
 
@@ -1414,12 +1400,12 @@
 			AUDIOS.selectColour.run()
 		}
 
-		function runLengthChanges(data, a) {
+		function runLengthChanges(data, buffer) {
 			let i = 9,
 			boardI = 0
 			let w = data.getUint32(1), h = data.getUint32(5)
-			if (w != WIDTH || h != HEIGHT) setsize(w, h)
-			board = new Uint8Array(a)
+			if (w != WIDTH || h != HEIGHT) setSize(w, h)
+			board = new Uint8Array(buffer)
 			while (i < data.byteLength) {
 				let cell = data.getUint8(i++)
 				let c = cell >> 6
@@ -1436,29 +1422,35 @@
 			setTimeout(() => waitingGame.stop(), 300)
 		}
 
-		let load = false
-		let legacy = true
-		fetch(localStorage.board || "place")
-			.then(data => data.arrayBuffer())
-			.then(data => {
-				if (legacy) {
-					if (load) runLengthChanges(load, data)
-					else load = data
-					return
-				}
+		// The new server's equivalent for run length changes, based upon run length encoding
+		function runLengthDecodeBoard(data, length) {
+			data = new Uint8Array(data)
+			board = new Uint8Array(length)
+			let boardI = 0
+			let colour = 0
 
-				// Non-legacy mode see packet 1
-				board = new Uint8Array(data)
-				renderAll()
-				loadingScreen.style.opacity = 0
-				setTimeout(() => loadingScreen.remove(), 300)
-				setTimeout(() => waitingGame.stop(), 300)
-			})
-			.catch(error => {
-				loadingScreen.children[0].src = SERVER_OFFLINE_B64
-				waitingGame.start()
-			})
+			for (let i = 0; i < data.byteLength; i++) {
+				// Then it is a palette value
+				if (i % 2 == 0) {
+					colour = data[i] 
+					continue
+				}
+				// After colour, loop until we unpack all repeats, byte can only hold max 255,
+				// so we add one to repeated data[i], and treat it as if 0 = 1 (+1)
+				for (let j = 0; j < data[i] + 1; j++) {
+					board[boardI] = colour
+					boardI++
+				}
+			}
+
+			renderAll()
+			loadingScreen.style.opacity = 0
+			setTimeout(() => loadingScreen.remove(), 300)
+			setTimeout(() => waitingGame.stop(), 300)
+		}
 		
+		const encoder = new TextEncoder()
+		const decoder = new TextDecoder()
 		let online = 1
 		let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
 		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
@@ -1473,6 +1465,21 @@
 		let currentChannel = lang
 		switchLanguageChannel(currentChannel)
 		wscapsule()
+
+		async function fetchBoard() {
+			const response = await fetch(localStorage.board || "place")
+			if (!response.ok) {
+				loadingScreen.children[0].src = SERVER_OFFLINE_B64
+				waitingGame.start()
+				return null
+			}
+
+			return await response.arrayBuffer()
+		}
+
+		// We don't await this yet, when the changes (old server) / canvas width & height (new server) packet
+		// comes through, it will await this unawaited state until it is fufilled, so we are sure we have all the data
+		let preloadedBoard = fetchBoard()
 
 		function seti(i, b) {
 			board[i] = b
@@ -1495,8 +1502,7 @@
 			}
 		}
 		generateIndicators()
-		let encoder = new TextEncoder(),
-			decoder = new TextDecoder()
+		
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
 		}
