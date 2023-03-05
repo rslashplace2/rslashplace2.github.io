@@ -373,7 +373,9 @@
 					if (!txt) return
 					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
 					
-					if (type == 'place') {
+					if (type == "place") {
+						if (!placeChat) return
+
 						//Place chat, chat that is placed on the canvas at the position as a "bubble"
 						txt = txt.substring(0, 56)
 
@@ -388,7 +390,7 @@
 							canvparent2.removeChild(placeMessage) 
 						}, localStorage.placeChatTime || 7e3)
 					}
-					else if (!type || type == 'live') {
+					else if (!type || type == "live") {
 						//Normal chat - goes to live chat panel
 						let newMessage = document.createElement("div")
 						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
@@ -574,7 +576,7 @@
 				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
 				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
 				if (keyIndex == null) return
-				if (palette.style.transform=='translateY(100%)')
+				if (palette.style.transform == 'translateY(100%)')
 					showPalette()
 				for (let c = 0; c < document.getElementById("colours").children.length; c++) {
 					document.getElementById("colours").children[c].firstChild.style.visibility = "visible"
@@ -637,7 +639,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=2.7" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=2.8" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2" />
@@ -739,7 +741,7 @@
 				<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
 				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.tk web app</div>
 				<div id="modal-footer">
-					<mute-button noselect onclick="
+					<mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
 						muted =! muted
 						localStorage.muted =+ muted
 						mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
@@ -747,6 +749,13 @@
 						<svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
 					</mute-button>
 					<img noselect alt="Place Logo" height="40" width="40" src="https://www.redditstatic.com/mona-lisa/assets/img/place-logo.svg" />
+					<place-chat-button class="modal-footer-button" title="Enable canvas chat" onclick="
+						placeChat =! placeChat
+						localStorage.placeChat =+ placeChat
+						this.children[0].style.opacity = placeChat ? '1' : '0.6'
+					">
+						<img src="images/place-chat.svg" width="60">
+					</place-chat-button>
 				</div>
 			</div>
 			<div id="palette" style="transform: translateY(100%)" noselect>
@@ -1090,7 +1099,10 @@
 				this.canvas.width = innerWidth
 				this.canvas.height = innerHeight
 				this.context = this.canvas.getContext("2d")
-				this.interval = setInterval(updateGameArea, 14)
+				this.interval = setInterval(() => {
+					waitingGame.clear()
+					physicsCubes.forEach(cube => cube.update())
+				}, 16)
 				this.started = true
 			}
 
@@ -1158,12 +1170,8 @@
 
 		let physicsCubes = []
 		const waitingGame = new WaitingGame(waitingGameCanvas)
-		function updateGameArea() {
-			waitingGame.clear()
-			physicsCubes.forEach(cube => cube.update())
-		}
-		waitingGame.canvas.onmousedown = function(e) {
-			physicsCubes.push(new Component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(e.x), Math.floor(e.y), waitingGame))
+		waitingGame.canvas.onmousedown = function(event) {
+			physicsCubes.push(new Component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(event.x), Math.floor(event.y), waitingGame))
 		}
 		waitingGame.start()
 
@@ -1358,6 +1366,7 @@
 		}
 
 		let muted = localStorage.muted ?? false
+		let placeChat = localStorage.placeChat ?? true
 		let onCooldown = false
 		let PEN = -1
 		let CD = Infinity
