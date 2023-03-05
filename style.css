@@ -253,7 +253,7 @@ btn{
 	bottom: 20px;
 	left: 50%;
 	transform: translateX(-50%);
-	width: 155px;
+	min-width: 155px;
 	height: 24px;
 	padding: 5px;
 	line-height: 15px;
@@ -272,22 +272,19 @@ btn{
 	flex-direction: column;
 	color: rgb(0, 0, 0);
 	border-radius: 8px;
-	max-width: 325px;
-	min-width: 325px;
+	width: min(325px, calc(100% - 64px));
 	padding: 24px;
 	z-index: 7;
 	box-sizing: content-box;
 }
 
 @media (max-width:500px){
-	#modal{
+	#modal {
 		padding: 16px;
-		min-width: 200px;
-		max-width: 275px;
 	}
 
 	#modal-install {
-		width: 100%;
+		width: 100% !important;
 	}
 
 	#modal-footer {
@@ -562,19 +559,6 @@ place-chat-button > img {
 	box-shadow: 0 0 30px black;
 }
 
-#namePanel {
-	z-index:1;
-	position: absolute;
-	bottom: 0;
-	text-align: center;
-	width: 100%;
-	padding: 10px;
-	background-color: white;
-	border-radius: 15px;
-	height: 120px;
-	left: 0
-}
-
 .channels-options {
 	position: relative;
 	height:30px;
@@ -717,18 +701,29 @@ a {
 	box-shadow: 0px 0px 5px gray;
 }
 
-#nameInput {
+#namePanel {
+	z-index:1;
 	position: absolute;
-	width: calc(100% - 65px);
-	left: 10px;
-	display: inline-block;
+	bottom: 0;
+	text-align: center;
+	width: 100%;
+	padding: 10px;
+	background-color: white;
+	border-radius: 15px;
+	left: 0
+}
+
+.name-input-container {
+	display: flex;
+	column-gap: 4px;
+}
+
+#nameInput {
+	flex-grow: 1;
 	height: 40px;
 }
 
-#nameSubmit {
-	position: absolute;
-	display: inline-block;
-	right: 10px;
+.name-input-container > button {
 	width: 40px;
 	height: 40px;
 	background: white;
@@ -740,7 +735,7 @@ a {
 	cursor: pointer;
 }
 
-#nameSubmit:hover {
+.name-input-container > button:hover {
 	transform: rotate(5deg) scale(110%);
 }
 
