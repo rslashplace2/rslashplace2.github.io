@@ -345,7 +345,7 @@ btn{
 	position: relative;
 }
 
-mute-button{
+.modal-footer-button {
 	display: block;
 	width: 36px;
 	height: 36px;
@@ -353,9 +353,25 @@ mute-button{
 	box-shadow: 0 3px 10px rgba(0,0,0,.3);
 	border-radius: 18px;
 	position: absolute;
+	cursor: pointer;
+}
+
+mute-button {
 	bottom: -2px;
 	left: -6px;
-	cursor: pointer;
+}
+
+place-chat-button {
+	bottom: -2px;
+	right: -6px;
+	width: 72px !important
+}
+
+place-chat-button > img {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	top: -30%;
 }
 
 #helpbtn, #closebtn{
