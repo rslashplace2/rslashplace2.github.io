@@ -414,11 +414,12 @@
 							break
 						// Emoji captcha
 						case 3:
-							let emojis = (decoder.decode(new Uint8Array(data.buffer).slice(2, 12))).split("\n")
-							let imageData = new Uint8Array(data.buffer).slice(13)
-							
+							let emojisSize = data.getUint8(2)
+							let emojis = decoder.decode(new Uint8Array(data.buffer).slice(3, emojisSize))
+							let imageData = new Uint8Array(data.buffer).slice(3 + emojisSize)
+
 							for (let emoji of emojis) {
-								let el = docment.createElement("input")
+								let el = document.createElement("input")
 								el.setAttribute("type", "button")
 								el.setAttribute("value", emoji)
 								captchaOptions.appendChild(el)
@@ -805,7 +806,7 @@
 						</postcopy>
 					</div>
 				</div>
-				<div onclick="switchGameServer('server.poemanthology.org:8081/place server.poemanthology.org')" class="post">
+				<div onclick="switchGameServer('server.poemanthology.org/place server.poemanthology.org/ws')" class="post">
 					<img src="images/rplace2.png">
 					<div>
 						<div>2nd Canvas</div> 500x750 (cooldown: 800ms)
