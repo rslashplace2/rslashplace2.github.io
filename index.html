@@ -359,8 +359,6 @@
 					
 					if (type == "place") {
 						if (!placeChat) return
-
-						//Place chat, chat that is placed on the canvas at the position as a "bubble"
 						txt = txt.substring(0, 56)
 
 						const placeMessage = document.createElement("placechat")
@@ -1452,9 +1450,9 @@
 		const encoder = new TextEncoder()
 		const decoder = new TextDecoder()
 		const lang = navigator.language.split('-')[0]
-		let online = 1
 		const allowed = ["rplace.tk", "google.com", "wikipedia.org", "pxls.space"]
-		const hashString = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
+		const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
+		let online = 1
 		let extraLanguage = "fa"
 		if (lang != "tr" && lang != "en") {
 			extraLanguage = lang
