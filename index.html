@@ -355,7 +355,6 @@
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
-					if (name) name = name.replace(/\W+/g, "").toLowerCase()
 					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
 					
 					if (type == "place") {
@@ -385,13 +384,13 @@
 							newMessage.style.color = "transparent"
 							newMessage.style.textShadow = "0px 0px 6px black"
 						}
-						if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
+						if (txt.includes("@" + localStorage.name)) {
 							newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 							if (currentChannel == messageChannel) AUDIOS.closePalette.run()
 						}
 						messageChannel = messageChannel || 'en'
 						cMessages[messageChannel].push(newMessage)
-						if (cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+						if (cMessages[messageChannel].length > 100) cMessages[messageChannel].unshift()
 						if (currentChannel == messageChannel) {
 							chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 						}
