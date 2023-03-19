@@ -795,8 +795,10 @@
 						<postcopy onclick="
 							event.stopPropagation()
 							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/rplace.tk/place')
-							this.getElementsByTagName('span')[0].style.opacity = '1'
-							setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)
+							this.children[1].animate([
+									{ opacity: 1 },
+									{ scale: 1.1 }
+								], { duration: 1000, iterations: 1, })
 						" title="copy canvas link">
 							<img src="svg/clipboard.svg">
 							<span style="opacity: 0;">Copied to clipboard!</span>
@@ -809,9 +811,11 @@
 						<div>2nd Canvas</div> 500x750 (cooldown: 800ms)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org&board=https:\/\/server.poemanthology.org:8081/place')
-							this.getElementsByTagName('span')[0].style.opacity = '1'
-							setTimeout(this.getElementsByTagName('span')[0].style.opacity = '0', 1000)
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/ws&board=https:\/\/server.poemanthology.org/place')
+							this.children[1].animate([
+									{ opacity: 1 },
+									{ scale: 1.1 }
+								], { duration: 1000, iterations: 1, })
 						" title="copy canvas link">
 							<img src="svg/clipboard.svg">
 							<span style="opacity: 0;">Copied to clipboard!</span>
