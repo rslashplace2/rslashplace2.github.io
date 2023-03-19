@@ -351,18 +351,14 @@
 					seti(data.getUint32(5), data.getUint8(9))
 				}
 				else if (code == 15) {
-					let txt = censor(decoder.decode(new Uint8Array(data.buffer).slice(1))).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
+					let txt = decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
-					if (name) name = name.replace(/\W+/g,'').toLowerCase()
-					if (!txt) return
 					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
 					
 					if (type == "place") {
 						if (!placeChat) return
-
-						//Place chat, chat that is placed on the canvas at the position as a "bubble"
 						txt = txt.substring(0, 56)
 
 						const placeMessage = document.createElement("placechat")
@@ -371,7 +367,7 @@
 						placeMessage.style.top = placeY + "px"
 						canvparent2.appendChild(placeMessage)
 
-						//Remove message after given time. TODO: Make customisable
+						//Remove message after given time.
 						setTimeout(() => {
 							canvparent2.removeChild(placeMessage) 
 						}, localStorage.placeChatTime || 7e3)
@@ -380,19 +376,19 @@
 						//Normal chat - goes to live chat panel
 						let newMessage = document.createElement("div")
 						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
-						let scroll = chatMessages.scrollTop+chatMessages.offsetHeight+10>=chatMessages.scrollHeight
+						let scroll = chatMessages.scrollTop + chatMessages.offsetHeight + 10 >= chatMessages.scrollHeight
 
 						if (name !== localStorage.name && blockedUsers.includes(name)) {
 							newMessage.style.color = "transparent"
 							newMessage.style.textShadow = "0px 0px 6px black"
 						}
-						if (localStorage.name && txt.includes("@" + localStorage.name.replace(/\W+/g,'').toLowerCase())) {
+						if (txt.includes("@" + localStorage.name)) {
 							newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 							if (currentChannel == messageChannel) AUDIOS.closePalette.run()
 						}
 						messageChannel = messageChannel || 'en'
 						cMessages[messageChannel].push(newMessage)
-						if (cMessages[messageChannel].length > 100)cMessages[messageChannel].unshift()
+						if (cMessages[messageChannel].length > 100) cMessages[messageChannel].unshift()
 						if (currentChannel == messageChannel) {
 							chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 						}
@@ -400,6 +396,7 @@
 						if (chatMessages.children.length > 100){
 							chatMessages.children[0].remove()
 						}
+
 						scroll && chatMessages.scrollTo(0,10e8)
 					}
 				}
@@ -871,7 +868,7 @@
 							this.value = ''
 						}
 					" maxlength="15">
-					<button onclick="setName(nameInput.value || 'anon')">
+					<button onclick="setName(nameInput.value)">
 						<img src="svg/green-checkmark.svg">
 					</button>
 				</div>
@@ -1449,14 +1446,13 @@
 			setTimeout(() => loadingScreen.remove(), 300)
 			setTimeout(() => waitingGame.stop(), 300)
 		}
-		
+
 		const encoder = new TextEncoder()
 		const decoder = new TextDecoder()
-		let online = 1
-		let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
-		let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" "))
-		let censor = a => a.replace(/sik[ey]im|orospu|piç|yavşak|amcık|fuc?k|shi[t]|c[u]nt|nigg[ae]r?/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
 		const lang = navigator.language.split('-')[0]
+		const allowed = ["rplace.tk", "google.com", "wikipedia.org", "pxls.space"]
+		const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
+		let online = 1
 		let extraLanguage = "fa"
 		if (lang != "tr" && lang != "en") {
 			extraLanguage = lang
@@ -1509,6 +1505,7 @@
 		}
 
 		function setName(name) {
+			name = name.replace(/\W+/g, "").toLowerCase() || "anon"
 			localStorage.name = name
 			namePanel.style.visibility = "hidden"
 		}
