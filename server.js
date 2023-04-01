@@ -84,7 +84,7 @@ const NO_PORT = a => a.split(':')[0].trim()
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a=>a.toString().trim().split('\n').map(a=>fetch(a).then(a=>a.text()))))).flatMap(a=>a.trim().split('\n').map(NO_PORT))) 
 for(let ban of (await fs.readFile('blacklist.txt')).toString().split('\n'))BANS.add(ban) 
 let WEBHOOK_URL
-try{WEBHOOK_URL = await (fs.readFile("webhook_url.txt")).toString()}catch(e){}
+try{WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString()}catch(e){}
 let ORIGIN
 try {ORIGIN = await (await fs.readFile("../.git-credentials")).toString().trim()}catch(e){}
 let HIST_LEN = 30
@@ -202,21 +202,21 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                         return 
                 }
                 //accept 
-                if (checkAntiGriefBot(p)) return p.close()
-                if (checkActiveBuildBot(p)) return p.close()
+                /*if (checkAntiGriefBot(p)) return p.close()
+                if (checkActiveBuildBot(p)) return p.close()*/
                 if(checkPreban(i%WIDTH, Math.floor(i/HEIGHT), IP)) return p.close()  
                 CHANGES[i] = c 
                 cooldowns.set(IP, NOW + CD - 500) 
                 newPos.push(i) 
                 newCols.push(c)
                 //antibot
-                var data2 = new Uint8Array(data.buffer.byteLength + 8)
+                /*var data2 = new Uint8Array(data.buffer.byteLength + 8)
                 data2.set(data.buffer, 0)
                 data2.set(new Uint8Array(8), data.buffer.byteLength)
                 let dv = new DataView(data2.buffer)
                 dv.setFloat64(6, +NOW) //+NOW is data to number
                 p.pHistory.push(dv.buffer)
-                if (p.pHistory.length >= HIST_LEN) p.pHistory.shift() //remove oldest hist, lim to 50
+                if (p.pHistory.length >= HIST_LEN) p.pHistory.shift()*/ //remove oldest hist, lim to 50
   }) 
         p.on('close', function(){ players-- }) 
 }) 
