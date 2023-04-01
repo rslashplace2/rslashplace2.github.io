@@ -623,7 +623,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=2.9" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.0" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2" />
@@ -966,6 +966,9 @@
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" onclick="confirmTlCreate()" value="Create"/>
 			<span id="tlTimer" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%);">0.0s</span>
 		</div>
+		<style id="aprilfoolsstyles">
+
+		</style>
 	</body>
 	<script>
 		let PALETTE = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff]
@@ -1817,6 +1820,24 @@
 			e.preventDefault()
 			pwaPrompter = e
 		})
+
+		//APRIL FOOLS
+		if (localStorage.board == 'https://server.poemanthology.org/turkeyplace') {
+			aprilfoolsstyles.innerHTML = `
+			*:not(#canvas, #canvparent1, #canvparent2, #chatMessages > div, #chatMessages > div > span, #chatMessages, #place, #posel, #onlineCounter, #helpbtn, #closebtn, #chat, #onlinepanel, .channels-options, h2, span, #colours, #colours > *, .buttons, .buttons > *, #canvselect)::before {
+				content: \" \";
+				position: absolute;
+				top: 0; 
+				left: 0;
+				width: 100%; 
+				height: 100%;  
+				opacity: .4; 
+				z-index: -1;
+				background: url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Flag_of_Turkey.svg/1280px-Flag_of_Turkey.svg.png);	
+				background-position-x: center;
+			}
+			`
+		}
 
 		setTimeout(() => {
 			if (window.connproblems)
