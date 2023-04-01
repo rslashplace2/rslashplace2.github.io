@@ -808,10 +808,27 @@
 				<div onclick="switchGameServer('server.poemanthology.org/place server.poemanthology.org/ws')" class="post">
 					<img src="images/rplace2.png">
 					<div>
-						<div>2nd Canvas</div> 500x750 (cooldown: 800ms)
+						<div>2nd Canvas</div> 500x500 (cooldown: 800ms)
 						<postcopy onclick="
 							event.stopPropagation()
 							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/ws&board=https:\/\/server.poemanthology.org/place')
+							this.children[1].animate([
+									{ opacity: 1 },
+									{ scale: 1.1 }
+								], { duration: 1000, iterations: 1, })
+						" title="copy canvas link">
+							<img src="svg/clipboard.svg">
+							<span style="opacity: 0;">Copied to clipboard!</span>
+						</postcopy>
+					</div>
+				</div>
+				<div onclick="switchGameServer('server.poemanthology.org/turkeyplace server.poemanthology.org/turkeyws')" class="post">
+					<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Flag_of_Turkey.svg/1200px-Flag_of_Turkey.svg.png">
+					<div>
+						<div>TURKEY CANVAS</div> 250x250 (cooldown: 30ms)
+						<postcopy onclick="
+							event.stopPropagation()
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
