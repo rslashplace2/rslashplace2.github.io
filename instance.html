@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Server Hosting Control Panel</title>
+        <link rel="stylesheet" href="style.css">
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+        * {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        *:not(h1, h2, h3, h4) {
+            font-size: 20px;
+        }
+
+        #dashboard, #servers {
+            display: none;
+        }
+
+        #dashboard:target, #servers:target {
+            display: block;
+            flex-grow: 1;
+            padding: 8px;
+            position: relative;
+        }
+
+        body {
+            background-color: #dae0e6;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow-y: scroll;
+        }
+
+        #canvas {
+            position: fixed;
+            left: calc(60% - 16px);
+            width: 40%;
+            aspect-ratio: 1/1;
+            background-color: white;
+            z-index: -2;
+            opacity: 0.2;
+            top: calc(50% + 42px);
+            transform: translateY(-50%);
+            border: 2px solid gray;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            position: sticky;
+            top: 0px;
+            z-index: 2;
+        }
+
+        nav {
+            background-color: #343536;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 0px 0px 8px 8px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .content h2 {
+            font-size: 24px;
+            margin-top: 0;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        ul {
+            align-self: center;
+            list-style: none;
+            padding-left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+            margin: 0;
+            padding: 0 10px;
+            background-color: #FF4500;
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        li a {
+            color: #FFFFFF;
+            text-decoration: none;
+            padding: 10px;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        ul li a:hover {
+            background-color: #E34234;
+        }
+
+
+        a {
+            color: #0079d3;
+            text-decoration: none;
+        }
+
+        .content a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            background-color: #343536;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #cee3f8;
+            color: #1a1a1b;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .button:hover {
+            background-color: #b0c8e6;
+        }
+
+        @media screen and (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav a {
+                margin-bottom: 10px;
+            }
+
+            #canvas {
+                display: none;
+            }
+        }
+        </style>
+    </head>
+    <body>
+        <header>
+            <nav>
+                <img src="favicon.png" style="width: 64px;">
+                <h1 style="align-self: center;">Rplace instance manager</h1>
+                <ul>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#servers">Servers</a></li>
+                    <li><a href="https://discord.gg/xbRrVSXJdZ">Discord</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id="dashboard">
+            <h1>Dashboard</h1>
+            <p>Welcome to the rplace server hosting control panel. Here you can
+                manage your servers, view your server statistics, and get
+                support.</p>
+            <br>
+            <div>
+                <h2>Your Servers</h2>
+                <table style="width: 50%;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Server 1</td>
+                            <td>192.168.0.1</td>
+                            <td>Online</td>
+                            <td><a href="#servers">Manage</a></td>
+                        </tr>
+                        <tr>
+                            <td>Server 2</td>
+                            <td>192.168.0.2</td>
+                            <td>Offline</td>
+                            <td><a href="#servers">Manage</a></td>
+                        </tr>
+                        <tr>
+                            <td>Server 3</td>
+                            <td>192.168.0.3</td>
+                            <td>Online</td>
+                            <td><a href="#servers">Manage</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <br>
+            <div>
+                <h2>Your Account</h2>
+                <a href="">Login</a>
+                <br><br>
+                <h4>Account info:</h4>
+                <div>Account name:</div>
+                <div>Account ID:</div>
+                <div>Billing info:</div>
+                <a href="">Delete account</a>
+            </div>
+        </div>
+        <div id="servers">
+            <h1>Servers</h1>
+            <p>Manage one of your servers, view it's activity and change its settings.</p>
+            <br>
+            <h4>Server settings:</h4>
+            <div id="serverSettings" contenteditable></div>
+            <br>
+            <button class="button">Save changes</button>
+            <button class="button">Undo changes</button>
+            <br><br>
+            <h4>Server activity:</h4>
+            <div id="serverActivity"></div>
+            <br>
+            <button class="button">Restart server</button>
+            <button class="button">Delete server</button>
+            <br><br>
+        </div>
+        <canvas id="canvas" width="400" height="400">
+
+        </canvas>
+        <footer>
+            <p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
+        </footer>
+    </body>
+    <script>
+		const ctx = canvas.getContext('2d')
+		ctx.fillStyle = 'black'
+        async function renderBoard(url, width, height) {
+            const board = await (await fetch(url)).arrayBuffer()
+            for (let i = 0; i < board.length; i++) {
+                
+            }
+        }
+
+        const gameData = {
+            Cooldown: 10,
+            ChatCooldown: 10,
+            CaptchaEnabled: false,
+            CreateBackups: false,
+            Vips: "[]",
+            Bans: "[]",
+            BoardWidth: 1000,
+            BoardHeight: 1000,
+            BackupFrequency: 100000,
+            PostLimitPeriod: 100000,
+            TimelapseLimitPeriod: 100000,
+            CensorChatMessages: false,
+            ChatHistoryLength: 100,
+            WebhookUrl: "\"\"",
+            Palette: "[]"
+        }
+
+        const playInfo = {
+            PlayerCount: 0,
+            PlayerIps: "[]",
+            ServerMemUsage: "100M",
+            ServerCPUUsage: "0.1%"
+        }
+
+        serverSettings.innerHTML = objectToHtml(gameData)
+        serverActivity.innerHTML = objectToHtml(playInfo)
+
+        function objectToHtml(object) {
+            let html = ""
+            let indent = 1
+            let last = false
+
+            function propToHtml(obj) {
+                for (let prop in obj) {
+                    if(typeof obj[prop] === 'object') {
+                        indent++
+                        html += `<div style="margin-left: ${indent * 8}px">${prop}: ${propToHtml(obj[prop])}</div>\n`
+                        last = false
+                    }
+                    else {
+                        if (!last) indent--
+                        last = true
+                        html += `<div style="margin-left: ${indent * 8}px">${prop}: ${obj[prop]}</div>\n`
+                    }
+                }
+            }
+            propToHtml(object)
+
+            return html 
+        }
+    </script>
+</html>
