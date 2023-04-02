@@ -47,6 +47,24 @@
             border: 2px solid gray;
         }
 
+        #serverSettings {
+            width: 40%;
+        }
+
+        #serverSettings > div {
+            display: flex;
+            flex-direction: row;
+            column-gap: 8px;
+        }
+
+        #serverSettings > div > span {
+            flex-grow: 1;
+        }
+
+        #serverSettings > div > input {
+            min-width: 128px;
+        }
+
         .container {
             max-width: 1024px;
             margin: 0 auto;
@@ -77,6 +95,41 @@
             text-decoration: underline;
         }
 
+        input {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 14px;
+            outline: none;
+            height: 25px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        input:focus {
+            border-color: #369;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        input[type=checkbox] {
+            appearance: none;
+            display: inline-block;
+            position: relative;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        input[type=checkbox]:checked::after {
+            content: "✓";
+            font-size: 28px;
+            font-weight: 1000;
+            position: absolute;
+            color: #0079d3;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
         .content {
             background-color: #fff;
             padding: 20px;
@@ -153,7 +206,7 @@
             margin: 0;
         }
 
-        .button {
+        button {
             display: inline-block;
             padding: 8px 16px;
             border: none;
@@ -168,7 +221,7 @@
             transition: background-color 0.2s ease-in-out;
         }
 
-        .button:hover {
+        button:hover {
             background-color: #b0c8e6;
         }
 
@@ -184,6 +237,10 @@
 
             #canvas {
                 display: none;
+            }
+
+            #serverSettings {
+                width: 100%;
             }
         }
         </style>
@@ -256,7 +313,7 @@
             <p>Manage one of your servers, view it's activity and change its settings.</p>
             <br>
             <h4>Server settings:</h4>
-            <div id="serverSettings" contenteditable></div>
+            <div id="serverSettings"></div>
             <br>
             <button class="button">Save changes</button>
             <button class="button">Undo changes</button>
@@ -290,8 +347,8 @@
             ChatCooldown: 10,
             CaptchaEnabled: false,
             CreateBackups: false,
-            Vips: "[]",
-            Bans: "[]",
+            Vips: [ ],
+            Bans: [],
             BoardWidth: 1000,
             BoardHeight: 1000,
             BackupFrequency: 100000,
@@ -300,35 +357,56 @@
             CensorChatMessages: false,
             ChatHistoryLength: 100,
             WebhookUrl: "\"\"",
-            Palette: "[]"
+            Palette: []
         }
 
         const playInfo = {
             PlayerCount: 0,
             PlayerIps: "[]",
             ServerMemUsage: "100M",
-            ServerCPUUsage: "0.1%"
+            ServerStorageUsage: "100M",
         }
 
-        serverSettings.innerHTML = objectToHtml(gameData)
+        serverSettings.innerHTML = objectToHtml(gameData, true)
         serverActivity.innerHTML = objectToHtml(playInfo)
 
-        function objectToHtml(object) {
+        function objectToHtml(object, editable = false) {
             let html = ""
             let indent = 1
             let last = false
 
             function propToHtml(obj) {
                 for (let prop in obj) {
-                    if(typeof obj[prop] === 'object') {
+                    if(typeof obj[prop] === 'object' && !Array.isArray(obj[prop])) {
                         indent++
-                        html += `<div style="margin-left: ${indent * 8}px">${prop}: ${propToHtml(obj[prop])}</div>\n`
+                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${propToHtml(obj[prop])}</div>\n`
                         last = false
                     }
                     else {
                         if (!last) indent--
                         last = true
-                        html += `<div style="margin-left: ${indent * 8}px">${prop}: ${obj[prop]}</div>\n`
+                        if (!editable) {
+                            html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${obj[prop]}</div>\n`
+                        }
+                        else {
+                            let input = ""
+                            switch (typeof obj[prop]) {
+                                case 'string':
+                                    input = `<input type="text" value=${obj[prop]}>`
+                                    break
+                                case 'number':
+                                    input = `<input type="number" value=${Number(obj[prop])}>`
+                                    break
+                                case 'boolean':
+                                    input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`
+                                    break
+                                case 'object':
+                                    input = `<button>+ Add new</button>`
+                                    break;
+                            }
+
+                            html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
+                        }
                     }
                 }
             }
