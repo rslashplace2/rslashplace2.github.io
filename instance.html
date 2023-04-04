@@ -233,6 +233,10 @@
             background-color: #b0c8e6;
         }
 
+        #instances {
+            width: 50%;
+        }
+
         @media screen and (max-width: 768px) {
             nav {
                 flex-direction: column;
@@ -250,6 +254,10 @@
             #serverSettings {
                 width: 100%;
             }
+
+            #instances {
+                width: 100%;
+            }
         }
     </style>
     <script>
@@ -263,14 +271,27 @@
 
                 switch (data.getUint8(0)) {
                     //string Username, string Password, string Email, int AccountTier, List<int> Instances
-                    case ServerPackets.AccountInfo:
-                    {
+                    case ServerPackets.AccountInfo: {
                         accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                        accountName.textContent = accountData.Username
+                        let censoredSection = accountData.Email.slice(4, accountData.Email.indexOf("@"))
+                        accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
                         accountInfo.style.display = 'block'
+
+                        for (let instance of accountData.Instances) {
+                            let row = instances.insertRow(instances.rows.length)
+                            let name = row.insertCell(0)
+                            let ip = row.insertCell(1)
+                            let status = row.insertCell(2)
+                            let actions = row.insertCell(3)
+                            name.innerHTML = instance.toString().padStart(4)
+                            ip.textContent = "XXX.XXX.X.XXX"
+                            status.textContent = "Online"
+                            actions.innerHTML = "<td><a href=\"#servers\">Manage</a></td>"
+                        }
                         break
                     }
-                    case ServerPackets.Fail:
-                    {
+                    case ServerPackets.Fail: {
                         console.log(decoder.decode(data.buffer.slice(1)))
                         break
                     }
@@ -308,7 +329,7 @@
         <br>
         <div>
             <h2>Your Servers</h2>
-            <table style="width: 50%;">
+            <table id="instances">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -318,24 +339,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Server 1</td>
-                        <td>192.168.0.1</td>
-                        <td>Online</td>
-                        <td><a href="#servers">Manage</a></td>
-                    </tr>
-                    <tr>
-                        <td>Server 2</td>
-                        <td>192.168.0.2</td>
-                        <td>Offline</td>
-                        <td><a href="#servers">Manage</a></td>
-                    </tr>
-                    <tr>
-                        <td>Server 3</td>
-                        <td>192.168.0.3</td>
-                        <td>Online</td>
-                        <td><a href="#servers">Manage</a></td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -443,9 +446,9 @@
             <br>
             <div id="accountInfo" style="display: none;">
                 <h4>Account info:</h4>
-                <div>Account name:</div>
-                <div>Account ID:</div>
-                <div>Billing info:</div>
+                <div>Account name: <span id="accountName"></span></div>
+                <div>Account email: <span id="accountEmail"></span></div>
+                <div>Billing info: <span id="accountBilling"></span></div>
                 <a href="#dashboard">Delete account</a>
             </div>
         </div>
