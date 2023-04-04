@@ -129,6 +129,10 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        input[type="text"]:invalid:focus {
+            border: 1px solid red;
+        }
         
         .content {
             background-color: #fff;
@@ -244,6 +248,38 @@
             }
         }
         </style>
+        <script>
+            (function() {
+                const ws = new WebSocket("ws://localhost:1234")
+                ws.binaryType = "arraybuffer"
+                send = (_) => ws.send(_)
+                ws.onmessage = async function({data}) {
+                    data = new DataView(data)
+                    
+                    switch (data.getUint8(0)) {
+                        //string Username, string Password, string Email, int AccountTier, List<int> Instances
+                        case ServerPackets.AccountInfo:
+                        {
+                            accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                            break
+                        }
+                        case ServerPackets.Fail:
+                        {
+                            console.log(decoder.decode(data.buffer.slice(1)))
+                            break
+                        }
+
+                    }
+                }
+            }())
+            delete eval; delete Worker
+            const cookies = document.cookie.split(";")
+            for (let cookie of cookies) {
+                const eqPos = cookie.indexOf("=")
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT"
+            }
+        </script>
     </head>
     <body>
         <header>
@@ -299,13 +335,81 @@
             <br>
             <div>
                 <h2>Your Account</h2>
-                <a href="">Login</a>
-                <br><br>
-                <h4>Account info:</h4>
-                <div>Account name:</div>
-                <div>Account ID:</div>
-                <div>Billing info:</div>
-                <a href="">Delete account</a>
+                <div id="loginPanel">
+                    <input id="loginUsername" type="text" placeholder="username" style="display: block; width: 256px;" maxlength="10">
+                    <input id="loginPassword" type="text" placeholder="password" style="display: block; width: 256px;" maxlength="32">
+                </div>
+                <div id="signupPanel" style="display: none">
+                    <input id="signupUsername" type="text" placeholder="username*" style="display: block; width: 256px;" maxlength="10" minlength="4">
+                    <input id="signupPassword" type="password" placeholder="password*" style="display: block; width: 256px;" maxlength="32" minlength="6">
+                    <input id="signupConfirm" type="password" placeholder="confirm password*" style="display: block; width: 256px;" maxlength="32" minlength="6">
+                    <input id="signupEmail" type="email" placeholder="email*" style="display: block; width: 256px;" maxlength="32" required>
+                </div>
+                <a href="#dashboard" onclick="
+                    if (loginPanel.style.display == 'block') {
+                    }
+                    else {
+                        loginPanel.style.display = 'block'
+                        signupPanel.style.display = 'none'
+                    }
+                ">Login</a>
+                <span style="color: gray;">•</span>
+                <a href="#dashboard" onclick="
+                    event.preventDefault()
+                    if (signupPanel.style.display == 'block') {
+                        loginSignupMessage.textContent = ''
+                        signupPassword.style.border = 'initial'
+                        if (!signupEmail.validity.valid) {
+                            signupEmail.style.border = '1px solid red'
+                            loginSignupMessage.textContent = 'Email is not valid!'
+                            return
+                        }
+                        
+                        signupPassword.style.border = 'initial'
+                        if (signupPassword.value !== signupConfirm.value) {
+                            signupPassword.style.border = '1px solid red'
+                            loginSignupMessage.textContent = 'Passwords do not match!'
+                            return
+                        }
+
+                        signupPassword.style.border = 'initial'
+                        if (signupPassword.value.length < 6) {
+                            signupPassword.style.border = '1px solid red'
+                            loginSignupMessage.textContent = 'Password was too short!'
+                            return
+                        }
+
+                        signupUsername.style.border = 'initial'
+                        if (signupUsername.value.length < 4) {
+                            signupUsername.style.border = '1px solid red'
+                            loginSignupMessage.textContent = 'Username was too short!'
+                            return
+                        }
+
+                        let view = new DataView(new ArrayBuffer(363))
+                        view.setUint8(0, ClientPackets.CreateAccount)
+                        for (let i = 1; i < 11; i++) view.setUint8(i,
+                            encoder.encode(signupUsername.value.padEnd(10))[i - 1])
+                        for (let i = 11; i < 43; i++) view.setUint8(i,
+                            encoder.encode(signupPassword.value.padEnd(32))[i - 11])
+                        for (let i = 43; i < 363; i++) view.setUint8(i,
+                            encoder.encode(signupEmail.value.padEnd(320))[i - 43])
+                        send(view.buffer)
+                    }
+                    else {
+                        signupPanel.style.display = 'block'
+                        loginPanel.style.display = 'none'
+                    }
+                ">Signup</a>   
+                <p id="loginSignupMessage" style="color: red; font-size: small;"></p>             
+                <br>
+                <div id="accountInfo" style="display: none;">
+                    <h4>Account info:</h4>
+                    <div>Account name:</div>
+                    <div>Account ID:</div>
+                    <div>Billing info:</div>
+                    <a href="#dashboard">Delete account</a>
+                </div>
             </div>
         </div>
         <div id="servers">
@@ -333,14 +437,24 @@
         </footer>
     </body>
     <script>
+        const encoder = new TextEncoder()
+        const decoder = new TextDecoder()
 		const ctx = canvas.getContext('2d')
-		ctx.fillStyle = 'black'
-        async function renderBoard(url, width, height) {
-            const board = await (await fetch(url)).arrayBuffer()
-            for (let i = 0; i < board.length; i++) {
-                
-            }
+        const ClientPackets = {
+            DeleteAccount: 0,
+            UpdateAccount: 1,
+            CreateAccount: 2,
+            AuthenticateCreate: 3,
+            AccountInfo: 4,
+            CreateInstance: 5,
+            DeleteInstance: 6,
+            RestartInstance: 7,
         }
+        const ServerPackets = {
+            Fail: 0,
+            AccountInfo: 1,
+        }
+        let accountData = null
 
         const gameData = {
             Cooldown: 10,
@@ -359,7 +473,6 @@
             WebhookUrl: "\"\"",
             Palette: []
         }
-
         const playInfo = {
             PlayerCount: 0,
             PlayerIps: "[]",
@@ -369,6 +482,11 @@
 
         serverSettings.innerHTML = objectToHtml(gameData, true)
         serverActivity.innerHTML = objectToHtml(playInfo)
+        window.location.hash = "#dashboard"
+
+        async function connect() {
+
+        }
 
         function objectToHtml(object, editable = false) {
             let html = ""
