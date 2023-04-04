@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Server Hosting Control Panel</title>
-        <link rel="stylesheet" href="style.css">
-        <style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Hosting Control Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+
         * {
             font-family: 'IBM Plex Sans', sans-serif;
         }
@@ -15,11 +17,13 @@
             font-size: 20px;
         }
 
-        #dashboard, #servers {
+        #dashboard,
+        #servers {
             display: none;
         }
 
-        #dashboard:target, #servers:target {
+        #dashboard:target,
+        #servers:target {
             display: block;
             flex-grow: 1;
             padding: 8px;
@@ -51,17 +55,17 @@
             width: 40%;
         }
 
-        #serverSettings > div {
+        #serverSettings>div {
             display: flex;
             flex-direction: row;
             column-gap: 8px;
         }
 
-        #serverSettings > div > span {
+        #serverSettings>div>span {
             flex-grow: 1;
         }
 
-        #serverSettings > div > input {
+        #serverSettings>div>input {
             min-width: 128px;
         }
 
@@ -133,7 +137,7 @@
         input[type="text"]:invalid:focus {
             border: 1px solid red;
         }
-        
+
         .content {
             background-color: #fff;
             padding: 20px;
@@ -247,114 +251,145 @@
                 width: 100%;
             }
         }
-        </style>
-        <script>
-            (function() {
-                const ws = new WebSocket("ws://localhost:1234")
-                ws.binaryType = "arraybuffer"
-                send = (_) => ws.send(_)
-                ws.onmessage = async function({data}) {
-                    data = new DataView(data)
-                    
-                    switch (data.getUint8(0)) {
-                        //string Username, string Password, string Email, int AccountTier, List<int> Instances
-                        case ServerPackets.AccountInfo:
-                        {
-                            accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
-                            break
-                        }
-                        case ServerPackets.Fail:
-                        {
-                            console.log(decoder.decode(data.buffer.slice(1)))
-                            break
-                        }
+    </style>
+    <script>
+        let accountData = null;
+        (function () {
+            const ws = new WebSocket("ws://localhost:1234")
+            ws.binaryType = "arraybuffer"
+            send = (_) => ws.send(_)
+            ws.onmessage = async function ({ data }) {
+                data = new DataView(data)
 
+                switch (data.getUint8(0)) {
+                    //string Username, string Password, string Email, int AccountTier, List<int> Instances
+                    case ServerPackets.AccountInfo:
+                    {
+                        accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                        accountInfo.style.display = 'block'
+                        break
                     }
+                    case ServerPackets.Fail:
+                    {
+                        console.log(decoder.decode(data.buffer.slice(1)))
+                        break
+                    }
+
                 }
-            }())
-            delete eval; delete Worker
-            const cookies = document.cookie.split(";")
-            for (let cookie of cookies) {
-                const eqPos = cookie.indexOf("=")
-                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
-                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT"
             }
-        </script>
-    </head>
-    <body>
-        <header>
-            <nav>
-                <img src="favicon.png" style="width: 64px;">
-                <h1 style="align-self: center;">Rplace instance manager</h1>
-                <ul>
-                    <li><a href="#dashboard">Dashboard</a></li>
-                    <li><a href="#servers">Servers</a></li>
-                    <li><a href="https://discord.gg/xbRrVSXJdZ">Discord</a></li>
-                </ul>
-            </nav>
-        </header>
-        <div id="dashboard">
-            <h1>Dashboard</h1>
-            <p>Welcome to the rplace server hosting control panel. Here you can
-                manage your servers, view your server statistics, and get
-                support.</p>
-            <br>
-            <div>
-                <h2>Your Servers</h2>
-                <table style="width: 50%;">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>IP Address</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Server 1</td>
-                            <td>192.168.0.1</td>
-                            <td>Online</td>
-                            <td><a href="#servers">Manage</a></td>
-                        </tr>
-                        <tr>
-                            <td>Server 2</td>
-                            <td>192.168.0.2</td>
-                            <td>Offline</td>
-                            <td><a href="#servers">Manage</a></td>
-                        </tr>
-                        <tr>
-                            <td>Server 3</td>
-                            <td>192.168.0.3</td>
-                            <td>Online</td>
-                            <td><a href="#servers">Manage</a></td>
-                        </tr>
-                    </tbody>
-                </table>
+        }())
+        delete eval; delete Worker
+        const cookies = document.cookie.split(";")
+        for (let cookie of cookies) {
+            const eqPos = cookie.indexOf("=")
+            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <img src="favicon.png" style="width: 64px;">
+            <h1 style="align-self: center;">Rplace instance manager</h1>
+            <ul>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#servers">Servers</a></li>
+                <li><a href="https://discord.gg/xbRrVSXJdZ">Discord</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div id="dashboard">
+        <h1>Dashboard</h1>
+        <p>Welcome to the rplace server hosting control panel. Here you can
+            manage your servers, view your server statistics, and get
+            support.</p>
+        <br>
+        <div>
+            <h2>Your Servers</h2>
+            <table style="width: 50%;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Server 1</td>
+                        <td>192.168.0.1</td>
+                        <td>Online</td>
+                        <td><a href="#servers">Manage</a></td>
+                    </tr>
+                    <tr>
+                        <td>Server 2</td>
+                        <td>192.168.0.2</td>
+                        <td>Offline</td>
+                        <td><a href="#servers">Manage</a></td>
+                    </tr>
+                    <tr>
+                        <td>Server 3</td>
+                        <td>192.168.0.3</td>
+                        <td>Online</td>
+                        <td><a href="#servers">Manage</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <div>
+            <h2>Your Account</h2>
+            <div id="loginPanel">
+                <input id="loginUsername" type="text" placeholder="username" style="display: block; width: 256px;"
+                    maxlength="10">
+                <input id="loginPassword" type="password" placeholder="password" style="display: block; width: 256px;"
+                    maxlength="32">
             </div>
-            <br>
-            <div>
-                <h2>Your Account</h2>
-                <div id="loginPanel">
-                    <input id="loginUsername" type="text" placeholder="username" style="display: block; width: 256px;" maxlength="10">
-                    <input id="loginPassword" type="text" placeholder="password" style="display: block; width: 256px;" maxlength="32">
-                </div>
-                <div id="signupPanel" style="display: none">
-                    <input id="signupUsername" type="text" placeholder="username*" style="display: block; width: 256px;" maxlength="10" minlength="4">
-                    <input id="signupPassword" type="password" placeholder="password*" style="display: block; width: 256px;" maxlength="32" minlength="6">
-                    <input id="signupConfirm" type="password" placeholder="confirm password*" style="display: block; width: 256px;" maxlength="32" minlength="6">
-                    <input id="signupEmail" type="email" placeholder="email*" style="display: block; width: 256px;" maxlength="32" required>
-                </div>
-                <a href="#dashboard" onclick="
+            <div id="signupPanel" style="display: none">
+                <input id="signupUsername" type="text" placeholder="username*" style="display: block; width: 256px;"
+                    maxlength="10" minlength="4">
+                <input id="signupPassword" type="password" placeholder="password*" style="display: block; width: 256px;"
+                    maxlength="32" minlength="6">
+                <input id="signupConfirm" type="password" placeholder="confirm password*"
+                    style="display: block; width: 256px;" maxlength="32" minlength="6">
+                <input id="signupEmail" type="email" placeholder="email*" style="display: block; width: 256px;"
+                    maxlength="32" required>
+            </div>
+            <div id="authCodePanel" style="display: none">
+                <h4>If you're lucky, an email has been sent to your inbox</h4>
+                <p>Enter the code sent below to authenticate your account</p>
+                <input id="authCode" type="text" placeholder="authentication code*"
+                    style="display: block; width: 256px;" minlength="10">
+                <button onclick="
+                        let buffer = encoder.encode('X' + authCode.value)
+                        buffer[0] = ClientPackets.AuthenticateCreate
+                        send(buffer)
+                        
+                        authCodePanel.style.display = 'none'
+                        loginPanel.style.display = 'block'
+                        // This should at least protect people who accidentally flash their localStorage
+                        localStorage.username = btoa(signupUsername.value) 
+                        localStorage.password = btoa(signupPassword.value)
+                        loginUsername.value = signupUsername.value
+                        loginPassword.value = signupPassword.value
+                    ">Submit</button>
+            </div>
+            <a href="#dashboard" onclick="
                     if (loginPanel.style.display == 'block') {
+                        let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginPassword.value.padEnd(32))
+                        buffer[0] = ClientPackets.AccountInfo
+                        send(buffer)
                     }
                     else {
                         loginPanel.style.display = 'block'
                         signupPanel.style.display = 'none'
                     }
                 ">Login</a>
-                <span style="color: gray;">•</span>
-                <a href="#dashboard" onclick="
+            <span style="color: gray;">•</span>
+            <a href="#dashboard" onclick="
                     event.preventDefault()
                     if (signupPanel.style.display == 'block') {
                         loginSignupMessage.textContent = ''
@@ -395,142 +430,142 @@
                         for (let i = 43; i < 363; i++) view.setUint8(i,
                             encoder.encode(signupEmail.value.padEnd(320))[i - 43])
                         send(view.buffer)
+
+                        authCodePanel.style.display = 'block'
+                        signupPanel.style.display = 'none'
                     }
                     else {
                         signupPanel.style.display = 'block'
                         loginPanel.style.display = 'none'
                     }
-                ">Signup</a>   
-                <p id="loginSignupMessage" style="color: red; font-size: small;"></p>             
-                <br>
-                <div id="accountInfo" style="display: none;">
-                    <h4>Account info:</h4>
-                    <div>Account name:</div>
-                    <div>Account ID:</div>
-                    <div>Billing info:</div>
-                    <a href="#dashboard">Delete account</a>
-                </div>
+                ">Signup</a>
+            <p id="loginSignupMessage" style="color: red; font-size: small;"></p>
+            <br>
+            <div id="accountInfo" style="display: none;">
+                <h4>Account info:</h4>
+                <div>Account name:</div>
+                <div>Account ID:</div>
+                <div>Billing info:</div>
+                <a href="#dashboard">Delete account</a>
             </div>
         </div>
-        <div id="servers">
-            <h1>Servers</h1>
-            <p>Manage one of your servers, view it's activity and change its settings.</p>
-            <br>
-            <h4>Server settings:</h4>
-            <div id="serverSettings"></div>
-            <br>
-            <button class="button">Save changes</button>
-            <button class="button">Undo changes</button>
-            <br><br>
-            <h4>Server activity:</h4>
-            <div id="serverActivity"></div>
-            <br>
-            <button class="button">Restart server</button>
-            <button class="button">Delete server</button>
-            <br><br>
-        </div>
-        <canvas id="canvas" width="400" height="400">
+    </div>
+    <div id="servers">
+        <h1>Servers</h1>
+        <p>Manage one of your servers, view it's activity and change its settings.</p>
+        <br>
+        <h4>Server settings:</h4>
+        <div id="serverSettings"></div>
+        <br>
+        <button class="button">Save changes</button>
+        <button class="button">Undo changes</button>
+        <br><br>
+        <h4>Server activity:</h4>
+        <div id="serverActivity"></div>
+        <br>
+        <button class="button">Restart server</button>
+        <button class="button">Delete server</button>
+        <br><br>
+    </div>
+    <canvas id="canvas" width="400" height="400">
 
-        </canvas>
-        <footer>
-            <p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
-        </footer>
-    </body>
-    <script>
-        const encoder = new TextEncoder()
-        const decoder = new TextDecoder()
-		const ctx = canvas.getContext('2d')
-        const ClientPackets = {
-            DeleteAccount: 0,
-            UpdateAccount: 1,
-            CreateAccount: 2,
-            AuthenticateCreate: 3,
-            AccountInfo: 4,
-            CreateInstance: 5,
-            DeleteInstance: 6,
-            RestartInstance: 7,
-        }
-        const ServerPackets = {
-            Fail: 0,
-            AccountInfo: 1,
-        }
-        let accountData = null
+    </canvas>
+    <footer>
+        <p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
+    </footer>
+</body>
+<script>
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
+    const ctx = canvas.getContext('2d')
+    const ClientPackets = {
+        DeleteAccount: 0,
+        UpdateAccount: 1,
+        CreateAccount: 2,
+        AuthenticateCreate: 3,
+        AccountInfo: 4,
+        CreateInstance: 5,
+        DeleteInstance: 6,
+        RestartInstance: 7,
+    }
+    const ServerPackets = {
+        Fail: 0,
+        AccountInfo: 1,
+    }
+    const gameData = {
+        Cooldown: 10,
+        ChatCooldown: 10,
+        CaptchaEnabled: false,
+        CreateBackups: false,
+        Vips: [],
+        Bans: [],
+        BoardWidth: 1000,
+        BoardHeight: 1000,
+        BackupFrequency: 100000,
+        PostLimitPeriod: 100000,
+        TimelapseLimitPeriod: 100000,
+        CensorChatMessages: false,
+        ChatHistoryLength: 100,
+        WebhookUrl: "\"\"",
+        Palette: []
+    }
+    const playInfo = {
+        PlayerCount: 0,
+        PlayerIps: "[]",
+        ServerMemUsage: "100M",
+        ServerStorageUsage: "100M",
+    }
 
-        const gameData = {
-            Cooldown: 10,
-            ChatCooldown: 10,
-            CaptchaEnabled: false,
-            CreateBackups: false,
-            Vips: [ ],
-            Bans: [],
-            BoardWidth: 1000,
-            BoardHeight: 1000,
-            BackupFrequency: 100000,
-            PostLimitPeriod: 100000,
-            TimelapseLimitPeriod: 100000,
-            CensorChatMessages: false,
-            ChatHistoryLength: 100,
-            WebhookUrl: "\"\"",
-            Palette: []
-        }
-        const playInfo = {
-            PlayerCount: 0,
-            PlayerIps: "[]",
-            ServerMemUsage: "100M",
-            ServerStorageUsage: "100M",
-        }
+    serverSettings.innerHTML = objectToHtml(gameData, true)
+    serverActivity.innerHTML = objectToHtml(playInfo)
+    window.location.hash = "#dashboard"
+    loginUsername.value = atob(localStorage.username || "")
+    loginPassword.value = atob(localStorage.password || "")
+    
+    function objectToHtml(object, editable = false) {
+        let html = ""
+        let indent = 1
+        let last = false
 
-        serverSettings.innerHTML = objectToHtml(gameData, true)
-        serverActivity.innerHTML = objectToHtml(playInfo)
-        window.location.hash = "#dashboard"
-
-        async function connect() {
-
-        }
-
-        function objectToHtml(object, editable = false) {
-            let html = ""
-            let indent = 1
-            let last = false
-
-            function propToHtml(obj) {
-                for (let prop in obj) {
-                    if(typeof obj[prop] === 'object' && !Array.isArray(obj[prop])) {
-                        indent++
-                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${propToHtml(obj[prop])}</div>\n`
-                        last = false
+        function propToHtml(obj) {
+            for (let prop in obj) {
+                if (typeof obj[prop] === 'object' && !Array.isArray(obj[prop])) {
+                    indent++
+                    html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${propToHtml(obj[prop])}</div>\n`
+                    last = false
+                }
+                else {
+                    if (!last) indent--
+                    last = true
+                    if (!editable) {
+                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${obj[prop]}</div>\n`
                     }
                     else {
-                        if (!last) indent--
-                        last = true
-                        if (!editable) {
-                            html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${obj[prop]}</div>\n`
+                        let input = ""
+                        switch (typeof obj[prop]) {
+                            case 'string':
+                                input = `<input type="text" value=${obj[prop]}>`
+                                break
+                            case 'number':
+                                input = `<input type="number" value=${Number(obj[prop])}>`
+                                break
+                            case 'boolean':
+                                input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`
+                                break
+                            case 'object':
+                                input = `<button>+ Add new</button>`
+                                break;
                         }
-                        else {
-                            let input = ""
-                            switch (typeof obj[prop]) {
-                                case 'string':
-                                    input = `<input type="text" value=${obj[prop]}>`
-                                    break
-                                case 'number':
-                                    input = `<input type="number" value=${Number(obj[prop])}>`
-                                    break
-                                case 'boolean':
-                                    input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`
-                                    break
-                                case 'object':
-                                    input = `<button>+ Add new</button>`
-                                    break;
-                            }
 
-                            html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
-                        }
+                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
                     }
                 }
             }
-            propToHtml(object)
-
-            return html 
         }
-    </script>
+        propToHtml(object)
+
+        return html
+    }
+</script>
+
 </html>
