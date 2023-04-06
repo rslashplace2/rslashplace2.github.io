@@ -394,7 +394,7 @@ place-chat-button > img {
 	line-height: 8px;
 }
 
-#palette{
+#palette {
 	display: block;
 	transition: transform .3s ease-out;
 	background: white;
@@ -616,6 +616,23 @@ place-chat-button > img {
 	transform: scale(1.1);
 }
 
+#palettePin {
+	z-index: -1;
+}
+
+#palettePin > div {
+	cursor: pointer;
+	position: absolute;
+	right: 8px;
+	box-shadow: 0 0 10px black;
+	background-color: white;
+	width: 72px;
+	border-radius: 64px;
+	height: 28px;display: flex;
+	padding: 2px;
+	column-gap: 4px;
+}
+
 @media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
 	#captchaPopup {
 		width: calc(100% - 16px);
@@ -631,9 +648,15 @@ place-chat-button > img {
 		margin-right: 0px;
 	}
 
-	#chatPanel{
+	#chatPanel {
 		left: 20px;
 		width: unset;
+	}
+
+	#palettePin {
+		position: relative;
+		bottom: 38px;
+		z-index: 1;
 	}
 }
 

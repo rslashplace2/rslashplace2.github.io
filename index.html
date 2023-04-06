@@ -252,7 +252,39 @@
 			iran: "🇮🇷",
 			uk: "🇬🇧",
 			usa: "🇺🇸",
-			america: "🇺🇸"
+			america: "🇺🇸",
+			eyes: "👀",
+			fire: "🔥",
+			thumbsup: "👍",
+			thumbsdown: "👎",
+			clown: "🤡",
+			facepalm: "🤦‍♂️",
+			ok: "👌",
+			poop: "💩",
+			rocket: "🚀",
+			tada: "🎉",
+			celebration: "🎉",
+			moneybag: "💰",
+			crown: "👑",
+			muscle: "💪",
+			beer: "🍺",
+			pizza: "🍕",
+			cookie: "🍪",
+			balloon: "🎈",
+			gift: "🎁",
+			star: "⭐️",
+			love: "😍",
+			crying: "😢",
+			angry: "😠",
+			sleepy: "😴",
+			nerd: "🤓",
+			laughing: "😆",
+			vomiting: "🤮",
+			unicorn: "🦄",
+			alien: "👽",
+			ghost: "👻",
+			skull_crossbones: "☠️",
+			explosion: "💥"
 		}
 	</script>
 	<script>
@@ -468,7 +500,6 @@
 				
 				canvselect.style.background = ""
 				palette.style.transform = "translateY(100%)"
-				colours.children[PEN].classList.remove("sel")
 
 				pok.classList.remove("enabled")
 				set(Math.floor(x), Math.floor(y), PEN)
@@ -476,13 +507,12 @@
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
 				AUDIOS.cooldownStart.run()
-				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
+				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN / 2) : COOLDOWN)
 
 				let pixelView = new DataView(new Uint8Array(6).buffer)
 				pixelView.setUint8(0, 4)
 				pixelView.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				pixelView.setUint8(5, PEN)
-				PEN = -1
 				localStorage.placed = (localStorage.placed >>> 0) + 1
 				call(send, ws, pixelView)
 			}

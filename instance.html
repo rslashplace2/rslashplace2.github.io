@@ -233,6 +233,59 @@
             background-color: #b0c8e6;
         }
 
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: min(calc(100% - 8px), 800px);
+        }
+
+        .player-list-header {
+            margin-bottom: 10px;
+            display: flex;
+        }
+
+        .player-card {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .player-card:hover > .player-card-actions {
+            opacity: 1;
+        }
+
+        .player-card-ip {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-card-vip, .player-card-lchat {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .player-card-lchat {
+            color: #666;
+        }
+
+        .player-card-actions {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            opacity: 0;
+            transition: .2s opacity;
+        }
+
+        .player-card-actions > button {
+            width: 96px;
+            height: 32px;
+        }
+
         #instances {
             width: 50%;
         }
@@ -345,7 +398,7 @@
         <br>
         <div>
             <h2>Your Account</h2>
-            <div id="loginPanel">
+            <div id="loginPanel" style="display: block;">
                 <input id="loginUsername" type="text" placeholder="username" style="display: block; width: 256px;"
                     maxlength="10">
                 <input id="loginPassword" type="password" placeholder="password" style="display: block; width: 256px;"
@@ -380,19 +433,23 @@
                         loginPassword.value = signupPassword.value
                     ">Submit</button>
             </div>
-            <a href="#dashboard" onclick="
+            <div id="preLoginOptions">
+                <a href="#dashboard" onclick="
                     if (loginPanel.style.display == 'block') {
                         let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginPassword.value.padEnd(32))
                         buffer[0] = ClientPackets.AccountInfo
                         send(buffer)
+                        loginPanel.style.display = 'none'
+                        preLoginOptions.style.display = 'none'
+                        signoutOptions.style.display = 'block'
                     }
                     else {
                         loginPanel.style.display = 'block'
                         signupPanel.style.display = 'none'
                     }
                 ">Login</a>
-            <span style="color: gray;">•</span>
-            <a href="#dashboard" onclick="
+                <span style="color: gray;">•</span>
+                <a href="#dashboard" onclick="
                     event.preventDefault()
                     if (signupPanel.style.display == 'block') {
                         loginSignupMessage.textContent = ''
@@ -442,6 +499,10 @@
                         loginPanel.style.display = 'none'
                     }
                 ">Signup</a>
+            </div>
+            <div id="signoutOptions" style="display: none;">
+                <a href="#dashboard" onclick="window.location.reload()">Log out</a>
+            </div>
             <p id="loginSignupMessage" style="color: red; font-size: small;"></p>
             <br>
             <div id="accountInfo" style="display: none;">
@@ -464,7 +525,60 @@
         <button class="button">Undo changes</button>
         <br><br>
         <h4>Server activity:</h4>
-        <div id="serverActivity"></div>
+        <div id="serverActivity">
+            <div class="player-list">
+                <div class="player-list-header">
+                    <h2 style="flex-grow: 1;">Players</h2>
+                    <span style="opacity: 0.5;">16 online, 4 VIPs</span>
+                </div>
+                <div class="player-list-body">
+                    <div class="player-card">
+                        <div class="player-card-ip">192.168.1.1</div>
+                        <div class="player-card-vip">Is a VIP</div>
+                        <div class="player-card-lchat">Last chat: Thu Apr 06 2023 01:44:16</div>
+                        <div style="position: absolute;top: 0px;right: 0px;"></div>
+                        <div class="player-card-actions">
+                            <button>Kick</button>
+                            <button>Ban</button>
+                            <button>Mute</button>
+                            <button>Message</button>
+                        </div>
+                    </div>
+                    <div class="player-card">
+                        <div class="player-card-ip">192.168.1.1</div>
+                        <div class="player-card-vip">Is not a VIP</div>
+                        <div class="player-card-lchat">Last chat: Thu Apr 06 2023 01:44:16</div>
+                        <div class="player-card-actions">
+                            <button>Kick</button>
+                            <button>Ban</button>
+                            <button>Mute</button>
+                            <button>Message</button>
+                        </div>
+                    </div>
+                    <div class="player-card">
+                        <div class="player-card-ip">192.168.1.1</div>
+                        <div class="player-card-vip">Is a VIP</div>
+                        <div class="player-card-lchat">Last chat: Thu Apr 06 2023 01:44:16</div>
+                        <div class="player-card-actions">
+                            <button>Kick</button>
+                            <button>Ban</button>
+                            <button>Mute</button>
+                            <button>Message</button>
+                        </div>
+                    </div>
+                    <div class="player-card">
+                        <div class="player-card-ip">192.168.1.1</div>
+                        <div class="player-card-vip">Is not a VIP</div>
+                        <div class="player-card-lchat">Last chat: Thu Apr 06 2023 01:44:16</div>
+                        <div class="player-card-actions">
+                            <button>Kick</button>
+                            <button>Ban</button>
+                            <button>Mute</button>
+                            <button>Message</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <br>
         <button class="button">Restart server</button>
         <button class="button">Delete server</button>
@@ -512,15 +626,8 @@
         WebhookUrl: "\"\"",
         Palette: []
     }
-    const playInfo = {
-        PlayerCount: 0,
-        PlayerIps: "[]",
-        ServerMemUsage: "100M",
-        ServerStorageUsage: "100M",
-    }
 
     serverSettings.innerHTML = objectToHtml(gameData, true)
-    serverActivity.innerHTML = objectToHtml(playInfo)
     window.location.hash = "#dashboard"
     loginUsername.value = atob(localStorage.username || "")
     loginPassword.value = atob(localStorage.password || "")
