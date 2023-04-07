@@ -315,44 +315,45 @@
     </style>
     <script>
         let accountData = null;
-        (function () {
-            const ws = new WebSocket("ws://localhost:1234")
-            ws.binaryType = "arraybuffer"
-            send = (_) => ws.send(_)
-            ws.onmessage = async function ({ data }) {
-                data = new DataView(data)
+        const ws = new WebSocket("ws://localhost:1234")
+        const instanceSockets = []
+        ws.binaryType = "arraybuffer"
+        ws.onmessage = async function ({ data }) {
+            data = new DataView(data)
 
-                switch (data.getUint8(0)) {
-                    //string Username, string Password, string Email, int AccountTier, List<int> Instances
-                    case ServerPackets.AccountInfo: {
-                        accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
-                        accountName.textContent = accountData.Username
-                        let censoredSection = accountData.Email.slice(4, accountData.Email.indexOf("@"))
-                        accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
-                        accountInfo.style.display = 'block'
+            switch (data.getUint8(0)) {
+                //string Username, string Password, string Email, int AccountTier, List<int> Instances
+                case ServerPackets.AccountInfo: {
+                    accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                    accountName.textContent = accountData.Username
+                    let censoredSection = accountData.Email.slice(4, accountData.Email.indexOf("@"))
+                    accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
+                    accountInfo.style.display = 'block'
 
-                        for (let instance of accountData.Instances) {
-                            let row = instances.insertRow(instances.rows.length)
-                            let name = row.insertCell(0)
-                            let ip = row.insertCell(1)
-                            let status = row.insertCell(2)
-                            let actions = row.insertCell(3)
-                            name.innerHTML = instance.toString().padStart(4)
-                            ip.textContent = "XXX.XXX.X.XXX"
-                            status.textContent = "Online"
-                            actions.innerHTML = "<td><a href=\"#servers\">Manage</a></td>"
-                        }
-                        break
+                    for (let instance of accountData.Instances) {
+                        let row = instances.insertRow(instances.rows.length)
+                        let name = row.insertCell(0)
+                        let ip = row.insertCell(1)
+                        let status = row.insertCell(2)
+                        let actions = row.insertCell(3)
+                        name.innerHTML = instance.toString().padStart(4)
+                        ip.textContent = "XXX.XXX.X.XXX"
+                        status.textContent = "Online"
+                        actions.innerHTML = "<td><a href=\"#servers\">Manage</a></td>"
+
+                        // TESTING
+                        connectWorker()
+                        // TESTING
                     }
-                    case ServerPackets.Fail: {
-                        console.log(decoder.decode(data.buffer.slice(1)))
-                        break
-                    }
-
+                    break
+                }
+                case ServerPackets.Fail: {
+                    console.log(decoder.decode(data.buffer.slice(1)))
+                    break
                 }
             }
-        }())
-        delete eval; delete Worker
+        }
+
         const cookies = document.cookie.split(";")
         for (let cookie of cookies) {
             const eqPos = cookie.indexOf("=")
@@ -422,7 +423,7 @@
                 <button onclick="
                         let buffer = encoder.encode('X' + authCode.value)
                         buffer[0] = ClientPackets.AuthenticateCreate
-                        send(buffer)
+                        ws.send(buffer)
                         
                         authCodePanel.style.display = 'none'
                         loginPanel.style.display = 'block'
@@ -437,11 +438,16 @@
                 <a href="#dashboard" onclick="
                     if (loginPanel.style.display == 'block') {
                         let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginPassword.value.padEnd(32))
-                        buffer[0] = ClientPackets.AccountInfo
-                        send(buffer)
+                        buffer[0] = ClientPackets.Authenticate
+                        ws.send(buffer)
                         loginPanel.style.display = 'none'
                         preLoginOptions.style.display = 'none'
                         signoutOptions.style.display = 'block'
+                        localStorage.username = btoa(loginUsername.value)
+                        localStorage.password = btoa(loginPassword.value)
+                        setTimeout(() => {
+                            ws.send(new Uint8Array([ClientPackets.AccountInfo]))
+                        }, 100) // TODO: Unjank
                     }
                     else {
                         loginPanel.style.display = 'block'
@@ -489,7 +495,7 @@
                             encoder.encode(signupPassword.value.padEnd(32))[i - 11])
                         for (let i = 43; i < 363; i++) view.setUint8(i,
                             encoder.encode(signupEmail.value.padEnd(320))[i - 43])
-                        send(view.buffer)
+                        ws.send(view.buffer)
 
                         authCodePanel.style.display = 'block'
                         signupPanel.style.display = 'none'
@@ -528,7 +534,7 @@
         <div id="serverActivity">
             <div class="player-list">
                 <div class="player-list-header">
-                    <h2 style="flex-grow: 1;">Players</h2>
+                    <h4 style="flex-grow: 1;">Players</h4>
                     <span style="opacity: 0.5;">16 online, 4 VIPs</span>
                 </div>
                 <div class="player-list-body">
@@ -540,7 +546,6 @@
                         <div class="player-card-actions">
                             <button>Kick</button>
                             <button>Ban</button>
-                            <button>Mute</button>
                             <button>Message</button>
                         </div>
                     </div>
@@ -551,7 +556,6 @@
                         <div class="player-card-actions">
                             <button>Kick</button>
                             <button>Ban</button>
-                            <button>Mute</button>
                             <button>Message</button>
                         </div>
                     </div>
@@ -562,7 +566,6 @@
                         <div class="player-card-actions">
                             <button>Kick</button>
                             <button>Ban</button>
-                            <button>Mute</button>
                             <button>Message</button>
                         </div>
                     </div>
@@ -573,9 +576,11 @@
                         <div class="player-card-actions">
                             <button>Kick</button>
                             <button>Ban</button>
-                            <button>Mute</button>
                             <button>Message</button>
                         </div>
+                    </div>
+                    <div class="player-card" style="cursor: pointer;text-align: center;">
+                        ...
                     </div>
                 </div>
             </div>
@@ -596,14 +601,18 @@
     const decoder = new TextDecoder()
     const ctx = canvas.getContext('2d')
     const ClientPackets = {
+        // Auth server
         DeleteAccount: 0,
         UpdateAccount: 1,
         CreateAccount: 2,
         AuthenticateCreate: 3,
         AccountInfo: 4,
-        CreateInstance: 5,
-        DeleteInstance: 6,
-        RestartInstance: 7,
+        Authenticate: 5,
+
+        // Worker
+        CreateInstance: 6,
+        DeleteInstance: 7,
+        RestartInstance: 8,
     }
     const ServerPackets = {
         Fail: 0,
@@ -631,6 +640,25 @@
     window.location.hash = "#dashboard"
     loginUsername.value = atob(localStorage.username || "")
     loginPassword.value = atob(localStorage.password || "")
+
+    //TESTING
+    function connectWorker() {
+        let sock = new WebSocket("ws://127.0.0.1:27277")
+        sock.binaryType = "arraybuffer"
+        sock.onopen = function () {
+            let b = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32))
+            b[0] = ClientPackets.CreateInstance
+            sock.send(b)
+            instanceSockets.push(sock)
+        }
+        sock.onmessage = async function ({ data }) {
+            console.log('msg from instance sock')
+        }
+        sock.onclose = function() {
+            console.log('instance sock connection ended')
+        }
+    }
+    //TESTING
     
     function objectToHtml(object, editable = false) {
         let html = ""
