@@ -1,2 +1,109 @@
-<script>delete WebSocket;location='/'</script>
-<pre style="font-family:monospace">404 Hmmm...</pre>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+        <title>Rplace custom canvas</title>
+        <script>
+            let ws = new WebSocket("ws://localhost:1234")
+            ws.binaryType = "arraybuffer"
+            ws.onopen = () => ws.send(new Uint8Array([6])) // vanity lookup
+            ws.onmessage = ({data}) => window.location.replace(window.location.origin + "/" + (new TextDecoder()).decode(data))
+        </script>
+        <style>
+            html { height: 100%; }
+            * { font-family: 'IBM Plex Sans', sans-serif; }
+            *:not(h1, h2, h3, h4) { font-size: 20px; }
+            body {
+                background-color: #dae0e6;
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+            }
+            .modal {
+                border: 1px solid gray;
+                border-radius: 4px;
+                background-color: #f0f0f0;
+                height: 600px;
+                width: min(800px, 100% - 16px);
+                box-shadow: 0px 0px 12px black;
+                overflow: clip;
+                display: flex;
+            }
+            .header {
+                color: black;
+                padding: 16px;
+                background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
+                background-size: cover;
+            }
+            @media (orientation: portrait) {
+                .modal {
+                    flex-direction: column;
+                    position: relative;
+                }
+                .header {
+                    background: #343536;
+                    color: white;
+                }
+                .create-button {
+                    position: absolute;
+                    bottom: 8px;
+                    width: calc(100% - 16px);
+                }
+            }
+            input {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 14px;
+                outline: none;
+                height: 14px;
+                margin-top: 4px;
+                margin-bottom: 4px;
+            }
+            input:focus {
+                border-color: #369;
+                box-shadow: 0 0 5px #ccc;
+            }
+            button {
+                display: inline-block;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                background-color: #cee3f8;
+                color: #1a1a1b;
+                font-size: 14px;
+                font-weight: bold;
+                text-align: center;
+                text-decoration: none;
+                cursor: pointer;
+                transition: background-color 0.2s ease-in-out;
+            }
+            button:hover { background-color: #b0c8e6; }
+        </style>
+    </head>
+    <body>
+        <div class="modal">
+            <div class="header">
+                <h4 style="margin: 0px;">Make a new rplace canvas</h4>
+            </div>
+            <div style="margin: 8px; display: flex; flex-direction: column;">
+                <p>Create your own custom rplace canvas, with your own rules, a special vanity URL,
+                    and custom features. For friends, drawing by yourself, or whole build teams!</p>
+                <input id="name" type="text" placeholder="Canvas name*">
+                <input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)*">
+                <input id="width" type="number" placeholder="Canvas width (pixels)">
+                <input id="height" type="number" placeholder="Canvas height (pixels)">
+                <p style="margin: 0px;">Import canvas from image file:</p>
+                <input type="file" style="height: 24px;">
+                <div style="flex-grow: 1"></div>
+                <button class="create-button" onclick="
+                    window.location = `${window.location.origin}/instance.html?builder=true&name=${name.value}&cooldown=${cooldown.value}&width=${width.value}&height=${height.value}`
+                ">Finish creating canvas!</button>
+            </div>
+        </div>
+    </body>
+</html>

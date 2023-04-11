@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +7,10 @@
     <link rel="stylesheet" href="style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+        @keyframes slideaway {
+            from { display: block; transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0px); opacity: 1; }
+        }
 
         * {
             font-family: 'IBM Plex Sans', sans-serif;
@@ -17,14 +20,14 @@
             font-size: 20px;
         }
 
-        #dashboard,
-        #servers {
+        #dashboard, #servers {
+            animation: slideaway 400ms;
             display: none;
         }
 
-        #dashboard:target,
-        #servers:target {
+        #dashboard:target, #servers:target {
             display: block;
+
             flex-grow: 1;
             padding: 8px;
             position: relative;
@@ -38,17 +41,37 @@
             overflow-y: scroll;
         }
 
-        #canvas {
+        #instancePlayer {
             position: fixed;
             left: calc(60% - 16px);
             width: 40%;
-            aspect-ratio: 1/1;
-            background-color: white;
-            z-index: -2;
+            top: 84px;
+            height: calc(100% - 84px);
+            display: flex;
+            flex-direction: column;
+            row-gap: 8px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        #instancePlayer > * {
             opacity: 0.2;
-            top: calc(50% + 42px);
-            transform: translateY(-50%);
+            transition: .2s opacity, .2s background-color;
+            background-color: white;
             border: 2px solid gray;
+        }
+
+        #instancePlayer > *:hover, #instancePlayer > *:focus-within, #instancePlayer > *:focus {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #instanceCanvas {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            opacity: 0.2;
         }
 
         #serverSettings {
@@ -174,6 +197,7 @@
             font-size: 18px;
             font-weight: bold;
             font-family: 'IBM Plex Sans', sans-serif;
+            border-radius: 8px;
         }
 
         li {
@@ -286,6 +310,11 @@
             height: 32px;
         }
 
+        .server-link {
+            font-size: 24px;
+            position: relative;
+        }
+        
         #instances {
             width: 50%;
         }
@@ -300,7 +329,7 @@
                 margin-bottom: 10px;
             }
 
-            #canvas {
+            #instancePlayer {
                 display: none;
             }
 
@@ -366,7 +395,7 @@
 <body>
     <header>
         <nav>
-            <img src="favicon.png" style="width: 64px;">
+            <img src="favicon.png" style="width: 64px;border-radius: 8px;">
             <h1 style="align-self: center;">Rplace instance manager</h1>
             <ul>
                 <li><a href="#dashboard">Dashboard</a></li>
@@ -398,7 +427,7 @@
         </div>
         <br>
         <div>
-            <h2>Your Account</h2>
+            <h2 id="accountHeader">Your Account</h2>
             <div id="loginPanel" style="display: block;">
                 <input id="loginUsername" type="text" placeholder="username" style="display: block; width: 256px;"
                     maxlength="10">
@@ -524,6 +553,11 @@
         <h1>Servers</h1>
         <p>Manage one of your servers, view it's activity and change its settings.</p>
         <br>
+        <h4>Server info:</h4>
+        <div>Game (socket) server IP: </div>
+        <div>Canvas (http) server IP: </div>
+        <a class="server-link" href="">Visit your instance</a> <button>copy link</button>
+        <br><br>
         <h4>Server settings:</h4>
         <div id="serverSettings"></div>
         <br>
@@ -584,22 +618,32 @@
                     </div>
                 </div>
             </div>
-        <br>
-        <button class="button">Restart server</button>
-        <button class="button">Delete server</button>
-        <br><br>
+            <br>
+            <button class="button">Restart server</button>
+            <button class="button">Delete server</button>
+            <br><br>
+        </div>
     </div>
-    <canvas id="canvas" width="400" height="400">
-
-    </canvas>
+    <div id="instancePlayer">
+        <div style="position: relative;aspect-ratio: 1/1;"><canvas id="instanceCanvas" width="400" height="400"></canvas></div>
+        <div class="instanceLiveChat" style="flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: scroll;">
+            Live chat
+        </div>
+        <div style="display: flex; max-width: 100%; max-height: 100px; overflow: clip;">
+            <div style="flex-grow: 1; display: flex; overflow: scroll;"><span contenteditable style="height: min-content;flex-grow: 1;align-self: center;outline: none;"></span></div>
+            <input type="text" style="height: 100%;margin: 0px;border-radius: 0px; font-size: 20px;" placeholder="Channel" value="EN">
+            <button>Send</button>
+        </div>
+    </div>
     <footer>
         <p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
     </footer>
 </body>
 <script>
+    const params = new URLSearchParams(location.search)
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
-    const ctx = canvas.getContext('2d')
+    const ctx = instanceCanvas.getContext('2d')
     const ClientPackets = {
         // Auth server
         DeleteAccount: 0,
@@ -613,10 +657,18 @@
         CreateInstance: 6,
         DeleteInstance: 7,
         RestartInstance: 8,
+        Subscribe: 9,
+        QueryInstance: 10
     }
     const ServerPackets = {
         Fail: 0,
         AccountInfo: 1,
+    }
+    const WorkerPackets = {
+        Logger: 0,
+        PlayerConnected: 1,
+        PlayerDisconnected: 2,
+        BackupCreated: 3,
     }
     const gameData = {
         Cooldown: 10,
@@ -635,11 +687,21 @@
         WebhookUrl: "\"\"",
         Palette: []
     }
+    let builderData = null
 
     serverSettings.innerHTML = objectToHtml(gameData, true)
     window.location.hash = "#dashboard"
     loginUsername.value = atob(localStorage.username || "")
     loginPassword.value = atob(localStorage.password || "")
+    if (params.get("builder")) {
+        accountHeader.textContent = "Sign in to finish creating your canvas"
+        builderData = {
+            name: params.get("name"),
+            width: +params.get("width"),
+            height: +params.get("height"),
+            cooldown: +params.get("cooldown")
+        }
+    }
 
     //TESTING
     function connectWorker() {

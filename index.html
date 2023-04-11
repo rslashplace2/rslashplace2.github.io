@@ -376,7 +376,9 @@
 				}
 				else if (code == 6) {
 					let i = 0
-					while (i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
+					while (i < data.byteLength - 2) {
+						seti(data.getUint32(i += 1), data.getUint8(i += 4))
+					}
 				}
 				else if (code == 7) {
 					CD = data.getUint32(1) * 1000
@@ -1223,24 +1225,16 @@
 			x = +localStorage.x || WIDTH / 2
 			y = +localStorage.y || HEIGHT / 2
 			z = +localStorage.z || 0.2
-			for (let [k, v] of new URLSearchParams(location.search)) {
-				v *= 1
-				if (v != v) continue
-				switch (k) {
-					case 'x':
-						x = v;
-						break
-					case 'y':
-						y = v;
-						break
-					case 'z':
-						z = v;
-						break
-					case 'err':
-						onerror = alert;
-						break
-					case 'debug':
-						break
+
+			for (let [key, value] of new URLSearchParams(location.search)) {
+				value *= 1
+				if (value != value) continue
+				switch (key) {
+					case 'x': x = value; break
+					case 'y': y = value; break
+					case 'z': z = value; break
+					case 'err': onerror = alert; break
+					case 'debug': break
 				}
 			}
 			onresize()
