@@ -2,13 +2,26 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-        <title>Rplace custom canvas</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="apple-touch-icon" href="favicon.png">
+        <link rel="icon" type="image/x-icon" href="favicon.png"> 
+        <title>custom canvas</title>
         <script>
+            let a
+            const encoder = new TextEncoder()
             let ws = new WebSocket("ws://localhost:1234")
             ws.binaryType = "arraybuffer"
-            ws.onopen = () => ws.send(new Uint8Array([6])) // vanity lookup
-            ws.onmessage = ({data}) => window.location.replace(window.location.origin + "/" + (new TextDecoder()).decode(data))
+            ws.onopen = () => {
+                let encoded = encoder.encode("X" + window.location.pathname.replaceAll("/", ""))
+                encoded[0] = 6 // ClientPackets.LocateVanity (perform vanity lookup)
+                ws.send(encoded)
+                
+            } // ClientPackets.LocateVanity
+            ws.onmessage = ({data}) => {
+                data = new DataView(data)
+                if (data.getUint8(0) == 2) window.location.replace(window.location.origin + "/" + (new TextDecoder()).decode(data.buffer.slice(1)))
+                else if (data.getUint8(0) == 4) vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
+            }
         </script>
         <style>
             html { height: 100%; }
@@ -39,6 +52,11 @@
                 background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
                 background-size: cover;
             }
+            .body {
+                margin: 8px;
+                display: flex;
+                flex-direction: column;
+            }
             @media (orientation: portrait) {
                 .modal {
                     flex-direction: column;
@@ -63,6 +81,16 @@
                 height: 14px;
                 margin-top: 4px;
                 margin-bottom: 4px;
+            }
+            input[type=file]::file-selector-button {
+                border-radius: 5px;
+                background-color: white;
+                border: 0px solid black;
+                box-shadow: none;
+                height: 100%;
+            }
+            input[type=file] {
+                height: 48px;
             }
             input:focus {
                 border-color: #369;
@@ -90,11 +118,15 @@
             <div class="header">
                 <h4 style="margin: 0px;">Make a new rplace canvas</h4>
             </div>
-            <div style="margin: 8px; display: flex; flex-direction: column;">
+            <div class="body">
                 <p>Create your own custom rplace canvas, with your own rules, a special vanity URL,
                     and custom features. For friends, drawing by yourself, or whole build teams!</p>
-                <input id="name" type="text" placeholder="Canvas name*">
-                <input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)*">
+                <input id="vanity" type="text" placeholder="Vanity name (unique)" oninput="
+                    this.value = this.value.toLowerCase().replaceAll(' ', '-')
+                    let encoded = encoder.encode('X' + this.value)
+                    encoded[0] = 8 // ClientPackets.VanityAvailable
+                    ws.send(encoded)">
+                <input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)">
                 <input id="width" type="number" placeholder="Canvas width (pixels)">
                 <input id="height" type="number" placeholder="Canvas height (pixels)">
                 <p style="margin: 0px;">Import canvas from image file:</p>

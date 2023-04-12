@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Hosting Control Panel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>server control panel</title>
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.png"> 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
         @keyframes slideaway {
             from { display: block; transform: translateY(40px); opacity: 0; }
             to { transform: translateY(0px); opacity: 1; }
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
         }
 
         * {
@@ -39,6 +45,8 @@
             display: flex;
             flex-direction: column;
             overflow-y: scroll;
+            height: 100%;
+            margin: 0px;
         }
 
         #instancePlayer {
@@ -46,7 +54,7 @@
             left: calc(60% - 16px);
             width: 40%;
             top: 84px;
-            height: calc(100% - 84px);
+            height: calc(100% - 100px);
             display: flex;
             flex-direction: column;
             row-gap: 8px;
@@ -72,6 +80,14 @@
             left: 0px;
             width: 100%;
             opacity: 0.2;
+        }
+
+        #instanceLiveChat > span {
+            display: block;
+        }
+
+        #instanceLiveChat > span:nth-child(even) {
+            background-color: #8080800d;
         }
 
         #serverSettings {
@@ -105,12 +121,13 @@
         }
 
         nav {
-            background-color: #343536;
+            background-color: #343536e0;
             color: #fff;
             display: flex;
             justify-content: space-between;
             padding: 10px;
             border-radius: 0px 0px 8px 8px;
+            backdrop-filter: blur(8px);
         }
 
         nav a {
@@ -128,9 +145,10 @@
             padding: 8px;
             font-size: 14px;
             outline: none;
-            height: 25px;
+            height: 14px;
             margin-top: 4px;
             margin-bottom: 4px;
+            box-shadow: none;
         }
 
         input:focus {
@@ -142,7 +160,6 @@
             appearance: none;
             display: inline-block;
             position: relative;
-            margin: 0;
             cursor: pointer;
         }
 
@@ -157,8 +174,33 @@
             transform: translate(-50%, -50%);
         }
 
-        input[type="text"]:invalid:focus {
+        input[type=file]::file-selector-button {
+            border-radius: 5px;
+            background-color: white;
+            border: 0px solid black;
+            box-shadow: none;
+            height: 100%;
+        }
+
+        input[type=file] {
+            height: 24px;
+            background-color: transparent !important;
+        }
+
+        input[type=text]:invalid:focus {
             border: 1px solid red;
+        }
+
+        select {
+            background-color: white;
+            border-radius: 4px;
+            font-size: 16px !important;
+            box-shadow: none;
+            height: 32px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            font-family: inherit;
+            color: inherit;
         }
 
         .content {
@@ -263,6 +305,9 @@
             border: 1px solid #ccc;
             padding: 10px;
             width: min(calc(100% - 8px), 800px);
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            box-shadow: 0px 0px 12px #00000005;
         }
 
         .player-list-header {
@@ -276,6 +321,12 @@
             padding: 10px;
             margin-bottom: 10px;
             position: relative;
+            background: white;
+        }
+
+        .player-list-body {
+            max-height: 600px;
+            overflow: scroll;
         }
 
         .player-card:hover > .player-card-actions {
@@ -315,8 +366,39 @@
             position: relative;
         }
         
-        #instances {
+        #instanceTable {
             width: 50%;
+        }
+
+        .modal {
+            border: 1px solid gray;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            height: 600px;
+            width: min(800px, 100% - 16px);
+            box-shadow: 0px 0px 12px black;
+            overflow: clip;
+            display: flex;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .header {
+            color: black;
+            padding: 16px;
+            background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
+            background-size: auto;
+            background-size: cover;
+        }
+
+        .body {
+            margin: 8px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
         }
 
         @media screen and (max-width: 768px) {
@@ -337,15 +419,24 @@
                 width: 100%;
             }
 
-            #instances {
+            #instanceTable {
                 width: 100%;
+            }
+
+            .modal {
+                flex-direction: column;
+                z-index: 3;
+            }
+
+            .header {
+                background: #343536;
+                color: white;
             }
         }
     </style>
     <script>
         let accountData = null;
         const ws = new WebSocket("ws://localhost:1234")
-        const instanceSockets = []
         ws.binaryType = "arraybuffer"
         ws.onmessage = async function ({ data }) {
             data = new DataView(data)
@@ -359,20 +450,11 @@
                     accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
                     accountInfo.style.display = 'block'
 
+                    // Add to servers select
                     for (let instance of accountData.Instances) {
-                        let row = instances.insertRow(instances.rows.length)
-                        let name = row.insertCell(0)
-                        let ip = row.insertCell(1)
-                        let status = row.insertCell(2)
-                        let actions = row.insertCell(3)
-                        name.innerHTML = instance.toString().padStart(4)
-                        ip.textContent = "XXX.XXX.X.XXX"
-                        status.textContent = "Online"
-                        actions.innerHTML = "<td><a href=\"#servers\">Manage</a></td>"
-
-                        // TESTING
-                        connectWorker()
-                        // TESTING
+                        let el = document.createElement("option")
+                        el.textContent = instance
+                        viewServerOptions.appenChild(el)
                     }
                     break
                 }
@@ -380,23 +462,73 @@
                     console.log(decoder.decode(data.buffer.slice(1)))
                     break
                 }
+                case ServerPackets.WorkerLocations: {
+                    let workerLocations = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                    for (let i = 0; i < workerLocations.length; i++) {
+                        for (let instance in accountData.Instances) {
+                            if (instance >= workerLocations[i].Range.Start && instance < workerLocations[i].Range.End) {
+                                // Then this worker carries one of our instances, this is the first step to building up what we know about
+                                // our "instances" before we can finally combine it all on the instances HTML table. Is like an odd form of bootstrapping.
+                                if (!instances[instance]) instances[instance] = { }
+                                instances[instance].workerSocket = new WebSocket(workerLocations[i].SocketAddress)
+                                instances[instance].workerSocket.binaryType = "arraybuffer"
+                                instances[instance].workerSocket.onmessage = async function ({ data }) {
+                                    data = new DataView(data)
+
+                                    switch (data.getUint8(0)) {
+                                        case WorkerPackets.InstanceQuery: {
+                                            instances[instance].info = JSON.parse(data.buffer.slice(1))
+                                            break
+                                        }
+                                    }
+                                }
+
+                                let buffer = new DataView(new ArrayBuffer(5))
+                                buffer.setUint8(0, ClientPackets.QueryInstance)
+                                buffer.setInt32(1, instance)
+                                instances[instance].workerSocket.send(buffer)
+                            }
+                        }
+                    }
+
+                    break
+                }
+                case ServerPackets.AvailableVanity: {
+                    vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
+                    break
+                }
             }
         }
-
-        const cookies = document.cookie.split(";")
-        for (let cookie of cookies) {
-            const eqPos = cookie.indexOf("=")
-            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
-            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        ws.onclose = function() {
+            window.location.reload(true)
         }
     </script>
 </head>
 
 <body>
+    <div class="modal" id="createModal" style="display: none;">
+        <div class="header"><h4 style="margin: 0px;">Create new<br>rplace canvas</h4></div>
+        <div class="body">
+            <input id="vanity" type="text" placeholder="Vanity name (unique)" oninput="
+                this.value = this.value.toLowerCase().replaceAll(' ', '-')
+                let encoded = encoder.encode('X' + this.value)
+                encoded[0] = ClientPackets.VanityAvailable
+                ws.send(encoded)">
+            <input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)">
+            <input id="width" type="number" placeholder="Canvas width (pixels)">
+            <input id="height" type="number" placeholder="Canvas height (pixels)">
+            <p style="margin: 0px;">Import canvas from image file:</p>
+            <input type="file">
+            <div style="flex-grow: 1"></div>
+            <button class="create-button" onclick="
+
+            ">Finish creating canvas!</button>
+        </div>
+    </div>
     <header>
         <nav>
-            <img src="favicon.png" style="width: 64px;border-radius: 8px;">
-            <h1 style="align-self: center;">Rplace instance manager</h1>
+            <img src="favicon.png" style="height: 64px;border-radius: 8px;">
+            <h1 style="align-self: center;margin: 0px;">Rplace instance manager</h1>
             <ul>
                 <li><a href="#dashboard">Dashboard</a></li>
                 <li><a href="#servers">Servers</a></li>
@@ -412,7 +544,7 @@
         <br>
         <div>
             <h2>Your Servers</h2>
-            <table id="instances">
+            <table id="instanceTable">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -421,9 +553,9 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody></tbody>
             </table>
+            <button onclick="createModal.style.display = 'flex'">+ Create instance</button> <button>- Delete instance</button>
         </div>
         <br>
         <div>
@@ -476,6 +608,7 @@
                         localStorage.password = btoa(loginPassword.value)
                         setTimeout(() => {
                             ws.send(new Uint8Array([ClientPackets.AccountInfo]))
+                            ws.send(new Uint8Array([ClientPackets.LocateWorkers]))
                         }, 100) // TODO: Unjank
                     }
                     else {
@@ -552,19 +685,25 @@
     <div id="servers">
         <h1>Servers</h1>
         <p>Manage one of your servers, view it's activity and change its settings.</p>
-        <br>
-        <h4>Server info:</h4>
-        <div>Game (socket) server IP: </div>
-        <div>Canvas (http) server IP: </div>
-        <a class="server-link" href="">Visit your instance</a> <button>copy link</button>
+        <select id="viewServerOptions">
+            <option>currently viewing</option>
+        </select> 
         <br><br>
-        <h4>Server settings:</h4>
-        <div id="serverSettings"></div>
-        <br>
-        <button class="button">Save changes</button>
-        <button class="button">Undo changes</button>
-        <br><br>
+        <h4>Canvas info:</h4>
+        <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+            <div><a href="">https://rplace.tk?board=...</a> <button>copy direct link</button></div>
+            <span style="color: #0079d3;">https://rplace.tk/<span></span><button>edit vanity link</button></span>
+        </div>
+        <h4>Canvas settings:</h4>
+        <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+            <div id="serverSettings"></div>
+            <div>
+                <button class="button">Save changes</button>
+                <button class="button">Undo changes</button>
+            </div>
+        </div>
         <h4>Server activity:</h4>
+        <br>
         <div id="serverActivity">
             <div class="player-list">
                 <div class="player-list-header">
@@ -613,9 +752,6 @@
                             <button>Message</button>
                         </div>
                     </div>
-                    <div class="player-card" style="cursor: pointer;text-align: center;">
-                        ...
-                    </div>
                 </div>
             </div>
             <br>
@@ -626,8 +762,8 @@
     </div>
     <div id="instancePlayer">
         <div style="position: relative;aspect-ratio: 1/1;"><canvas id="instanceCanvas" width="400" height="400"></canvas></div>
-        <div class="instanceLiveChat" style="flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: scroll;">
-            Live chat
+        <div id="instanceLiveChat" style="flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: scroll;">
+            <span>[en][zekiahepic] Hello world</span>
         </div>
         <div style="display: flex; max-width: 100%; max-height: 100px; overflow: clip;">
             <div style="flex-grow: 1; display: flex; overflow: scroll;"><span contenteditable style="height: min-content;flex-grow: 1;align-self: center;outline: none;"></span></div>
@@ -644,31 +780,40 @@
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
     const ctx = instanceCanvas.getContext('2d')
+    const instances = {}
     const ClientPackets = {
-        // Auth server
+        // To auth server
         DeleteAccount: 0,
         UpdateAccount: 1,
         CreateAccount: 2,
         AuthenticateCreate: 3,
         AccountInfo: 4,
         Authenticate: 5,
+        LocateVanity: 6,
+        LocateWorkers: 7,
+        VanityAvailable: 8,
 
-        // Worker
-        CreateInstance: 6,
-        DeleteInstance: 7,
-        RestartInstance: 8,
-        Subscribe: 9,
-        QueryInstance: 10
+        // To worker
+        CreateInstance: 0,
+        DeleteInstance: 1,
+        RestartInstance: 2,
+        Subscribe: 3,
+        QueryInstance: 4,
+        CreateVanity: 5,
     }
     const ServerPackets = {
         Fail: 0,
         AccountInfo: 1,
+        VanityLocation: 2,
+        WorkerLocations: 3,
+        AvailableVanity: 4
     }
     const WorkerPackets = {
         Logger: 0,
         PlayerConnected: 1,
         PlayerDisconnected: 2,
         BackupCreated: 3,
+        InstanceQuery: 4
     }
     const gameData = {
         Cooldown: 10,
@@ -688,6 +833,7 @@
         Palette: []
     }
     let builderData = null
+    
 
     serverSettings.innerHTML = objectToHtml(gameData, true)
     window.location.hash = "#dashboard"
@@ -702,25 +848,6 @@
             cooldown: +params.get("cooldown")
         }
     }
-
-    //TESTING
-    function connectWorker() {
-        let sock = new WebSocket("ws://127.0.0.1:27277")
-        sock.binaryType = "arraybuffer"
-        sock.onopen = function () {
-            let b = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32))
-            b[0] = ClientPackets.CreateInstance
-            sock.send(b)
-            instanceSockets.push(sock)
-        }
-        sock.onmessage = async function ({ data }) {
-            console.log('msg from instance sock')
-        }
-        sock.onclose = function() {
-            console.log('instance sock connection ended')
-        }
-    }
-    //TESTING
     
     function objectToHtml(object, editable = false) {
         let html = ""
@@ -743,18 +870,10 @@
                     else {
                         let input = ""
                         switch (typeof obj[prop]) {
-                            case 'string':
-                                input = `<input type="text" value=${obj[prop]}>`
-                                break
-                            case 'number':
-                                input = `<input type="number" value=${Number(obj[prop])}>`
-                                break
-                            case 'boolean':
-                                input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`
-                                break
-                            case 'object':
-                                input = `<button>+ Add new</button>`
-                                break;
+                            case 'string': input = `<input type="text" value=${obj[prop]}>`; break
+                            case 'number': input = `<input type="number" value=${Number(obj[prop])}>`; break
+                            case 'boolean': input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`; break
+                            case 'object': input = `<button>+ Add new</button>`; break;
                         }
 
                         html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
