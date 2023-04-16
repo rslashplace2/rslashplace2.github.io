@@ -69,7 +69,7 @@
             border: 2px solid gray;
         }
 
-        #instancePlayer > *:hover, #instancePlayer > *:focus-within, #instancePlayer > *:focus {
+        #instancePlayer *:hover, #instancePlayer *:focus-within, #instancePlayer *:focus-visible, #instancePlayer *:focus {
             opacity: 1;
             background-color: rgba(255, 255, 255, 0.2);
         }
@@ -94,18 +94,24 @@
             width: 40%;
         }
 
-        #serverSettings>div {
+        #serverSettings > div {
             display: flex;
             flex-direction: row;
             column-gap: 8px;
         }
 
-        #serverSettings>div>span {
+        #serverSettings > div > span {
             flex-grow: 1;
         }
 
-        #serverSettings>div>input {
+        #serverSettings > div > input {
             min-width: 128px;
+            width: 128px;
+        }
+
+        #serverSettings > div > input[type=checkbox] {
+            min-width: 146px;
+            width: 146px;
         }
 
         .container {
@@ -158,9 +164,12 @@
 
         input[type=checkbox] {
             appearance: none;
-            display: inline-block;
             position: relative;
             cursor: pointer;
+            background-color: white;
+            height: 32px;
+            margin-left: 0px;
+            margin-right: 0px;
         }
 
         input[type=checkbox]:checked::after {
@@ -463,21 +472,28 @@
                     break
                 }
                 case ServerPackets.WorkerLocations: {
-                    let workerLocations = JSON.parse(decoder.decode(data.buffer.slice(1)))
+                    workerLocations = JSON.parse(decoder.decode(data.buffer.slice(1)))
                     for (let i = 0; i < workerLocations.length; i++) {
+                        workerLocations[i].workerSocket = new WebSocket(workerLocations[i].SocketAddress)
+                        workerLocations[i].workerSocket.binaryType = "arraybuffer"
+
                         for (let instance in accountData.Instances) {
                             if (instance >= workerLocations[i].Range.Start && instance < workerLocations[i].Range.End) {
                                 // Then this worker carries one of our instances, this is the first step to building up what we know about
                                 // our "instances" before we can finally combine it all on the instances HTML table. Is like an odd form of bootstrapping.
                                 if (!instances[instance]) instances[instance] = { }
-                                instances[instance].workerSocket = new WebSocket(workerLocations[i].SocketAddress)
-                                instances[instance].workerSocket.binaryType = "arraybuffer"
+                                instances[instance].workerSocket = workerLocations[i].workerSocket
                                 instances[instance].workerSocket.onmessage = async function ({ data }) {
                                     data = new DataView(data)
 
                                     switch (data.getUint8(0)) {
                                         case WorkerPackets.InstanceQuery: {
                                             instances[instance].info = JSON.parse(data.buffer.slice(1))
+                                            break
+                                        }
+                                        case WorkerPackets.InstanceCreated: {
+                                            console.log("Callback - Created instance " + data.getInt32(5))
+                                            requestQueue[data.getInt32(1)]?.resolve(data.getInt32(5))
                                             break
                                         }
                                     }
@@ -495,6 +511,7 @@
                 }
                 case ServerPackets.AvailableVanity: {
                     vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
+                    vanity.setAttribute("available", data.getUint8(1))
                     break
                 }
             }
@@ -521,8 +538,27 @@
             <input type="file">
             <div style="flex-grow: 1"></div>
             <button class="create-button" onclick="
+                (async function() {
+                    let encoded = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32) + 'XXXX')
+                    encoded[0] = ClientPackets.CreateInstance
+                    let view = new DataView(encoded.buffer)
+                    let request = requestId++
+                    view.setInt32(42, request)
 
-            ">Finish creating canvas!</button>
+                    let responseSource = new PublicPromise()
+                    requestQueue[request] = responseSource
+                    workerLocations[0].workerSocket.send(view.buffer)
+                    let instanceId = await responseSource.promise
+                    delete requestQueue[request]
+                    
+                    console.log('Created instance ' + instanceId)
+                    if (vanity.value && vanity.getAttribute('available') == 'true') {
+                        let vanityEncode = endoded.slice(0, encoded.length - 4) + encoder.encode(vanity.value)
+                        vanityEncode[0] = ClientPackets.CreateVanity
+                        workerLocations[0].workerSocket.send(vanityEncode)
+                    }
+                })()
+            ">Create canvas!</button>
         </div>
     </div>
     <header>
@@ -767,7 +803,7 @@
         </div>
         <div style="display: flex; max-width: 100%; max-height: 100px; overflow: clip;">
             <div style="flex-grow: 1; display: flex; overflow: scroll;"><span contenteditable style="height: min-content;flex-grow: 1;align-self: center;outline: none;"></span></div>
-            <input type="text" style="height: 100%;margin: 0px;border-radius: 0px; font-size: 20px;" placeholder="Channel" value="EN">
+            <input type="text" style="height: 100%;margin: 0px;border-radius: 0px; font-size: 20px; width: 40px;" placeholder="Channel" value="EN">
             <button>Send</button>
         </div>
     </div>
@@ -813,7 +849,8 @@
         PlayerConnected: 1,
         PlayerDisconnected: 2,
         BackupCreated: 3,
-        InstanceQuery: 4
+        InstanceQuery: 4,
+        InstanceCreated: 5
     }
     const gameData = {
         Cooldown: 10,
@@ -833,7 +870,19 @@
         Palette: []
     }
     let builderData = null
-    
+    let requestQueue = { }
+    let requestId = 0
+    let workerLocations = null
+
+    // Equivalent of TaskCompletionSource
+    class PublicPromise {
+        constructor() {
+            this.promise = new Promise((resolve, reject) => {
+                this.resolve = resolve
+                this.reject = reject
+            })
+        }
+    }
 
     serverSettings.innerHTML = objectToHtml(gameData, true)
     window.location.hash = "#dashboard"
