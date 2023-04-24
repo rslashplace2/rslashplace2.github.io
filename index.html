@@ -252,7 +252,39 @@
 			iran: "🇮🇷",
 			uk: "🇬🇧",
 			usa: "🇺🇸",
-			america: "🇺🇸"
+			america: "🇺🇸",
+			eyes: "👀",
+			fire: "🔥",
+			thumbsup: "👍",
+			thumbsdown: "👎",
+			clown: "🤡",
+			facepalm: "🤦‍♂️",
+			ok: "👌",
+			poop: "💩",
+			rocket: "🚀",
+			tada: "🎉",
+			celebration: "🎉",
+			moneybag: "💰",
+			crown: "👑",
+			muscle: "💪",
+			beer: "🍺",
+			pizza: "🍕",
+			cookie: "🍪",
+			balloon: "🎈",
+			gift: "🎁",
+			star: "⭐️",
+			love: "😍",
+			crying: "😢",
+			angry: "😠",
+			sleepy: "😴",
+			nerd: "🤓",
+			laughing: "😆",
+			vomiting: "🤮",
+			unicorn: "🦄",
+			alien: "👽",
+			ghost: "👻",
+			skull_crossbones: "☠️",
+			explosion: "💥"
 		}
 	</script>
 	<script>
@@ -344,7 +376,9 @@
 				}
 				else if (code == 6) {
 					let i = 0
-					while (i < data.byteLength - 2) { seti(data.getUint32(i += 1), data.getUint8(i += 4)) }
+					while (i < data.byteLength - 2) {
+						seti(data.getUint32(i += 1), data.getUint8(i += 4))
+					}
 				}
 				else if (code == 7) {
 					CD = data.getUint32(1) * 1000
@@ -468,7 +502,6 @@
 				
 				canvselect.style.background = ""
 				palette.style.transform = "translateY(100%)"
-				colours.children[PEN].classList.remove("sel")
 
 				pok.classList.remove("enabled")
 				set(Math.floor(x), Math.floor(y), PEN)
@@ -476,13 +509,12 @@
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
 				AUDIOS.cooldownStart.run()
-				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
+				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN / 2) : COOLDOWN)
 
 				let pixelView = new DataView(new Uint8Array(6).buffer)
 				pixelView.setUint8(0, 4)
 				pixelView.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				pixelView.setUint8(5, PEN)
-				PEN = -1
 				localStorage.placed = (localStorage.placed >>> 0) + 1
 				call(send, ws, pixelView)
 			}
@@ -607,26 +639,22 @@
 				}
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		const verifiedKeys = ["board", "name", "placed", "server", "vip", "vip2", "vote", "x", "y", "z", "placeChatTime"]
-		for (const [key, value] of Object.entries({ ...localStorage })) { if (!verifiedKeys.includes(key)) { localStorage.removeItem(key) }}
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
-	
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
-
+	<meta charset="UTF-8">
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
 	<meta name="apple-mobile-web-app-title" content="place">
-	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.0" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.1" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
-<meta property="og:title" content="r/place 2" />
+<meta property="og:title" content="r/place 2"/>
 <meta property="og:description" content="There is an empty canvas. You may place a tile upon it, but you must wait to place another. Individually you can create something. Together you can create something more." />
 <meta property="og:image" content="https://preview.redd.it/rreqw9qpy8r81.png?auto=webp&s=f58d371c5505d66439c82de9040dfd99a3685015" />
 <meta name="theme-color" content="#ff4500">
@@ -662,7 +690,7 @@
 				</div>
 			</div>
 			<div id="place" noselect onclick="
-				if (CD - 700 < Date.now()) {
+				if (CD < Date.now()) {
 					zoomIn()
 					showPalette()
 				}
@@ -953,7 +981,7 @@
 					</li>
 				</ul>
 			</div>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<div id="chatMessages"></div>
 			<div id="messageTypePanel" closed>
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" value="📨 Send in live chat">
@@ -1195,24 +1223,16 @@
 			x = +localStorage.x || WIDTH / 2
 			y = +localStorage.y || HEIGHT / 2
 			z = +localStorage.z || 0.2
-			for (let [k, v] of new URLSearchParams(location.search)) {
-				v *= 1
-				if (v != v) continue
-				switch (k) {
-					case 'x':
-						x = v;
-						break
-					case 'y':
-						y = v;
-						break
-					case 'z':
-						z = v;
-						break
-					case 'err':
-						onerror = alert;
-						break
-					case 'debug':
-						break
+
+			for (let [key, value] of new URLSearchParams(location.search)) {
+				value *= 1
+				if (value != value) continue
+				switch (key) {
+					case 'x': x = value; break
+					case 'y': y = value; break
+					case 'z': z = value; break
+					case 'err': onerror = alert; break
+					case 'debug': break
 				}
 			}
 			onresize()
