@@ -566,7 +566,11 @@ place-chat-button > img {
 	white-space: pre-wrap;
 	max-height: calc(100% - 90px);
 	overflow: auto;
+}
+
+#chatMessages, #chatMessages * {
     touch-action: pan-y;
+	touch-action: pan-y;
 }
 
 .channels-options {
