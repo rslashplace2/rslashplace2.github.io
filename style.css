@@ -566,8 +566,7 @@ place-chat-button > img {
 	white-space: pre-wrap;
 	max-height: calc(100% - 90px);
 	overflow: auto;
-	z-index: -1;
-	touch-action: auto;
+    touch-action: pan-y;
 }
 
 .channels-options {
