@@ -566,6 +566,9 @@ place-chat-button > img {
 	white-space: pre-wrap;
 	max-height: calc(100% - 90px);
 	overflow: auto;
+}
+
+#chatMessages, #chatMessages * {
     touch-action: pan-y;
 }
 
@@ -624,23 +627,6 @@ place-chat-button > img {
 
 #captchaPopup > div > input:hover {
 	transform: scale(1.1);
-}
-
-#palettePin {
-	z-index: -1;
-}
-
-#palettePin > div {
-	cursor: pointer;
-	position: absolute;
-	right: 8px;
-	box-shadow: 0 0 10px black;
-	background-color: white;
-	width: 72px;
-	border-radius: 64px;
-	height: 28px;display: flex;
-	padding: 2px;
-	column-gap: 4px;
 }
 
 @media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
