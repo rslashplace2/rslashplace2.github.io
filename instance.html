@@ -20,6 +20,7 @@
 
         * {
             font-family: 'IBM Plex Sans', sans-serif;
+            box-sizing: border-box;
         }
 
         *:not(h1, h2, h3, h4) {
@@ -109,11 +110,6 @@
             width: 128px;
         }
 
-        #serverSettings > div > input[type=checkbox] {
-            min-width: 146px;
-            width: 146px;
-        }
-
         .container {
             max-width: 1024px;
             margin: 0 auto;
@@ -151,7 +147,7 @@
             padding: 8px;
             font-size: 14px;
             outline: none;
-            height: 14px;
+            height: 32px;
             margin-top: 4px;
             margin-bottom: 4px;
             box-shadow: none;
@@ -463,7 +459,12 @@
                     for (let instance of accountData.Instances) {
                         let el = document.createElement("option")
                         el.textContent = instance
-                        viewServerOptions.appenChild(el)
+                        viewServerOptions.appendChild(el)
+                    }
+
+                    // Create canvas if originated from builder
+                    if (builderData) {
+                        createCanvas(builderData)
                     }
                     break
                 }
@@ -511,7 +512,7 @@
                 }
                 case ServerPackets.AvailableVanity: {
                     vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
-                    vanity.setAttribute("available", data.getUint8(1))
+                    vanity.setAttribute("available", !!data.getUint8(1))
                     break
                 }
             }
@@ -538,26 +539,17 @@
             <input type="file">
             <div style="flex-grow: 1"></div>
             <button class="create-button" onclick="
-                (async function() {
-                    let encoded = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32) + 'XXXX')
-                    encoded[0] = ClientPackets.CreateInstance
-                    let view = new DataView(encoded.buffer)
-                    let request = requestId++
-                    view.setInt32(42, request)
+                if (vanity.getAttribute('available') != 'true') {
+                    alert('The canvas vanity name you input is not available, try another.')
+                    return
+                }
 
-                    let responseSource = new PublicPromise()
-                    requestQueue[request] = responseSource
-                    workerLocations[0].workerSocket.send(view.buffer)
-                    let instanceId = await responseSource.promise
-                    delete requestQueue[request]
-                    
-                    console.log('Created instance ' + instanceId)
-                    if (vanity.value && vanity.getAttribute('available') == 'true') {
-                        let vanityEncode = endoded.slice(0, encoded.length - 4) + encoder.encode(vanity.value)
-                        vanityEncode[0] = ClientPackets.CreateVanity
-                        workerLocations[0].workerSocket.send(vanityEncode)
-                    }
-                })()
+                createCanvas({
+                    name: vanity.value,
+                    width: Math.max(parseInt(width.value), 1),
+                    height: Math.max(parseInt(height.value), 1),
+                    cooldown: Math.max(cooldown.value, 1)
+                })
             ">Create canvas!</button>
         </div>
     </div>
@@ -895,6 +887,26 @@
             width: +params.get("width"),
             height: +params.get("height"),
             cooldown: +params.get("cooldown")
+        }
+    }
+
+    async function createCanvas(builder) {
+        let encoded = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32) + 'XXXX')
+        encoded[0] = ClientPackets.CreateInstance
+        let view = new DataView(encoded.buffer)
+        let request = requestId++
+        view.setInt32(42, request)
+
+        let responseSource = new PublicPromise()
+        requestQueue[request] = responseSource
+        workerLocations[0].workerSocket.send(view.buffer)
+        let instanceId = await responseSource.promise
+        delete requestQueue[request]
+        
+        if (builder.name) {
+            let vanityEncode = endoded.slice(0, encoded.length - 4) + encoder.encode(builder.name)
+            vanityEncode[0] = ClientPackets.CreateVanity
+            workerLocations[0].workerSocket.send(vanityEncode)
         }
     }
     

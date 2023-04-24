@@ -559,6 +559,17 @@ place-chat-button > img {
 	box-shadow: 0 0 30px black;
 }
 
+#chatMessages {
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	font-family:mono;
+	white-space: pre-wrap;
+	max-height: calc(100% - 90px);
+	overflow: auto;
+	z-index: -1;
+	touch-action: auto;
+}
+
 .channels-options {
 	position: relative;
 	height:30px;

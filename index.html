@@ -651,7 +651,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.0" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.1" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -690,7 +690,7 @@
 				</div>
 			</div>
 			<div id="place" noselect onclick="
-				if (CD - 700 < Date.now()) {
+				if (CD < Date.now()) {
 					zoomIn()
 					showPalette()
 				}
@@ -981,7 +981,7 @@
 					</li>
 				</ul>
 			</div>
-			<div id="chatMessages" style="overflow-wrap: break-word; word-wrap: break-word; font-family:mono;white-space: pre-wrap; max-height: calc(100% - 90px); overflow: auto; z-index: -1;"></div>
+			<div id="chatMessages"></div>
 			<div id="messageTypePanel" closed>
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" value="📨 Send in live chat">
