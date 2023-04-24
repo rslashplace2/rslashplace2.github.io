@@ -500,25 +500,29 @@
 					return
 				}
 				
-				canvselect.style.background = ""
-				palette.style.transform = "translateY(100%)"
-
 				pok.classList.remove("enabled")
 				set(Math.floor(x), Math.floor(y), PEN)
-				canvselect.children[0].style.display='block'
+				canvselect.style.background = ""
+				canvselect.children[0].style.display = "block"
 				canvselect.style.outline = ""
 				canvselect.style.boxShadow = ""
+				palette.style.transform = "translateY(100%)"
 				AUDIOS.cooldownStart.run()
-				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN / 2) : COOLDOWN)
+				CD = Date.now() + (localStorage.vip ? (localStorage.vip[0] == '!' ? 0 : COOLDOWN/2) : COOLDOWN)
 
 				let pixelView = new DataView(new Uint8Array(6).buffer)
 				pixelView.setUint8(0, 4)
 				pixelView.setUint32(1, Math.floor(x) + Math.floor(y) * WIDTH)
 				pixelView.setUint8(5, PEN)
+
+				if (!mobile) {
+					colours.children[PEN].classList.remove("sel")
+					PEN = -1
+				}
+
 				localStorage.placed = (localStorage.placed >>> 0) + 1
 				call(send, ws, pixelView)
 			}
-
 			let pok = document.getElementById('pok')
 			
 			let oclick = e => {
@@ -693,9 +697,18 @@
 				if (CD < Date.now()) {
 					zoomIn()
 					showPalette()
+					// Persistent colours on mobile platforms
+					if (PEN != -1) {
+						pok.classList.add('enabled')
+						canvselect.style.background = colours.children[PEN].style.background
+						canvselect.children[0].style.display = 'none'
+						canvselect.style.outline = '8px white solid'
+						canvselect.style.boxShadow = '0px 2px 4px 0px rgb(0 0 0 / 50%)'
+					}
 				}
-				else
+				else{
 					AUDIOS.invalid.run()
+				}
 			" translate="connecting">Connecting...</div>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
@@ -1495,6 +1508,7 @@
 		const decoder = new TextDecoder()
 		const lang = navigator.language.split('-')[0]
 		const allowed = ["rplace.tk", "google.com", "wikipedia.org", "pxls.space"]
+		const mobile = window.matchMedia("(orientation: portrait)").matches
 		const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
 		let online = 1
 		let extraLanguage = "fa"
