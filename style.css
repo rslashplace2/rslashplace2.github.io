@@ -292,11 +292,11 @@ btn{
 	}
 }
 
-#close-btn{
+.modal-close-button {
 	width: 20px;
-  height: 20px;
-  font-size: 20px;
-  cursor: pointer;
+  	height: 20px;
+  	font-size: 20px;
+  	cursor: pointer;
 	display: inline-block;
 	fill: currentcolor;
 	vertical-align: middle;
@@ -1123,4 +1123,99 @@ postcopy span {
 	transform: translateY(-50%);
 	line-height: 24px;
 	transition: 1s opacity;
+}
+
+/* Reddit-themed styles ported from the instance manager*/
+.reddit-modal {
+	border: 1px solid gray;
+	border-radius: 4px;
+	background-color: #f0f0f0;
+	height: 600px;
+	width: min(800px, 100% - 16px);
+	box-shadow: 0px 0px 12px black;
+	overflow: clip;
+	display: flex;
+}
+.reddit-modal {
+	font-family: 'IBM Plex Sans', sans-serif;
+	font-size: 20px;
+}
+.reddit-modal p, a, span { font-size: 16px; }
+.reddit-modal p {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.reddit-modal .header {
+	color: black;
+	padding: 16px;
+	background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
+	background-size: cover;
+	min-width: 144px;
+}
+.reddit-modal .body {
+	margin: 8px;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+@media (orientation: portrait) {
+	.reddit-modal {
+		flex-direction: column;
+		position: relative;
+	}
+	.reddit-modal .header {
+		background: #343536;
+		color: white;
+	}
+	.reddit-modal .confirm-button {
+		position: absolute;
+		bottom: 8px;
+		width: calc(100% - 16px);
+	}
+}
+.reddit-modal input {
+	all: unset;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 8px;
+	font-size: 14px;
+	outline: none;
+	height: 14px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	background-color: white;
+}
+.reddit-modal input[type=file]::file-selector-button {
+	all: unset;
+	border-radius: 5px;
+	background-color: white;
+	border: 0px solid black;
+	box-shadow: none;
+	height: 100%;
+}
+.reddit-modal input[type=file] {
+	height: 48px;
+	background-color: transparent;
+}
+.reddit-modal input:focus {
+	border-color: #369;
+	box-shadow: 0 0 5px #ccc;
+}
+.reddit-modal button {
+	all: unset;
+	display: inline-block;
+	padding: 8px 16px;
+	border: none;
+	border-radius: 4px;
+	background-color: #cee3f8;
+	color: #1a1a1b;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.2s ease-in-out;
+}
+.reddit-modal button:hover {
+	background-color: #b0c8e6;
 }
