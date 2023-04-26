@@ -288,7 +288,7 @@
 		}
 	</script>
 	<script>
-		let queryChanged = false, csrfState = null, code = null, authSocket = null
+		let queryChanged = false, csrfState = null, code = null
 		for (let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") {
 				if (localStorage.getItem(query) == val) continue
@@ -301,15 +301,6 @@
 		}
 		if (queryChanged) {
 			window.location.reload()
-		}
-		// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
-		if (csrfState && code) {
-			authSocket = new WebSocket("http://localhost:8084")
-			authSocket.onopen = function() {
-				let ab = encoder.encode("X" + code + "\n" + csrfState)
-				ab[0] = 9 // ClientPackets.AuthenticateReddit
-				authSocket.send(ab)
-			}
 		}
 		
 		// Register PWA Service worker
@@ -342,7 +333,28 @@
 
 				call(addEventListener, i, 'click', applyVote)
 			}
+			
+			let authSocket = new WebSocket(localStorage.authServer || "http://localhost:8084")
+			authSocket.binaryType = "arraybuffer"
+			authSocket.onopen = function() {
+				// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
+				if (csrfState && code) {
+					let ab = encoder.encode("X" + code + "\n" + csrfState)
+					ab[0] = 9 // ClientPackets.AuthenticateReddit
+					authSocket.send(ab)
+				}
+			}
+			authSocket.message = async function({data}) {
+				data = new DataView(await data.arrayBuffer())
 
+				switch(data.getUint8(0)) {
+					
+				}
+			}
+			authSocket.onclose = function(e) {
+				console.error(e)
+			}
+		
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
@@ -488,7 +500,7 @@
 					}
 				}
 			}
-			ws.onclose = (e) => {
+			ws.onclose = function(e) {
 				if (CD != Infinity) {
 					window.location.reload(true)
 				}
@@ -506,7 +518,7 @@
 				}
 			}
 
-			function put(){
+			function put() {
 				if (!focused || CD > Date.now()) {
 					return
 				}
