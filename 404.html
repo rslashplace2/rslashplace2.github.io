@@ -7,7 +7,6 @@
         <link rel="icon" type="image/x-icon" href="favicon.png"> 
         <title>custom canvas</title>
         <script>
-            let a
             const encoder = new TextEncoder()
             let ws = new WebSocket("ws://localhost:1234")
             ws.binaryType = "arraybuffer"
@@ -110,7 +109,9 @@
                 cursor: pointer;
                 transition: background-color 0.2s ease-in-out;
             }
-            button:hover { background-color: #b0c8e6; }
+            button:hover {
+                background-color: #b0c8e6;
+            }
         </style>
     </head>
     <body>

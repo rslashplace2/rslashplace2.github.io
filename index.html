@@ -288,7 +288,8 @@
 		}
 	</script>
 	<script>
-		let queryChanged = false
+		// csrfstate not used at the moment, may be later to encode some extra info for client
+		let queryChanged = false, csrfState = null, authCode = null
 		for (let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") {
 				if (localStorage.getItem(query) == val) continue
@@ -296,6 +297,8 @@
 				localStorage.setItem(query, val)
 				queryChanged = true
 			}
+			else if (query == "state") csrfState = val
+			else if (query == "code") authCode = val.slice(0, val.length - 2) // remove the trailing #_
 		}
 		if (queryChanged) {
 			window.location.reload()
@@ -331,9 +334,38 @@
 
 				call(addEventListener, i, 'click', applyVote)
 			}
-
+			
+			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
+
+			authSocket.binaryType = "arraybuffer"
+			authSocket.onopen = function() {
+				// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
+				if (authCode) {
+					let cb = encoder.encode("X" + authCode)
+					cb[0] = 9 // ClientPackets.RedditCreateAccount
+					call(send, authSocket, cb)
+				}
+				else if (localStorage.refreshToken) {
+					let ab = encoder.encode(atob(localStorage.refreshToken))
+					ab[0] = 10 // ClientPackets.RedditAuthenticate
+					call(send, authSocket, ab)
+				}
+				else if (localStorage.username && localStorage.password) {
+				}
+			}
+			authSocket.onmessage = async function({data}) {
+				data = new DataView(await data.arrayBuffer())
+				console.log(data)
+				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
+					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
+					console.log("Reddit OAuth success")
+				}
+			}
+			authSocket.onclose = function(e) {
+				console.error(e)
+			}
 
 			ws.onmessage = async function({data}) {
 				delete sessionStorage.err
@@ -477,7 +509,7 @@
 					}
 				}
 			}
-			ws.onclose = (e) => {
+			ws.onclose = function(e) {
 				if (CD != Infinity) {
 					window.location.reload(true)
 				}
@@ -495,7 +527,7 @@
 				}
 			}
 
-			function put(){
+			function put() {
 				if (!focused || CD > Date.now()) {
 					return
 				}
@@ -679,7 +711,7 @@
 			<div id="posel" noselect>(0,0) 2.5x</div>
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
 				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Overlay:</h2>
-				<icon-close noselect="" id="close-btn" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;">
+				<icon-close noselect="" class="modal-close-button" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 					</svg>
@@ -754,7 +786,7 @@
 			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
 				<div id="modal" style="display:none"><div id="modal-header">
 					<h2>Place</h2>
-					<icon-close noselect id="close-btn" onclick="
+					<icon-close noselect class="modal-close-button" onclick="
 						modal.style.display='none'
 						bg.style.display='none'
 					">
@@ -900,19 +932,11 @@
 					<img src="images/reddit.png">
 					<div><div>Subreddit</div>500 members yay!</div>
 				</div>
-					<div class="post" onclick="window.open('https:\/\/www.reddit.com/r/burdurland/', '_blank')">
-					<img src="images/burdurland.png">
-					<div><div>Burdu<strong style="color: #FF4500">r</strong>land</div>THE CANVAS ARC IS REALLLLL!!!! | ♥️ Canvas 2 @ rplace.tk</div>
+				<div class="post" onclick="loginPanel.style.display = 'flex'">
+					<img src="images/account_profile.png">
+					<div><div>My Account</div>Login or signup to an rplace.tk account, access special features and host your own custom canvases.</div>
 				</div>
-				<div class="post">
-					<img src="images/news.png">
-					<div><div>Site news - 17/08/2022 23:40</div>We've been working very hard to fix multiple bugs and new features:<br><br>&nbsp;&nbsp;-Fixed bug where upvotes would not work on canvas 2.<br>&nbsp;&nbsp;-Added button for overlay in posts menu.<br>Full list of updates can be found <a href="https://github.com/rslashplace2/rslashplace2.github.io/commits/main">in the site github commits.</a></div>
-				</div>
-				<div class="post">
-					<img src="images/proxy-image.png">
-					<div><div>Moderator shitpost of the Week! - 18/08/2022 00:00</div>Modtools 2 THIS WEEK!!!! :pogchamp:</div>
-				</div>
-			       <div onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post">
+				<div onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post">
 					<img src="images/canv.png">
 					<div><div>Canv.tk</div>Visit our sister site, the proof of concept this site itself was built off, canv.tk here!</div>
 				</div>
@@ -962,7 +986,7 @@
 						<path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
 					</svg>
 				</div>
-				<icon-close noselect="" id="close-btn" onclick="
+				<icon-close noselect="" class="modal-close-button" onclick="
 					messageInput.blur()
 					chatPanel.classList.remove('open')
 				" class="active" style="position: absolute; top: 8px; right: 8px;">
@@ -1004,7 +1028,7 @@
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
-			<icon-close noselect="" id="close-btn" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
+			<icon-close noselect="" class="modal-close-button" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 					<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 				</svg>
@@ -1024,9 +1048,53 @@
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" onclick="confirmTlCreate()" value="Create"/>
 			<span id="tlTimer" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%);">0.0s</span>
 		</div>
-		<style id="aprilfoolsstyles">
-
-		</style>
+        <div id="loginPanel" class="reddit-modal" style="display:none;position: absolute;left: 50%;top: 50%;z-index: 20;transform: translate(-50%, -50%);">
+			<div class="header">
+                <h4 style="margin: 0px;">My account</h4>
+            </div>
+            <div class="body">
+				<icon-close noselect class="modal-close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>	
+				<div id="signinPage" class="body">
+                	<h4>Sign in</h4>
+					<input type="text" placeholder="Username">
+					<input type="password" placeholder="Password">
+					<button onclick="">Continue</button>
+				</div>
+				<div id="signupPage" style="display: none;" class="body">
+					<h4>Sign up</h4>
+					<input type="text" placeholder="Username*">
+					<input type="password" placeholder="Password*">
+					<input type="password" placeholder="Confirm Password*">
+					<input type="text" placeholder="Email*">
+					<button onclick="">Continue</button>
+				</div>
+				<div style="flex-grow: 1"></div>
+				<h4>Other options:</h4>
+				<div style="display: flex;column-gap: 8px;margin: 8px;">
+					<div noselect onclick="
+						let csrf = (Math.random() + 1).toString(36).substring(2)
+						window.open('https:\/\/www.reddit.com/api/v1/authorize?client_id=eqjRPVmD2M7InsCDhBdvVg&response_type=code'
+							+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.tk/&duration=permanent&scope=identity')
+						window.close()
+					" style="border: 1px solid #dbdbdb;border-radius: 4px;background-color: white;width: fit-content;display: flex;height: 46px;column-gap: 8px;cursor: pointer;padding-right: 8px;">
+						<img src="images/reddit.png"><span style="align-self: center;">Sign in with reddit</span>
+					</div>
+					<a href="" onclick="
+						event.preventDefault()
+						let s = !!(this['signin']??true) == true
+						this.textContent = s ? 'Sign in instead' : 'Create a new account'
+						signinPage.style.display = s ? 'none' : 'flex'
+						signupPage.style.display = s ? 'flex' : 'none'
+						this['signin'] = !s
+					" style="align-self: center;">Create a new account</a>
+				</div>
+			</div>
+        </div>
+		<style id="aprilfoolsstyles"></style>
 	</body>
 	<script>
 		let PALETTE = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff]
