@@ -308,7 +308,6 @@
 		if ('serviceWorker' in navigator)
 			navigator.serviceWorker.register("./sw.js")
 
-		let authSocket
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
@@ -336,7 +335,7 @@
 				call(addEventListener, i, 'click', applyVote)
 			}
 			
-			authSocket = new WebSocket("wss://server.poemanthology.org/auth")
+			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
@@ -358,7 +357,6 @@
 			}
 			authSocket.onmessage = async function({data}) {
 				data = new DataView(await data.arrayBuffer())
-				console.log("M RECV")
 				console.log(data)
 				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
 					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
