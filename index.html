@@ -288,7 +288,8 @@
 		}
 	</script>
 	<script>
-		let queryChanged = false, csrfState = null, code = null
+		// csrfstate not used at the moment, may be later to encode some extra info for client
+		let queryChanged = false, csrfState = null, authCode = null
 		for (let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") {
 				if (localStorage.getItem(query) == val) continue
@@ -297,7 +298,7 @@
 				queryChanged = true
 			}
 			else if (query == "state") csrfState = val
-			else if (query == "code") code = val
+			else if (query == "code") authCode = val.slice(0, val.length - 2) // remove the trailing #_
 		}
 		if (queryChanged) {
 			window.location.reload()
@@ -307,6 +308,7 @@
 		if ('serviceWorker' in navigator)
 			navigator.serviceWorker.register("./sw.js")
 
+		let authSocket
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
@@ -334,29 +336,38 @@
 				call(addEventListener, i, 'click', applyVote)
 			}
 			
-			let authSocket = new WebSocket(localStorage.authServer || "http://localhost:8084")
+			authSocket = new WebSocket("wss://server.poemanthology.org/auth")
+			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
+			delete WebSocket
+
 			authSocket.binaryType = "arraybuffer"
 			authSocket.onopen = function() {
 				// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
-				if (csrfState && code) {
-					let ab = encoder.encode("X" + code + "\n" + csrfState)
-					ab[0] = 9 // ClientPackets.AuthenticateReddit
-					authSocket.send(ab)
+				if (authCode) {
+					let cb = encoder.encode("X" + authCode)
+					cb[0] = 9 // ClientPackets.RedditCreateAccount
+					call(send, authSocket, cb)
+				}
+				else if (localStorage.refreshToken) {
+					let ab = encoder.encode(atob(localStorage.refreshToken))
+					ab[0] = 10 // ClientPackets.RedditAuthenticate
+					call(send, authSocket, ab)
+				}
+				else if (localStorage.username && localStorage.password) {
 				}
 			}
-			authSocket.message = async function({data}) {
+			authSocket.onmessage = async function({data}) {
 				data = new DataView(await data.arrayBuffer())
-
-				switch(data.getUint8(0)) {
-					
+				console.log("M RECV")
+				console.log(data)
+				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
+					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
+					console.log("Reddit OAuth success")
 				}
 			}
 			authSocket.onclose = function(e) {
 				console.error(e)
 			}
-		
-			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
-			delete WebSocket
 
 			ws.onmessage = async function({data}) {
 				delete sessionStorage.err
@@ -1039,7 +1050,7 @@
 			<input id="tlConfirm" type="button" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%); width: 80%; height: 60px; border-radius: 4px; border: 1px solid #C3C3C3; box-shadow: none; cursor: pointer;" onclick="confirmTlCreate()" value="Create"/>
 			<span id="tlTimer" style="position: absolute; left: 50%; bottom: 0px; transform: translateX(-50%) translateY(-50%);">0.0s</span>
 		</div>
-        <div id="loginPanel" class="reddit-modal" style="position: absolute;left: 50%;top: 50%;z-index: 2;transform: translate(-50%, -50%);">
+        <div id="loginPanel" class="reddit-modal" style="display:none;position: absolute;left: 50%;top: 50%;z-index: 20;transform: translate(-50%, -50%);">
 			<div class="header">
                 <h4 style="margin: 0px;">My account</h4>
             </div>
@@ -1071,7 +1082,7 @@
 						window.open('https:\/\/www.reddit.com/api/v1/authorize?client_id=eqjRPVmD2M7InsCDhBdvVg&response_type=code'
 							+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.tk/&duration=permanent&scope=identity')
 						window.close()
-					" style="border: 1px solid #dbdbdb;border-radius: 4px;background-color: white;width: fit-content;display: flex;height: 46px;column-gap: 8px;cursor: pointer;">
+					" style="border: 1px solid #dbdbdb;border-radius: 4px;background-color: white;width: fit-content;display: flex;height: 46px;column-gap: 8px;cursor: pointer;padding-right: 8px;">
 						<img src="images/reddit.png"><span style="align-self: center;">Sign in with reddit</span>
 					</div>
 					<a href="" onclick="
