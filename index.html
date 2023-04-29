@@ -298,7 +298,7 @@
 				queryChanged = true
 			}
 			else if (query == "state") csrfState = val
-			else if (query == "code") authCode = val.slice(0, val.length - 2) // remove the trailing #_
+			else if (query == "code") authCode = val // Make sure to remove the trailing #_
 		}
 		if (queryChanged) {
 			window.location.reload()
@@ -309,6 +309,8 @@
 			navigator.serviceWorker.register("./sw.js")
 
 		let v = 0
+		let authSocket
+		let account
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
@@ -335,7 +337,7 @@
 				call(addEventListener, i, 'click', applyVote)
 			}
 			
-			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
+			authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
@@ -356,11 +358,49 @@
 				}
 			}
 			authSocket.onmessage = async function({data}) {
-				data = new DataView(await data.arrayBuffer())
+				data = new DataView(data)
 				console.log(data)
 				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
 					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
 					console.log("Reddit OAuth success")
+					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
+					// Clean up our params to avoid reauthenticating on reload
+					let params = new URLSearchParams(location.search)
+					params.delete("code")
+					history.pushState(null, "", location.origin + "/" + params.toString())
+				}
+				if (data.getUint8(0) == 1) {
+					loginPanel.style.display = 'flex'
+					unauthedPage.style.display = 'none'
+					profilePage.style.display = 'flex'
+					
+					account = JSON.parse(decoder.decode(data.buffer.slice(1)))
+					profileName2.textContent = profileName.textContent = account.Username
+					// We use discord ID so that we can directly link their discord profile. Thanks https://discord.name/ for the api :).
+					if (account.DiscordId) {
+						let discordUser = await (await fetch("https://discord-lookup-api.herokuapp.com/user/" + account.DiscordId)).json()
+						if (discordUser && discordUser.success) {
+							profileDiscordIcon.src = discordUser.data.avatar || "images/discord.png"
+							profileDiscord.textContent = discordUser.data.username
+							profileDiscord.href = "https://discord.com/users/" + account.DiscordId
+						}
+					}
+					if (account.TwitterHandle) {
+						profileTwitter.textContent = account.TwitterHandle
+						profileTwitter.href = "https://twitter.com/" + account.TwitterHandle
+					}
+					// We can also scrape their snoo/user icon using reddit. Thanks reddit!
+					if (account.RedditHandle) {
+						profileReddit.textContent = account.RedditHandle
+						profileReddit.href = "https://www.reddit.com/user/" + account.RedditHandle.replaceAll("/u/", "")
+						let redditUser = await (await fetch("https://www.reddit.com/user/"+ account.RedditHandle +"/about.json")).json()
+						if (redditUser && !redditUser.error) {
+							profileRedditIcon.src = redditUser.data.snoovatar_img || redditUser.data.icon_img || "images/reddit.png"
+						}
+					}
+					profilePixels.textContent = account.PixelsPlaced
+					profileJoin.textContent = new Date(account.JoinDate).toLocaleString()
+					// TODO: profileBadges
 				}
 			}
 			authSocket.onclose = function(e) {
@@ -1052,7 +1092,7 @@
 			<div class="header">
                 <h4 style="margin: 0px;">My account</h4>
             </div>
-            <div class="body">
+            <div class="body" id="unauthedPage">
 				<icon-close noselect class="modal-close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
@@ -1093,7 +1133,40 @@
 					" style="align-self: center;">Create a new account</a>
 				</div>
 			</div>
-        </div>
+			<div class="body" style="display: none;" id="profilePage">
+				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
+				<icon-close noselect="" class="modal-close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>
+				<div style="flex-grow: 1">
+					<h4>Profile</h4>
+					<div class="reddit-card">
+						<img id="profileImg" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
+						<div style="min-width: 164px;">
+							<p style="margin-top: 0px;font-weight: 600;" id="profileName"></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/discord.png" id="profileDiscordIcon" style="border-radius:100%;"> Discord: <a id="profileDiscord" href=""></a></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/twitter.png" style="border-radius:100%;"> Twitter: <val id="profileTwitter"></val></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/reddit.png" id="profileRedditIcon" style="border-radius:100%;"> Reddit: <a id="profileReddit" href=""></a></p>
+						</div>
+						<div style="width: 2px;background-color: #ccc;border-radius: 2px;">
+						</div>
+						<div>
+							<p style="margin-top: 0px;font-weight: 600;font-style: italic;">Stats</p>
+							<p style="margin: 0px;">Pixels placed: <val id="profilePixels"></val></p>
+							<p style="margin: 0px;">Join date: <val id="profileJoin"></val></p>
+							<p style="margin: 0px;">Badges: <val id="profileBadges"></val></p>
+						</div>
+					</div>
+					<h4>Account Data:</h4>
+					<p>Account Tier: </p>
+					<p>Username: </p>
+					<p >Email: </p>
+					<a href="">Instances: Go to instance manager</a>
+				</div>
+			</div>
+		</div>
 		<style id="aprilfoolsstyles"></style>
 	</body>
 	<script>

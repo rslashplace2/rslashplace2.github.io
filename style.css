@@ -1219,3 +1219,15 @@ postcopy span {
 .reddit-modal button:hover {
 	background-color: #b0c8e6;
 }
+.reddit-card {
+	height: 150px;
+	margin: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 10px;
+	position: relative;
+	background: white;
+	display: flex;
+	column-gap: 16px;
+}
