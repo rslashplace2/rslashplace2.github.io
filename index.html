@@ -360,7 +360,7 @@
 				console.log(data)
 				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
 					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
-					console.log("Reddit OAuth success")
+					console.log("Account token/Reddit OAuth success")
 					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
 					// Clean up our params to avoid reauthenticating on reload
 					let params = new URLSearchParams(location.search)
@@ -717,6 +717,7 @@
 				}
 			})
 
+			let authCodeIntent = "signup"
 			call(addEventListener, signupButton, 'click', function(e) {
 				signupUsername.style.border = 'initial'
 				signupEmail.style.border = 'initial'
@@ -739,6 +740,7 @@
 				loginSignupMessage.textContent = ''
 				authCodePage.style.display = 'flex'
 				signupPage.style.display = 'none'
+				authCodeIntent = "signup"
 
 				let view = new DataView(new ArrayBuffer(363))
 				view.setUint8(0, 2)
@@ -748,22 +750,22 @@
 					view.setUint8(i, encoder.encode(signupEmail.value.padEnd(320))[i - 33])
 				call(send, authSocket, view.buffer)
 			})
-
+			call(addEventListener, signinButton, 'click', function(e) {
+				let buffer = encoder.encode('X' + loginUsername.value.padEnd(32) + loginEmail.value.padEnd(320))
+				buffer[0] = 5 //ClientPackets.Authenticate
+				call(send, authSocket, buffer)
+				authCodePage.style.display = 'flex'
+				signinPage.style.display = 'none'
+				authCodeIntent = "signin"
+			})
 			call(addEventListener, authCodeButton, 'click', function(e) {
 				let buffer = encoder.encode('X' + authCode.value)
-				buffer[0] = 3 // ClientPackets.AuthenticateCreate
+				buffer[0] = authCodeIntent == "signup" ? 3 : 5 // ClientPackets.AuthenticateCreate | ClientPackets.Authenticate
 				call(send, authSocket, buffer)
 				authCodePage.style.display = 'none'
 				signinPage.style.display = 'flex'
 			})
 
-			call(addEventListener, signinButton, 'click', function(e) {
-				let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginEmail.value.padEnd(32))
-				buffer[0] = 5 //ClientPackets.Authenticate
-				call(send, authSocket, buffer)
-				// TODO: Unjank
-				setTimeout(() => { call(send, authSocket, new Uint8Array([4])) }, 100) // ClientPackets.AccountInfo
-			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
@@ -1166,7 +1168,7 @@
 					<h4>If you're lucky, an email has been sent to your inbox</h4>
 					<p>Enter the code sent below to authenticate your account</p>
 					<input type="text" placeholder="Authentication code*" id="authCode" minlength="10">
-					<button id="authCodeButton">Submit & Create account</button>
+					<button id="authCodeButton">Submit</button>
 				</div>
 				<div style="flex-grow: 1"></div>
 				<h4>Other options:</h4>
