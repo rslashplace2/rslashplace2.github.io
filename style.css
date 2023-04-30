@@ -1236,3 +1236,21 @@ postcopy span {
 	display: flex;
 	column-gap: 16px;
 }
+
+.profile-section > p {
+	margin-top: 0px;
+	margin-bottom: revert;
+	font-weight: 600;
+}
+.profile-section > div {
+	margin: 0px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.profile-section > div:hover {
+	overflow: visible;
+	background-color: white;
+}
+.profile-section > div > img {
+	border-radius: 100%;
+}
