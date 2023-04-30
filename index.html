@@ -350,22 +350,32 @@
 					call(send, authSocket, cb)
 				}
 				else if (localStorage.refreshToken) {
-					let ab = encoder.encode(atob(localStorage.refreshToken))
+					let ab = encoder.encode(localStorage.refreshToken)
 					ab[0] = 10 // ClientPackets.RedditAuthenticate
+					call(send, authSocket, ab)
+				}
+				else if (localStorage.accountToken) {
+					let ab = encoder.encode(localStorage.accountToken)
+					ab[0] = 5 // ClientPackets.Authenticate
 					call(send, authSocket, ab)
 				}
 			}
 			authSocket.onmessage = async function({data}) {
 				data = new DataView(data)
 				console.log(data)
-				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
-					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
-					console.log("Account token/Reddit OAuth success")
+				if (data.getUint8(0) == 7) { // ServerPackets.RedditRefreshToken
+					localStorage.refreshToken = decoder.decode(data.buffer.slice(1))
+					console.log("Reddit OAuth success")
 					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
 					// Clean up our params to avoid reauthenticating on reload
 					let params = new URLSearchParams(location.search)
 					params.delete("code")
 					history.pushState(null, "", location.origin + "/" + params.toString())
+				}
+				if (data.getUint8(0) == 5) { // ServerPackets.AccountToken
+					localStorage.accountToken = decoder.decode(data.buffer.slice(1))
+					console.log("Account authentication success")
+					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
 				}
 				if (data.getUint8(0) == 1) {
 					loginPanel.style.display = 'flex'
