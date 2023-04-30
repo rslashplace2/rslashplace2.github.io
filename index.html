@@ -289,7 +289,7 @@
 	</script>
 	<script>
 		// csrfstate not used at the moment, may be later to encode some extra info for client
-		let queryChanged = false, csrfState = null, authCode = null
+		let queryChanged = false, csrfState = null, redditOauthCode = null
 		for (let [query, val] of new URLSearchParams(location.search)) {
 			if (query == "server" || query == "board") {
 				if (localStorage.getItem(query) == val) continue
@@ -298,7 +298,7 @@
 				queryChanged = true
 			}
 			else if (query == "state") csrfState = val
-			else if (query == "code") authCode = val.slice(0, val.length - 2) // remove the trailing #_
+			else if (query == "code") redditOauthCode = val // Make sure to remove the trailing #_
 		}
 		if (queryChanged) {
 			window.location.reload()
@@ -309,6 +309,8 @@
 			navigator.serviceWorker.register("./sw.js")
 
 		let v = 0
+		let authSocket
+		let account
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
@@ -335,32 +337,82 @@
 				call(addEventListener, i, 'click', applyVote)
 			}
 			
-			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
+			authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
 			authSocket.binaryType = "arraybuffer"
 			authSocket.onopen = function() {
 				// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
-				if (authCode) {
-					let cb = encoder.encode("X" + authCode)
+				if (redditOauthCode) {
+					let cb = encoder.encode("X" + redditOauthCode)
 					cb[0] = 9 // ClientPackets.RedditCreateAccount
 					call(send, authSocket, cb)
 				}
 				else if (localStorage.refreshToken) {
-					let ab = encoder.encode(atob(localStorage.refreshToken))
+					let ab = encoder.encode(localStorage.refreshToken)
 					ab[0] = 10 // ClientPackets.RedditAuthenticate
 					call(send, authSocket, ab)
 				}
-				else if (localStorage.username && localStorage.password) {
+				else if (localStorage.accountToken) {
+					let ab = encoder.encode(localStorage.accountToken)
+					ab[0] = 5 // ClientPackets.Authenticate
+					call(send, authSocket, ab)
 				}
 			}
 			authSocket.onmessage = async function({data}) {
-				data = new DataView(await data.arrayBuffer())
+				data = new DataView(data)
 				console.log(data)
-				if (data.getUint8(0) == 5) { // ServerPackets.RedditRefreshToken
-					localStorage.refreshToken = btoa(decoder.decode(data.buffer.slice(1)))
+				if (data.getUint8(0) == 7) { // ServerPackets.RedditRefreshToken
+					localStorage.refreshToken = decoder.decode(data.buffer.slice(1))
 					console.log("Reddit OAuth success")
+					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
+					// Clean up our params to avoid reauthenticating on reload
+					let params = new URLSearchParams(location.search)
+					params.delete("code")
+					history.pushState(null, "", location.origin + "/" + params.toString())
+				}
+				if (data.getUint8(0) == 5) { // ServerPackets.AccountToken
+					localStorage.accountToken = decoder.decode(data.buffer.slice(1))
+					console.log("Account authentication success")
+					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
+				}
+				if (data.getUint8(0) == 1) {
+					loginPanel.style.display = 'flex'
+					unauthedPage.style.display = 'none'
+					profilePage.style.display = 'flex'
+					
+					account = JSON.parse(decoder.decode(data.buffer.slice(1)))
+					profileName2.textContent = profileName.textContent = account.Username
+					// We use discord ID so that we can directly link their discord profile. Thanks https://discord.name/ for the api :).
+					if (account.DiscordId) {
+						let discordUser = await (await fetch("https://discord-lookup-api.herokuapp.com/user/" + account.DiscordId)).json()
+						if (discordUser && discordUser.success) {
+							profileDiscordIcon.src = discordUser.data.avatar || "images/discord.png"
+							profileDiscord.textContent = discordUser.data.username
+							profileDiscord.href = "https://discord.com/users/" + account.DiscordId
+						}
+					}
+					if (account.TwitterHandle) {
+						profileTwitter.textContent = account.TwitterHandle
+						profileTwitter.href = "https://twitter.com/" + account.TwitterHandle
+					}
+					// We can also scrape their snoo/user icon using reddit. Thanks reddit!
+					if (account.RedditHandle) {
+						profileReddit.textContent = account.RedditHandle
+						profileReddit.href = "https://www.reddit.com/user/" + account.RedditHandle.replaceAll("/u/", "")
+						let redditUser = await (await fetch("https://www.reddit.com/user/"+ account.RedditHandle +"/about.json")).json()
+						if (redditUser && !redditUser.error) {
+							profileRedditIcon.src = redditUser.data.snoovatar_img || redditUser.data.icon_img || "images/reddit.png"
+						}
+					}
+					profilePixels.textContent = account.PixelsPlaced
+					profileJoin.textContent = new Date(account.JoinDate).toLocaleString()
+					// TODO: profileBadges
+					accountTier.textContent = account.AccountTier
+					accountName.textContent = account.Username
+					let censoredSection = account.Email.slice(4, account.Email.indexOf("@"))
+                    accountEmail.textContent = account.Email.replace(censoredSection, "*".repeat(censoredSection.length))
 				}
 			}
 			authSocket.onclose = function(e) {
@@ -674,6 +726,49 @@
 					}
 				}
 			})
+
+			call(addEventListener, signupButton, 'click', function(e) {
+				signupUsername.style.border = 'initial'
+				signupEmail.style.border = 'initial'
+				signupConfirm.style.border = 'initial'
+				if (signupUsername.value.length < 4) {
+					signupUsername.style.border = '1px solid red'
+					loginSignupMessage.textContent = 'Username is too short!'
+					return
+				}
+				if (!signupEmail.validity.valid) {
+					signupEmail.style.border = '1px solid red'
+					loginSignupMessage.textContent = 'Email is not valid!'
+					return
+				}
+				if (signupConfirm.value !== signupEmail.value) {
+					signupConfirm.style.border = '1px solid red'
+					loginSignupMessage.textContent = 'Emails do not match!'
+					return
+				}
+				loginSignupMessage.textContent = ''
+				authCodePage.style.display = 'flex'
+				signupPage.style.display = 'none'
+
+				let buffer = encoder.encode('X' + signupUsername.value.padEnd(32) + signupEmail.value.padEnd(320))
+				buffer[0] = 2 // ClientPackets.CreateAccount
+				call(send, authSocket, buffer)
+			})
+			call(addEventListener, signinButton, 'click', function(e) {
+				let buffer = encoder.encode('X' + loginUsername.value.padEnd(32) + loginEmail.value.padEnd(320))
+				buffer[0] = 5 //ClientPackets.Authenticate
+				call(send, authSocket, buffer)
+				authCodePage.style.display = 'flex'
+				signinPage.style.display = 'none'
+			})
+			call(addEventListener, authCodeButton, 'click', function(e) {
+				let buffer = encoder.encode('X' + authCode.value)
+				buffer[0] = 3 // ClientPackets.AccountCode
+				call(send, authSocket, buffer)
+				authCodePage.style.display = 'none'
+				signinPage.style.display = 'flex'
+			})
+
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
@@ -1052,7 +1147,7 @@
 			<div class="header">
                 <h4 style="margin: 0px;">My account</h4>
             </div>
-            <div class="body">
+            <div class="body" id="unauthedPage">
 				<icon-close noselect class="modal-close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
@@ -1060,17 +1155,23 @@
 				</icon-close>	
 				<div id="signinPage" class="body">
                 	<h4>Sign in</h4>
-					<input type="text" placeholder="Username">
-					<input type="password" placeholder="Password">
-					<button onclick="">Continue</button>
+					<input type="text" placeholder="Username*" id="loginUsername" maxlength="32" minlength="4">
+					<input type="email" placeholder="Email*" id="loginEmail">
+					<button id="signinButton">Continue</button>
 				</div>
 				<div id="signupPage" style="display: none;" class="body">
 					<h4>Sign up</h4>
-					<input type="text" placeholder="Username*">
-					<input type="password" placeholder="Password*">
-					<input type="password" placeholder="Confirm Password*">
-					<input type="text" placeholder="Email*">
-					<button onclick="">Continue</button>
+					<input type="text" placeholder="Username*" id="signupUsername" maxlength="32" minlength="4">
+					<input type="email" placeholder="Email*" id="signupEmail" required>
+					<input type="email" placeholder="Confirm Email*" id="signupConfirm" required>
+					<button id="signupButton">Continue</button>
+					<span id="loginSignupMessage"></span>
+				</div>
+				<div id="authCodePage" class="body" style="display: none;">
+					<h4>If you're lucky, an email has been sent to your inbox</h4>
+					<p>Enter the code sent below to authenticate your account</p>
+					<input type="text" placeholder="Authentication code*" id="authCode" minlength="10">
+					<button id="authCodeButton">Submit</button>
 				</div>
 				<div style="flex-grow: 1"></div>
 				<h4>Other options:</h4>
@@ -1085,7 +1186,7 @@
 					</div>
 					<a href="" onclick="
 						event.preventDefault()
-						let s = !!(this['signin']??true) == true
+						let s = !!(this['signin']??true)==true
 						this.textContent = s ? 'Sign in instead' : 'Create a new account'
 						signinPage.style.display = s ? 'none' : 'flex'
 						signupPage.style.display = s ? 'flex' : 'none'
@@ -1093,7 +1194,40 @@
 					" style="align-self: center;">Create a new account</a>
 				</div>
 			</div>
-        </div>
+			<div class="body" style="display: none;" id="profilePage">
+				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
+				<icon-close noselect="" class="modal-close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>
+				<div style="flex-grow: 1">
+					<h4>Profile</h4>
+					<div class="reddit-card">
+						<img id="profileImg" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
+						<div style="min-width: 164px;">
+							<p style="margin-top: 0px;font-weight: 600;" id="profileName"></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/discord.png" id="profileDiscordIcon" style="border-radius:100%;"> Discord: <a id="profileDiscord" href=""></a></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/twitter.png" style="border-radius:100%;"> Twitter: <val id="profileTwitter"></val></p>
+							<p style="margin: 0px;"><img width="16" height="16" src="images/reddit.png" id="profileRedditIcon" style="border-radius:100%;"> Reddit: <a id="profileReddit" href=""></a></p>
+						</div>
+						<div style="width: 2px;background-color: #ccc;border-radius: 2px;">
+						</div>
+						<div>
+							<p style="margin-top: 0px;font-weight: 600;font-style: italic;">Stats</p>
+							<p style="margin: 0px;">Pixels placed: <val id="profilePixels"></val></p>
+							<p style="margin: 0px;">Join date: <val id="profileJoin"></val></p>
+							<p style="margin: 0px;">Badges: <val id="profileBadges"></val></p>
+						</div>
+					</div>
+					<h4>Account Data:</h4>
+					<p>Account Tier: <val id="accountTier"></val></p>
+					<p>Username: <val id="accountName"></val></p>
+					<p>Email: <val id="accountEmail"></val></p>
+					<a href="">Instances: Go to instance manager</a>
+				</div>
+			</div>
+		</div>
 		<style id="aprilfoolsstyles"></style>
 	</body>
 	<script>

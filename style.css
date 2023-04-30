@@ -1157,6 +1157,7 @@ postcopy span {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
+	overflow: scroll;
 }
 @media (orientation: portrait) {
 	.reddit-modal {
@@ -1171,6 +1172,10 @@ postcopy span {
 		position: absolute;
 		bottom: 8px;
 		width: calc(100% - 16px);
+	}
+	.reddit-card {
+		flex-direction: column;
+		height: fit-content !important;
 	}
 }
 .reddit-modal input {
@@ -1218,4 +1223,16 @@ postcopy span {
 }
 .reddit-modal button:hover {
 	background-color: #b0c8e6;
+}
+.reddit-card {
+	height: 150px;
+	margin: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 10px;
+	position: relative;
+	background: white;
+	display: flex;
+	column-gap: 16px;
 }

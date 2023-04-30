@@ -629,6 +629,7 @@
                         let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginPassword.value.padEnd(32))
                         buffer[0] = ClientPackets.Authenticate
                         ws.send(buffer)
+
                         loginPanel.style.display = 'none'
                         preLoginOptions.style.display = 'none'
                         signoutOptions.style.display = 'block'
@@ -649,27 +650,18 @@
                     event.preventDefault()
                     if (signupPanel.style.display == 'block') {
                         loginSignupMessage.textContent = ''
-                        signupPassword.style.border = 'initial'
+                        signupEmail.style.border = 'initial'
                         if (!signupEmail.validity.valid) {
                             signupEmail.style.border = '1px solid red'
                             loginSignupMessage.textContent = 'Email is not valid!'
                             return
                         }
-                        
                         signupPassword.style.border = 'initial'
-                        if (signupPassword.value !== signupConfirm.value) {
+                        if (signupPassword.value !== signupConfirm.value || signupPassword.value.length < 6) {
                             signupPassword.style.border = '1px solid red'
                             loginSignupMessage.textContent = 'Passwords do not match!'
                             return
                         }
-
-                        signupPassword.style.border = 'initial'
-                        if (signupPassword.value.length < 6) {
-                            signupPassword.style.border = '1px solid red'
-                            loginSignupMessage.textContent = 'Password was too short!'
-                            return
-                        }
-
                         signupUsername.style.border = 'initial'
                         if (signupUsername.value.length < 4) {
                             signupUsername.style.border = '1px solid red'
