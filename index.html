@@ -309,8 +309,6 @@
 			navigator.serviceWorker.register("./sw.js")
 
 		let v = 0
-		let authSocket
-		let account
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
@@ -337,7 +335,7 @@
 				call(addEventListener, i, 'click', applyVote)
 			}
 			
-			authSocket = new WebSocket("wss://server.poemanthology.org/auth")
+			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
@@ -350,12 +348,12 @@
 					call(send, authSocket, cb)
 				}
 				else if (localStorage.refreshToken) {
-					let ab = encoder.encode(localStorage.refreshToken)
+					let ab = encoder.encode("X" + localStorage.refreshToken)
 					ab[0] = 10 // ClientPackets.RedditAuthenticate
 					call(send, authSocket, ab)
 				}
 				else if (localStorage.accountToken) {
-					let ab = encoder.encode(localStorage.accountToken)
+					let ab = encoder.encode("X" + localStorage.accountToken)
 					ab[0] = 5 // ClientPackets.Authenticate
 					call(send, authSocket, ab)
 				}
@@ -382,7 +380,7 @@
 					unauthedPage.style.display = 'none'
 					profilePage.style.display = 'flex'
 					
-					account = JSON.parse(decoder.decode(data.buffer.slice(1)))
+					let account = JSON.parse(decoder.decode(data.buffer.slice(1)))
 					profileName2.textContent = profileName.textContent = account.Username
 					// We use discord ID so that we can directly link their discord profile. Thanks https://discord.name/ for the api :).
 					if (account.DiscordId) {
@@ -1190,6 +1188,7 @@
 						this.textContent = s ? 'Sign in instead' : 'Create a new account'
 						signinPage.style.display = s ? 'none' : 'flex'
 						signupPage.style.display = s ? 'flex' : 'none'
+						authCodePage.style.display = 'none'
 						this['signin'] = !s
 					" style="align-self: center;">Create a new account</a>
 				</div>
@@ -1205,25 +1204,33 @@
 					<h4>Profile</h4>
 					<div class="reddit-card">
 						<img id="profileImg" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
-						<div style="min-width: 164px;">
-							<p style="margin-top: 0px;font-weight: 600;" id="profileName"></p>
-							<p style="margin: 0px;"><img width="16" height="16" src="images/discord.png" id="profileDiscordIcon" style="border-radius:100%;"> Discord: <a id="profileDiscord" href=""></a></p>
-							<p style="margin: 0px;"><img width="16" height="16" src="images/twitter.png" style="border-radius:100%;"> Twitter: <val id="profileTwitter"></val></p>
-							<p style="margin: 0px;"><img width="16" height="16" src="images/reddit.png" id="profileRedditIcon" style="border-radius:100%;"> Reddit: <a id="profileReddit" href=""></a></p>
+						<div class="profile-section" style="min-width: 164px;">
+							<p id="profileName"></p>
+							<div>
+								<img width="16" height="16" src="images/discord.png" id="profileDiscordIcon">
+								<span>Discord: </span><a id="profileDiscord" href=""></a>
+							</div>
+							<div>
+								<img width="16" height="16" src="images/twitter.png">
+								<span>Twitter: </span><a id="profileTwitter" href=""></a>
+							</div>
+							<div>
+								<img width="16" height="16" src="images/reddit.png" id="profileRedditIcon">
+								<span>Reddit: </span><a id="profileReddit" href=""></a>
+							</div>
 						</div>
-						<div style="width: 2px;background-color: #ccc;border-radius: 2px;">
-						</div>
-						<div>
-							<p style="margin-top: 0px;font-weight: 600;font-style: italic;">Stats</p>
-							<p style="margin: 0px;">Pixels placed: <val id="profilePixels"></val></p>
-							<p style="margin: 0px;">Join date: <val id="profileJoin"></val></p>
-							<p style="margin: 0px;">Badges: <val id="profileBadges"></val></p>
+						<div style="width: 2px;background-color: #ccc;border-radius: 2px;"></div>
+						<div class="profile-section">
+							<p style="font-style: italic;">Stats</p>
+							<div><span>Pixels placed: </span><span id="profilePixels"></span></div>
+							<div><span>Join date: </span><span id="profileJoin"></span></div>
+							<div><span>Badges: </span><span id="profileBadges"></span></div>
 						</div>
 					</div>
 					<h4>Account Data:</h4>
-					<p>Account Tier: <val id="accountTier"></val></p>
-					<p>Username: <val id="accountName"></val></p>
-					<p>Email: <val id="accountEmail"></val></p>
+					<p>Account Tier: <span id="accountTier"></span></p>
+					<p>Username: <span id="accountName"></span></p>
+					<p>Email: <span id="accountEmail"></span></p>
 					<a href="">Instances: Go to instance manager</a>
 				</div>
 			</div>
@@ -2047,7 +2054,6 @@
 			"?github": "https://github.com/rslashplace2",
 			"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		})[location.search]
-
 		if (redirectLocation) location.replace(redirectLocation)
 
 		async function sha256(message) {
