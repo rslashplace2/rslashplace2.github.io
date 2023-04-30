@@ -717,7 +717,6 @@
 				}
 			})
 
-			let authCodeIntent = "signup"
 			call(addEventListener, signupButton, 'click', function(e) {
 				signupUsername.style.border = 'initial'
 				signupEmail.style.border = 'initial'
@@ -740,15 +739,10 @@
 				loginSignupMessage.textContent = ''
 				authCodePage.style.display = 'flex'
 				signupPage.style.display = 'none'
-				authCodeIntent = "signup"
 
-				let view = new DataView(new ArrayBuffer(363))
-				view.setUint8(0, 2)
-				for (let i = 1; i < 33; i++)
-					view.setUint8(i, encoder.encode(signupUsername.value.padEnd(32))[i - 1])
-				for (let i = 33; i < 353; i++)
-					view.setUint8(i, encoder.encode(signupEmail.value.padEnd(320))[i - 33])
-				call(send, authSocket, view.buffer)
+				let buffer = encoder.encode('X' + signupUsername.value.padEnd(32) + signupEmail.value.padEnd(320))
+				buffer[0] = 2 // ClientPackets.CreateAccount
+				call(send, authSocket, buffer)
 			})
 			call(addEventListener, signinButton, 'click', function(e) {
 				let buffer = encoder.encode('X' + loginUsername.value.padEnd(32) + loginEmail.value.padEnd(320))
@@ -756,11 +750,10 @@
 				call(send, authSocket, buffer)
 				authCodePage.style.display = 'flex'
 				signinPage.style.display = 'none'
-				authCodeIntent = "signin"
 			})
 			call(addEventListener, authCodeButton, 'click', function(e) {
 				let buffer = encoder.encode('X' + authCode.value)
-				buffer[0] = authCodeIntent == "signup" ? 3 : 5 // ClientPackets.AuthenticateCreate | ClientPackets.Authenticate
+				buffer[0] = 3 // ClientPackets.AccountCode
 				call(send, authSocket, buffer)
 				authCodePage.style.display = 'none'
 				signinPage.style.display = 'flex'
