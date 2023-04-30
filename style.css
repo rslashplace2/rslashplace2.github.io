@@ -1157,6 +1157,7 @@ postcopy span {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
+	overflow: scroll;
 }
 @media (orientation: portrait) {
 	.reddit-modal {
@@ -1171,6 +1172,10 @@ postcopy span {
 		position: absolute;
 		bottom: 8px;
 		width: calc(100% - 16px);
+	}
+	.reddit-card {
+		flex-direction: column;
+		height: fit-content !important;
 	}
 }
 .reddit-modal input {
