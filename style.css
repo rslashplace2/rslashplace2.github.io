@@ -1159,6 +1159,9 @@ postcopy span {
 	flex-grow: 1;
 	overflow: scroll;
 }
+.reddit-modal .body, .reddit-modal .body * {
+	touch-action: manipulation;
+}
 @media (orientation: portrait) {
 	.reddit-modal {
 		flex-direction: column;
@@ -1246,10 +1249,18 @@ postcopy span {
 	margin: 0px;
 	overflow: hidden;
 	white-space: nowrap;
+	position: relative;
+	transition: .2s all;
+
 }
-.profile-section > div:hover {
+.profile-section > div[profileeditable]:hover {
 	overflow: visible;
 	background-color: white;
+	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.243);
+	border-radius: 4px;
+	min-width: fit-content;
+	z-index: 2;
+	padding: 4px;
 }
 .profile-section > div > img {
 	border-radius: 100%;
