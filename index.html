@@ -1251,7 +1251,7 @@
 					" style="border: 1px solid #dbdbdb;border-radius: 4px;background-color: white;width: fit-content;display: flex;height: 46px;column-gap: 8px;cursor: pointer;padding-right: 8px;">
 						<img src="images/reddit.png"><span style="align-self: center;">Sign in with reddit</span>
 					</div>
-					<a href="" onclick="
+					<a href="#" ontouchend="event.preventDefault(); this.click()" onclick="
 						event.preventDefault()
 						let s = !!(this['signin']??true)==true
 						this.textContent = s ? 'Sign in instead' : 'Create a new account'
