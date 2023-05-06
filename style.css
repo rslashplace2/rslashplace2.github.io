@@ -1123,6 +1123,8 @@ postcopy span {
 	transform: translateY(-50%);
 	line-height: 24px;
 	transition: 1s opacity;
+	white-space: nowrap;
+	pointer-events: none;
 }
 
 /* Reddit-themed styles ported from the instance manager*/
