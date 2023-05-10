@@ -621,7 +621,8 @@
 			}
 
 			function put() {
-				if (!focused || CD > Date.now()) {
+				// If CD is null but we have already made that initial connection, we have likely ghost disconnected from the WS
+				if (!focused || !connected || (CD === null && connected) || CD > Date.now()) {
 					return
 				}
 				
