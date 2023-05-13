@@ -302,7 +302,8 @@
 			ghost: "👻",
 			skullcrossbones: "☠️",
 			explosion: "💥",
-			fan: ":fan:"
+			fan: ":fan:",
+			heavy: ":heavy:"
 		}
 	</script>
 	<script>
@@ -518,8 +519,16 @@
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
 					// Custom emoji regex
-					txt = txt.replace(/:(.+):/, (_, source) =>
-						`<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`)
+					txt = txt.replace(/:(.+):/, (full, source) => {
+						// If this emoji is the only thing in the message we can make it big!
+						console.log(txt.match(source).length)
+						if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
+							return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
+						}
+						
+						// Else smaller and inline with the rest of the message
+						return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`
+					})
 					// Coordinate to clickable link regex
 					txt = txt.replace(/([0-9]+),\s*([0-9]+)/g, (element) => {
 						let px = parseInt(element.split(",")[0].trim())
