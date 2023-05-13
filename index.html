@@ -302,8 +302,22 @@
 			ghost: "👻",
 			skullcrossbones: "☠️",
 			explosion: "💥",
+			amogus: ":amogus:",
+			biaoqing: ":biaoqing:",
+			deepfriedh: ":deepfriedh:",
+			edp445: ":edp445:",
 			fan: ":fan:",
-			heavy: ":heavy:"
+			heavy: ":heavy:",
+			herkul: ":herkul:",
+			kaanozdil: ":kaanozdil:",
+			lowtiergod: ":lowtiergod:",
+			manly: ":manly:",
+			plsaddred: ":plsaddred:",
+			rplace: ":rplace:",
+			rplacediscord: ":rplacediscord:",
+			sonic: ":sonic:",
+			transparent: ":transparent:",
+			trollface: ":trollface:"
 		}
 	</script>
 	<script>
@@ -518,26 +532,8 @@
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
-					// Custom emoji regex
-					txt = txt.replace(/:(.+):/, (full, source) => {
-						// If this emoji is the only thing in the message we can make it big!
-						console.log(txt.match(source).length)
-						if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
-							return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
-						}
-						
-						// Else smaller and inline with the rest of the message
-						return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`
-					})
-					// Coordinate to clickable link regex
-					txt = txt.replace(/([0-9]+),\s*([0-9]+)/g, (element) => {
-						let px = parseInt(element.split(",")[0].trim())
-						let py = parseInt(element.split(",")[1].trim())
-						if (px != NaN && py != NaN) {
-							return `<a href="" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
-						}
-					})
 
+					// Canvas chat, placed on canvas as a bubble
 					if (type == "place") {
 						if (!placeChat) return
 						txt = txt.substring(0, 56)
@@ -553,8 +549,28 @@
 							canvparent2.removeChild(placeMessage)
 						}, localStorage.placeChatTime || 7e3)
 					}
+					//Normal chat - goes to live chat panel
 					else if (!type || type == "live") {
-						//Normal chat - goes to live chat panel
+						// Custom emoji regex
+						txt = txt.replace(/:(.+):/, (full, source) => {
+							// If this emoji is the only thing in the message we can make it big!
+							console.log(txt.match(source).length)
+							if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
+								return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
+							}
+							
+							// Else smaller and inline with the rest of the message
+							return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`
+						})
+						// Coordinate to clickable link regex
+						txt = txt.replace(/([0-9]+),\s*([0-9]+)/g, (element) => {
+							let px = parseInt(element.split(",")[0].trim())
+							let py = parseInt(element.split(",")[1].trim())
+							if (px != NaN && py != NaN) {
+								return `<a href="" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
+							}
+						})
+
 						let newMessage = document.createElement("div")
 						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
 						let scroll = chatMessages.scrollTop + chatMessages.offsetHeight + 10 >= chatMessages.scrollHeight
