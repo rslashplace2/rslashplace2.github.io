@@ -301,7 +301,8 @@
 			alien: "👽",
 			ghost: "👻",
 			skullcrossbones: "☠️",
-			explosion: "💥"
+			explosion: "💥",
+			fan: ":fan:"
 		}
 	</script>
 	<script>
@@ -516,7 +517,17 @@
 					let name, messageChannel, type, placeX, placeY
 					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
-					txt = txt.replace(/:(.+):/, (_, source) => `<img src="custom_emojis/${source}.png" alt=":${source}:" width="16" height="16">`)
+					// Custom emoji regex
+					txt = txt.replace(/:(.+):/, (_, source) =>
+						`<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`)
+					// Coordinate to clickable link regex
+					txt = txt.replace(/([0-9]+),\s*([0-9]+)/g, (element) => {
+						let px = parseInt(element.split(",")[0].trim())
+						let py = parseInt(element.split(",")[1].trim())
+						if (px != NaN && py != NaN) {
+							return `<a href="" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
+						}
+					})
 
 					if (type == "place") {
 						if (!placeChat) return
@@ -835,8 +846,8 @@
 				call(send, authSocket, new Uint8Array([4]))
 			})
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; String.prototype.startsWith = (_) => {window.location.reload(false)};
-		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
+		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(false)}; const I=HTMLIFrameElement.prototype;
+		delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
 	</script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
@@ -847,7 +858,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.3" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.4" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1179,10 +1190,11 @@
 				</ul>
 			</div>
 			<div id="chatMessages"></div>
-			<div id="messageTypePanel" closed>
+			<div id="messageTypePanel" class="chat-input-panel" closed>
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" value="📨 Send in live chat">
 			</div>
+			<div id="messageEmojisPanel" class="chat-input-panel"></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
 			<div class="messageOptions" style="bottom: 10px; right: 10px;" onclick="messageTypePanel.toggleAttribute('closed')">...</div>			
 		</div>
@@ -1913,9 +1925,42 @@
 		}
 
 		messageInput.oninput = () => {
-			messageInput.style.color = (messageInput.value.includes(":") ? "#00FA9A" : "black")
+			messageEmojisPanel.innerHTML = ""
+			let comp = ""
+			let search = true
+			let count = 0
+			for (let i = messageInput.value.length - 1; i >= 0; i--) {
+				// No emoji code will ever have a space before we reach the opening : (going backwards 
+				// through string) so we can guess to just stop if seen as we backtrack
+				if (messageInput.value[i] == " " && search) {
+					comp = ""
+					break
+				}
+				else if (messageInput.value[i] == ":") {
+					count++
+					search = false
+				}
+				if (search) {
+					comp = messageInput.value[i] + comp
+				}
+			}
+			//All : already closed, they are probably not trying to do an emoji so we ignore
+			if (count % 2 == 0) comp = ""
+
+			if (comp) {
+				messageInput.style.color = "#00FA9A"
+			}
+			else {
+				messageEmojisPanel.setAttribute("closed", "true")
+				messageInput.style.color = "black"
+			}
 
 			for (const [emojiCode, value] of Object.entries(EMOJIS)) {
+				if (comp && emojiCode.startsWith(comp)) {
+					messageEmojisPanel.innerHTML += `<div title="Send this emoji in chat with :${emojiCode}:"><span>:${emojiCode}:</span>${value}</div>`
+					messageEmojisPanel.removeAttribute("closed")
+				}
+
 				if (messageInput.value.includes(":" + emojiCode + ":")) {
 					messageInput.value = messageInput.value.replace(":" + emojiCode + ":", value)
 					messageInput.style.color = "black"

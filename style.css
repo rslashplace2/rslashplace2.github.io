@@ -678,7 +678,8 @@ a {
 	flex: initial;
 }
 
-#messageTypePanel {
+/* Used by messageTypePanel and messageEmojisPanel, displays just above chat input */
+.chat-input-panel {
 	padding: 5px;
 	background: white;
 	border: 1px solid lightgray;
@@ -692,11 +693,30 @@ a {
 	transition: .3s height, .0s visibility, .2s opacity;
 	transition-delay: 0s, .2s;
 }
-
-#messageTypePanel[closed] {
+.chat-input-panel[closed] {
 	height: 0px;
 	visibility: hidden;
 	opacity: 0;
+}
+#messageEmojisPanel {
+	height: auto;
+	padding-bottom: 48px;
+	overflow-clip-margin: content-box;
+	overflow-y: clip;
+}
+#messageEmojisPanel > div {
+	margin: 8px;
+	margin-bottom: 4px;
+	border-radius: 4px;
+	padding: 8px;
+	display: flex;
+	user-select: none;
+}
+#messageEmojisPanel > div > span {
+	flex-grow: 1;
+}
+#messageEmojisPanel > div:hover {
+	background: lightgrey;
 }
 
 .messageTypeBtn {
