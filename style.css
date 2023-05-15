@@ -1179,9 +1179,8 @@ postcopy span {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
-	overflow: scroll;
 }
-.reddit-modal .body, .reddit-modal .body * {
+.reddit-modal, .body, .reddit-modal .body {
 	touch-action: manipulation;
 }
 @media (orientation: portrait) {

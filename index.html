@@ -341,6 +341,7 @@
 		if ('serviceWorker' in navigator)
 			navigator.serviceWorker.register("./sw.js")
 
+		let account = null
 		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
@@ -410,8 +411,7 @@
 					unauthedPage.style.display = 'none'
 					profilePage.style.display = 'flex'
 
-					let account = JSON.parse(decoder.decode(data.buffer.slice(1)))
-					console.log(account)
+					account = JSON.parse(decoder.decode(data.buffer.slice(1)))
 					profileName2.textContent = profileName.textContent = account.Username
 					// We use discord ID so that we can directly link their discord profile. Thanks https://discord.name/ for the api :).
 					if (account.DiscordSnowflake) {
@@ -554,7 +554,6 @@
 						// Custom emoji regex
 						txt = txt.replace(/:(.+):/, (full, source) => {
 							// If this emoji is the only thing in the message we can make it big!
-							console.log(txt.match(source).length)
 							if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
 								return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
 							}
@@ -567,7 +566,7 @@
 							let px = parseInt(element.split(",")[0].trim())
 							let py = parseInt(element.split(",")[1].trim())
 							if (px != NaN && py != NaN) {
-								return `<a href="" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
+								return `<a href="#" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
 							}
 						})
 
@@ -920,6 +919,36 @@
 					<input id="overlayOpacity" type="range" min="0" value="80" max="100" style="width: 100%;" oninput="overlaySliderValue.textContent = Math.min(this.value, 99); overlaySliderValue.style.left = `calc(${overlayOpacity.value / 100} * 90%)`;"/>
 					<span id="overlaySliderValue" style="position: absolute; white-space: pre-wrap; left: calc(0.8 * 90%); transform: translateX(10px); bottom: 12.5px; pointer-events: none; width: 16px; text-align: center;">80</span>
 				</div>
+				<br>
+				<div style="position: relative; display: flex;" onclick="
+					event.stopPropagation();
+					(async function(_this){
+						let uriString = await generateOverlayUrl()
+						if (uriString.length < 2000) {
+							navigator.clipboard.writeText(uriString)
+							_this.children[2].animate([
+								{ opacity: 1 },
+								{ scale: 1.1 }
+							], { duration: 1000, iterations: 1 })
+						}
+						else {
+							_this.children[2].textContent = 'Failed: Overlay is too big!'
+							_this.children[2].animate([
+								{ opacity: 1 },
+								{ color: 'red' }
+							], { duration: 1000, iterations: 1 })
+							if (_this['failMsgTimeout']) clearTimeout(_this['failMsgTimeout'])
+							_this['failMsgTimeout'] = setTimeout(() => {
+								_this.children[2].textContent = 'Copied to clipboard!'
+							}, 1000)
+						}
+					})(this);
+					
+				" title="copy canvas link">
+					<img src="svg/clipboard.svg">
+					<span style="align-self: center; margin-right: 8px;">Copy overlay URL</span>
+					<span style="opacity: 0; align-self: center;">Copied to clipboard!</span>
+				</div>
 			</div>
 			<div id="place" noselect onclick="
 				if (CD < Date.now()) {
@@ -1128,7 +1157,7 @@
 					<img src="images/reddit.png">
 					<div><div>Subreddit</div>500 members yay!</div>
 				</div>
-				<div class="post" onclick="loginPanel.style.display = 'flex'">
+				<div class="post" onclick="loginPanel.style.display = 'flex'" style="opacity: 0.6; pointer-events: none;">
 					<img src="images/account_profile.png">
 					<div><div>My Account</div>Login or signup to an rplace.tk account, access special features and host your own custom canvases.</div>
 				</div>
@@ -1249,7 +1278,7 @@
 			<div class="header">
                 <h4 style="margin: 0px;">My account</h4>
             </div>
-            <div class="body" id="unauthedPage">
+            <div class="body" style="overflow-y: scroll;" id="unauthedPage">
 				<icon-close noselect class="modal-close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
@@ -1297,7 +1326,7 @@
 					" style="align-self: center;">Create a new account</a>
 				</div>
 			</div>
-			<div class="body" style="display: none;" id="profilePage">
+			<div class="body" style="display: none;overflow-y: scroll;" id="profilePage">
 				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
 				<icon-close noselect="" class="modal-close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
@@ -1362,7 +1391,7 @@
 					<p>Account Tier: <span id="accountTier"></span></p>
 					<p>Username: <span id="accountName"></span></p>
 					<p>Email: <span id="accountEmail"></span></p>
-					<a href="">Instances: Go to instance manager</a>
+					<a href="#">Instances: Go to instance manager</a>
 				</div>
 			</div>
 		</div>
@@ -1425,22 +1454,22 @@
 			let repeatFunc = setInterval(function() {
 				// We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
 				switch (e.keyCode) {
-					case 37:
-						x -= i / 55;
-						arrowkeyDown.right = true;
-						break //right
-					case 38:
-						y -= i / 55;
-						arrowkeyDown.up = true;
-						break //up
-					case 39:
-						x += i / 55;
-						arrowkeyDown.left = true;
-						break //left
-					case 40:
-						y += i / 55;
-						arrowkeyDown.down = true;
-						break //down
+				case 37:
+					x -= i / 55
+					arrowkeyDown.right = true
+					break //right
+				case 38:
+					y -= i / 55
+					arrowkeyDown.up = true
+					break //up
+				case 39:
+					x += i / 55
+					arrowkeyDown.left = true
+					break //left
+				case 40:
+					y += i / 55
+					arrowkeyDown.down = true
+					break //down
 				}
 				pos()
 				i--
@@ -2158,30 +2187,26 @@
 			templateImage.src = URL.createObjectURL(overlayInput.files[0])
 			templateImage.style.transform = `translate(${overlayInfo.x}px ${overlayInfo.y}px)`
 			templateImage.style.opacity = 0.8
-			generateOverlayUrl()
 		}
 
 		overlayX.onchange = () => {
 			overlayInfo.x = Number(overlayX.value)
 			templateImage.style.left = overlayInfo.x + "px"
-			generateOverlayUrl()
 		}
 
 		overlayY.onchange = () => {
 			overlayInfo.y = Number(overlayY.value)
 			templateImage.style.top = overlayInfo.y + "px"
-			generateOverlayUrl()
 		}
 
 		overlayOpacity.onchange = () => {
 			overlayInfo.opacity = Number(overlayOpacity.value) / 100
 			templateImage.style.opacity = overlayInfo.opacity
-			generateOverlayUrl()
 		}
 
-		//TODO: Finish this
-		function generateOverlayUrl() {
-			history.replaceState({}, "", `https://rplace.tk/?ox=${overlayInfo.x},oy=${overlayInfo.y},ow=${overlayInfo.width},oh=${overlayInfo.h},oo=${overlayInfo.opacity},oi=${URL.createObjectURL(overlayInput.files[0])}`)
+		async function generateOverlayUrl() {
+			overlayInfo['data'] = btoa(String.fromCharCode(...new Uint8Array(await overlayInput.files[0].arrayBuffer())))
+			return location.origin + "/?overlay=" + btoa(JSON.stringify(overlayInfo))
 		}
 
 		let blockedUsers = []
@@ -2249,7 +2274,7 @@
 
 		// Prompt user if they want to install site as PWA if they press the modal button
 		let pwaPrompter = null
-		window.addEventListener("beforeinstallprompt", (e) => {
+		window.addEventListener("beforeinstallprompt", function(e) {
 			e.preventDefault()
 			pwaPrompter = e
 		})
