@@ -1612,9 +1612,13 @@
 				switch (key) {
 					case 'x': x = value; break
 					case 'y': y = value; break
-					case 'z': z = value; break
-					case 'err': onerror = alert; break
-					case 'debug': break
+					case "z": z = value; break
+					case "err": onerror = alert; break
+					case "overlay":
+						overlayInfo = JSON.parse(value)
+						templateImage = window.URL.createObjectURL(new Blob([decoder.decode(atob(overlayInfo.data))], { type: "image/webp" }))
+						
+						break
 				}
 			}
 			onresize()
