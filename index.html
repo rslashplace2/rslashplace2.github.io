@@ -340,7 +340,6 @@
 			navigator.serviceWorker.register("./sw.js")
 
 		let account = null
-		let v = 0
 		const wscapsule = ((send, addEventListener, call) => {
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
@@ -476,14 +475,6 @@
 					online = data.getUint16(1)
 					onlineCounter.textContent = online
 					onlineCounter2.textContent = online + ' online'
-					let i = 0
-					while (i < (data.byteLength >> 2)){
-						let u = data.getUint32((i << 2) + 3)
-						if (!cch[i])break
-						cch[i].children[0].children[1].u = u
-						cch[i].children[0].children[1].innerText = u < 100e3 ? (u < 1000 ? u : Math.floor(u/100)/10+'k') : (u < 1e6 ? Math.floor(u/1000)+'k' : Math.floor(u/100e3)/10 + 'M')
-						i++
-					}
 					break
 				}
 				case 6: {
