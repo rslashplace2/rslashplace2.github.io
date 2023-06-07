@@ -879,7 +879,7 @@
 					overlayInfo.x = +this.value || 0
 					templateImage.style.transform = `translate(${overlayInfo.x}px, ${overlayInfo.y}px)`
 				" placeholder="Image X" style="width: calc(50% - 5px); margin-right: 5px;"/>
-				<input value="" type="number" onchange="
+				<input id="overlayOpacity" value="" type="number" onchange="
 					overlayInfo.y = +this.value || 0
 					templateImage.style.transform = `translate(${overlayInfo.x}px, ${overlayInfo.y}px)`
 				" placeholder="Image Y" style="width: calc(50% - 5px)"/> <br><br>
