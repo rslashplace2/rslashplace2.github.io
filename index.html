@@ -345,33 +345,6 @@
 			let focused = true
 			call(addEventListener, window, 'blur', () => focused = false)
 			call(addEventListener, window, 'focus', () => focused = true)
-			let j = 0
-			const cch = call(Array.prototype.slice, contents.children, 1)
-
-			for (let i of cch) {
-				let id = j++
-				i = i.children[0].children[0]
-				let applyVote = (e) => {
-					const vote = i.children[0].getAttribute('d') == UNVOTED_SVG
-					i.children[0].setAttribute('d', vote ? VOTED_SVG : UNVOTED_SVG)
-					i.style.fill = vote ? "#ff4500" : ""
-					const u = vote ? ++i.nextElementSibling.u : --i.nextElementSibling.u
-					i.nextElementSibling.innerText = u < 100e3
-						? (u < 1000
-							? u
-							: Math.floor(u / 100) / 10 + 'k')
-						: (u < 1e6
-							? Math.floor(u / 1000) + 'k'
-							: Math.floor(u / 100e3) / 10 + 'M')
-					if (localStorage.vote & (1 << id) && !(v & (1 << id))) return
-					localStorage.vote |= (1 << id)
-					v |= (1 << id)
-
-					call(send, ws, new Uint8Array([20, id]))
-				}
-
-				call(addEventListener, i, 'click', applyVote)
-			}
 			
 			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
 			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
@@ -1613,8 +1586,8 @@
 
 			for (let [key, value] of new URLSearchParams(location.search)) {
 				switch (key) { // Only for numeric value params
-					case 'x': x = +value || 0; break
-					case 'y': y = +value || 0; break
+					case "x": x = +value || 0; pos(); break
+					case "y": y = +value || 0; pos(); break
 					case "z": z = +value || 0; break
 					case "err": onerror = alert; break
 					case "overlay":
@@ -1622,10 +1595,16 @@
 						const decoded = atob(overlayInfo.data)
 						const data = new Uint8Array(new ArrayBuffer(decoded.length))
 						for (let i = 0; i < decoded.length; i++) data[i] = decoded.charCodeAt(i)
-						
+
 						templateImage.src = window.URL.createObjectURL(new Blob([data]), { type: overlayInfo.type })
+						overlayInfo.x = +overlayInfo.x || 0
+						overlayInfo.y = +overlayInfo.y || 0
 						templateImage.style.transform = `translate(${overlayInfo.x}px, ${overlayInfo.y}px)`
-						templateImage.style.opacity = 0.8
+						templateImage.style.opacity = +overlayInfo.opacity || 0.8
+						x = overlayInfo.x
+						y = overlayInfo.y
+						pos()
+						openOverlayMenu()
 						break
 				}
 			}
@@ -1990,7 +1969,7 @@
 			messageInput.setRangeText("@" + user, start, end, "end")
 		}
 
-		messageInput.oninput = () => {
+		messageInput.oninput = function() {
 			messageEmojisPanel.innerHTML = ""
 			let comp = ""
 			let search = true
@@ -2130,14 +2109,14 @@
 		}
 
 		let tlTimerStart
-		async function confirmTlCreate() {
+		function confirmTlCreate() {
 			tlConfirm.value = "Timelapse loading. Hang tight! ⏳"
 			tlConfirm.style.pointerEvents = "none"
 			tlTimerStart = Date.now()
 			let tlTimerInterval = setInterval(updateTlTimer, 100)
 
-			let response = await fetch("https://server2.rplace.tk:8081/timelapse/", {
-					method: 'POST',
+			fetch(`https://${localStorage.server || "wss://server.rplace.tk:443"}/timelapse/`, {
+					method: "POST",
 					body: JSON.stringify({
 						"backupStart": tlStartSel.value,
 						"backupEnd": tlEndSel.value,
@@ -2148,9 +2127,7 @@
 						"endY": HEIGHT,
 						"reverse": tlPlayDir.getAttribute('reverse') == "true"
 					}),
-					headers: {
-						'Content-type': 'application/json; charset=UTF-8',
-					}
+					headers: { 'Content-type': 'application/json; charset=UTF-8' }
 				})
 				.then(resp => resp.blob())
 				.then(blob => {
@@ -2167,16 +2144,16 @@
 					tlTimer.innerText = "0.0s"
 				})
 				.catch((e) => {
-					console.log("Timelapse failed, " + e);
-					tlConfirm.value = "Create";
-					tlConfirm.style.pointerEvents = "auto";
-					clearInterval(tlTimerInterval);
-					tlTimer.innerText = "0.0s";
+					console.log("Timelapse failed, " + e)
+					tlConfirm.value = "Create"
+					tlConfirm.style.pointerEvents = "auto"
+					clearInterval(tlTimerInterval)
+					tlTimer.innerText = "0.0s"
 				})
 		}
 
 		function updateTlTimer() {
-			var elapsedTime = Date.now() - tlTimerStart
+			let elapsedTime = Date.now() - tlTimerStart
 			document.getElementById("tlTimer").innerText = ((elapsedTime / 1000).toFixed(3)) + "s"
 		}
 
@@ -2191,7 +2168,7 @@
 		}
 
 		var overlayInfo = { x: 0, y: 0, w: 0, h: 0, opacity: 0.8, type: "" }
-		overlayInput.onchange = () => {
+		overlayInput.onchange = function() {
 			if (!overlayInput.files || !overlayInput.files[0]) return
 			templateImage.src = URL.createObjectURL(overlayInput.files[0])
 			templateImage.style.opacity = 0.8
@@ -2199,7 +2176,7 @@
 		async function generateOverlayUrl() {
 			overlayInfo["type"] = overlayInput.files[0].type
 			overlayInfo["data"] = btoa(String.fromCharCode(...new Uint8Array(await overlayInput.files[0].arrayBuffer())))
-			return location.origin + "/?overlay=" + btoa(JSON.stringify(overlayInfo))
+			return `${location.origin}/?server=${localStorage.server || "wss://server.rplace.tk:443"}&board=${localStorage.board || "place"}&overlay=${btoa(JSON.stringify(overlayInfo))}`
 		}
 
 		let blockedUsers = []
