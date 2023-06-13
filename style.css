@@ -95,15 +95,15 @@ input[type=range]::-webkit-slider-thumb {
 
 @font-face {
 	font-family: mono;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditMono-Bold.woff2);
+	src: url(fonts/RedditMono-Bold.woff2);
 }
 @font-face {
 	font-family: bold;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Bold.woff2);
+	src: url(fonts/RedditSans-Bold.woff2);
 }
 @font-face {
 	font-family: reddit;
-	src: url(https://www.redditstatic.com/mona-lisa/assets/fonts/RedditSans-Regular.woff2);
+	src: url(fonts/RedditSans-Regular.woff2);
 }
 
 #maincontent{
