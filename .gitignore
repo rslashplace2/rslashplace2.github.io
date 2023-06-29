@@ -1,9 +1,11 @@
+.vscode/
+.hintrc
+
 *.pem
 *.key
+
 blacklist.txt
 cooldown_overrides.txt
 vip.txt
 webhook_url.txt
 node_modules/
-PlaceHttpsServer/timelapse_gen/bin/
-PlaceHttpsServer/timelapse_gen/obj/
