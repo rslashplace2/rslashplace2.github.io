@@ -248,7 +248,7 @@ btn{
 	cursor: pointer;
 }
 
-#place{
+#place {
 	position: absolute;
 	bottom: 20px;
 	left: 50%;
@@ -261,6 +261,14 @@ btn{
 	border-radius: 100px;
 	text-align: center;
 	z-index: 5;
+}
+#place::after{
+	content: " ";
+	position: absolute;
+	left: -24px;
+	top: -24px;
+	width: calc(100% + 48px);
+	height: calc(100% + 48px);
 }
 #modal {
 	position: absolute;
@@ -629,7 +637,7 @@ place-chat-button > img {
 	transform: scale(1.1);
 }
 
-@media screen and (max-width:700px) { /* TODO: Switch to more future proof orientation portrait */
+@media screen and (max-width:700px) {
 	#captchaPopup {
 		width: calc(100% - 16px);
 		height: unset;

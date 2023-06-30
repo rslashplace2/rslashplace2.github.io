@@ -1,0 +1,11 @@
+.vscode/
+.hintrc
+
+*.pem
+*.key
+
+blacklist.txt
+cooldown_overrides.txt
+vip.txt
+webhook_url.txt
+node_modules/
