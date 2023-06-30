@@ -1,32 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" ontouchstart="if (maincontent.contains(event.target)) event.preventDefault()" ontouchend="event.preventDefault()">
 <head>
+	<meta charset="UTF-8">
 	<script>
-		const SERVER_OFFLINE_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAddJREFUeF7tnFEOgyAUBOGQegQP5RG8pA0fNIRohUxTQ53+tbKmTPftEzGN0zTt4cGvbdvQ7KMABYgcpAMRvhAEKEBIAMp1oAAhASjXgQKEBKBcBwoQEoByHShASADKdaAAIQEov92B9AvA+WP5PM/oHPh+oADhHWkBCtASJgTMQEIvhCBAAUICUK4DBQgJQLkOFCAkAOU6UICQAJTrQAFCAlA+vAPXdUUIlmVBegEKUAeiErKE4TPGAhQge0qf7onoQB2oA0kXvH1f2BK2hC1hSxgQcC3sWti1MCigEOzCsAsj+l8QD5+BX2CATjEcwBjje8L7voez9+lYeqXjeVzL+F6aQwLMcEpAeeJHwGqAR/qsewTAPMnSUaXj0vErB56N/3uAZ0779HnprtpptWP/HmBLBpYlW5f5kb4e3wNxuAzsmdwvxg4DsMV5dTbWzaIlO8v8bPkBhgLY0k3rLCwhHGXhYzLw7Hruqvv2AOx1XxqvA6sL7ZayLccMBfAq41oyL7vsaoXSCnIYgK0T+vU4AULiAnw6QOoAyA/Lb98XFiC8Iy1AAd67sa4DdaAOJK3YLkzopU0v+jfI9AlVM9AMNANJFVvChJ4ZCOkJUICcADyDGQgBvgBxwKKvpzakwAAAAABJRU5ErkJggg"
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		const VERIFIED_APP_HASH = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
 		const UNMUTED_SVG = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>'
 		const MUTED_SVG = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
 		const VOTED_SVG = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z'
 		const UNVOTED_SVG = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
-		const BADGES = {
-			0: "badges/based.svg",
-			1: "badges/trouble_maker.svg",
-			2: "badges/veteran.svg",
-			3: "badges/admin.svg",
-			4: "badges/moderator.svg",
-			5: "badges/noob.svg",
-			6: "badges/script_kiddie.svg",
-			7: "badges/ethical_botter.svg",
-			8: "badges/gay.svg",
-			9: "badges/discord_member.svg",
-			10: "badges/100_pixels_placed",
-			11: "badges/1000_pixels_placed",
-			12: "badges/5000_pixels_placed",
-			13: "badges/2000_pixels_placed",
-			14: "badges/100000_pixels_placed",
-			15: "badges/1000000_pixels_placed",
-		}
+		const BADGES = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
 		const TRANSLATIONS = {
 			en: {
 				connecting: "Connecting...",
@@ -44,7 +27,10 @@
 				tryClickingHere: "try clicking here",
 				pleaseBeRespectful: "Please be respectful and try not to spam!",
 				enterNickname: "Enter nickname...",
-				enterMessage: "Enter message..."
+				enterMessage: "Enter message...",
+				signInInstead: "Sign in instead",
+				createNewAccount: "Create a new account"
+
 			},
 			fa: {
 				connecting: "در حال وصل شدن",
@@ -440,7 +426,7 @@
 			}
 			authSocket.onclose = console.error
 			ws.onopen = function(e) {
-				connected = true
+				initialConnect = true
 			}
 			ws.onmessage = async function({data}) {
 				delete sessionStorage.err
@@ -613,13 +599,13 @@
 					window.location.reload(true)
 				}
 				
-				loadingScreen.children[0].src = SERVER_OFFLINE_B64
-				waitingGame.start()
+				loadingScreen.children[0].src = "images/rplace-offline.png"
+				showLoadingScreen()
 			}
 
 			function put() {
 				// If CD is null but we have already made that initial connection, we have likely ghost disconnected from the WS
-				if (!focused || !connected || (CD === null && connected) || CD > Date.now()) {
+				if (!focused || !initialConnect || (CD === null && initialConnect) || CD > Date.now()) {
 					return
 				}
 				
@@ -837,14 +823,13 @@
 	</script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
-	<meta charset="UTF-8">
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.4" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.5" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -854,7 +839,7 @@
 </head>
 	<body>
 		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
-			<img src="https://www.redditstatic.com/desktop2x/img/hot-potato-loader.gif" style="position: absolute; width: 128px; height: 128px; z-index: 22;"/>
+			<img src="images/rplace-loader.gif" style="position: absolute; width: 128px; height: 128px; z-index: 22;"/>
 			<canvas id="waitingGameCanvas" style="width: 100%; height: 100%; z-index: 21;"></canvas>
 			<div id="connproblems">
 				<span translate="connectionProblems">Connection problems?</span> 
@@ -994,7 +979,7 @@
 				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.tk web app</div>
 				<div id="modal-footer">
 					<mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
-						muted =! muted
+						muted = !muted
 						localStorage.muted =+ muted
 						mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
 					">
@@ -1288,12 +1273,12 @@
 					<a href="#" ontouchend="event.preventDefault(); this.click()" onclick="
 						event.preventDefault()
 						let s = !!(this['signin']??true)==true
-						this.textContent = s ? 'Sign in instead' : 'Create a new account'
+						this.textContent = translate(s ? 'signInInstead' : 'createNewAccount')
 						signinPage.style.display = s ? 'none' : 'flex'
 						signupPage.style.display = s ? 'flex' : 'none'
 						authCodePage.style.display = 'none'
 						this['signin'] = !s
-					" style="align-self: center;">Create a new account</a>
+					" style="align-self: center;" translate="createNewAccount">Create a new account</a>
 				</div>
 			</div>
 			<div class="body" style="display: none;overflow-y: scroll;" id="profilePage">
@@ -1446,10 +1431,6 @@
 			}, 16)
 		}
 
-		oncontextmenu = function(e) {
-			e.preventDefault()
-		}
-
 		let selX = 0
 		let selY = 0
 		const canvasCtx = canvas.getContext('2d')
@@ -1472,6 +1453,18 @@
 
 		let x, y, z, board, minZoom;
 
+		function showLoadingScreen() {
+			loadingScreen.style.opacity = 1
+			loadingScreen.style.display = "flex"
+			waitingGame.start()
+		}
+
+		function hideLoadingScreen() {
+			loadingScreen.style.opacity = 0
+			setTimeout(() => loadingScreen.style.display = "none", 300)
+			setTimeout(() => waitingGame.stop(), 300)
+		}
+
 		class WaitingGame {
 			constructor(canvas) {
 				this.canvas = canvas
@@ -1480,9 +1473,7 @@
 			}
 
 			start() {
-				if (this.started) {
-					return
-				}
+				if (this.started) return
 				this.canvas.width = innerWidth
 				this.canvas.height = innerHeight
 				this.context = this.canvas.getContext("2d")
@@ -1496,7 +1487,7 @@
 			stop() {
 				clearInterval(this.interval)
 				physicsCubes = []
-				this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+				this.clear()
 				this.started = false
 			}
 
@@ -1526,7 +1517,7 @@
 				this.x += this.speedX
 				
 				//floor
-				let floor = waitingGame.canvas.height - this.height
+				const floor = waitingGame.canvas.height - this.height
 				if (this.y > floor) {
 					this.y = floor
 					this.speedY = 0
@@ -1560,7 +1551,7 @@
 		waitingGame.canvas.onmousedown = function(event) {
 			physicsCubes.push(new Component(80, 80, ["grey", "lightgray", "darkgray", "whiteSmoke"][Math.floor(Math.random() * 4)], Math.floor(event.x), Math.floor(event.y), waitingGame))
 		}
-		waitingGame.start()
+		showLoadingScreen()
 
 		function setSize(w, h = w) {
 			canvas.width = WIDTH = w
@@ -1762,13 +1753,13 @@
 		let onCooldown = false
 		let PEN = -1
 		let CD = null
-		let connected = false
+		let initialConnect = false
 
 		mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
 
 		setInterval(() => {
 			let left = Math.floor((CD - Date.now()) / 1000)
-			place.innerHTML = connected
+			place.innerHTML = initialConnect
 				? CD === null // They have made initial connect
 					? `<span style="color:#f50">${translate("connectingFail")}</span>` // They connected but now have disconnected
 					: left > 0
@@ -1833,9 +1824,6 @@
 			}
 
 			renderAll()
-			loadingScreen.style.opacity = 0
-			setTimeout(() => loadingScreen.remove(), 300)
-			setTimeout(() => waitingGame.stop(), 300)
 		}
 
 		// The new server's equivalent for run length changes, based upon run length encoding
@@ -1860,9 +1848,7 @@
 			}
 
 			renderAll()
-			loadingScreen.style.opacity = 0
-			setTimeout(() => loadingScreen.remove(), 300)
-			setTimeout(() => waitingGame.stop(), 300)
+			hideLoadingScreen()
 		}
 
 		const encoder = new TextEncoder()
@@ -1879,17 +1865,25 @@
 		}
 		let cMessages = { [extraLanguage]: [], tr: [], en: [] }
 		let currentChannel = lang
+		let fetchCooldown = 500, fetchFailTimeout = -1
 		switchLanguageChannel(currentChannel)
 		wscapsule()
 
 		async function fetchBoard() {
 			const response = await fetch(localStorage.board || "place")
 			if (!response.ok) {
-				loadingScreen.children[0].src = SERVER_OFFLINE_B64
-				waitingGame.start()
+				showLoadingScreen()
+				fetchFailTimeout = setTimeout(fetchBoard, fetchCooldown *= 2)
+				if (fetchCooldown > 8000) {
+					loadingScreen.children[0].src = "images/rplace-offline.png"
+					clearTimeout(fetchFailTimeout)
+				}
+
 				return null
 			}
 
+			if (fetchFailTimeout != -1) clearTimeout(fetchFailTimeout)
+			hideLoadingScreen()
 			return await response.arrayBuffer()
 		}
 
@@ -1945,7 +1939,7 @@
 					break
 				default:
 					channelMine.style.opacity = "1"
-					chatMessages.style.direction = ''
+					chatMessages.style.direction = ""
 			}
 			chatMessages.innerHTML = ""
 
@@ -2056,7 +2050,6 @@
 					element.innerHTML = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.innerHTML
 			})
 		}
-
 		translateAll()
 
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
@@ -2238,6 +2231,9 @@
 		window.addEventListener("beforeinstallprompt", function(e) {
 			e.preventDefault()
 			pwaPrompter = e
+		})
+		window.addEventListener("contextmenu", function(e) {
+			e.preventDefault()
 		})
 
 		setTimeout(() => {
