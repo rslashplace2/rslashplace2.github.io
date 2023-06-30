@@ -110,7 +110,6 @@ let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a 
 for (let ban of (await fs.readFile('blacklist.txt')).toString().split('\n')) BANS.add(ban)
 let WEBHOOK_URL
 try { WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString() } catch (e) { }
-let HIST_LEN = 30
 
 let printChatInfo = false
 let toValidate = new Map();
