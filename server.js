@@ -71,7 +71,7 @@ if(SECURE){
         key: await fs.readFile('../a.key'), //Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
         perMessageDeflate: false }).listen(PORT) }) 
 }else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false }) 
-
+wss.once('listening',()=>console.log("listening on :"+PORT))
 let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt"] 
 for (let i = 0; i < criticalFiles.length; i++) { 
         if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } }); 
@@ -97,7 +97,7 @@ let hash = a => a.split("").reduce((a,b)=>(a*31+b.charCodeAt())>>>0,0)
 let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi,a=>"*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//,"").split("/")[0]) ? a : "").trim()  
 
 wss.on('connection', async function(p, {headers, url: uri}) { 
-        p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') : p._socket.remoteAddress.split(':',4).join(':')
+	p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':',4).join(':') : p._socket.remoteAddress.split(':',4).join(':')
         if ((USE_CLOUDFLARE && headers['origin'] != 'https://rplace.tk') || BANS.has(p.ip)) return p.close()
         let url = uri.slice(1) 
         let IP = /*p._socket.remoteAddress */url || p.ip 
@@ -157,7 +157,7 @@ wss.on('connection', async function(p, {headers, url: uri}) {
                                   let date = new Date()
                                   console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name || "anon"} (${IP}) content: ${txt}`)
                                 }
-                                let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt.replaceAll("@","")} 
+                                let msgHook = { "username": `[${messageChannel}] ${name || "anon"}`, "content": txt, "allowed_mentions": {"parse": []}} 
                                 if (msgHook.content.includes("@") || msgHook.content.includes("http")) return 
                                 await fetch(WEBHOOK_URL + "?wait=true", {"method":"POST", "headers": {"content-type": "application/json"}, "body": JSON.stringify(msgHook)}) 
                         } 
