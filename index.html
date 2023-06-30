@@ -3,6 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<script>
+		const DEFAULT_SERVER = "wss://server.rplace.tk:443"
+		const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
 		const VERIFIED_APP_HASH = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
 		const UNMUTED_SVG = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>'
@@ -332,7 +334,7 @@
 			call(addEventListener, window, 'focus', () => focused = true)
 			
 			let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
-			let ws = new WebSocket((localStorage.server || 'wss://server.rplace.tk:443') + (localStorage.vip ? "/" + localStorage.vip : ""))
+			let ws = new WebSocket((localStorage.server || DEFAULT_SERVER) + (localStorage.vip ? "/" + localStorage.vip : ""))
 			delete WebSocket
 
 			authSocket.binaryType = "arraybuffer"
@@ -1047,7 +1049,7 @@
 					<div><div>Main Canvas</div>1000x1000 (cooldown: 2s)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/rplace.tk/place')
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
@@ -1870,7 +1872,7 @@
 		wscapsule()
 
 		async function fetchBoard() {
-			const response = await fetch(localStorage.board || "place")
+			const response = await fetch(localStorage.board || DEFAULT_BOARD)
 			if (!response.ok) {
 				showLoadingScreen()
 				fetchFailTimeout = setTimeout(fetchBoard, fetchCooldown *= 2)
@@ -2099,7 +2101,7 @@
 			tlTimerStart = Date.now()
 			let tlTimerInterval = setInterval(updateTlTimer, 100)
 
-			fetch(`https://${localStorage.server || "wss://server.rplace.tk:443"}/timelapse/`, {
+			fetch(`https://${localStorage.server || DEFAULT_SERVER}/timelapse/`, {
 					method: "POST",
 					body: JSON.stringify({
 						"backupStart": tlStartSel.value,
@@ -2160,7 +2162,7 @@
 		async function generateOverlayUrl() {
 			overlayInfo["type"] = overlayInput.files[0].type
 			overlayInfo["data"] = btoa(String.fromCharCode(...new Uint8Array(await overlayInput.files[0].arrayBuffer())))
-			return `${location.origin}/?server=${localStorage.server || "wss://server.rplace.tk:443"}&board=${localStorage.board || "place"}&overlay=${btoa(JSON.stringify(overlayInfo))}`
+			return `${location.origin}/?server=${localStorage.server || DEFAULT_SERVER}&board=${localStorage.board || DEFAULT_BOARD}&overlay=${btoa(JSON.stringify(overlayInfo))}`
 		}
 
 		let blockedUsers = []
