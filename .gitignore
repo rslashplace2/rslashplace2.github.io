@@ -4,8 +4,10 @@
 *.pem
 *.key
 
+vip.txt
 blacklist.txt
 cooldown_overrides.txt
-vip.txt
 webhook_url.txt
+server_config.json
+
 node_modules/

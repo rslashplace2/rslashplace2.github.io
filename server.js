@@ -8,9 +8,32 @@ import fsExists from 'fs.promises.exists'
 import fetch from 'node-fetch'
 import util from 'util'
 
-let SECURE = true
 let BOARD, CHANGES, VOTES
-let { WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, USE_GIT, CAPTCHA, USE_CLOUDFLARE } = JSON.parse(await fs.readFile('./config.json'))
+
+if (!(await fs.access("server_config.json", fs.constants.F_OK))) {
+    await fs.writeFile("server_config.json", JSON.stringify({
+        "SECURE": true,
+        "CERT_PATH": "/etc/letsencrypt/live/path/to/fullchain.pem",
+        "KEY_PATH": "/etc/letsencrypt/live/server.rplace.tk/fullchain.pem",
+        "PORT": 443,
+        "WIDTH": 2000,
+        "HEIGHT": 2000,
+        "COOLDOWN": 1000,
+        "PALETTE_SIZE": 32,
+        "PALETTE": null,
+        "CAPTCHA": false,
+        "USE_CLOUDFLARE": true,
+        "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH"
+    }))
+
+    console.log("Config file created, please update it before restarting the server")
+    process.exit(0)
+}
+
+let { 
+    SECURE, CERT_PATH, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION
+} = JSON.parse(await fs.readFile('./server_config.json'))
+
 try {
     BOARD = await fs.readFile('./place')
     CHANGES = await fs.readFile('./change')
@@ -64,12 +87,11 @@ function runLengthChanges() {
     return Buffer.concat(bufs)
 }
 
-const PORT = 443
 if (SECURE) {
     wss = new WebSocketServer({
         perMessageDeflate: false, server: createServer({
-            cert: await fs.readFile('../a.pem'), //Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem 
-            key: await fs.readFile('../a.key'), //Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
+            cert: await fs.readFile(CERT_PATH), //Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem 
+            key: await fs.readFile(KEY_PATH), //Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
             perMessageDeflate: false
         }).listen(PORT)
     })
@@ -88,8 +110,6 @@ let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a 
 for (let ban of (await fs.readFile('blacklist.txt')).toString().split('\n')) BANS.add(ban)
 let WEBHOOK_URL
 try { WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString() } catch (e) { }
-let ORIGIN
-try { ORIGIN = await (await fs.readFile("../.git-credentials")).toString().trim() } catch (e) { }
 let HIST_LEN = 30
 
 let printChatInfo = false
@@ -225,20 +245,13 @@ import { exec } from 'child_process'
 
 async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--)if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
-    await fs.writeFile('place', BOARD)
-
-    if (USE_GIT) {
-        await new Promise((r, t) => exec("git commit place -m 'Hourly backup';git push --force " + ORIGIN + "/rslashplace2/rslashplace2.github.io", e => e ? t(e) : r()))
-    } else {
-        let dte = new Date().toLocaleString().replaceAll('/', '.').replaceAll(', ', '.')
-        await fs.copyFile("./PlaceHttpsServer/place", "./PlaceHttpsServer/place." + dte, 0, err => { if (err) { console.log(err); return; } })
-        await fs.copyFile("./place", "./PlaceHttpsServer/place", 0, err => { if (err) { console.log(err); return; } })
-        await fs.appendFile("./PlaceHttpsServer/backuplist.txt", "\nplace." + dte, err => { if (err) { console.log(err); return; } })
-    }
-    //serve old changes for 11 more mins just to be 100% safe 
+    await fs.writeFile("place", BOARD)
+    await new Promise((r, t) => exec("git commit place -m 'Canvas backup';git push --force " + PUSH_LOCATION, e => e ? t(e) : r()))
+    
+    // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
     let curr = new Uint8Array(CHANGES)
     setTimeout(() => {
-        //after 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
+        // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
         for (let i = curr.length - 1; i >= 0; i--)if (curr[i] == CHANGES[i]) CHANGES[i] = 255
     }, 200e3)
 }
