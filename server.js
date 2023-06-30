@@ -7,10 +7,13 @@ import sha256 from 'sha256'
 import fsExists from 'fs.promises.exists'
 import fetch from 'node-fetch'
 import util from 'util'
+import path from 'path'
 
 let BOARD, CHANGES, VOTES
 
-if (!(await fs.access("server_config.json", fs.constants.F_OK))) {
+let config = null
+try { config = await fs.readFile('./server_config.json') }
+catch(e) {
     await fs.writeFile("server_config.json", JSON.stringify({
         "SECURE": true,
         "CERT_PATH": "/etc/letsencrypt/live/path/to/fullchain.pem",
@@ -21,22 +24,19 @@ if (!(await fs.access("server_config.json", fs.constants.F_OK))) {
         "COOLDOWN": 1000,
         "PALETTE_SIZE": 32,
         "PALETTE": null,
-        "CAPTCHA": false,
         "USE_CLOUDFLARE": true,
-        "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH"
+        "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH",
+        "PUSH_PLACE_PATH": "/path/to/local/git/repo"
     }))
 
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
-
-let { 
-    SECURE, CERT_PATH, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION
-} = JSON.parse(await fs.readFile('./server_config.json'))
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH } = JSON.parse(config)
 
 try {
-    BOARD = await fs.readFile('./place')
-    CHANGES = await fs.readFile('./change')
+    BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
+    CHANGES = await fs.readFile(path.join(PUSH_PLACE_PATH, "change"))
     VOTES = new Uint32Array((await fs.readFile('./votes')).buffer)
 } catch (e) {
     BOARD = new Uint8Array(WIDTH * HEIGHT)
@@ -244,8 +244,8 @@ import { exec } from 'child_process'
 
 async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--)if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
-    await fs.writeFile("place", BOARD)
-    await new Promise((r, t) => exec("git commit place -m 'Canvas backup';git push --force " + PUSH_LOCATION, e => e ? t(e) : r()))
+    await fs.writeFile(path.join(PUSH_PLACE_PATH, "place"), BOARD)
+    await new Promise((r, t) => exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`, e => e ? t(e) : r()))
     
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
     let curr = new Uint8Array(CHANGES)
@@ -274,7 +274,7 @@ let I = 0
 let bf = Buffer.alloc(131); bf[0] = 3
 setInterval(async function () {
     I++
-    await fs.writeFile('change', CHANGES)
+    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change"), CHANGES)
     bf[1] = players >> 8
     bf[2] = players
     for (let i = 0; i < VOTES.length; i++)bf.writeUint32BE(VOTES[i], (i << 2) + 3)
