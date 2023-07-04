@@ -26,13 +26,14 @@ catch(e) {
         "PALETTE": null,
         "USE_CLOUDFLARE": true,
         "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH",
-        "PUSH_PLACE_PATH": "/path/to/local/git/repo"
+        "PUSH_PLACE_PATH": "/path/to/local/git/repo",
+        "LOCKED": false
     }))
 
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH } = JSON.parse(config)
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -145,7 +146,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     let buf = Buffer.alloc(9)
     buf[0] = 1
     buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
-    buf.writeInt32BE(COOLDOWN, 5)
+    buf.writeInt32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
     p.send(buf)
     players++
     p.send(bf)
@@ -212,7 +213,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             if (p.voted & (1 << data[1])) VOTES[data[1] & 31]++
             else VOTES[data[1] & 31]--
         }
-        if (data.length < 6) return //bad packet 
+        if (data.length < 6 || LOCKED) return //bad packet 
         let i = data.readUInt32BE(1), c = data[5]
         if (i >= BOARD.length || c >= PALETTE_SIZE) return //bad packet 
         let cd = cooldowns.get(IP)
