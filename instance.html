@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>server control panel</title>
     <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/x-icon" href="favicon.png"> 
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <script type="application/javascript" src="https://unpkg.com/dataproto@1.0.0/index.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
         @keyframes slideaway {
@@ -406,6 +407,22 @@
             flex-grow: 1;
         }
 
+        #overlay {
+            position: fixed;
+            z-index: 6;
+            width: 100%;
+            height: 100%;
+            display: block;
+            left: 0px;
+            top: 0px;
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
         @media screen and (max-width: 768px) {
             nav {
                 flex-direction: column;
@@ -518,12 +535,17 @@
             }
         }
         ws.onclose = function() {
-            window.location.reload(true)
+            overlay.style.display = 'flex'
         }
     </script>
 </head>
 
 <body>
+    <div id="overlay">
+        <h1 style="margin: 0px;">Bruh.. 💀</h1>
+        <h3 style="text-align: center;">The server has disconnected and something isn't working right</h3>
+        <button onclick="window.location.reload(true)">Reload page</button>
+    </div>
     <div class="modal" id="createModal" style="display: none;">
         <div class="header"><h4 style="margin: 0px;">Create new<br>rplace canvas</h4></div>
         <div class="body">
@@ -594,35 +616,6 @@
                 <input id="loginPassword" type="password" placeholder="password" style="display: block; width: 256px;"
                     maxlength="32">
             </div>
-            <div id="signupPanel" style="display: none">
-                <input id="signupUsername" type="text" placeholder="username*" style="display: block; width: 256px;"
-                    maxlength="10" minlength="4">
-                <input id="signupPassword" type="password" placeholder="password*" style="display: block; width: 256px;"
-                    maxlength="32" minlength="6">
-                <input id="signupConfirm" type="password" placeholder="confirm password*"
-                    style="display: block; width: 256px;" maxlength="32" minlength="6">
-                <input id="signupEmail" type="email" placeholder="email*" style="display: block; width: 256px;"
-                    maxlength="32" required>
-            </div>
-            <div id="authCodePanel" style="display: none">
-                <h4>If you're lucky, an email has been sent to your inbox</h4>
-                <p>Enter the code sent below to authenticate your account</p>
-                <input id="authCode" type="text" placeholder="authentication code*"
-                    style="display: block; width: 256px;" minlength="10">
-                <button onclick="
-                        let buffer = encoder.encode('X' + authCode.value)
-                        buffer[0] = ClientPackets.AuthenticateCreate
-                        ws.send(buffer)
-                        
-                        authCodePanel.style.display = 'none'
-                        loginPanel.style.display = 'block'
-                        // This should at least protect people who accidentally flash their localStorage
-                        localStorage.username = btoa(signupUsername.value) 
-                        localStorage.password = btoa(signupPassword.value)
-                        loginUsername.value = signupUsername.value
-                        loginPassword.value = signupPassword.value
-                    ">Submit</button>
-            </div>
             <div id="preLoginOptions">
                 <a href="#dashboard" onclick="
                     if (loginPanel.style.display == 'block') {
@@ -646,47 +639,7 @@
                     }
                 ">Login</a>
                 <span style="color: gray;">•</span>
-                <a href="#dashboard" onclick="
-                    event.preventDefault()
-                    if (signupPanel.style.display == 'block') {
-                        loginSignupMessage.textContent = ''
-                        signupEmail.style.border = 'initial'
-                        if (!signupEmail.validity.valid) {
-                            signupEmail.style.border = '1px solid red'
-                            loginSignupMessage.textContent = 'Email is not valid!'
-                            return
-                        }
-                        signupPassword.style.border = 'initial'
-                        if (signupPassword.value !== signupConfirm.value || signupPassword.value.length < 6) {
-                            signupPassword.style.border = '1px solid red'
-                            loginSignupMessage.textContent = 'Passwords do not match!'
-                            return
-                        }
-                        signupUsername.style.border = 'initial'
-                        if (signupUsername.value.length < 4) {
-                            signupUsername.style.border = '1px solid red'
-                            loginSignupMessage.textContent = 'Username was too short!'
-                            return
-                        }
-
-                        let view = new DataView(new ArrayBuffer(363))
-                        view.setUint8(0, ClientPackets.CreateAccount)
-                        for (let i = 1; i < 11; i++) view.setUint8(i,
-                            encoder.encode(signupUsername.value.padEnd(10))[i - 1])
-                        for (let i = 11; i < 43; i++) view.setUint8(i,
-                            encoder.encode(signupPassword.value.padEnd(32))[i - 11])
-                        for (let i = 43; i < 363; i++) view.setUint8(i,
-                            encoder.encode(signupEmail.value.padEnd(320))[i - 43])
-                        ws.send(view.buffer)
-
-                        authCodePanel.style.display = 'block'
-                        signupPanel.style.display = 'none'
-                    }
-                    else {
-                        signupPanel.style.display = 'block'
-                        loginPanel.style.display = 'none'
-                    }
-                ">Signup</a>
+                <a href="/index.hml">Signup</a>
             </div>
             <div id="signoutOptions" style="display: none;">
                 <a href="#dashboard" onclick="window.location.reload()">Log out</a>
@@ -799,7 +752,6 @@
     const params = new URLSearchParams(location.search)
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
-    const ctx = instanceCanvas.getContext('2d')
     const instances = {}
     const ClientPackets = {
         // To auth server
@@ -937,6 +889,43 @@
         propToHtml(object)
 
         return html
+    }
+
+    async function renderBoard(url) {
+        const ctx = instanceCanvas.getContext("2d")
+        ctx.clearRect(0, 0, +instanceCanvas.getAttribute("width") || 0, +instanceCanvas.getAttribute("height") || 0)
+        instanceCanvas.style.visibility = 'visible'
+        
+        let response = await fetch(url)
+        if (!response.ok) return
+        let placeView = new DataView(await response.arrayBuffer())
+        let metadataLength = placeView.getInt16(placeView.byteLength - 2)
+        let boardLength = placeView.byteLength - metadataLength
+        let boardWidth = placeView.getUint32(boardLength)
+        let boardHeight = boardLength / boardWidth 
+        instanceCanvas.setAttribute("width", boardWidth)
+        instanceCanvas.setAttribute("height", boardHeight)
+        
+        let palette = []
+        for (let i = boardLength + 4; i < boardLength - 2; i += 4) {
+            palette.push(placeView.getUint32(i))
+        }
+        if (!palette.length) {
+            palette = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00,
+                0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a,
+                0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c,
+                0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff] // argb
+        }
+        
+        const pixelData = ctx.createImageData(1, 1)
+        for (let i = 0; i < boardLength; i++) {
+            let colour = palette[placeView.getUint8(i)]
+            pixelData.data[0] = colour & 0xFF
+            pixelData.data[1] = (colour >> 8) & 0xFF
+            pixelData.data[2] = (colour >> 16) & 0xFF
+            pixelData.data[3] = (colour >> 24) & 0xFF
+            ctx.putImageData(pixelData, i % boardWidth, Math.floor(i / boardWidth));
+        }
     }
 </script>
 
