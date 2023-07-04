@@ -273,7 +273,7 @@ setInterval(function () {
 
 let I = 0
 let bf = Buffer.alloc(131); bf[0] = 3
-setInterval(async function () {
+if (!LOCKED) setInterval(async function () {
     I++
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change"), CHANGES)
     bf[1] = players >> 8
