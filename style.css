@@ -426,7 +426,7 @@ place-chat-button > img {
 	height: 100%;
 	left: 0px;
 	top: 0px;
-	display: flex;
+	/*display: flex;*/
 	justify-content: center;
 	align-items: center;
 	background: #ffffffd4;

@@ -444,9 +444,7 @@
 				case 1: {
 					CD = data.getUint32(1) * 1000 // Current cooldown
 					COOLDOWN = data.getUint32(5)
-					if (COOLDOWN = 0xFFFFFFFF) { // TODO: Official server protocol
-						canvasLock.style.display = 'flex'
-					}
+					if (COOLDOWN == 0xFFFFFFFF) canvasLock.style.display = 'flex' // TODO: Official server packet for this
 
 					// New server packs canvas width and height in code 1, making it 17
 					if (data.byteLength == 17) {
@@ -834,7 +832,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.5" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.6" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1055,7 +1053,7 @@
 				</div>
 				<div onclick="switchGameServer()" class="post">
 					<img src="images/rplace.png">
-					<div><div>Main Canvas</div>1000x1000 (cooldown: 2s)
+					<div><div>Main Canvas</div>1000x1000 (cooldown: 3.5s)
 						<postcopy onclick="
 							event.stopPropagation()
 							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
@@ -1090,6 +1088,22 @@
 					<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Flag_of_Turkey.svg/1200px-Flag_of_Turkey.svg.png">
 					<div>
 						<div>TURKEY CANVAS</div> 250x250 (cooldown: 30ms)
+						<postcopy onclick="
+							event.stopPropagation()
+							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
+							this.children[1].animate([
+									{ opacity: 1 },
+									{ scale: 1.1 }
+								], { duration: 1000, iterations: 1, })
+						" title="copy canvas link">
+							<img src="svg/clipboard.svg">
+							<span style="opacity: 0;">Copied to clipboard!</span>
+						</postcopy>
+					</div>
+				</div>
+				<div onclick="switchGameServer('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:444&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/04072023/place')" class="post">
+					<img src="images/rplace.png" style="filter: grayscale(100%);">
+					<div><div>Main canvas archive - 04/07/2023</div>1000x1000 (cooldown: ∞)
 						<postcopy onclick="
 							event.stopPropagation()
 							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
