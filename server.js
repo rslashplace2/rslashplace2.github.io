@@ -145,8 +145,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.pHistory = [] //place history
     let buf = Buffer.alloc(9)
     buf[0] = 1
-    buf.writeInt32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
-    buf.writeInt32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
+    buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
+    buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
     p.send(buf)
     players++
     p.send(bf)
