@@ -31,8 +31,15 @@
 				enterNickname: "Enter nickname...",
 				enterMessage: "Enter message...",
 				signInInstead: "Sign in instead",
-				createNewAccount: "Create a new account"
-
+				createNewAccount: "Create a new account",
+				mention: "Mention",
+				block: "Block",
+				changeMyName: "Change my name",
+				putOnCanvas: "🫧 Put on canvas",
+				sendInLiveChat: "📨 Send in live chat",
+				overlayMenu: "Overlay menu",
+				modalAboutContent: "There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.",
+				overlayMenuDesciption: "Visualise your build with a template image!"
 			},
 			fa: {
 				connecting: "در حال وصل شدن",
@@ -68,7 +75,17 @@
 				tryClickingHere: "buraya tıklamayı dene",
 				pleaseBeRespectful: "Lütfen saygılı olun ve spam yapmamaya çalışın!",
 				enterNickname: "Takma ad girin...",
-				enterMessage: "Mesaj girin..."
+				enterMessage: "Mesaj girin...",
+				signInInstead: "Oturum aç",
+				createNewAccount: "Hesap oluştur",
+				mention: "Etiketle",
+				block: "Engellemek",
+				changeMyName: "İsimi değiştir",
+				putOnCanvas: "🫧 Haritanın üstüne yaz",
+				sendInLiveChat: "📨 Sohbete yaz",
+				overlayMenu: "Bindirme menüsü",
+				modalAboutContent: "Boş bir tuval var.<br><br>Üzerine renkli bir piksel koyabilirsiniz ama yenisini yerleştirmek için beklemeniz gerekir.<br><br>Tek başınıza bir şeyler yapabilirsiniz.<br><br>Topluluk ile daha fazlasını yapabilirsiniz.",
+				overlayMenuDesciption: "Haritanın üzerine bir fotoğraf koyun ve onu çizin!"
 			},
 			ro: {
 				connecting: "Se conectează...",
@@ -480,8 +497,8 @@
 				}
 				case 15: {
 					let txt = decoder.decode(new Uint8Array(data.buffer).slice(1)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
-					let name, messageChannel, type, placeX, placeY
-					[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
+					let name, messageChannel, type, placeX, placeY, uid // TODO: Implement uid
+					;[txt, name, messageChannel, type, placeX, placeY, uid] = txt.split("\n")
 					if (!(messageChannel in cMessages)) return
 
 					// Canvas chat, placed on canvas as a bubble
@@ -522,7 +539,8 @@
 						})
 
 						let newMessage = document.createElement("div")
-						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));" oncontextmenu="onChatContext(event, '${name}')">[${name || "anon"}]</span> ${txt}\n`
+						newMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[name ? hash(name) & 7 : (Math.round(Math.random() * 8))]}; cursor: pointer;" onclick="chatMentionUser(this.textContent.slice(1, -1));">[${name}]</span> ${txt}`
+						newMessage.oncontextmenu = (ev) => onChatContext(ev, name)
 						let scroll = chatMessages.scrollTop + chatMessages.offsetHeight + 10 >= chatMessages.scrollHeight
 
 						if (name !== localStorage.name && blockedUsers.includes(name)) {
@@ -645,8 +663,11 @@
 			call(addEventListener, pok, 'click', oclick)
 
 			function sendMsg(message){
-				if ((new RegExp("^:vip")).test(message)){
-					localStorage.vip = message.slice(4).trim()
+				if ((new RegExp("^:name")).test(message)) {
+					namePanel.style.visibility = 'visible'
+				}
+				else if ((new RegExp("^:vip ")).test(message)) {
+					localStorage.vip = message.slice(5).trim()
 					window.location.reload(true)
 				}
 				call(send, ws, encoder.encode(
@@ -979,7 +1000,7 @@
 						</svg>
 					</icon-close>
 				</div>
-				<div id="modal-content">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
+				<div id="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
 				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.tk web app</div>
 				<div id="modal-footer">
 					<mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
@@ -1123,7 +1144,7 @@
 				</div>
 				<div onclick="openOverlayMenu()" class="post">
 					<img src="images/hammer-and-wrench.png">
-					<div><div>Overlay menu</div>Visualise your build with a template image!</div>
+					<div><div translate="overlayMenu">Overlay menu</div><span translate="overlayMenuDesciption">Visualise your build with a template image!</span></div>
 				</div>
 				<div onclick="window.open('https:/\/discord.gg/xbRrVSXJdZ','_blank')" class="post">
 					<img src="images/discord.png">
@@ -1202,31 +1223,32 @@
 			</div>
 			<div id="chatContext" class="contextMenu" style="display:none">
 				<ul>
-					<li><a onclick="
+					<li style="font-size: 8px; display: none;" id="userNote"></li>
+					<li id="mentionUser"><a translate="mention" onclick="
 							chatMentionUser(targetedUser)
 							chatContext.style.display = 'none'
 						">Mention user</a>
 					</li>
-					<li><a onclick="
+					<li id="blockUser"><a translate="block" onclick="
 							if (blockedUsers.includes(targetedUser))
 								blockedUsers.splice(blockedUsers.indexOf(targetedUser), 1)
 							else blockedUsers.push(targetedUser)
 								chatContext.style.display = 'none'
 						">Block user</a>
 					</li>
-					<li style="display: none;">
+					<li id="changeMyName" style="display: none;">
 						<a onclick="
 							namePanel.style.visibility = 'visible'
 							nameInput.value = targetedUser
 							chatContext.style.display = 'none'
-						"><em>Change my name</em></a>
+						"><em translate="changeMyName">Change my name</em></a>
 					</li>
 				</ul>
 			</div>
 			<div id="chatMessages"></div>
 			<div id="messageTypePanel" class="chat-input-panel" closed>
-				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" value="🫧 Put on canvas">
-				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" value="📨 Send in live chat">
+				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
+				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">
 			</div>
 			<div id="messageEmojisPanel" class="chat-input-panel" closed></div>
 			<input id="messageInput" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
@@ -2070,8 +2092,12 @@
 			document.querySelectorAll("[translate]").forEach((element) => {
 				let key = element.getAttribute("translate")
 				if (TRANSLATIONS[navigator.language.split('-')[0]] == null) return
-				if (element.nodeName == "INPUT" && element.getAttribute("type") == "text")
-					element.placeholder = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.placeholder
+				if (element.nodeName == "INPUT") {
+					if (element.getAttribute("type") == "text")
+						element.placeholder = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.placeholder
+					else
+						element.value = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.value
+				}
 				else
 					element.innerHTML = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.innerHTML
 			})
@@ -2192,33 +2218,47 @@
 		let blockedUsers = []
 		let targetedUser = null
 
-		function onChatContext(e, uname) {
-			e.preventDefault()
+		function onChatContext(ev, uname) {
+			ev.preventDefault()
 
 			if (chatContext.style.display == "block") {
 				hideChatContext()
 			}
 			else {
+				if (uname[uname.length - 1] === "~") {
+					uname = uname.slice(0, -1)
+					userNote.style.display = "block"
+					userNote.textContent = "This user is likely impersonating @" + uname
+				}
+				else if (uname[uname.length - 1] === "✓") {
+					uname = uname.slice(0, -1)
+					userNote.style.display = "block"
+					userNote.textContent = "This user is verified as @" + uname
+				}
+				else { userNote.style.display = "none" }
+
 				targetedUser = uname
-				chatContext.style.display = 'block'
-				chatContext.children[0].children[0].children[0].textContent = "Mention " + uname
+				chatContext.style.display = "block"
+				mentionUser.children[0].textContent = translate("mention") + " " + uname
+
 				if (uname === localStorage.name) {
 					//Prevent user from self blocking.
-					chatContext.children[0].children[1].style.pointerEvents = "none"
-					chatContext.children[0].children[1].children[0].style.color = "grey"
-					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
+					blockUser.style.pointerEvents = "none"
+					blockUser.children[0].style.color = "grey"
+					blockUser.children[0].textContent = translate("block") + " " + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[2].style.display = ""
+					changeMyName.style.display = ""
 				}
 				else {
-					chatContext.children[0].children[1].style.pointerEvents = ""
-					chatContext.children[0].children[1].children[0].style.color = ""
-					chatContext.children[0].children[1].children[0].textContent = "Block " + uname
+					blockUser.style.pointerEvents = ""
+					blockUser.children[0].style.color = ""
+					blockUser.children[0].textContent = translate("block") + uname
 					//Allow user to change their own name
-					chatContext.children[0].children[2].style.display = "none"
+					changeMyName.style.display = "none"
 				}
-				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
-				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
+
+				chatContext.style.left = ev.pageX - chatPanel.offsetLeft + "px"
+				chatContext.style.top = ev.pageY - chatPanel.offsetTop + "px"
 			}
 		}
 

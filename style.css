@@ -591,6 +591,11 @@ place-chat-button > img {
     touch-action: pan-y;
 }
 
+#chatMessages > div:hover {
+    background-color: #d3d3d333;
+	border-radius: 4px;
+}
+
 .channels-options {
 	position: relative;
 	height:30px;
@@ -885,6 +890,7 @@ kbd {
 	transform: translateX(5px);
 	padding: 5px;
 	transition: transform .1s;
+	z-index: 2;
 }
 .contextMenu ul {
 	padding: 0px;

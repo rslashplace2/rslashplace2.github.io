@@ -199,14 +199,17 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.on("error", _ => _)
     p.on('message', async function (data) {
         if (data[0] == 15) {
-            if (p.lchat + 2500 > NOW || data.length > 400) return
-            p.lchat = NOW
             let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
-            [txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
+            ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
             if (!txt || !name || !messageChannel) return
+            if (printChatInfo) {
+                let date = new Date()
+                console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name || "anon"} (${IP}), (${messageChannel}) content: ${txt}`)
+            }
             txt = censorText(txt) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
-            name = RESERVED_NAMES.getReverse(name) + "✓" || censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
-            let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)])            
+            let res_name = RESERVED_NAMES.getReverse(name)
+            name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
+            let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)].join("\n"))            
             for (let c of wss.clients) {
                 c.send(msgPacket)
             }
