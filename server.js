@@ -88,6 +88,29 @@ function runLengthChanges() {
     return Buffer.concat(bufs)
 }
 
+class DoubleMap { // Bidirectional map
+    constructor() {
+      this.foward = new Map()
+      this.reverse = new Map()
+    }
+  
+    set(key, value) {
+      this.foward.set(key, value)
+      this.reverse.set(value, key)
+    }
+  
+    getForward(key) { return this.foward.get(key) }
+    getReverse(value) { return this.reverse.get(value) }
+  
+    delete(key) {
+      const value = this.foward.get(key)
+      this.foward.delete(key)
+      this.reverse.delete(value)
+    }
+    clear() { this.foward.clear(); this.reverse.clear() }
+    size() { return this.foward.size }
+}
+
 if (SECURE) {
     wss = new WebSocketServer({
         perMessageDeflate: false, server: createServer({
@@ -106,10 +129,10 @@ for (let i = 0; i < criticalFiles.length; i++) {
 let players = 0
 let VIP
 try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { }
-let RESERVED_NAMES = new Map()
-try { // `code reserverd_name\n`, for example "124215253113 zekiah\n"
+let RESERVED_NAMES = new DoubleMap()
+try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
     let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
-    for (let pair of reserved_lines) RESERVED_NAMES.add(pair.split(" ")[0], pair.split(" ")[1])
+    for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
 } catch (e) { }
 const NO_PORT = a => a.split(':')[0].trim()
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a => a.toString().trim().split('\n').map(a => fetch(a).then(a => a.text()))))).flatMap(a => a.trim().split('\n').map(NO_PORT)))
@@ -181,10 +204,9 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
             [txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
             if (!txt || !name || !messageChannel) return
-            txt = censorText(txt)
-            name = RESERVED_NAMES.get(name) || censorText(name.replace(/\W+/g, "").toLowerCase())
-            let msgPacket = encoderUTF8.encode("\x0f" +
-                [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)])            
+            txt = censorText(txt) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
+            name = RESERVED_NAMES.getReverse(name) + "✓" || censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
+            let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)])            
             for (let c of wss.clients) {
                 c.send(msgPacket)
             }
