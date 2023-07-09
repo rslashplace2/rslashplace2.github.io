@@ -116,8 +116,15 @@ let printChatInfo = false
 let toValidate = new Map();
 const encoderUTF8 = new util.TextEncoder()
 
-let hash = a => a.split("").reduce((a, b) => (a * 31 + b.charCodeAt()) >>> 0, 0)
-let allowed = new Set("rplace.tk google.com wikipedia.org pxls.space".split(" ")), censor = a => a.replace(/fuc?k|shi[t]|c[u]nt/gi, a => "*".repeat(a.length)).replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi, a => allowed.has(a.replace(/^https?:\/\//, "").split("/")[0]) ? a : "").trim()
+let allowed = new Set(["rplace.tk", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
+function censorText(text) {
+  return text
+    .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|@everyone|@here|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cum|cunt|dick|fag|faggot|jizz|kike|lesbian|masturbat(e|ion)|nazi|nigga|whore|porn|pussy|queer|rape|r[a4]pe|slut|suck|tit)/gi, 
+        match => "*".repeat(match.length))
+    .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
+        match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
+    .trim()
+}
 
 wss.on('connection', async function (p, { headers, url: uri }) {
     p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':', 4).join(':') : p._socket.remoteAddress.split(':', 4).join(':')
@@ -166,15 +173,18 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         if (data[0] == 15) {
             if (p.lchat + 2500 > NOW || data.length > 400) return
             p.lchat = NOW
+            let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
+            [txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
+            if (!txt || !name || !messageChannel) return
+            txt = censorText(txt)
+            name = censorText(name.replace(/\W+/g, "").toLowerCase())
+            let msgPacket = encoderUTF8.encode("\x0f" +
+                [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)])            
             for (let c of wss.clients) {
-                c.send(data)
+                c.send(msgPacket)
             }
 
             if (!WEBHOOK_URL) return
-            let txt = data.toString().slice(1), name, messageChannel
-            [txt, name, messageChannel] = txt.split("\n")
-            if (name) name = name.replace(/\W+/g, '').toLowerCase()
-            if (!txt) return
             try {
                 txt = txt.replace("@", "")
                 name = name.replace("@", "")
@@ -188,7 +198,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 await fetch(WEBHOOK_URL + "?wait=true", { "method": "POST", "headers": { "content-type": "application/json" }, "body": JSON.stringify(msgHook) })
             }
             catch (err) { console.log("Could not post to discord: " + err) }
-            return;
+            return
         } else if (data[0] == 16) { //captcha response
             let rsp = data.slice(1).toString()
             if (rsp === toValidate.get(IP)) {
@@ -198,6 +208,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 dv.setUint8(1, 255) //tell client they have suceeded
                 p.send(dv)
             } else { return p.close() }
+            return
         } else if (data[0] == 99 && CD == 30) {
             let w = data[1], h = data[2], i = data.readUInt32BE(3)
             if (i % 2000 + w >= 2000) return
@@ -208,10 +219,12 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 i += 2000
                 hi++
             }
+            return
         } else if (data[0] == 20) {
             p.voted ^= 1 << data[1]
             if (p.voted & (1 << data[1])) VOTES[data[1] & 31]++
             else VOTES[data[1] & 31]--
+            return
         }
         if (data.length < 6 || LOCKED) return //bad packet 
         let i = data.readUInt32BE(1), c = data[5]
@@ -331,14 +344,20 @@ function checkPreban(incomingX, incomingY, ip) {
     return false
 }
 
+function ban(ip) {
+    for (const p of wss.clients){
+        if (p.ip == ip) p.close()
+    }
+
+    BANS.add(ip)
+    fs.appendFile("blacklist.txt", "\n" + ip)
+}
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
 function announce(msg, channel, p = null) {
     let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.TK\n${channel}`)
     let dv = new DataView(byteArray.buffer)
     dv.setUint8(0, 15)
-    if (p != null)
-        p.send(dv)
-    else
-        for (let c of wss.clients) c.send(dv)
+    if (p != null) p.send(dv)
+    else for (let c of wss.clients) c.send(dv)
 }
