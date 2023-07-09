@@ -5,6 +5,7 @@
 *.key
 
 vip.txt
+reserved_names.txt
 blacklist.txt
 cooldown_overrides.txt
 webhook_url.txt

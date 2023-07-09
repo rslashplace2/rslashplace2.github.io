@@ -106,6 +106,11 @@ for (let i = 0; i < criticalFiles.length; i++) {
 let players = 0
 let VIP
 try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { }
+let RESERVED_NAMES = new Map()
+try { // `code reserverd_name\n`, for example "124215253113 zekiah\n"
+    let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
+    for (let pair of reserved_lines) RESERVED_NAMES.add(pair.split(" ")[0], pair.split(" ")[1])
+} catch (e) { }
 const NO_PORT = a => a.split(':')[0].trim()
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a => a.toString().trim().split('\n').map(a => fetch(a).then(a => a.text()))))).flatMap(a => a.trim().split('\n').map(NO_PORT)))
 for (let ban of (await fs.readFile('blacklist.txt')).toString().split('\n')) BANS.add(ban)
@@ -177,7 +182,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             [txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
             if (!txt || !name || !messageChannel) return
             txt = censorText(txt)
-            name = censorText(name.replace(/\W+/g, "").toLowerCase())
+            name = RESERVED_NAMES.get(name) || censorText(name.replace(/\W+/g, "").toLowerCase())
             let msgPacket = encoderUTF8.encode("\x0f" +
                 [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)])            
             for (let c of wss.clients) {
