@@ -307,22 +307,29 @@
 			ghost: "👻",
 			skullcrossbones: "☠️",
 			explosion: "💥",
-			amogus: ":amogus:",
-			biaoqing: ":biaoqing:",
-			deepfriedh: ":deepfriedh:",
-			edp445: ":edp445:",
-			fan: ":fan:",
-			heavy: ":heavy:",
-			herkul: ":herkul:",
-			kaanozdil: ":kaanozdil:",
-			lowtiergod: ":lowtiergod:",
-			manly: ":manly:",
-			plsaddred: ":plsaddred:",
-			rplace: ":rplace:",
-			rplacediscord: ":rplacediscord:",
-			sonic: ":sonic:",
-			transparent: ":transparent:",
-			trollface: ":trollface:"
+		}
+
+		const EMOJIS_CUSTOM = {
+			amogus: '<img src="custom_emojis/amogus.png" height="24">',
+			biaoqing: '<img src="custom_emojis/biaoqing.png" height="24">',
+			deepfriedh: '<img src="custom_emojis/deepfriedh.png" height="24">',
+			edp445: '<img src="custom_emojis/edp445.png" height="24">',
+			fan: '<img src="custom_emojis/fan.png" height="24">',
+			heavy: '<img src="custom_emojis/heavy.png" height="24">',
+			herkul: '<img src="custom_emojis/herkul.png" height="24">',
+			kaanozdil: '<img src="custom_emojis/kaanozdil.png" height="24">',
+			lowtiergod: '<img src="custom_emojis/lowtiergod.png" height="24">',
+			manly: '<img src="custom_emojis/manly.png" height="24">',
+			plsaddred: '<img src="custom_emojis/plsaddred.png" height="24">',
+			rplace: '<img src="custom_emojis/rplace.png" height="24">',
+			rplacediscord: '<img src="custom_emojis/rplacediscord.png" height="24">',
+			sonic: '<img src="custom_emojis/sonic.png" height="24">',
+			transparent: '<img src="custom_emojis/transparent.png" height="24">',
+			trollface: '<img src="custom_emojis/trollface.png" height="24">',
+			// Special 'commands'
+			help: "<kbd>Chat commands: :vip, :name</kbd>",
+			name: "<kbd>Change your username</kbd>",
+			vip: "<kbd>Apply a VIP cooldown code</kbd>"
 		}
 	</script>
 	<script>
@@ -663,13 +670,19 @@
 			call(addEventListener, pok, 'click', oclick)
 
 			function sendMsg(message){
-				if ((new RegExp("^:name")).test(message)) {
+				if (message.startsWith(":name")) {
 					namePanel.style.visibility = 'visible'
+					nameInput.value = message.slice(5).trim()
+					return
 				}
-				else if ((new RegExp("^:vip ")).test(message)) {
-					localStorage.vip = message.slice(5).trim()
+				else if (message.startsWith(":vip")) {
+					localStorage.vip = message.slice(4).trim()
 					window.location.reload(true)
 				}
+				else if (message.startsWith(":help")) {
+					return
+				}
+
 				call(send, ws, encoder.encode(
 					"\x0f" + message +
 					(localStorage.name ? "\n" + localStorage.name : "") +
@@ -2033,6 +2046,7 @@
 				messageInput.style.color = "black"
 			}
 
+			let handled = false
 			for (const [emojiCode, value] of Object.entries(EMOJIS)) {
 				if (comp && emojiCode.startsWith(comp)) {
 					messageEmojisPanel.innerHTML += `<div title="Send this emoji in chat with :${emojiCode}:"><span>:${emojiCode}:</span>${value}</div>`
@@ -2042,6 +2056,18 @@
 				if (messageInput.value.includes(":" + emojiCode + ":")) {
 					messageInput.value = messageInput.value.replace(":" + emojiCode + ":", value)
 					messageInput.style.color = "black"
+					handled = true
+				}
+			}
+			if (!handled) for (const [emojiCode, value] of Object.entries(EMOJIS_CUSTOM)) {
+				if (comp && emojiCode.startsWith(comp)) {
+					messageEmojisPanel.innerHTML += `<div title="Send this emoji in chat with :${emojiCode}:"><span>:${emojiCode}:</span>${value}</div>`
+					messageEmojisPanel.removeAttribute("closed")
+				}
+
+				if (messageInput.value.includes(":" + emojiCode + ":")) {
+					messageInput.style.color = "black"
+					handled = true
 				}
 			}
 		}
