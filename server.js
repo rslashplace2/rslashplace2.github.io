@@ -13,7 +13,7 @@ let BOARD, CHANGES, VOTES
 
 let config = null
 try { config = await fs.readFile('./server_config.json') }
-catch(e) {
+catch (e) {
     await fs.writeFile("server_config.json", JSON.stringify({
         "SECURE": true,
         "CERT_PATH": "/etc/letsencrypt/live/path/to/fullchain.pem",
@@ -27,13 +27,15 @@ catch(e) {
         "USE_CLOUDFLARE": true,
         "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH",
         "PUSH_PLACE_PATH": "/path/to/local/git/repo",
-        "LOCKED": false
+        "LOCKED": false,
+        "CHAT_WEBHOOK_URL": "",
+        "MOD_WEBHOOK_URL": ""
     }))
 
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED } = JSON.parse(config)
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -90,22 +92,22 @@ function runLengthChanges() {
 
 class DoubleMap { // Bidirectional map
     constructor() {
-      this.foward = new Map()
-      this.reverse = new Map()
+        this.foward = new Map()
+        this.reverse = new Map()
     }
-  
+
     set(key, value) {
-      this.foward.set(key, value)
-      this.reverse.set(value, key)
+        this.foward.set(key, value)
+        this.reverse.set(value, key)
     }
-  
+
     getForward(key) { return this.foward.get(key) }
     getReverse(value) { return this.reverse.get(value) }
-  
+
     delete(key) {
-      const value = this.foward.get(key)
-      this.foward.delete(key)
-      this.reverse.delete(value)
+        const value = this.foward.get(key)
+        this.foward.delete(key)
+        this.reverse.delete(value)
     }
     clear() { this.foward.clear(); this.reverse.clear() }
     size() { return this.foward.size }
@@ -127,6 +129,7 @@ for (let i = 0; i < criticalFiles.length; i++) {
 }
 
 let players = 0
+let playerUids = new Map() // Player ws instance : Uid 
 let VIP
 try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { }
 let RESERVED_NAMES = new DoubleMap()
@@ -137,8 +140,6 @@ try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
 const NO_PORT = a => a.split(':')[0].trim()
 let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a => a.toString().trim().split('\n').map(a => fetch(a).then(a => a.text()))))).flatMap(a => a.trim().split('\n').map(NO_PORT)))
 for (let ban of (await fs.readFile('blacklist.txt')).toString().split('\n')) BANS.add(ban)
-let WEBHOOK_URL
-try { WEBHOOK_URL = (await fs.readFile("webhook_url.txt")).toString() } catch (e) { }
 
 let printChatInfo = false
 let toValidate = new Map();
@@ -146,12 +147,12 @@ const encoderUTF8 = new util.TextEncoder()
 
 let allowed = new Set(["rplace.tk", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
-  return text
-    .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|@everyone|@here|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cum|cunt|dick|fag|faggot|jizz|kike|lesbian|masturbat(e|ion)|nazi|nigga|whore|porn|pussy|queer|rape|r[a4]pe|slut|suck|tit)/gi, 
-        match => "*".repeat(match.length))
-    .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
-        match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
-    .trim()
+    return text
+        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|@everyone|@here|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cum|cunt|dick|fag|faggot|jizz|kike|lesbian|masturbat(e|ion)|nazi|nigga|whore|porn|pussy|queer|rape|r[a4]pe|slut|suck|tit)/gi,
+            match => "*".repeat(match.length))
+        .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
+            match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
+        .trim()
 }
 
 wss.on('connection', async function (p, { headers, url: uri }) {
@@ -196,88 +197,135 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         }
         p.send(paletteBuffer)
     }
+
+    playerUids.set(p, sha256(p.ip).toString())
+
     p.on("error", _ => _)
     p.on('message', async function (data) {
-        if (data[0] == 15) {
-            let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
-            ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n")
-            if (!txt || !name || !messageChannel) return
-            if (printChatInfo) {
-                let date = new Date()
-                console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name || "anon"} (${IP}), (${messageChannel}) content: ${txt}`)
-            }
-            txt = censorText(txt) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
-            let res_name = RESERVED_NAMES.getReverse(name)
-            name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
-            let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, sha256(p.ip).toString().slice(0, 4)].join("\n"))            
-            for (let c of wss.clients) {
-                c.send(msgPacket)
-            }
-
-            if (!WEBHOOK_URL) return
-            try {
-                txt = txt.replace("@", "")
-                name = name.replace("@", "")
-                messageChannel = messageChannel.replace("@", "")
+        switch (data[0]) {
+            case 15: {
+                let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
+                    ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n");
+                if (!txt || !name || !messageChannel) return
                 if (printChatInfo) {
                     let date = new Date()
-                    console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name || "anon"} (${IP}) content: ${txt}`)
+                    console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name} (${IP}/${uid}), (${messageChannel}) content: ${txt}`)
                 }
-                let msgHook = { "username": `[${messageChannel}] ${name || "anon"} @rplace.tk`, "content": txt.replaceAll("@", "") }
-                if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
-                await fetch(WEBHOOK_URL + "?wait=true", { "method": "POST", "headers": { "content-type": "application/json" }, "body": JSON.stringify(msgHook) })
+
+                txt = censorText(txt)
+                let res_name = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
+                name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
+                let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, playerUids.get(p)].join("\n"))
+                for (let c of wss.clients) {
+                    c.send(msgPacket)
+                }
+
+                if (!CHAT_WEBHOOK_URL) {
+                    return
+                }
+                try {
+                    txt = txt.replace("@", "")
+                    name = name.replace("@", "")
+                    messageChannel = messageChannel.replace("@", "")
+
+                    let msgHook = { username: `[${messageChannel}] ${name || "anon"} @rplace.tk`, content: txt.replaceAll("@", "") };
+                    if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
+                    await fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                } catch (err) {
+                    console.log("Could not post to discord: " + err)
+                }
+                break
             }
-            catch (err) { console.log("Could not post to discord: " + err) }
-            return
-        } else if (data[0] == 16) { //captcha response
-            let rsp = data.slice(1).toString()
-            if (rsp === toValidate.get(IP)) {
-                toValidate.delete(IP)
-                let dv = new DataView(new ArrayBuffer(2));
-                dv.setUint8(0, 16) //16 is the ceptcha packet
-                dv.setUint8(1, 255) //tell client they have suceeded
-                p.send(dv)
-            } else { return p.close() }
-            return
-        } else if (data[0] == 99 && CD == 30) {
-            let w = data[1], h = data[2], i = data.readUInt32BE(3)
-            if (i % 2000 + w >= 2000) return
-            if (i + h * 2000 >= 4000000) return
-            let hi = 0
-            while (hi < h) {
-                CHANGES.set(data.slice(hi * w + 7, hi * w + w + 7), i)
-                i += 2000
-                hi++
+            case 16: {
+                let rsp = data.slice(1).toString()
+                if (rsp === toValidate.get(IP)) {
+                    toValidate.delete(IP)
+                    let dv = new DataView(new ArrayBuffer(2))
+                    dv.setUint8(0, 16)
+                    dv.setUint8(1, 255)
+                    p.send(dv)
+                }
+                else {
+                    return p.close()
+                }
+                break;
             }
-            return
-        } else if (data[0] == 20) {
-            p.voted ^= 1 << data[1]
-            if (p.voted & (1 << data[1])) VOTES[data[1] & 31]++
-            else VOTES[data[1] & 31]--
-            return
+            case 99: {
+                if (CD !== 30) return
+                let w = data[1], h = data[2], i = data.readUInt32BE(3)
+                if (i % 2000 + w >= 2000) return
+                if (i + h * 2000 >= 4000000) return
+                let hi = 0
+
+                while (hi < h) {
+                    CHANGES.set(data.slice(hi * w + 7, hi * w + w + 7), i)
+                    i += 2000
+                    hi++
+                }
+                break
+            }
+            case 20: {
+                p.voted ^= 1 << data[1]
+                if (p.voted & (1 << data[1])) VOTES[data[1] & 31]++
+                else VOTES[data[1] & 31]--
+                break
+            }
+            case 6: {
+                if (data.length < 6 || LOCKED) return
+                let i = data.readUInt32BE(1), c = data[5]
+                if (i >= BOARD.length || c >= PALETTE_SIZE) return
+                let cd = cooldowns.get(IP)
+                if (cd > NOW) {
+                    let data = Buffer.alloc(10)
+                    data[0] = 7
+                    data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
+                    data.writeInt32BE(i, 5)
+                    data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
+                    p.send(data)
+                    return
+                }
+                if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), IP)) return p.close()
+                CHANGES[i] = c
+                cooldowns.set(IP, NOW + CD - 500)
+                newPos.push(i)
+                newCols.push(c)
+                break;
+            }
+            case 98: { // User moderation
+                let action = data[1]
+                let actionUid = data.slice(2).toString()
+                let actionCli = null
+
+                for(let [p, uid] of playerUids) {
+                    if(uid === actionUid) actionCli = p
+                }
+                if (actionCli == null) return
+                
+                if (action == 0) { // kick
+                    let modMessage = `Moderator ${p.ip} requested to kick user {${actionCli.ip}/${actionUid}}`
+                    console.log()
+                    actionCli.close()
+
+                    if (!MOD_WEBHOOK_URL) return
+                    let msgHook = { username: "RPLACE SERVER", content: modMessage }
+                    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                }
+                else if (action == 2) { // ban
+                    let modMessage = `Moderator ${p.ip} requested to ban user {${actionCli.ip}/${actionUid}}`
+                    console.log()
+                    ban(actionCli)
+
+                    if (!MOD_WEBHOOK_URL) return
+                    let msgHook = { username: "RPLACE SERVER", content: modMessage }
+                    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                }
+            }
         }
-        if (data.length < 6 || LOCKED) return //bad packet 
-        let i = data.readUInt32BE(1), c = data[5]
-        if (i >= BOARD.length || c >= PALETTE_SIZE) return //bad packet 
-        let cd = cooldowns.get(IP)
-        if (cd > NOW) {
-            //reject 
-            let data = Buffer.alloc(10)
-            data[0] = 7
-            data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
-            data.writeInt32BE(i, 5)
-            data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
-            p.send(data)
-            return
-        }
-        //accept 
-        if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), IP)) return p.close()
-        CHANGES[i] = c
-        cooldowns.set(IP, NOW + CD - 500)
-        newPos.push(i)
-        newCols.push(c)
     })
-    p.on('close', function () { players-- })
+    p.on('close', function () { 
+        players--
+        playerUids.delete(p)
+    })
 })
 let NOW = Date.now()
 setInterval(() => {
@@ -290,7 +338,7 @@ async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--)if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "place"), BOARD)
     await new Promise((r, t) => exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`, e => e ? t(e) : r()))
-    
+
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
     let curr = new Uint8Array(CHANGES)
     setTimeout(() => {
@@ -374,13 +422,25 @@ function checkPreban(incomingX, incomingY, ip) {
     return false
 }
 
-function ban(ip) {
-    for (const p of wss.clients){
-        if (p.ip == ip) p.close()
+/**
+ * Ban a client using either ip or their websocket instance
+ * @param {string|WebSocket} identifier - String client ip address or client websocket instance
+*/
+function ban(identifier) {
+    if (typeof identifier === "string") {
+        const ip = identifier
+        for (const p of wss.clients) {
+            if (p.ip === ip) p.close()
+        }
+        BANS.add(ip)
+        fs.appendFile("blacklist.txt", "\n" + ip)
+    } else if (identifier instanceof WebSocket) {
+        const cli = identifier
+        cli.close()
+        const ip = cli.ip
+        BANS.add(ip)
+        fs.appendFile("blacklist.txt", "\n" + ip)
     }
-
-    BANS.add(ip)
-    fs.appendFile("blacklist.txt", "\n" + ip)
 }
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
