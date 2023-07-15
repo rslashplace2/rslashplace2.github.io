@@ -203,6 +203,27 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.on("error", _ => _)
     p.on('message', async function (data) {
         switch (data[0]) {
+            case 4: {
+                if (data.length < 6 || LOCKED === true) return
+                let i = data.readUInt32BE(1), c = data[5]
+                if (i >= BOARD.length || c >= PALETTE_SIZE) return
+                let cd = cooldowns.get(IP)
+                if (cd > NOW) {
+                    let data = Buffer.alloc(10)
+                    data[0] = 7
+                    data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
+                    data.writeInt32BE(i, 5)
+                    data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
+                    p.send(data)
+                    return
+                }
+                if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), IP)) return p.close()
+                CHANGES[i] = c
+                cooldowns.set(IP, NOW + CD - 500)
+                newPos.push(i)
+                newCols.push(c)
+                break;
+            }
             case 15: {
                 let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
                     ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n");
@@ -250,48 +271,14 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 }
                 break;
             }
-            case 99: {
-                if (CD !== 30) return
-                let w = data[1], h = data[2], i = data.readUInt32BE(3)
-                if (i % 2000 + w >= 2000) return
-                if (i + h * 2000 >= 4000000) return
-                let hi = 0
-
-                while (hi < h) {
-                    CHANGES.set(data.slice(hi * w + 7, hi * w + w + 7), i)
-                    i += 2000
-                    hi++
-                }
-                break
-            }
             case 20: {
                 p.voted ^= 1 << data[1]
                 if (p.voted & (1 << data[1])) VOTES[data[1] & 31]++
                 else VOTES[data[1] & 31]--
                 break
             }
-            case 6: {
-                if (data.length < 6 || LOCKED) return
-                let i = data.readUInt32BE(1), c = data[5]
-                if (i >= BOARD.length || c >= PALETTE_SIZE) return
-                let cd = cooldowns.get(IP)
-                if (cd > NOW) {
-                    let data = Buffer.alloc(10)
-                    data[0] = 7
-                    data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
-                    data.writeInt32BE(i, 5)
-                    data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
-                    p.send(data)
-                    return
-                }
-                if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), IP)) return p.close()
-                CHANGES[i] = c
-                cooldowns.set(IP, NOW + CD - 500)
-                newPos.push(i)
-                newCols.push(c)
-                break;
-            }
             case 98: { // User moderation
+                if (CD !== 30) return
                 let action = data[1]
                 let actionUid = data.slice(2).toString()
                 let actionCli = null
@@ -310,6 +297,9 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let msgHook = { username: "RPLACE SERVER", content: modMessage }
                     await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                 }
+                else if (action == 1) {
+                    //  TODO: Chat mute
+                }
                 else if (action == 2) { // ban
                     let modMessage = `Moderator ${p.ip} requested to ban user {${actionCli.ip}/${actionUid}}`
                     console.log()
@@ -319,6 +309,20 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let msgHook = { username: "RPLACE SERVER", content: modMessage }
                     await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                 }
+            }
+            case 99: {
+                if (CD !== 30) return
+                let w = data[1], h = data[2], i = data.readUInt32BE(3)
+                if (i % 2000 + w >= 2000) return
+                if (i + h * 2000 >= 4000000) return
+                let hi = 0
+
+                while (hi < h) {
+                    CHANGES.set(data.slice(hi * w + 7, hi * w + w + 7), i)
+                    i += 2000
+                    hi++
+                }
+                break
             }
         }
     })
