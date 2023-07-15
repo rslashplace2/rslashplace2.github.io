@@ -678,6 +678,7 @@
 				else if (message.startsWith(":vip")) {
 					localStorage.vip = message.slice(4).trim()
 					window.location.reload(true)
+					return
 				}
 				else if (message.startsWith(":help")) {
 					return
