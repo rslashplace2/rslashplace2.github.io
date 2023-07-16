@@ -554,7 +554,7 @@
 							newMessage.style.color = "transparent"
 							newMessage.style.textShadow = "0px 0px 6px black"
 						}
-						if (txt.includes("@" + localStorage.name)) {
+						if (txt.includes("@" + localStorage.name) || txt.includes("@everyone")) {
 							newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
 							if (currentChannel == messageChannel) AUDIOS.closePalette.run()
 						}
@@ -2244,6 +2244,7 @@
 
 		let blockedUsers = []
 		let targetedUser = null
+
 
 		function onChatContext(ev, uname) {
 			ev.preventDefault()
