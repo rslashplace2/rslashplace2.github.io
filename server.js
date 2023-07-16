@@ -318,11 +318,10 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     name = name.replace("@", "")
                     messageChannel = messageChannel.replace("@", "")
 
-                    let msgHook = { username: `[${messageChannel}] ${name || "anon"} @rplace.tk`, content: txt.replaceAll("@", "") };
-                    if (msgHook.content.includes("@") || msgHook.content.includes("http")) return
+                    let msgHook = { username: `[${messageChannel}] ${name} @rplace.tk`, content: txt };
                     await fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                 } catch (err) {
-                    console.log("Could not post to discord: " + err)
+                    console.log("Could not post chat message to discord: " + err)
                 }
                 break
             }
