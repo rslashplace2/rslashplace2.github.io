@@ -10,5 +10,6 @@ blacklist.txt
 cooldown_overrides.txt
 webhook_url.txt
 server_config.json
+mutes.txt
 
 node_modules/

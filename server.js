@@ -29,13 +29,15 @@ catch (e) {
         "PUSH_PLACE_PATH": "/path/to/local/git/repo",
         "LOCKED": false,
         "CHAT_WEBHOOK_URL": "",
-        "MOD_WEBHOOK_URL": ""
-    }))
+        "MOD_WEBHOOK_URL": "",
+        "CHAT_MAX_LENGTH": 400,
+        "CHAT_COOLDOWN_MS": 2500
+    }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL } = JSON.parse(config)
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -123,23 +125,45 @@ if (SECURE) {
     })
 } else wss = new WebSocketServer({ port: PORT, perMessageDeflate: false })
 
-let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt"]
+let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
-    if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => { if (err) { console.error(err); return; } });
+    if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => {
+        if (err) {
+            console.error(err)
+            return
+        }
+    })
 }
 
 let players = 0
 let playerUids = new Map() // Player ws instance : Uid 
-let VIP
+let VIP = new Set()
 try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { }
 let RESERVED_NAMES = new DoubleMap()
 try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
     let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
     for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
 } catch (e) { }
-const NO_PORT = a => a.split(':')[0].trim()
-let BANS = new Set((await Promise.all(await fs.readFile('bansheets.txt').then(a => a.toString().trim().split('\n').map(a => fetch(a).then(a => a.text()))))).flatMap(a => a.trim().split('\n').map(NO_PORT)))
-for (let ban of (await fs.readFile('blacklist.txt')).toString().split('\n')) BANS.add(ban)
+let BANS = new Map((await Promise.all(await fs.readFile('bansheets.txt')
+    .then(bansheets => bansheets.toString().trim().split('\n')
+    .map(banListUrl => fetch(banListUrl)
+    .then(response => response.text())))))
+    .flatMap(line => line.trim().split('\n')
+    .map((ip) => ip.split(':')[0].trim()))
+    .map(banIp => [banIp, Date.now() + 0xFFFFFFFF]))
+for (let banFin of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
+    let parts = banFin?.split(" ")
+    if (!parts || !parts.length) continue
+    BANS.set(parts[0], +parts[1] || Date.now() + 0xFFFFFFFF)
+}
+let MUTES = new Map() // ip : finish (date Number)
+try { 
+    for (let muteFin of (await fs.readFile("mutes.txt")).toString().split("\n")) {
+        let parts = muteFin?.split(" ")
+        if (!muteFin || !parts || !parts.length) continue
+        MUTES.set(parts[0], +parts[1] || Date.now() + 0xFFFFFFFF)
+    }
+} catch(e) {}
 
 let printChatInfo = false
 let toValidate = new Map();
@@ -148,7 +172,7 @@ const encoderUTF8 = new util.TextEncoder()
 let allowed = new Set(["rplace.tk", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
     return text
-        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|@everyone|@here|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cum|cunt|dick|fag|faggot|jizz|kike|lesbian|masturbat(e|ion)|nazi|nigga|whore|porn|pussy|queer|rape|r[a4]pe|slut|suck|tit)/gi,
+        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cunt|dick|fag|faggot|jizz|lesbian|masturbat(e|ion)|nigga|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
             match => "*".repeat(match.length))
         .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
             match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
@@ -157,13 +181,38 @@ function censorText(text) {
 
 wss.on('connection', async function (p, { headers, url: uri }) {
     p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':', 4).join(':') : p._socket.remoteAddress.split(':', 4).join(':')
-    if ((USE_CLOUDFLARE && headers['origin'] != 'https://rplace.tk') || BANS.has(p.ip)) return p.close()
-    let url = uri.slice(1)
-    let IP = /*p._socket.remoteAddress */url || p.ip
-    if (url && VIP != null && !VIP.has(sha256(IP))) return p.close()
-    let CD = url ? (IP.startsWith('!') ? 30 : COOLDOWN / 2) : COOLDOWN
-    if (IP.startsWith("%")) { BANS.add(p.ip); fs.appendFile("blacklist.txt", "\n" + p.ip); return p.close() }
-    if (!IP) return p.close()
+    if ((USE_CLOUDFLARE && headers['origin'] != 'https://rplace.tk')) return p.close()
+    const IP = p.ip
+    if (!IP || IP.startsWith("%")) return p.close()
+    let ipBanEnd = BANS.get(p.ip)
+    if (ipBanEnd && ipBanEnd > NOW) return p.close()
+    else if (ipBanEnd && ipBanEnd < NOW) {
+        BANS.delete(IP)
+        // TODO: Remove player from bans file
+        let modMessage = `Client with ip ${p.ip} unbanned by server, reason: Ban time expired.`
+        console.log(modMessage)
+        if (!MOD_WEBHOOK_URL) return
+        let msgHook = { username: "RPLACE SERVER", content: modMessage }
+        await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+
+    }
+    const url = uri?.slice(1)
+    let CD = COOLDOWN
+    if (url) {
+        let codeHash = sha256(url)
+        if (!VIP.has(codeHash)) {
+            return p.close()
+        }
+        p.codehash = codeHash
+        if (url.startsWith("!")) {
+            p.admin = true
+            CD = 30
+        }
+        else {
+            p.vip = true
+            CD /= 2
+        }
+    }
     if (CAPTCHA) {
         try {
             throw "Unsupported. Please migrate to new server"
@@ -185,7 +234,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
     p.send(buf)
     players++
-    p.send(bf)
+    p.send(infoBuffer)
     p.send(runLengthChanges())
 
     // If a custom palette is defined, then we send to client
@@ -198,12 +247,12 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         p.send(paletteBuffer)
     }
 
-    playerUids.set(p, sha256(p.ip).toString())
+    playerUids.set(p, sha256(IP))
 
     p.on("error", _ => _)
     p.on('message', async function (data) {
         switch (data[0]) {
-            case 4: {
+            case 4: { // pixel place
                 if (data.length < 6 || LOCKED === true) return
                 let i = data.readUInt32BE(1), c = data[5]
                 if (i >= BOARD.length || c >= PALETTE_SIZE) return
@@ -222,11 +271,24 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 cooldowns.set(IP, NOW + CD - 500)
                 newPos.push(i)
                 newCols.push(c)
-                break;
+                break
             }
-            case 15: {
+            case 15: { // chat
+                let ipMuteEnd = MUTES.get(p.ip)
+                if (ipMuteEnd && ipMuteEnd > NOW) return
+                else if (ipMuteEnd && ipMuteEnd < NOW) {
+                    MUTES.delete(IP)
+                    // TODO: Remove player from mutes file
+                    let modMessage = `Client with ip ${p.ip} unmuted by server, reason: Mute time expired.`
+                    console.log(modMessage)
+                    if (!MOD_WEBHOOK_URL) return
+                    let msgHook = { username: "RPLACE SERVER", content: modMessage }
+                    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                }
+                if (p.lchat + (CHAT_COOLDOWN_MS || 2500) > NOW || data.length > (CHAT_MAX_LENGTH || 400)) return
+                p.lchat = NOW
                 let txt = data.toString().slice(1), name, messageChannel, type = "live", placeX = "0", placeY = "0"
-                    ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n");
+                ;[txt, name, messageChannel, type, placeX, placeY] = txt.split("\n");
                 if (!txt || !name || !messageChannel) return
                 if (printChatInfo) {
                     let date = new Date()
@@ -234,6 +296,13 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 }
 
                 txt = censorText(txt)
+                if (!p.admin && !p.vip) {
+                    txt = txt.replace("@everyone", "everyone")
+                    txt = txt.replace("@here", "here")
+                }
+                else if (!p.admin) {
+                    txt = txt.replace("@everyone", "everyone")
+                }
                 let res_name = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
                 name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
                 let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, playerUids.get(p)].join("\n"))
@@ -278,40 +347,57 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 break
             }
             case 98: { // User moderation
-                if (CD !== 30) return
+                if (p.admin !== true) return
                 let action = data[1]
-                let actionUid = data.slice(2).toString()
-                let actionCli = null
 
-                for(let [p, uid] of playerUids) {
-                    if(uid === actionUid) actionCli = p
+                let modMessage = null
+                if (action == 0) {
+                    let actionUidLen = data[2]
+                    let actionTxt = data.slice(3).toString()
+                    let actionUid = actionTxt.slice(0, actionUidLen)
+                    let actionCli = null
+
+                    for(let [p, uid] of playerUids) {
+                        if(uid === actionUid) actionCli = p
+                    }
+                    if (actionCli == null) return
+    
+                    let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
+
+                    if (action == 0) { // kick
+                        modMessage = `Moderator ${p.ip} (${p.codehash}) requested to kick user ${
+                            actionCli.ip}, with reason: '${actionReason}'`
+                        actionCli.close()
+                    }
                 }
-                if (actionCli == null) return
+                if (action == 1 || action == 2) { // mute, ban
+                    let actionTimeS = data.readUInt32BE(2)
+                    let actionUidLen = data[6]
+                    let actionTxt = data.slice(7).toString()
+                    let actionUid = actionTxt.slice(0, actionUidLen)
+                    let actionCli = null
+
+                    for(let [p, uid] of playerUids) {
+                        if(uid === actionUid) actionCli = p
+                    }
+                    if (actionCli == null) return
+
+                    let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
+                    modMessage = `Moderator ${p.ip} (${p.codehash}) requested to ${["mute", "ban"][action - 1]
+                        } user ${actionCli.ip}, for ${actionTimeS}, with reason: '${actionReason}'`
+
+                    if (action == 1) mute(actionCli, actionTimeS)
+                    else if (action == 2) ban(actionCli)
+                }
                 
-                if (action == 0) { // kick
-                    let modMessage = `Moderator ${p.ip} requested to kick user {${actionCli.ip}/${actionUid}}`
-                    console.log()
-                    actionCli.close()
-
-                    if (!MOD_WEBHOOK_URL) return
-                    let msgHook = { username: "RPLACE SERVER", content: modMessage }
-                    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
-                }
-                else if (action == 1) {
-                    //  TODO: Chat mute
-                }
-                else if (action == 2) { // ban
-                    let modMessage = `Moderator ${p.ip} requested to ban user {${actionCli.ip}/${actionUid}}`
-                    console.log()
-                    ban(actionCli)
-
-                    if (!MOD_WEBHOOK_URL) return
-                    let msgHook = { username: "RPLACE SERVER", content: modMessage }
-                    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
-                }
+                if (!modMessage) return
+                console.log(modMessage)
+                if (!MOD_WEBHOOK_URL) return
+                let msgHook = { username: "RPLACE SERVER", content: modMessage }
+                await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
             }
             case 99: {
-                if (CD !== 30) return
+                if (p.admin !== true) return
                 let w = data[1], h = data[2], i = data.readUInt32BE(3)
                 if (i % 2000 + w >= 2000) return
                 if (i + h * 2000 >= 4000000) return
@@ -366,18 +452,23 @@ setInterval(function () {
     }
 }, 1000)
 
-let I = 0
-let bf = Buffer.alloc(131); bf[0] = 3
-if (!LOCKED) setInterval(async function () {
-    I++
-    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change"), CHANGES)
-    bf[1] = players >> 8
-    bf[2] = players
-    for (let i = 0; i < VOTES.length; i++)bf.writeUint32BE(VOTES[i], (i << 2) + 3)
-    for (let c of wss.clients) {
-        c.send(bf)
+let pushTick = 0
+let infoBuffer = Buffer.alloc(131)
+infoBuffer[0] = 3
+setInterval(async function () {
+    pushTick++
+    infoBuffer[1] = players >> 8
+    infoBuffer[2] = players
+    for (let i = 0; i < VOTES.length; i++) {
+        infoBuffer.writeUint32BE(VOTES[i], (i << 2) + 3)
     }
-    if (I % 720 == 0) {
+    for (let c of wss.clients) {
+        c.send(infoBuffer)
+    }
+
+    if (LOCKED) return
+    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change"), CHANGES)
+    if (pushTick % 720 == 0) {
         try {
             await pushImage()
             await fs.writeFile('./votes', VOTES)
@@ -417,9 +508,9 @@ function checkPreban(incomingX, incomingY, ip) {
 
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
         if (prebanArea.banPlaceAttempts === true) {
-            BANS.add(ip)
-            fs.appendFile("blacklist.txt", "\n" + ip)
+            ban(ip, 0xFFFFFFFF / 1000)
         }
+
         console.log(`Pixel placed in preban area at ${incomingX},${incomingY} by ${ip}`)
         return true
     }
@@ -430,21 +521,41 @@ function checkPreban(incomingX, incomingY, ip) {
  * Ban a client using either ip or their websocket instance
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
 */
-function ban(identifier) {
+function ban(identifier, duration) {
+    let finish = NOW + duration * 1000
+    let ip = null
     if (typeof identifier === "string") {
-        const ip = identifier
+        ip = identifier
         for (const p of wss.clients) {
             if (p.ip === ip) p.close()
         }
-        BANS.add(ip)
-        fs.appendFile("blacklist.txt", "\n" + ip)
-    } else if (identifier instanceof WebSocket) {
+    } else if (identifier instanceof Object) {
         const cli = identifier
         cli.close()
-        const ip = cli.ip
-        BANS.add(ip)
-        fs.appendFile("blacklist.txt", "\n" + ip)
+        ip = cli.ip
     }
+    if (!ip) return
+
+    BANS.add(ip)
+    fs.appendFile("blacklist.txt", `\n ${ip} ${finish}`)
+}
+
+/**
+ * Mute a client using either ip or their websocket instance
+ * @param {string|WebSocket} identifier - String client ip address or client websocket instance
+ *  @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
+*/
+function mute(identifier, duration) {
+    let ip = identifier
+    if (identifier instanceof Object) {
+        const cli = identifier
+        ip = cli.ip
+    }
+    if (!ip) return
+    
+    let finish = NOW + duration * 1000
+    MUTES.set(ip, finish)
+    fs.appendFile("mutes.txt", `\n ${ip} ${finish}`)
 }
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
