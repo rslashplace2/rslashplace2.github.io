@@ -379,7 +379,7 @@ place-chat-button > img {
 	top: -30%;
 }
 
-#helpbtn, #closebtn{
+#helpbtn, #closebtn, #discordbtn{
 	display: block;
 	width: 36px;
 	height: 36px;
@@ -400,6 +400,17 @@ place-chat-button > img {
 	text-align: center;
 	font-size: 25px;
 	line-height: 8px;
+}
+
+#discordbtn{
+	right: unset;
+	left: 20px;
+	text-align: center;
+	font-size: 25px;
+	line-height: 8px;
+	top: unset;
+	bottom: 20px;
+	background: url(images/discord.png) center/22px no-repeat, white;
 }
 
 #palette {
@@ -507,7 +518,7 @@ place-chat-button > img {
 	}
 }
 
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel {
+#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
 	box-shadow: 0 0 30px black;
 }
 
