@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<script>
+		if(!('subtle' in (window.crypto||{})))location.protocol='https:'
 		const DEFAULT_SERVER = "wss://server.rplace.tk:443"
 		const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
