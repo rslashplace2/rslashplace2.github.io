@@ -1322,3 +1322,16 @@ postcopy span {
 .profile-section > div > img {
 	border-radius: 100%;
 }
+
+#popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    height: 65vw;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 10;
+}
