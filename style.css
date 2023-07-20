@@ -1329,7 +1329,7 @@ postcopy span {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90vw;
-    height: 65vw;
+    height: calc(60.4vw + 36px);
     background: white;
     border-radius: 20px;
     overflow: hidden;
