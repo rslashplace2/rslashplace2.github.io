@@ -1328,8 +1328,8 @@ postcopy span {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90vw;
-    height: calc(60.4vw + 36px);
+    width: 90vmin;
+    height: calc(60.4vmin + 36px);
     background: white;
     border-radius: 20px;
     overflow: hidden;
