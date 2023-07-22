@@ -552,10 +552,8 @@ place-chat-button > img {
 #onlinepanel {
 	background: rgba(0, 0, 0, 0.6);
 	height: 25px;
-	border-radius: 10px;
+	border-radius: 20px;
 	padding: 3px;
-	margin-top: 2.5px;
-	margin-right: 15px;
 	display: flex;
 	gap: 3px;
 }
@@ -571,6 +569,8 @@ place-chat-button > img {
 }
 
 #chatPanel {
+	display: flex; flex-flow: column;
+	gap: 5px;
 	position: absolute;
 	top: 20px;
 	width: 330px;
@@ -592,10 +592,10 @@ place-chat-button > img {
 #chatMessages {
 	overflow-wrap: break-word;
 	word-wrap: break-word;
-	font-family:mono;
+	font-family: mono;
 	white-space: pre-wrap;
-	max-height: calc(100% - 90px);
 	overflow: auto;
+	flex-grow: 1;
 }
 
 #chatMessages, #chatMessages * {
@@ -609,19 +609,19 @@ place-chat-button > img {
 
 .channels-options {
 	position: relative;
-	height:30px;
-	width: 150px;
+	height: 25px;
 	border-radius: 20px;
 	box-shadow: 0 0 10px rgba(0,0,0,0.4);
 	display: flex;
 	flex-direction: row;
-	margin-right: 15px;
 	cursor: pointer;
+	padding: 0 3px;
+	gap: 2px;
 }
 
 .channels-options > span {
 	flex: auto;
-	line-height: 30px;
+	line-height: 25px;
 	text-align: center;
 	border-radius: 20px 0px 0px 20px;
 	background-color: transparent;
@@ -707,10 +707,8 @@ a {
 }
 
 #messageInput {
-	position: absolute;
-	bottom: 10px;
-	width: calc(100% - 60px);
-	flex: initial;
+	flex-shrink: 0;
+	width: calc(100% - 40px);
 }
 
 /* Used by messageTypePanel and messageEmojisPanel, displays just above chat input */
