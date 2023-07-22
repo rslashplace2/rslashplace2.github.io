@@ -1212,8 +1212,8 @@
 					</button>
 				</div>
 			</div>
-			<div style="display: flex; flex-direction: row;" noselect>
-				<h2 id="liveChatHeader" style="flex: 110px 0 0;" translate="liveChat">Live Chat:</h2>
+			<div style="display: flex; flex-direction: row; justify-content: space-between; align-items:center" noselect>
+				<h2 style="white-space:nowrap" translate="liveChat">Live Chat:</h2>
 				<div class="channels-options">
 					<!--
 						Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see
@@ -1223,10 +1223,10 @@
 					-->
 					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">FAS</span>
 					<span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
-						<img src="svg/flag-tu.svg" style="height: 20px; display: inline; top: 5px; position: relative;">TÜ
+						<img src="svg/flag-tu.svg" style="height: 20px; vertical-align:sub">TÜ
 					</span>
 					<span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
-						<img src="svg/flag-gb.svg" style="height: 20px; display: inline; top: 5px; position: relative;">EN
+						<img src="svg/flag-gb.svg" style="height: 20px; vertical-align:sub">EN
 					</span>
 					<span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="
 						this.style.opacity = '0'
