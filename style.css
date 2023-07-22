@@ -709,6 +709,7 @@ a {
 #messageInput {
 	flex-shrink: 0;
 	width: calc(100% - 40px);
+	z-index: 1;
 }
 
 /* Used by messageTypePanel and messageEmojisPanel, displays just above chat input */
