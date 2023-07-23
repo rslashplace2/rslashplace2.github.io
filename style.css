@@ -380,7 +380,7 @@ place-chat-button > img {
 	top: -30%;
 }
 
-#helpbtn, #closebtn{
+#helpbtn, #closebtn, #discordbtn{
 	display: block;
 	width: 36px;
 	height: 36px;
@@ -401,6 +401,17 @@ place-chat-button > img {
 	text-align: center;
 	font-size: 25px;
 	line-height: 8px;
+}
+
+#discordbtn{
+	right: unset;
+	left: 20px;
+	text-align: center;
+	font-size: 25px;
+	line-height: 8px;
+	top: unset;
+	bottom: 20px;
+	background: url(images/discord.png) center/22px no-repeat, white;
 }
 
 #palette {
@@ -508,7 +519,7 @@ place-chat-button > img {
 	}
 }
 
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel {
+#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
 	box-shadow: 0 0 30px black;
 }
 
@@ -582,10 +593,8 @@ body[eventphase="2"] #posel {
 #onlinepanel {
 	background: rgba(0, 0, 0, 0.6);
 	height: 25px;
-	border-radius: 10px;
+	border-radius: 20px;
 	padding: 3px;
-	margin-top: 2.5px;
-	margin-right: 15px;
 	display: flex;
 	gap: 3px;
 }
@@ -601,6 +610,8 @@ body[eventphase="2"] #posel {
 }
 
 #chatPanel {
+	display: flex; flex-flow: column;
+	gap: 5px;
 	position: absolute;
 	top: 20px;
 	width: 330px;
@@ -622,10 +633,10 @@ body[eventphase="2"] #posel {
 #chatMessages {
 	overflow-wrap: break-word;
 	word-wrap: break-word;
-	font-family:mono;
+	font-family: mono;
 	white-space: pre-wrap;
-	max-height: calc(100% - 90px);
 	overflow: auto;
+	flex-grow: 1;
 }
 
 #chatMessages, #chatMessages * {
@@ -639,19 +650,19 @@ body[eventphase="2"] #posel {
 
 .channels-options {
 	position: relative;
-	height:30px;
-	width: 150px;
+	height: 25px;
 	border-radius: 20px;
 	box-shadow: 0 0 10px rgba(0,0,0,0.4);
 	display: flex;
 	flex-direction: row;
-	margin-right: 15px;
 	cursor: pointer;
+	padding: 0 3px;
+	gap: 2px;
 }
 
 .channels-options > span {
 	flex: auto;
-	line-height: 30px;
+	line-height: 25px;
 	text-align: center;
 	border-radius: 20px 0px 0px 20px;
 	background-color: transparent;
@@ -737,10 +748,9 @@ a {
 }
 
 #messageInput {
-	position: absolute;
-	bottom: 10px;
-	width: calc(100% - 60px);
-	flex: initial;
+	flex-shrink: 0;
+	width: calc(100% - 40px);
+	z-index: 1;
 }
 
 /* Used by messageTypePanel and messageEmojisPanel, displays just above chat input */
@@ -806,7 +816,7 @@ a {
 }
 
 #namePanel {
-	z-index:1;
+	z-index: 2;
 	position: absolute;
 	bottom: 0;
 	text-align: center;
@@ -1351,4 +1361,18 @@ postcopy span {
 }
 .profile-section > div > img {
 	border-radius: 100%;
+}
+
+#popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vmin;
+    height: calc(60.4vmin + 36px);
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 0 0 1000px #0004, 0 0 100px #000;
 }

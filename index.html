@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<script>
+		if(!('subtle' in (window.crypto||{})))location.protocol='https:'
 		const DEFAULT_SERVER = "wss://server.rplace.tk:443"
 		const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
@@ -24,8 +25,8 @@
 				liveChat: "Live Chat:",
 				nicknameToContinue: "Enter a nickname to continue:",
 				changeChannel: "Change channel:",
-				captchaPrompt: "Please solve this small captcha to help keep rplace.tk fun for all...",
-				webappInstall: "Install rplace.tk web app",
+				captchaPrompt: "Please solve this small captcha to help keep rplace.live fun for all...",
+				webappInstall: "Install rplace.live web app",
 				connectionProblems: "Connection problems?",
 				tryClickingHere: "try clicking here",
 				pleaseBeRespectful: "Please be respectful and try not to spam!",
@@ -53,7 +54,7 @@
 				nicknameToContinue: "لطفا نام خود را برای چت کردن وارد کنید",
 				changeChannel: "تغییر کانال:",
 				captchaPrompt: "لطفا روی دکمه حاوی ایموجی که در زیر می بینید کلیک کنید",
-				webappInstall: "برنامه وب rplace.tk را نصب کنید",
+				webappInstall: "برنامه وب rplace.live را نصب کنید",
 				connectionProblems: "مشکلات اتصال؟",
 				tryClickingHere: "برای حل اینجا کلیک کنید",
 				pleaseBeRespectful: "لطفا محترمانه رفتار کنید و سعی کنید اسپم نکنید!",
@@ -71,7 +72,7 @@
 				nicknameToContinue: "Devam etmek için bir takma ad girin:",
 				changeChannel: "Kanalı değiştir:",
 				captchaPrompt: "Lütfen aşağıda gördüğünüz emojiyi içeren butona tıklayın",
-				webappInstall: "rplace.tk web uygulamasını kurun",
+				webappInstall: "rplace.live web uygulamasını kurun",
 				connectionProblems: "Bağlantı problemleri?",
 				tryClickingHere: "buraya tıklamayı dene",
 				pleaseBeRespectful: "Lütfen saygılı olun ve spam yapmamaya çalışın!",
@@ -99,7 +100,7 @@
 				nicknameToContinue: "Introdu un nume pentru a continua:",
 				changeChannel: "Schimbați canalul:",
 				captchaPrompt: "Dați clic pe butonul care conține emoji-ul pe care îl vedeți mai jos",
-				webappInstall: "Instalați aplicația web rplace.tk",
+				webappInstall: "Instalați aplicația web rplace.live",
 				connectionProblems: "Probleme de conectare?",
 				tryClickingHere: "incearca sa dai click aici",
 				pleaseBeRespectful: "Vă rugăm să fiți respectuos și să nu trimiteți spam!",
@@ -117,7 +118,7 @@
 				nicknameToContinue: "Εισαγάγετε ένα ψευδώνυμο για να συνεχίσετε:",
 				changeChannel: "Αλλαγή καναλιού:",
 				captchaPrompt: "Κάντε κλικ στο κουμπί που περιέχει το emoji που βλέπετε παρακάτω",
-				webappInstall: "Εγκαταστήστε την εφαρμογή web rplace.tk",
+				webappInstall: "Εγκαταστήστε την εφαρμογή web rplace.live",
 				connectionProblems: "Προβλήματα σύνδεσης;",
 				tryClickingHere: "δοκιμάστε να κάνετε κλικ εδώ",
 				pleaseBeRespectful: "Παρακαλώ να είστε σεβαστές!",
@@ -135,7 +136,7 @@
 				nicknameToContinue: "Introduce un apodo para continuar:",
 				changeChannel: "Cambia el canal:",
 				captchaPrompt: "Haga clic en el botón que contiene el emoji que ve a continuación",
-				webappInstall: "Instale la aplicación web rplace.tk",
+				webappInstall: "Instale la aplicación web rplace.live",
 				connectionProblems: "¿Problemas de conexión?",
 				tryClickingHere: "intente hacer clic aquí",
 				pleaseBeRespectful: "Por favor se respetuoso!",
@@ -153,7 +154,7 @@
 				nicknameToContinue: "Entrez un surnom pour continuer :",
 				changeChannel: "Changer de chaîne:",
 				captchaPrompt: "Veuillez cliquer sur le bouton contenant l'emoji que vous voyez ci-dessous",
-				webappInstall: "Installez l'application Web rplace.tk",
+				webappInstall: "Installez l'application Web rplace.live",
 				connectionProblems: "Problèmes de connexion?",
 				tryClickingHere: "résoudre en cliquant ici",
 				pleaseBeRespectful: "Soyez respectueux et essayez de ne pas spammer !",
@@ -170,8 +171,8 @@
 				liveChat: "Живой чат:",
 				nicknameToContinue: "Введите псевдоним:",
 				changeChannel: "Изменить канал:",
-				captchaPrompt: "Пожалуйста, решите эту небольшую капчу, чтобы сделать rplace.tk приятным для всех...",
-				webappInstall: "Установите веб-приложение rplace.tk",
+				captchaPrompt: "Пожалуйста, решите эту небольшую капчу, чтобы сделать rplace.live приятным для всех...",
+				webappInstall: "Установите веб-приложение rplace.live",
 				connectionProblems: "Проблемы с подключением?",
 				tryClickingHere: "попробуйте нажать здесь",
 				pleaseBeRespectful: "Пожалуйста, будьте уважительны и старайтесь не спамить!",
@@ -188,8 +189,8 @@
 				liveChat: "Live-Chat:",
 				nicknameToContinue: "Geben Sie einen Spitznamen ein, um fortzufahren:",
 				changeChannel: "Kanal wechseln:",
-				captchaPrompt: "Bitte lösen Sie dieses kleine Captcha, damit rplace.tk allen Spaß macht...",
-				webappInstall: "Installieren Sie die Web-App rplace.tk",
+				captchaPrompt: "Bitte lösen Sie dieses kleine Captcha, damit rplace.live allen Spaß macht...",
+				webappInstall: "Installieren Sie die Web-App rplace.live",
 				connectionProblems: "Verbindungsprobleme?",
 				tryClickingHere: "klicken Sie hier, um zu lösen",
 				pleaseBeRespectful: "Bitte seien Sie respektvoll, nicht zu spammen!",
@@ -206,8 +207,8 @@
 				liveChat: "लाइव चैट:",
 				nicknameToContinue: "जारी रखने के लिए एक उपनाम दर्ज करें:",
 				changeChannel: "चैनल बदलें:",
-				captchaPrompt: "rplace.tk को सभी के लिए मज़ेदार बनाए रखने में मदद के लिए कृपया इस छोटे कैप्चा को हल करें...",
-				webappInstall: "rplace.tk वेब ऐप इंस्टॉल करें",
+				captchaPrompt: "rplace.live को सभी के लिए मज़ेदार बनाए रखने में मदद के लिए कृपया इस छोटे कैप्चा को हल करें...",
+				webappInstall: "rplace.live वेब ऐप इंस्टॉल करें",
 				connectionProblems: "कनेक्शन समस्याएं?",
 				tryClickingHere: "यहाँ क्लिक करने का प्रयास करें",
 				pleaseBeRespectful: "कृपया सम्मान करें और स्पैम न करने का प्रयास करें!",
@@ -242,8 +243,8 @@
 				liveChat: "ライブチャット:",
 				nicknameToContinue: "続行するにはニックネームを入力してください:",
 				changeChannel: "チャンネルを変更:",
-				captchaPrompt: "rplace.tk をすべての人が楽しめるように、この小さなキャプチャを解決してください...",
-				webappInstall: "rplace.tk Web アプリをインストール",
+				captchaPrompt: "rplace.live をすべての人が楽しめるように、この小さなキャプチャを解決してください...",
+				webappInstall: "rplace.live Web アプリをインストール",
 				connectionProblems: "接続の問題?",
 				tryClickingHere: "ここをクリックしてみてください",
 				pleaseBeRespectful: "敬意を払い、スパム行為をしないようにしてください!",
@@ -869,7 +870,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.6" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.10" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -975,7 +976,7 @@
 			</div>
 			<div noselect id="captchaPopup" style="display: none;">
 				<h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1> <br>
-				<p noselect translate="captchaPrompt"><em>Please solve this small captcha to help keep rplace.tk fun for all...</em></p><br><hr><br>
+				<p noselect translate="captchaPrompt"><em>Please solve this small captcha to help keep rplace.live fun for all...</em></p><br><hr><br>
 				<h2 id="captchaLabel">Please click the button containing the emoji you see below</h2> <br>
 				<img id="capchaImg" style="image-rendering: pixelated;">
 				<a style="position: absolute; left: 50%; transform: translateX(-50%); white-space: pre;" href=".">(generate new captcha)</a>
@@ -983,6 +984,17 @@
 			</div>
 			<div id="chat" noselect onclick="chatPanel.classList.add('open')">
 				<img src="svg/chat.svg" style="width:16px; height:21px">
+			</div>
+			<div id="popup" style="height:calc(65.2vmin + 36px)">
+				<icon-close noselect="" class="modal-close-button" onclick="popup.remove()" style="position: absolute;top: 9px;right: 12px;">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+					</svg>
+				</icon-close>
+				<img src="https://media.discordapp.net/attachments/823957581545734204/1131983578155188334/e10a2234-9213-453e-acce-be697a9f7b25.png" style="
+    					width: 100%;position: absolute;bottom: 0;cursor: pointer;
+				" onclick="window.open('https://www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
+				<div noselect="" style="position: absolute;top: 9px;left: 14px;font-size: 1.2em;">Special event!</div>			
 			</div>
 			<div noselect id="helpbtn" onclick="
 				if (modal.style.display == 'flex') {
@@ -1004,6 +1016,7 @@
 				document.body.id = 'out'
 				window.onresize()
 			">...</div>
+			<div noselect id="discordbtn" onclick="window.open('https://discord.gg/4XnZ9WGux2')"></div>
 			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
 				<div id="modal" style="display:none"><div id="modal-header">
 					<h2>Place</h2>
@@ -1017,7 +1030,7 @@
 					</icon-close>
 				</div>
 				<div id="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.tk web app</div>
+				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
 				<div id="modal-footer">
 					<mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
 						muted = !muted
@@ -1093,7 +1106,7 @@
 					<div><div>Main Canvas</div>1000x1000 (cooldown: 3.5s)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
+							navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.rplace.tk:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
@@ -1110,7 +1123,7 @@
 						<div>2nd Canvas</div> 500x500 (cooldown: 800ms)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/ws&board=https:\/\/server.poemanthology.org/place')
+							navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.poemanthology.org/ws&board=https:\/\/server.poemanthology.org/place')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
@@ -1127,7 +1140,7 @@
 						<div>TURKEY CANVAS</div> 250x250 (cooldown: 30ms)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
+							navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
@@ -1143,7 +1156,7 @@
 					<div><div>Main canvas archive - 04/07/2023</div>1000x1000 (cooldown: ∞)
 						<postcopy onclick="
 							event.stopPropagation()
-							navigator.clipboard.writeText('https:\/\/rplace.tk/?server=wss:\/\/archive.rplace.tk:444&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/04072023/place')
+							navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/archive.rplace.tk:444&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/04072023/place')
 							this.children[1].animate([
 									{ opacity: 1 },
 									{ scale: 1.1 }
@@ -1176,7 +1189,7 @@
 				</div>
 				<div class="post" onclick="loginPanel.style.display = 'flex'" style="opacity: 0.6; pointer-events: none;">
 					<img src="images/account_profile.png">
-					<div><div>My Account</div>Login or signup to an rplace.tk account, access special features and host your own custom canvases.</div>
+					<div><div>My Account</div>Login or signup to an rplace.live account, access special features and host your own custom canvases.</div>
 				</div>
 				<div onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post">
 					<img src="images/canv.png">
@@ -1201,8 +1214,8 @@
 					</button>
 				</div>
 			</div>
-			<div style="display: flex; flex-direction: row;" noselect>
-				<h2 id="liveChatHeader" style="flex: 110px 0 0;" translate="liveChat">Live Chat:</h2>
+			<div style="display: flex; flex-direction: row; justify-content: space-between; align-items:center" noselect>
+				<h2 style="white-space:nowrap" translate="liveChat">Live Chat:</h2>
 				<div class="channels-options">
 					<!--
 						Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see
@@ -1212,10 +1225,10 @@
 					-->
 					<span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">FAS</span>
 					<span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
-						<img src="svg/flag-tu.svg" style="height: 20px; display: inline; top: 5px; position: relative;">TÜ
+						<img src="svg/flag-tu.svg" style="height: 20px; vertical-align:sub">TÜ
 					</span>
 					<span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
-						<img src="svg/flag-gb.svg" style="height: 20px; display: inline; top: 5px; position: relative;">EN
+						<img src="svg/flag-gb.svg" style="height: 20px; vertical-align:sub">EN
 					</span>
 					<span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="
 						this.style.opacity = '0'
@@ -1231,7 +1244,7 @@
 				<icon-close noselect="" class="modal-close-button" onclick="
 					messageInput.blur()
 					chatPanel.classList.remove('open')
-				" class="active" style="position: absolute; top: 8px; right: 8px;">
+				" class="active">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 					</svg>
@@ -1328,7 +1341,7 @@
 					<div noselect onclick="
 						let csrf = (Math.random() + 1).toString(36).substring(2)
 						window.open('https:\/\/www.reddit.com/api/v1/authorize?client_id=eqjRPVmD2M7InsCDhBdvVg&response_type=code'
-							+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.tk/&duration=permanent&scope=identity')
+							+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.live/&duration=permanent&scope=identity')
 						window.close()
 					" style="border: 1px solid #dbdbdb;border-radius: 4px;background-color: white;width: fit-content;display: flex;height: 46px;column-gap: 8px;cursor: pointer;padding-right: 8px;">
 						<img src="images/reddit.png"><span style="align-self: center;">Sign in with reddit</span>
@@ -1922,7 +1935,7 @@
 		const encoder = new TextEncoder()
 		const decoder = new TextDecoder()
 		const lang = navigator.language.split('-')[0]
-		const allowed = ["rplace.tk", "google.com", "wikipedia.org", "pxls.space"]
+		const allowed = ["rplace.tk", "rplace.live", "google.com", "wikipedia.org", "pxls.space"]
 		const mobile = window.matchMedia("(orientation: portrait)").matches
 		const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
 		let online = 1
@@ -2330,7 +2343,7 @@
 		}
 
 		async function verifyWebApp() {
-			// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.tk app or a fake clone
+			// The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.live app or a fake clone
 			if (mobile && (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined")) {
 				if (await sha256(window.location.search.slice(1)) === VERIFIED_APP_HASH) console.log("You are using an official rplace client. Have fun!")
 				else window.location.replace("fakeapp.html")
