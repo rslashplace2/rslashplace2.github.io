@@ -521,7 +521,6 @@ function checkPreban(incomingX, incomingY, ip) {
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
 */
 function ban(identifier, duration) {
-    let finish = NOW + duration * 1000
     let ip = null
     if (typeof identifier === "string") {
         ip = identifier
@@ -535,7 +534,8 @@ function ban(identifier, duration) {
     }
     if (!ip) return
 
-    BANS.add(ip)
+    let finish = NOW + duration * 1000
+    BANS.set(ip, finish)
     fs.appendFile("blacklist.txt", `\n ${ip} ${finish}`)
 }
 

@@ -229,6 +229,7 @@ btn{
 	text-align: center;
 	z-index: 5;
 	font-family: mono;
+	transition: .2s border-radius;
 }
 #chat{
 	position: absolute;
@@ -509,6 +510,46 @@ place-chat-button > img {
 
 #helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel {
 	box-shadow: 0 0 30px black;
+}
+
+#eventCountdown {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 4;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: white;
+}
+
+body[eventphase="0"] #eventCountdown {
+	width: min(calc(100% - 32px), 200px);
+	height: 72px;
+	top: -72px;
+	border-radius: 32px;
+
+	transition: .5s all;
+}
+
+body[eventphase="1"] #eventCountdown {
+	width: min(calc(100% - 16px), 300px);
+	height: 84px;
+	top: 64px;
+	border-radius: 16px;
+
+	transition: 2s all;
+}
+
+body[eventphase="2"] #eventCountdown {
+	top: 44px;
+	width: 155px;
+	border-radius: 0px 0px 8px 8px;
+	height: 24px;
+}
+
+body[eventphase="2"] #posel {
+	border-radius: 8px 8px 0px 0px;
 }
 
 #onlineCounter {

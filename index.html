@@ -12,6 +12,7 @@
 		const VOTED_SVG = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z'
 		const UNVOTED_SVG = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
 		const BADGES = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
+		const DEFAULT_PALETTE_KEYS = "123456789abcdefghijklmnopqrstuvwxyz"
 		const TRANSLATIONS = {
 			en: {
 				connecting: "Connecting...",
@@ -676,7 +677,9 @@
 					return
 				}
 				else if (message.startsWith(":vip")) {
-					localStorage.vip = message.slice(4).trim()
+					let key = message.slice(4).trim()
+					if (key[0] == "!") return
+					localStorage.vip = key
 					window.location.reload(true)
 					return
 				}
@@ -740,9 +743,8 @@
 				//Keyboard shortcuts for selecting palette colours
 				let keyIndex = null
 				if (document.activeElement != document.body)return
-				if (e.keyCode >= 49 && e.keyCode <= 57) keyIndex = e.keyCode - 49
-				if (e.keyCode >= 97 && e.keyCode <= 119) keyIndex = e.keyCode - 97 + 9
-				if (keyIndex == null) return
+				keyIndex = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS).indexOf(e.key)
+				if (keyIndex == -1) return
 				if (palette.style.transform == 'translateY(100%)')
 					showPalette()
 				for (let c = 0; c < document.getElementById("colours").children.length; c++) {
@@ -1411,6 +1413,9 @@
 				</div>
 			</div>
 		</div>
+		<div id="eventCountdown">
+			
+		</div>
 	</body>
 	<script>
 		let PALETTE = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff]
@@ -1845,7 +1850,7 @@
 
 		function generatePalette() {
 			colours.innerHTML = PALETTE.map((colour, i) =>
-				`<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span></span></div>`
+				`<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span contenteditable onkeydown="rebindIndicator(event, ${i})"></span></div>`
 			).join("")
 		}
 
@@ -1966,14 +1971,27 @@
 			}
 		}
 
-		function generateIndicators() {
+		function rebindIndicator(e, i) {
+			console.log(e.key.length)
+			if (!e.key || e.key.length != 1) return
+			e.target.innerText = e.key
+			e.target.blur()
+
+			let binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS).split("")
+			let preexisting = binds.indexOf(e.key)
+			if (preexisting != -1) binds[preexisting] = "​"
+			binds[i] = e.key.charAt(0)
+			localStorage.paletteKeys = binds.join("")
+			generateIndicators(binds.join(""))
+		}
+
+		function generateIndicators(keybinds) {
 			for (let c = 0; c < colours.children.length; c++) {
-				let keybinds = "123456789abcdefghijklmnopqrstuvwxyz"
 				let indicator = colours.children[c].firstChild
 				indicator.textContent = keybinds.charAt(c)
 			}
 		}
-		generateIndicators()
+		generateIndicators(localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
 		
 		if (localStorage.name) {
 			namePanel.style.visibility = "hidden"
