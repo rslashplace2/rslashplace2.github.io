@@ -603,10 +603,9 @@
 							}
 
 							capchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
-							captchaPopup.style.display = "block"
+							captchaPopup.style.display = "flex"
 							break
-							// Server sends back sucess
-						case 255:
+						case 255: // Server sends back sucess
 							captchaPopup.style.display = "none"
 							break
 					}
@@ -969,12 +968,12 @@
 				<img id="templateImage" width="auto" height="auto" ondrag="return">
 			</div>
 			<div noselect id="captchaPopup" style="display: none;">
-				<h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1> <br>
-				<p noselect translate="captchaPrompt"><em>Please solve this small captcha to help keep rplace.live fun for all...</em></p><br><hr><br>
-				<h2 id="captchaLabel">Please click the button containing the emoji you see below</h2> <br>
+				<h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1>
+				<p noselect translate="captchaPrompt"><em>Please solve this small captcha to help keep rplace.live fun for all...</em></p>
+				<h2 id="captchaLabel">Please click the button containing the emoji you see below</h2>
 				<img id="capchaImg" style="image-rendering: pixelated;">
-				<a style="position: absolute; left: 50%; transform: translateX(-50%); white-space: pre;" href=".">(generate new captcha)</a>
-				<div id="captchaOptions"></div>
+				<a style="text-align: center;" href=".">(generate new captcha)</a>
+				<div id="captchaOptions"><!--clickable captcha answers--></div>
 			</div>
 			<div id="chat" noselect onclick="chatPanel.classList.add('open')">
 				<img src="svg/chat.svg" style="width:16px; height:21px">
@@ -1275,7 +1274,7 @@
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">
 			</div>
 			<div id="messageEmojisPanel" class="chat-input-panel" closed></div>
-			<input id="messageInput" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
+			<input id="messageInput" onclick="chatPanel.classList.add('open')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
 			<div class="messageOptions" style="bottom: 10px; right: 10px;" onclick="messageTypePanel.toggleAttribute('closed')">...</div>			
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
