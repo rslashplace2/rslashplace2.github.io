@@ -587,7 +587,7 @@
 							// Emoji captcha
 						case 3:
 							let emojisSize = data.getUint8(2)
-							let emojis = decoder.decode(new Uint8Array(data.buffer).slice(3, emojisSize))
+							let emojis = decoder.decode(new Uint8Array(data.buffer).slice(3, emojisSize + 3)).split("\n")
 							let imageData = new Uint8Array(data.buffer).slice(3 + emojisSize)
 
 							for (let emoji of emojis) {
@@ -1427,7 +1427,26 @@
 			</div>
 		</div>
 		<div id="eventCountdown">
-			
+			<div class="announcer">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-300 -300 600 600" width="48" height="40">
+					<circle r="292.3"></circle>
+					<g style="fill:#f1cd43" transform="scale(0.9783764)">
+						<circle r="50"></circle>
+						<path d="M75,0A75,75 0 0,0 37.5-64.951905L125-216.50635A250,250 0 0,1 250,0Z" id="bld"></path>
+						<use xlink:href="#bld" transform="rotate(120)"></use>
+						<use xlink:href="#bld" transform="rotate(240)"></use>
+					</g>
+				</svg>
+				<div class="countdown" style="font-size: 22px;text-shadow: 1px 1px 0px red;font-weight: bold;">SPECIAL EVENT</div>
+			</div>
+			<div class="countdown">
+				Event in 08:10:23
+			</div>
+			<div class="coverer">
+				<img src="/home/zekiah/rslashplace2.github.io/images/rplace.png" width="128" style="image-rendering: pixelated;">
+				<span class="coverer-title">rplace.live</span>
+				<span style="position: absolute;left: 50%;bottom: -48px;font-size: 32px;transform: translateX(-50%);white-space: nowrap;">Special event</span>
+			</div>
 		</div>
 	</body>
 	<script>

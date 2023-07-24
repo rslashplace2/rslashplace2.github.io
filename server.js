@@ -8,6 +8,7 @@ import fsExists from 'fs.promises.exists'
 import fetch from 'node-fetch'
 import util from 'util'
 import path from 'path'
+import genEmojiCaptcha from './zcaptcha/server.js'
 
 let BOARD, CHANGES, VOTES
 
@@ -215,12 +216,22 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     }
     if (CAPTCHA) {
         try {
-            throw "Unsupported. Please migrate to new server"
-            //let answer, imageData
-            //[answer, imageData] = (await genEmojiCaptcha()).split(" ")
-            //if (toValidate.has(IP)) toValidate.delete(IP) //if they try to reconnect while pending, we will give them a new one
-            //toValidate.set(IP, answer) 
-            //p.send(encoderUTF8.encode("\x10" + "\x03" + imageData)) //code, type, image as dataURI
+            const result = await genEmojiCaptcha()
+            if (!result) return
+            const encodedDummies = encoderUTF8.encode(result.dummies)
+
+            if (toValidate.has(IP)) toValidate.delete(IP) //if they try to reconnect while pending, we will give them a new one
+            toValidate.set(IP, result.answer)
+            let dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
+            dv.setUint8(0, 16)
+            dv.setUint8(1, 3)
+            dv.setUint8(2, encodedDummies.byteLength)
+            
+            const dataArray = new Uint8Array(result.data)
+            const dvArray = new Uint8Array(dv.buffer)
+            dvArray.set(encodedDummies, 3)
+            dvArray.set(dataArray, 3 + encodedDummies.byteLength)
+            p.send(dv)
         } catch (e) {
             console.error(e)
         }
