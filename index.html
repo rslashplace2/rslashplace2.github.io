@@ -595,14 +595,8 @@
 								el.setAttribute("type", "button")
 								el.setAttribute("value", emoji)
 								captchaOptions.appendChild(el)
-
-								// 0x10 = 16 (hex)
+								
 								el.addEventListener("click", (event) => {
-									call(send, ws, encoder.encode("\x10" + event.target.value))
-									captchaOptions.style.pointerEvents = "none"
-								})
-
-								el.addEventListener("touchend", (event) => {
 									call(send, ws, encoder.encode("\x10" + event.target.value))
 									captchaOptions.style.pointerEvents = "none"
 								})
