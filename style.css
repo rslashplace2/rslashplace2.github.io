@@ -532,6 +532,7 @@ place-chat-button > img {
 	align-items: center;
 	justify-content: center;
 	background: white;
+	overflow: hidden;
 }
 
 body[eventphase="0"] #eventCountdown {
@@ -579,6 +580,15 @@ body[eventphase="1"] #eventCountdown {
 	text-shadow: 4px 4px 0px black;
 	opacity: 0;
 	transition: .2s all;
+}
+
+.progressbar {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	height: 100%;
+	background-color: #add8e63d;transition: .5s width;
+	z-index: -1;
 }
 
 @media (max-width: 500px) {

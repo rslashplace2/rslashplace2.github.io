@@ -264,7 +264,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.on('message', async function (data) {
         switch (data[0]) {
             case 4: { // pixel place
-                if (data.length < 6 || LOCKED === true) return
+                if (data.length < 6 || LOCKED === true || toValidate.has(IP)) return
                 let i = data.readUInt32BE(1), c = data[5]
                 if (i >= BOARD.length || c >= PALETTE_SIZE) return
                 let cd = cooldowns.get(IP)
