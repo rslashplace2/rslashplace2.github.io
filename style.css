@@ -845,6 +845,17 @@ body[eventphase="3"] .coverer-title {
 	transform: scale(1.1);
 }
 
+#captchaImg {
+	display: block;
+	border: 1px solid grey;
+	position: relative;
+	width: 90px;
+	height: 90px;
+	border-radius: 5px;
+	image-rendering: pixelated;
+	align-self: center;
+}
+
 @media screen and (max-width:700px) {
 	#captchaPopup {
 		width: calc(100% - 16px);
@@ -1160,18 +1171,6 @@ kbd {
 }
 .rainbow-text {
 	animation: rainbow-text 5s infinite;
-}
-
-#capchaImg {
-	display: block;
-	border: 1px solid grey;
-	position: relative;
-	width: 90px;
-	height: 90px;
-	left: 50%;
-	transform: translateX(-50%);
-	border-radius: 5px;
-	image-rendering: pixelated;
 }
 
 #out #maincontent {

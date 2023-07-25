@@ -207,6 +207,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         p.codehash = codeHash
         if (url.startsWith("!")) {
             p.admin = true
+            toValidate.delete(IP)
             CD = 30
         }
         else {
@@ -214,7 +215,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             CD /= 2
         }
     }
-    if (CAPTCHA) {
+    
+    if (CAPTCHA && !p.admin) {
         try {
             const result = await genEmojiCaptcha()
             if (!result) return
