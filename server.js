@@ -8,7 +8,7 @@ import fsExists from 'fs.promises.exists'
 import fetch from 'node-fetch'
 import util from 'util'
 import path from 'path'
-import genEmojiCaptcha from './zcaptcha/server.js'
+import * as zcaptcha from './zcaptcha/server.js'
 
 let BOARD, CHANGES, VOTES
 
@@ -218,7 +218,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     
     if (CAPTCHA && !p.admin) {
         try {
-            const result = await genEmojiCaptcha()
+            const result = await zcaptcha.genEmojiCaptcha()
             if (!result) return
             const encodedDummies = encoderUTF8.encode(result.dummies)
 
