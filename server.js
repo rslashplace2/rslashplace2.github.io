@@ -9,6 +9,7 @@ import fetch from 'node-fetch'
 import util from 'util'
 import path from 'path'
 import * as zcaptcha from './zcaptcha/server.js'
+import { isUser } from 'ipapi-sync'
 
 let BOARD, CHANGES, VOTES
 
@@ -23,6 +24,7 @@ catch (e) {
         "WIDTH": 2000,
         "HEIGHT": 2000,
         "COOLDOWN": 1000,
+        "CAPTCHA": false,
         "PALETTE_SIZE": 32,
         "PALETTE": null,
         "USE_CLOUDFLARE": true,
@@ -32,13 +34,16 @@ catch (e) {
         "CHAT_WEBHOOK_URL": "",
         "MOD_WEBHOOK_URL": "",
         "CHAT_MAX_LENGTH": 400,
-        "CHAT_COOLDOWN_MS": 2500
+        "CHAT_COOLDOWN_MS": 2500,
+        "PUSH_INTERVAL_MINS": 30
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS } = JSON.parse(config)
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE,
+	PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS,
+	PUSH_INTERVAL_MINS } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -155,7 +160,7 @@ let BANS = new Map((await Promise.all(await fs.readFile('bansheets.txt')
 for (let banFin of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
     let parts = banFin?.split(" ")
     if (!parts || !parts.length) continue
-    BANS.set(parts[0], +parts[1] || Date.now() + 0xFFFFFFFF)
+    BANS.set(parts[0].trim(), parseInt(parts[1].trim()) || Date.now() + 0xFFFFFFFF)
 }
 let MUTES = new Map() // ip : finish (date Number)
 try { 
@@ -170,7 +175,7 @@ let printChatInfo = false
 let toValidate = new Map();
 const encoderUTF8 = new util.TextEncoder()
 
-let allowed = new Set(["rplace.tk", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
+let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
     return text
         .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cunt|dick|fag|faggot|jizz|lesbian|masturbat(e|ion)|nigga|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
@@ -182,7 +187,8 @@ function censorText(text) {
 
 wss.on('connection', async function (p, { headers, url: uri }) {
     p.ip = USE_CLOUDFLARE ? headers['x-forwarded-for'].split(',').pop().split(':', 4).join(':') : p._socket.remoteAddress.split(':', 4).join(':')
-    if ((USE_CLOUDFLARE && headers['origin'] != 'https://rplace.tk')) return p.close()
+    if (!isUser(p.ip)) { p.send(Buffer.of()); p.close(); return; }
+    if (USE_CLOUDFLARE && headers['origin'] != 'https://rplace.live' && headers['origin'] != 'https://rplace.tk') return p.close()
     const IP = p.ip
     if (!IP || IP.startsWith("%")) return p.close()
     let ipBanEnd = BANS.get(p.ip)
@@ -216,28 +222,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         }
     }
     
-    if (CAPTCHA && !p.admin) {
-        try {
-            const result = await zcaptcha.genEmojiCaptcha()
-            if (!result) return
-            const encodedDummies = encoderUTF8.encode(result.dummies)
+    if (CAPTCHA && !p.admin) await forceCaptchaSolve(p)
 
-            if (toValidate.has(IP)) toValidate.delete(IP) //if they try to reconnect while pending, we will give them a new one
-            toValidate.set(IP, result.answer)
-            let dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
-            dv.setUint8(0, 16)
-            dv.setUint8(1, 3)
-            dv.setUint8(2, encodedDummies.byteLength)
-            
-            const dataArray = new Uint8Array(result.data)
-            const dvArray = new Uint8Array(dv.buffer)
-            dvArray.set(encodedDummies, 3)
-            dvArray.set(dataArray, 3 + encodedDummies.byteLength)
-            p.send(dv)
-        } catch (e) {
-            console.error(e)
-        }
-    }
     p.lchat = 0 //last chat
     p.cdate = NOW //connection date
     p.pHistory = [] //place history
@@ -288,7 +274,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             }
             case 15: { // chat
                 let ipMuteEnd = MUTES.get(p.ip)
-                if (ipMuteEnd && ipMuteEnd > NOW) return
+                if (ipMuteEnd && ipMuteEnd > NOW || toValidate.has(IP)) return
                 else if (ipMuteEnd && ipMuteEnd < NOW) {
                     MUTES.delete(IP)
                     // TODO: Remove player from mutes file
@@ -310,11 +296,11 @@ wss.on('connection', async function (p, { headers, url: uri }) {
 
                 txt = censorText(txt)
                 if (!p.admin && !p.vip) {
-                    txt = txt.replace("@everyone", "everyone")
-                    txt = txt.replace("@here", "here")
+                    txt = txt.replaceAll("@everyone", "*********")
+                    txt = txt.replaceAll("@here", "*****")
                 }
                 else if (!p.admin) {
-                    txt = txt.replace("@everyone", "everyone")
+                    txt = txt.replaceAll("@everyone", "*********")
                 }
                 let res_name = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
                 name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
@@ -327,11 +313,11 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     return
                 }
                 try {
-                    txt = txt.replace("@", "")
-                    name = name.replace("@", "")
-                    messageChannel = messageChannel.replace("@", "")
+                    txt = txt.replaceAll("@", "")
+                    name = name.replaceAll("@", "")
+                    messageChannel = messageChannel.replaceAll("@", "")
 
-                    let msgHook = { username: `[${messageChannel}] ${name} @rplace.tk`, content: txt };
+                    let msgHook = { username: `[${messageChannel}] ${name} @rplace.live`, content: txt }
                     await fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                 } catch (err) {
                     console.log("Could not post chat message to discord: " + err)
@@ -401,7 +387,32 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     if (action == 1) mute(actionCli, actionTimeS)
                     else if (action == 2) ban(actionCli)
                 }
-                
+                if (action == 3) { // Force captcha revalidation
+                    let actionUidLen = data[2]
+                    let actionTxt = data.slice(3).toString()
+                    let actionUid = actionTxt.slice(0, actionUidLen)
+                    let actionCli = null
+
+                    if (actionUidLen != 0) {
+	                    let actionCli = null
+	                    for (let [p, uid] of playerUids) {
+	                        if(uid === actionUid) actionCli = p
+	                    }
+	                    if (actionCli == null) return
+                        
+                        await forceCaptchaSolve(actionCli)
+					}
+					else {
+						for (let c of wss.clients) {
+                            forceCaptchaSolve(c)
+						}
+					}
+					
+					let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
+                	modMessage = `Moderator ${p.ip} (${p.codehash}) requested to force captcha revalidation for
+                	                        }  ${actionUidLen == 0 ? '**all clients**' : ('user' + actionCli.ip)}, with reason: '${actionReason}`
+                }
+
                 if (!modMessage) return
                 console.log(modMessage)
                 if (!MOD_WEBHOOK_URL) return
@@ -429,16 +440,54 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         playerUids.delete(p)
     })
 })
+
 let NOW = Date.now()
 setInterval(() => {
     NOW = Date.now()
 }, 50)
+
+/**
+ * Force a client to redo the captcha
+ * @param {string|WebSocket} identifier - String client ip address or client websocket instance
+*/
+async function forceCaptchaSolve(identifier) {
+	let cli = identifier
+    if (typeof identifier === "string") {
+    	for (let c of wss.clients) {
+    		if (c.ip === identifier) cli = identifier
+    	}
+    }
+    if (!cli) return
+    
+    try {
+        const result = await zcaptcha.genEmojiCaptcha()
+        if (!result) return cli.close()
+        const encodedDummies = encoderUTF8.encode(result.dummies)
+
+        toValidate.set(cli.ip, result.answer)
+        let dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
+        dv.setUint8(0, 16)
+        dv.setUint8(1, 3)
+        dv.setUint8(2, encodedDummies.byteLength)
+
+        const dataArray = new Uint8Array(result.data)
+        const dvArray = new Uint8Array(dv.buffer)
+        dvArray.set(encodedDummies, 3)
+        dvArray.set(dataArray, 3 + encodedDummies.byteLength)
+        cli.send(dv)
+    }
+    catch (e) {
+        console.error(e)
+        cli.close()
+    }
+}
 
 import { exec } from 'child_process'
 
 async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--)if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "place"), BOARD)
+	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), (e) => { }).catch((e) => { })
     await new Promise((r, t) => exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`, e => e ? t(e) : r()))
 
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
@@ -449,6 +498,7 @@ async function pushImage() {
     }, 200e3)
 }
 setInterval(function () {
+    fs.appendFile("./pxps.txt", "\n" + newPos.length)
     if (!newPos.length) return
     let pos
     let buf = Buffer.alloc(1 + newPos.length * 5)
@@ -478,9 +528,10 @@ setInterval(async function () {
         c.send(infoBuffer)
     }
 
+    fs.appendFile("./stats.txt", "\n" + players)
     if (LOCKED) return
-    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change"), CHANGES)
-    if (pushTick % 720 == 0) {
+    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
+    if (pushTick % (((PUSH_INTERVAL_MINS || 60) / 5 * 60)) == 0) {
         try {
             await pushImage()
             await fs.writeFile('./votes', VOTES)
@@ -549,7 +600,7 @@ function ban(identifier, duration) {
 
     let finish = NOW + duration * 1000
     BANS.set(ip, finish)
-    fs.appendFile("blacklist.txt", `\n ${ip} ${finish}`)
+    fs.appendFile("blacklist.txt", `\n${ip} ${finish}`)
 }
 
 /**
@@ -578,3 +629,5 @@ function announce(msg, channel, p = null) {
     if (p != null) p.send(dv)
     else for (let c of wss.clients) c.send(dv)
 }
+
+process.on('uncaughtException', console.warn)

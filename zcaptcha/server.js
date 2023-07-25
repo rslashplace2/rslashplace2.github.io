@@ -22,7 +22,7 @@ export let dummiesCount = 10
  * @function emojiCaptcha
  * @returns {Promise<{ data: Buffer, answer: string, dummies: string }>|null} A promise that resolves to an object with the captcha data.
  */
-async function genEmojiCaptcha() {
+export async function genEmojiCaptcha() {
     const dummiesPos = Math.floor(Math.random() * (emojis.length - Math.min(dummiesCount, emojis.length)))
     const dummies = emojis.slice(dummiesPos, dummiesPos + dummiesCount)
     const answer = dummies[Math.floor(Math.random() * dummies.length)]
