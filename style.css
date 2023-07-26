@@ -75,6 +75,9 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
+	/* Needs a default value to hide anything behind that is still loading */
+	background-color: white;
+	transition: .2s background-color;
 }
 
 btn{
