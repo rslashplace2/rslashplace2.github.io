@@ -2,7 +2,6 @@ const eventCountdown = document.getElementById("eventCountdown")
 const posel = document.getElementById("posel")
 const body = document.body
 
-
 let cdInterval = -1
 async function startCountDown(finDate) {
     let tick = 0

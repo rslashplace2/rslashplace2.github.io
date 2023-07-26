@@ -174,6 +174,7 @@ try {
 
 let printChatInfo = false
 let toValidate = new Map()
+let captchaFailed = new Map()
 const encoderUTF8 = new util.TextEncoder()
 
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
@@ -292,7 +293,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 if (!txt || !name || !messageChannel) return
                 if (printChatInfo) {
                     let date = new Date()
-                    console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name} (${IP}/${uid}), (${messageChannel}) content: ${txt}`)
+                    console.log(`[${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] username: ${name} (${IP}/${playerUids.get(p)}), (${messageChannel}) content: ${txt}`)
                 }
 
                 txt = censorText(txt)
@@ -329,6 +330,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 let response = data.slice(1).toString()
                 let info = toValidate.get(p)
                 if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
+                    captchaFailed.delete(IP, info)
                     toValidate.delete(p)
                     let dv = new DataView(new ArrayBuffer(2))
                     dv.setUint8(0, 16)
@@ -336,9 +338,16 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     p.send(dv)
                 }
                 else {
-                    return p.close()
+                    let info = { fails: (captchaFailed.get(IP) || 0) + 1, last: NOW }
+                    captchaFailed.set(IP, info)
+                    let acceptableFails = Math.min(zcaptcha.dummiesCount / 2, 10)
+                    if (info.fails < acceptableFails) return p.close()
+                    let banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
+                    ban(IP, banLengthS)
+                    modWebhookLog(`Client **${IP}** **banned** by server for **${banLengthS
+                        }** seconds for failing captcha **${info.fails}** times`)
                 }
-                break;
+                break
             }
             case 20: {
                 p.voted ^= 1 << data[1]
@@ -365,8 +374,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
 
                     if (action == 0) { // kick
-                        modMessage = `Moderator ${p.ip} (${p.codehash}) requested to kick user ${
-                            actionCli.ip}, with reason: '${actionReason}'`
+                        modMessage = `Moderator (${p.codehash}) requested to **kick** user **${
+                            actionCli.ip}**, with reason: '${actionReason}'`
                         actionCli.close()
                     }
                 }
@@ -383,8 +392,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     if (actionCli == null) return
 
                     let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                    modMessage = `Moderator ${p.ip} (${p.codehash}) requested to ${["mute", "ban"][action - 1]
-                        } user ${actionCli.ip}, for ${actionTimeS}, with reason: '${actionReason}'`
+                    modMessage = `Moderator (${p.codehash}) requested to **${["mute", "ban"][action - 1]
+                        }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`
 
                     if (action == 1) mute(actionCli, actionTimeS)
                     else if (action == 2) ban(actionCli)
@@ -396,11 +405,11 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let actionCli = null
 
                     if (actionUidLen != 0) {
-	                    let actionCli = null
-	                    for (let [p, uid] of playerUids) {
-	                        if(uid === actionUid) actionCli = p
-	                    }
-	                    if (actionCli == null) return
+                        let actionCli = null
+                        for (let [p, uid] of playerUids) {
+                            if(uid === actionUid) actionCli = p
+                        }
+                        if (actionCli == null) return
                         
                         await forceCaptchaSolve(actionCli)
 					}
@@ -411,8 +420,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
 					}
 					
 					let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                	modMessage = `Moderator ${p.ip} (${p.codehash}) requested to force captcha revalidation for
-                	                        }  ${actionUidLen == 0 ? '**all clients**' : ('user' + actionCli.ip)}, with reason: '${actionReason}`
+                    modMessage = `Moderator (${p.codehash}) requested to **force captcha revalidation** for 
+                        }  ${actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`
                 }
 
                 if (!modMessage) return
@@ -420,6 +429,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 if (!MOD_WEBHOOK_URL) return
                 let msgHook = { username: "RPLACE SERVER", content: modMessage }
                 await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
+                break
             }
             case 99: {
                 if (p.admin !== true) return
@@ -444,6 +454,14 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     })
 })
 
+async function modWebhookLog(string) {
+    console.log(string)
+
+    if (!MOD_WEBHOOK_URL) return
+    let msgHook = { username: "RPLACE SERVER", content: string }
+    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+}
+
 let NOW = Date.now()
 setInterval(() => {
     NOW = Date.now()
@@ -456,9 +474,9 @@ setInterval(() => {
 async function forceCaptchaSolve(identifier) {
 	let cli = identifier
     if (typeof identifier === "string") {
-    	for (let c of wss.clients) {
-    		if (c.ip === identifier) cli = identifier
-    	}
+        for (let c of wss.clients) {
+            if (c.ip === identifier) cli = identifier
+        }
     }
     if (!cli) return
     
@@ -522,7 +540,12 @@ setInterval(function () {
     if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
         for (let [c, info] of toValidate.entries()) {
             if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) { c.close() }
-        }    
+        }
+
+        // How long before the server will forget their captcha fails
+        for (let [ip, info] of captchaFailed.entries()) {
+            if (info.last + 2 ** info.fails < NOW) captchaFailed.delete(ip)
+        }
     }
     captchaTick++
 }, 1000)

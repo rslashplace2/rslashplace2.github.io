@@ -9,5 +9,8 @@
     "sha256": "^0.2.0",
     "websocket": "^1.0.34",
     "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.45.0"
   }
 }
