@@ -869,7 +869,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.12" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.13" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1217,7 +1217,8 @@
 				</div>
 			</div>
 			<div class="chat-header" noselect>
-				<h2 style="white-space:nowrap" translate="liveChat">Live Chat:</h2>
+				<p style="white-space:nowrap" translate="liveChat" style="display: none;" style="display: none;" class="live-chat-header2">Live Chat:</p>
+				<h2 style="white-space:nowrap" translate="liveChat" class="live-chat-header1">Live Chat:</h2>
 				<div class="channels-options">
 					<!--
 						Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see
@@ -1282,9 +1283,11 @@
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">
 			</div>
-			<div id="messageEmojisPanel" class="chat-input-panel" closed></div>
-			<input id="messageInput" onclick="chatPanel.classList.add('open')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="color: black;">
-			<div class="messageOptions" style="bottom: 10px; right: 10px;" onclick="messageTypePanel.toggleAttribute('closed')">...</div>			
+			<div id="messageEmojisPanel" class="chat-input-panel" closed><!--Message emoji suggestions--></div>
+			<div style="display: flex; column-gap: 8px; z-index: 1;">
+				<input id="messageInput" onclick="chatPanel.classList.add('open')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
+				<div class="messageOptions" onclick="messageTypePanel.toggleAttribute('closed')">...</div>
+			</div>
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>

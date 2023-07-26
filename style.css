@@ -551,8 +551,6 @@ body[eventphase="3"] .coverer-title {
 }
 
 #playerIcon {
-	display: inline-block;
-	color: white;
 	height: 80%;
 }
 
@@ -572,9 +570,7 @@ body[eventphase="3"] .coverer-title {
 }
 
 #onlinepanel {
-	background: rgba(0, 0, 0, 0.6);
 	height: 25px;
-	border-radius: 20px;
 	padding: 3px;
 	display: flex;
 	gap: 3px;
@@ -634,8 +630,6 @@ body[eventphase="3"] .coverer-title {
 .channels-options {
 	position: relative;
 	height: 25px;
-	border-radius: 20px;
-	box-shadow: 0 0 10px rgba(0,0,0,0.4);
 	display: flex;
 	flex-direction: row;
 	cursor: pointer;
@@ -745,23 +739,13 @@ body[eventphase="3"] .coverer-title {
 	}
 }
 
-#messageInput {
-	flex-shrink: 0;
-	width: calc(100% - 40px);
-	z-index: 1;
-}
-
 /* Used by messageTypePanel and messageEmojisPanel, displays just above chat input */
 .chat-input-panel {
-	padding: 5px;
-	background: white;
-	border: 1px solid lightgray;
 	position: absolute;
 	bottom: 0px;
 	left: 0px;
 	height: 100px;
 	width: 100%;
-	border-radius: 5px 5px 10px 10px;
 	overflow: clip;
 	transition: .3s height, .0s visibility, .2s opacity;
 	transition-delay: 0s, .2s;
@@ -799,18 +783,6 @@ body[eventphase="3"] .coverer-title {
 	position: absolute;
 	box-shadow: none;
 	border: 1px solid lightgray;
-}
-
-.messageOptions {
-	width: 35px;
-	height: 35px;
-	position: absolute;
-	text-align: center;
-	line-height: 35px;
-	cursor: pointer;
-	font-weight: bolder;
-	border-radius: 10px;
-	box-shadow: 0px 0px 5px gray;
 }
 
 #namePanel {

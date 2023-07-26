@@ -1,5 +1,4 @@
 // Service worker for PWA installation
-/*
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches
@@ -81,4 +80,3 @@ self.addEventListener('fetch', (event) => {
       })()
     )
 })
-*/

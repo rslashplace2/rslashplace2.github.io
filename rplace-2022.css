@@ -182,6 +182,7 @@ a {
 #closebtn {
 	right: unset;
 	left: 20px;
+	top: 20px;
 	text-align: center;
 	font-size: 25px;
 	line-height: 8px;
@@ -243,4 +244,48 @@ a {
 	z-index: 5;
 	font-family: mono;
 	transition: .2s border-radius;
+}
+
+.messageOptions {
+	height: 35px;
+	aspect-ratio: 1/1;
+	text-align: center;
+	line-height: 35px;
+	cursor: pointer;
+	font-weight: bolder;
+	border-radius: 10px;
+	box-shadow: 0px 0px 5px gray;
+}
+
+.chat-input-panel {
+	padding: 5px;
+	background: white;
+	border: 1px solid lightgray;
+	border-radius: 5px 5px 10px 10px;
+}
+
+.channels-options {
+	border-radius: 20px;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+/* TODO: Unjank */
+.live-chat-header1 {
+	display: block !important;
+}
+.live-chat-header2 {
+	display: none;
+}
+
+#onlinepanel {
+	background: rgba(0, 0, 0, 0.6);
+	border-radius: 20px;
+}
+
+#playerIcon {
+	color: white;
+}
+
+#onlineCounter {
+    color: white;
 }
