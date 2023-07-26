@@ -1,0 +1,24 @@
+<svg fill="none" viewBox="0 0 26 28" xmlns="http://www.w3.org/2000/svg" width="146%" height="141%">
+    <rect x="3" y="3" width="3" height="7" fill="black"></rect>
+    <rect width="3" height="7" transform="matrix(-1 0 0 1 23 3)" fill="black"></rect>
+    <rect width="3" height="7" transform="matrix(-1 0 0 1 26 3)" fill="#E2E7E9"></rect>
+    <rect y="3" width="3" height="7" fill="#E2E7E9"></rect>
+    <rect width="3" height="7" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 23 26)" fill="#E2E7E9"></rect>
+    <rect x="3" y="26" width="3" height="7" transform="rotate(-90 3 26)" fill="#E2E7E9"></rect>
+    <rect width="3" height="10" transform="matrix(1.19249e-08 -1 -1 -1.19249e-08 26 3)" fill="#E2E7E9"></rect>
+    <rect y="3" width="3" height="10" transform="rotate(-90 0 3)" fill="#E2E7E9"></rect>
+    <rect width="3" height="10" transform="matrix(1 5.56363e-08 5.56363e-08 -1 23 26)" fill="#E2E7E9"></rect>
+    <rect x="3" y="26" width="3" height="10" transform="rotate(180 3 26)" fill="#E2E7E9"></rect>
+    <rect x="3" y="23" width="3" height="7" transform="rotate(-90 3 23)" fill="black"></rect>
+    <rect width="3" height="7" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 23 23)" fill="black"></rect>
+    <rect x="10" y="3" width="3" height="7" transform="rotate(90 10 3)" fill="black"></rect>
+    <rect opacity="0.5" x="10" y="26" width="2" height="10" transform="rotate(90 10 26)" fill="black"></rect>
+    <rect opacity="0.5" x="26" y="26" width="2" height="10" transform="rotate(90 26 26)" fill="black"></rect>
+    <rect opacity="0.5" x="10" y="6" width="2" height="4" transform="rotate(90 10 6)" fill="black"></rect>
+    <rect opacity="0.5" x="6" y="10" width="2" height="6" transform="rotate(90 6 10)" fill="black"></rect>
+    <rect opacity="0.5" x="26" y="10" width="2" height="6" transform="rotate(90 26 10)" fill="black"></rect>
+    <rect opacity="0.5" x="20" y="6" width="2" height="4" transform="rotate(90 20 6)" fill="black"></rect>
+    <rect width="3" height="7" transform="matrix(4.37114e-08 1 1 -4.37114e-08 16 3)" fill="black"></rect>
+    <rect x="3" y="16" width="3" height="7" fill="black"></rect>
+    <rect width="3" height="7" transform="matrix(-1 0 0 1 23 16)" fill="black"></rect>
+</svg>

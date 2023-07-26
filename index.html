@@ -733,8 +733,7 @@
 
 				//"Shift+O" to open overlay menu
 				if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
-					if (overlayMenu.opened) closeOverlayMenu()
-					else openOverlayMenu()
+					overlayMenu.toggleAttribute("opened")
 				}
 				
 				//Begin palette commands
@@ -895,7 +894,7 @@
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
 				<div style="display: flex;">
 					<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;flex-grow: 1;">Overlay:</h2>
-					<icon-close noselect="" class="close-button" onclick="closeOverlayMenu()" class="active">
+					<icon-close noselect="" class="close-button" onclick="overlayMenu.removeAttribute('opened')" class="active">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 							<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 						</svg>
@@ -1174,7 +1173,7 @@
 					<img src="images/timelapse.png">
 					<div><div>Timelapse tool</div>Combine a sequence from the history of the canvas to create your own timelapse video!</div>
 				</div>
-				<div onclick="openOverlayMenu()" class="post">
+				<div onclick="overlayMenu.setAttribute('opened', 'true')" class="post">
 					<img src="images/hammer-and-wrench.png">
 					<div><div translate="overlayMenu">Overlay menu</div><span translate="overlayMenuDesciption">Visualise your build with a template image!</span></div>
 				</div>
@@ -1692,7 +1691,7 @@
 						x = overlayInfo.x
 						y = overlayInfo.y
 						pos()
-						openOverlayMenu()
+						overlayMenu.setAttribute('opened', 'true')
 						break
 				}
 			}
@@ -2297,10 +2296,6 @@
 			document.getElementById("tlTimer").innerText = ((elapsedTime / 1000).toFixed(3)) + "s"
 		}
 
-		function closeOverlayMenu() {
-			overlayMenu.style.transform = "translateX(-50%) translateY(-330px)"
-			overlayMenu.opened = false
-		}
 
 		function openOverlayMenu() {
 			overlayMenu.style.transform = "translateX(-50%)"

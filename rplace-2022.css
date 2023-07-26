@@ -1,0 +1,246 @@
+select {
+	background-color: white;
+	border-radius: 10px;
+	font-size: 16px;
+	border: 1px solid gray;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	height: 35px;
+	padding: 5px;
+	font-family: bold;
+	color: #747474;
+}
+
+input{
+	-webkit-appearance: none;
+	background: transparent;
+	outline: none;
+	border-top: 2px #333 solid;
+	border-left: 2px #333 solid;
+	border-bottom: 2px #777 solid;
+	border-right: 2px #777 solid;
+	font: unset;
+	color: unset;
+	width: 4rem;
+	border-radius: 0;
+}
+
+input[type=file]::file-selector-button {
+	border-radius: 5px;
+	background-color: white;
+	border: 0px solid black;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	height: 100%;
+}
+
+input[type=range]::-moz-range-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+	position: relative;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+	border: 1px solid darkgray;
+	border-radius: 5px;
+	background: white;
+	cursor: pointer;
+}
+
+input {
+	background-color: white;
+	border-radius: 10px;
+	font-size: 16px;
+	border: none;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	height: 35px;
+	padding: 5px;
+}
+
+a {
+	cursor: pointer;
+}
+
+#loadingScreen {
+    background: #d6dfe3;
+}
+
+#modal {
+    background: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    border-radius: 8px;
+    width: min(325px, calc(100% - 64px));
+    padding: 24px;
+}
+
+@media (max-width:500px){
+	#modal {
+		padding: 16px;
+	}
+
+	.modal-install {
+		width: 100% !important;
+	}
+
+	.modal-footer {
+		margin-top: 16px;
+	}
+}
+
+.modal-close-button {
+	width: 20px;
+  	height: 20px;
+  	font-size: 20px;
+  	cursor: pointer;
+	display: inline-block;
+	fill: currentcolor;
+	vertical-align: middle;
+	line-height: 1em;
+}
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+}
+
+.modal-content{
+	font-family: reddit;
+	font-size: 18px;
+	line-height: 20px;
+	margin: 0px 0px 20px;
+}
+
+.modal-install {
+	height: 40px;
+	background: white;
+	align-self: center;
+	width: 60%;
+	border: 1px solid lightgray;
+	border-radius: 40px;
+	text-align: center;
+	line-height: 40px;
+	cursor: pointer;
+	transition: .1s border;
+}
+
+.modal-install:hover {
+	border: 2px solid #ff4500;
+	line-height: 38px;
+}
+
+.modal-footer {
+	margin-top: 16px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+}
+
+/* Layout buttons */
+.layout {
+	display: block;
+	width: 36px;
+	height: 36px;
+	padding: 8px;
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border-radius: 18px;
+	position: absolute;
+	cursor: pointer;
+	background: white;
+	fill: currentcolor;
+	z-index: 5;
+}
+
+#helpbtn {
+	top: 20px;
+	right: 20px;
+}
+
+#chatbtn {
+	bottom: 20px;
+	right: 20px;
+	line-height: 15px;
+	background: white;
+	border-radius: 100px;
+	text-align: center;
+	z-index: 5;
+	cursor: pointer;
+}
+
+#closebtn {
+	right: unset;
+	left: 20px;
+	text-align: center;
+	font-size: 25px;
+	line-height: 8px;
+}
+
+#discordbtn{
+	right: unset;
+	left: 20px;
+	text-align: center;
+	font-size: 25px;
+	line-height: 8px;
+	top: unset;
+	bottom: 20px;
+	background: url(images/discord.png) center/22px no-repeat, white;
+}
+
+#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
+	box-shadow: 0 0 30px black;
+}
+
+#place {
+	min-width: 155px;
+	height: 24px;
+	padding: 5px;
+	line-height: 15px;
+	background: white;
+	border-radius: 100px;
+	cursor: pointer;
+}
+
+#chatPanel {
+	border-radius: 10px;
+	background-color: white;
+	padding: 10px;
+}
+#chatPanel.open {
+	box-shadow: 0 0 30px black;
+}
+
+.toastMenu {
+    padding: 10px;
+	line-height: 17px;
+	background: white;
+	border-radius: 15px;
+}
+
+#posel{
+	position: absolute;
+	top: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 155px;
+	height: 24px;
+	padding: 5px;
+	line-height: 17px;
+	background: white;
+	border-radius: 100px;
+	text-align: center;
+	z-index: 5;
+	font-family: mono;
+	transition: .2s border-radius;
+}

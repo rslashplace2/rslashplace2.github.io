@@ -853,11 +853,16 @@ body[eventphase="3"] .coverer-title {
 
 .toastMenu {
 	position: absolute;
+	display: none;
 	top: 60px;
 	left: 50%;
 	width: 380px;
-	transition: all .2s ease-in;
 	z-index: 5;
+	transform: translateX(-50%)
+}
+
+.toastMenu[opened] {
+	display: block;
 }
 
 #serverInput {
