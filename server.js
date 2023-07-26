@@ -35,7 +35,8 @@ catch (e) {
         "MOD_WEBHOOK_URL": "",
         "CHAT_MAX_LENGTH": 400,
         "CHAT_COOLDOWN_MS": 2500,
-        "PUSH_INTERVAL_MINS": 30
+        "PUSH_INTERVAL_MINS": 30,
+        "CAPTCHA_EXPIRY_SECS": 45
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
@@ -43,7 +44,7 @@ catch (e) {
 }
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE,
 	PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS,
-	PUSH_INTERVAL_MINS } = JSON.parse(config)
+	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -172,7 +173,7 @@ try {
 } catch(e) {}
 
 let printChatInfo = false
-let toValidate = new Map();
+let toValidate = new Map()
 const encoderUTF8 = new util.TextEncoder()
 
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
@@ -213,7 +214,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
         p.codehash = codeHash
         if (url.startsWith("!")) {
             p.admin = true
-            toValidate.delete(IP)
+            toValidate.delete(p)
             CD = 30
         }
         else {
@@ -252,7 +253,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.on('message', async function (data) {
         switch (data[0]) {
             case 4: { // pixel place
-                if (data.length < 6 || LOCKED === true || toValidate.has(IP)) return
+                if (data.length < 6 || LOCKED === true || toValidate.has(p)) return
                 let i = data.readUInt32BE(1), c = data[5]
                 if (i >= BOARD.length || c >= PALETTE_SIZE) return
                 let cd = cooldowns.get(IP)
@@ -274,7 +275,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             }
             case 15: { // chat
                 let ipMuteEnd = MUTES.get(p.ip)
-                if (ipMuteEnd && ipMuteEnd > NOW || toValidate.has(IP)) return
+                if (ipMuteEnd && ipMuteEnd > NOW || toValidate.has(p)) return
                 else if (ipMuteEnd && ipMuteEnd < NOW) {
                     MUTES.delete(IP)
                     // TODO: Remove player from mutes file
@@ -325,9 +326,10 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 break
             }
             case 16: {
-                let rsp = data.slice(1).toString()
-                if (rsp === toValidate.get(IP)) {
-                    toValidate.delete(IP)
+                let response = data.slice(1).toString()
+                let info = toValidate.get(p)
+                if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
+                    toValidate.delete(p)
                     let dv = new DataView(new ArrayBuffer(2))
                     dv.setUint8(0, 16)
                     dv.setUint8(1, 255)
@@ -438,6 +440,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     p.on('close', function () { 
         players--
         playerUids.delete(p)
+        toValidate.delete(p)
     })
 })
 
@@ -464,7 +467,7 @@ async function forceCaptchaSolve(identifier) {
         if (!result) return cli.close()
         const encodedDummies = encoderUTF8.encode(result.dummies)
 
-        toValidate.set(cli.ip, result.answer)
+        toValidate.set(cli, { start: NOW, answer: result.answer })
         let dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
         dv.setUint8(0, 16)
         dv.setUint8(1, 3)
@@ -497,6 +500,8 @@ async function pushImage() {
         for (let i = curr.length - 1; i >= 0; i--)if (curr[i] == CHANGES[i]) CHANGES[i] = 255
     }, 200e3)
 }
+
+let captchaTick = 0
 setInterval(function () {
     fs.appendFile("./pxps.txt", "\n" + newPos.length)
     if (!newPos.length) return
@@ -512,6 +517,14 @@ setInterval(function () {
     for (let c of wss.clients) {
         c.send(buf)
     }
+
+    // Captcha tick
+    if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
+        for (let [c, info] of toValidate.entries()) {
+            if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) { c.close() }
+        }    
+    }
+    captchaTick++
 }, 1000)
 
 let pushTick = 0
@@ -531,7 +544,7 @@ setInterval(async function () {
     fs.appendFile("./stats.txt", "\n" + players)
     if (LOCKED) return
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
-    if (pushTick % (((PUSH_INTERVAL_MINS || 60) / 5 * 60)) == 0) {
+    if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
         try {
             await pushImage()
             await fs.writeFile('./votes', VOTES)
