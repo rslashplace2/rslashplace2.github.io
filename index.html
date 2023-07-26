@@ -2173,7 +2173,7 @@
 			let link = document.createElement("link")
 			link.rel = "stylesheet"
 			link.type = "text/css"
-			link.href = set.css
+			link.href = set.css + "?v=" + Date.now() // TEMP FIX: Annoying theme caching
 			document.head.appendChild(link)
 			curStylesheet = link
 
