@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-constant-condition */
+/* eslint-disable no-undef */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { WebSocketServer } from 'ws'
@@ -145,12 +148,12 @@ for (let i = 0; i < criticalFiles.length; i++) {
 let players = 0
 let playerUids = new Map() // Player ws instance : Uid 
 let VIP = new Set()
-try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { }
+try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { /* ignored */ }
 let RESERVED_NAMES = new DoubleMap()
 try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
     let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
     for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
-} catch (e) { }
+} catch (e) { /* ignored */ }
 let BANS = new Map((await Promise.all(await fs.readFile('bansheets.txt')
     .then(bansheets => bansheets.toString().trim().split('\n')
     .map(banListUrl => fetch(banListUrl)
@@ -170,7 +173,7 @@ try {
         if (!muteFin || !parts || !parts.length) continue
         MUTES.set(parts[0], +parts[1] || Date.now() + 0xFFFFFFFF)
     }
-} catch(e) {}
+} catch(e) { /* ignored */ }
 
 let printChatInfo = false
 let toValidate = new Map()
@@ -330,7 +333,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 let response = data.slice(1).toString()
                 let info = toValidate.get(p)
                 if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
-                    captchaFailed.delete(IP, info)
+                    captchaFailed.delete(IP)
                     toValidate.delete(p)
                     let dv = new DataView(new ArrayBuffer(2))
                     dv.setUint8(0, 16)

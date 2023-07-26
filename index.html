@@ -333,6 +333,11 @@
 			name: "<kbd>Change your username</kbd>",
 			vip: "<kbd>Apply a VIP cooldown code</kbd>"
 		}
+
+		const THEMES = [
+			{ css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" },
+			{ css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" },
+		]
 	</script>
 	<script>
 		// csrfstate not used at the moment, may be later to encode some extra info for client
@@ -347,7 +352,7 @@
 			else if (query == "state") csrfState = val
 			else if (query == "code") redditOauthCode = val // Make sure to remove the trailing #_
 		}
-		if (serverChange) window.location.reload()
+		if (serverChange) window.location.reload()		
 		
 		// Register PWA Service worker
 		if ('serviceWorker' in navigator)
@@ -874,7 +879,7 @@
 <meta name="theme-color" content="#ff4500">
 </head>
 	<body>
-		<div id="loadingScreen" style="background: #d6dfe3; z-index: 20; transition:opacity .3s; opacity:1; position:fixed; top:0; left:0; bottom:0; right:0; display:flex; justify-content:center; align-items:center">
+		<div id="loadingScreen">
 			<img src="images/rplace-loader.gif" style="position: absolute; width: 128px; height: 128px; z-index: 22;"/>
 			<canvas id="waitingGameCanvas" style="width: 100%; height: 100%; z-index: 21;"></canvas>
 			<div id="connproblems">
@@ -888,12 +893,14 @@
 		<div id="maincontent">
 			<div id="posel" noselect>(0,0) 2.5x</div>
 			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
-				<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;">Overlay:</h2>
-				<icon-close noselect="" class="modal-close-button" onclick="closeOverlayMenu()" class="active" style="flex: initial; position: absolute; right: 10px;">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-					</svg>
-				</icon-close>
+				<div style="display: flex;">
+					<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;flex-grow: 1;">Overlay:</h2>
+					<icon-close noselect="" class="close-button" onclick="closeOverlayMenu()" class="active">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+							<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+						</svg>
+					</icon-close>
+				</div>
 				<br><br>
 				<input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
 				<input value="" type="number" onchange="
@@ -965,7 +972,7 @@
 			</div>
 			<div id="canvparent2" noselect>
 				<div id="canvselect">
-					<img src="svg/pixel-select.svg" style="position: absolute; top: -10%; left: -10%; width: 120%; height: 120%" ondragstart="return false">
+					<img theme="pixelselect" src="svg/pixel-select-2022.svg" style="position: absolute; top: -10%; left: -10%; width: 120%; height: 120%" ondragstart="return false">
 				</div>
 				<img id="templateImage" width="auto" height="auto" ondrag="return">
 			</div>
@@ -978,11 +985,11 @@
 				<a style="text-align: center;" href=".">(generate new captcha)</a>
 				<div id="captchaOptions"><!--clickable captcha answers--></div>
 			</div>
-			<div id="chat" noselect onclick="chatPanel.classList.add('open')">
+			<div id="chatbtn" class="layout" noselect onclick="chatPanel.classList.add('open')">
 				<img src="svg/chat.svg" style="width:16px; height:21px">
 			</div>
 			<div id="popup" style="height:calc(65.2vmin + 36px);display:none">
-				<icon-close noselect="" class="modal-close-button" onclick="popup.remove()" style="position: absolute;top: 9px;right: 12px;">
+				<icon-close noselect="" class="close-button" onclick="popup.remove()" style="position: absolute;top: 9px;right: 12px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 					</svg>
@@ -992,7 +999,7 @@
 				" onclick="window.open('https://www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
 				<div noselect="" style="position: absolute;top: 9px;left: 14px;font-size: 1.2em;">Special event!</div>			
 			</div>
-			<div noselect id="helpbtn" onclick="
+			<div noselect id="helpbtn" class="layout" onclick="
 				if (modal.style.display == 'flex') {
 					modal.style.display = 'none'
 					bg.style.display = 'none'
@@ -1004,7 +1011,7 @@
 			">
 				<img src="svg/help.svg">
 			</div>
-			<div noselect id="closebtn" onclick="
+			<div noselect id="closebtn" class="layout" onclick="
 				bg.style.opacity = '0.5'
 				bg.style.display = 'block'
 				messageInput.blur()
@@ -1012,22 +1019,22 @@
 				document.body.id = 'out'
 				window.onresize()
 			">...</div>
-			<div noselect id="discordbtn" onclick="window.open('https://discord.gg/4XnZ9WGux2')"></div>
+			<div noselect id="discordbtn" class="layout" onclick="window.open('https://discord.gg/4XnZ9WGux2')"></div>
 			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
-				<div id="modal" style="display:none"><div id="modal-header">
+			<div id="modal" style="display:none">
+				<div class="modal-header">
 					<h2>Place</h2>
-					<icon-close noselect class="modal-close-button" onclick="
+					<icon-close noselect class="close-button" onclick="
 						modal.style.display='none'
-						bg.style.display='none'
-					">
+						bg.style.display='none'">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
 							<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path>
 						</svg>
 					</icon-close>
 				</div>
-				<div id="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-				<div id="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
-				<div id="modal-footer">
+				<div class="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
+				<div class="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
+				<div class="modal-footer">
 					<mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
 						muted = !muted
 						localStorage.muted =+ muted
@@ -1210,7 +1217,7 @@
 					</button>
 				</div>
 			</div>
-			<div style="display: flex; flex-direction: row; justify-content: space-between; align-items:center" noselect>
+			<div class="chat-header" noselect>
 				<h2 style="white-space:nowrap" translate="liveChat">Live Chat:</h2>
 				<div class="channels-options">
 					<!--
@@ -1237,7 +1244,7 @@
 						<path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
 					</svg>
 				</div>
-				<icon-close noselect="" class="modal-close-button" onclick="
+				<icon-close noselect="" class="close-button" onclick="
 					messageInput.blur()
 					chatPanel.classList.remove('open')
 				" class="active">
@@ -1282,7 +1289,7 @@
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
 			<h2>Timelapse Tool</h2>
-			<icon-close noselect="" class="modal-close-button" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
+			<icon-close noselect="" class="close-button" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 					<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 				</svg>
@@ -1307,7 +1314,7 @@
                 <h4 style="margin: 0px;">My account</h4>
             </div>
             <div class="body" style="overflow-y: scroll;" id="unauthedPage">
-				<icon-close noselect class="modal-close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
+				<icon-close noselect class="close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 					</svg>
@@ -1356,7 +1363,7 @@
 			</div>
 			<div class="body" style="display: none;overflow-y: scroll;" id="profilePage">
 				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
-				<icon-close noselect="" class="modal-close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
+				<icon-close noselect="" class="close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
 						<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
 					</svg>
@@ -2157,6 +2164,25 @@
 			storage.server = serverAddress
 			storage.board = boardAddress
 		}
+
+		let curStylesheet = null
+		function theme(set) {
+			if (curStylesheet) document.head.removeChild(curStylesheet)
+			let link = document.createElement("link")
+			link.rel = "stylesheet"
+			link.type = "text/css"
+			link.href = set.css
+			document.head.appendChild(link)
+			curStylesheet = link
+
+			document.querySelectorAll("[theme]").forEach((element) => {
+				if (element.tagName == "IMG")
+					element.src = set[element.getAttribute("theme")] || element.src
+				else 
+					element.innerHTML = set[element.getAttribute("theme")] || element.innerHTML
+			})
+		}
+		theme(THEMES[localStorage.theme || 0])
 
 		//Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
 		function translate(key) {

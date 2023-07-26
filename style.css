@@ -26,66 +26,6 @@ body{
 	background: #333;
 }
 
-select {
-	background-color: white;
-	border-radius: 10px;
-	font-size: 16px;
-	border: 1px solid gray;
-	box-shadow: 0 0 10px rgba(0,0,0,0.4);
-	height: 35px;
-	padding: 5px;
-	font-family: bold;
-	color: #747474;
-}
-
-input{
-	-webkit-appearance: none;
-	background: transparent;
-	outline: none;
-	border-top: 2px #333 solid;
-	border-left: 2px #333 solid;
-	border-bottom: 2px #777 solid;
-	border-right: 2px #777 solid;
-	font: unset;
-	color: unset;
-	width: 4rem;
-	border-radius: 0;
-}
-
-input[type=file]::file-selector-button {
-	border-radius: 5px;
-	background-color: white;
-	border: 0px solid black;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	height: 100%;
-}
-
-input[type=range]::-moz-range-thumb {
-	position: relative;
-	-webkit-appearance: none;
-	appearance: none;
-	width: 25px;
-	height: 25px;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	border: 1px solid darkgray;
-	border-radius: 5px;
-	background: white;
-	cursor: pointer;
-}
-
-input[type=range]::-webkit-slider-thumb {
-	position: relative;
-	-webkit-appearance: none;
-	appearance: none;
-	width: 25px;
-	height: 25px;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	border: 1px solid darkgray;
-	border-radius: 5px;
-	background: white;
-	cursor: pointer;
-}
-
 @media (prefers-color-scheme: dark) {
 	btn {
 		background: #000;
@@ -121,6 +61,20 @@ input[type=range]::-webkit-slider-thumb {
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
+
+#loadingScreen {
+    z-index: 20;
+    transition: opacity .3s;
+    opacity: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 btn{
@@ -231,35 +185,13 @@ btn{
 	font-family: mono;
 	transition: .2s border-radius;
 }
-#chat{
-	position: absolute;
-	bottom: 20px;
-	right: 20px;
-	width: 36px;
-	height: 36px;
-	padding: 8px;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border-radius: 18px;
-	fill: currentcolor;
-	line-height: 15px;
-	background: white;
-	border-radius: 100px;
-	text-align: center;
-	z-index: 5;
-	cursor: pointer;
-}
 
 #place {
 	position: absolute;
 	bottom: 20px;
 	left: 50%;
 	transform: translateX(-50%);
-	min-width: 155px;
-	height: 24px;
 	padding: 5px;
-	line-height: 15px;
-	background: white;
-	border-radius: 100px;
 	text-align: center;
 	z-index: 5;
 }
@@ -271,18 +203,14 @@ btn{
 	width: calc(100% + 48px);
 	height: calc(100% + 48px);
 }
+
 #modal {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	background: rgb(255, 255, 255);
 	display: flex;
 	flex-direction: column;
-	color: rgb(0, 0, 0);
-	border-radius: 8px;
-	width: min(325px, calc(100% - 64px));
-	padding: 24px;
 	z-index: 7;
 	box-sizing: content-box;
 }
@@ -292,16 +220,16 @@ btn{
 		padding: 16px;
 	}
 
-	#modal-install {
+	.modal-install {
 		width: 100% !important;
 	}
 
-	#modal-footer {
+	.modal-footer {
 		margin-top: 16px;
 	}
 }
 
-.modal-close-button {
+.close-button {
 	width: 20px;
   	height: 20px;
   	font-size: 20px;
@@ -311,39 +239,21 @@ btn{
 	vertical-align: middle;
 	line-height: 1em;
 }
-#modal-header {
+.modal-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 24px;
 }
 
-#modal-content{
+.modal-content{
 	font-family: reddit;
 	font-size: 18px;
 	line-height: 20px;
 	margin: 0px 0px 20px;
 }
 
-#modal-install {
-	height: 40px;
-	background: white;
-	align-self: center;
-	width: 60%;
-	border: 1px solid lightgray;
-	border-radius: 40px;
-	text-align: center;
-	line-height: 40px;
-	cursor: pointer;
-	transition: .1s border;
-}
-
-#modal-install:hover {
-	border: 2px solid #ff4500;
-	line-height: 38px;
-}
-
-#modal-footer {
+.modal-footer {
 	margin-top: 16px;
 	display: flex;
 	justify-content: center;
@@ -380,39 +290,6 @@ place-chat-button > img {
 	top: -30%;
 }
 
-#helpbtn, #closebtn, #discordbtn{
-	display: block;
-	width: 36px;
-	height: 36px;
-	padding: 8px;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border-radius: 18px;
-	position: absolute;
-	top: 20px;
-	right: 20px;
-	cursor: pointer;
-	background: white;
-	fill: currentcolor;
-	z-index: 5;
-}
-#closebtn{
-	right: unset;
-	left: 20px;
-	text-align: center;
-	font-size: 25px;
-	line-height: 8px;
-}
-
-#discordbtn{
-	right: unset;
-	left: 20px;
-	text-align: center;
-	font-size: 25px;
-	line-height: 8px;
-	top: unset;
-	bottom: 20px;
-	background: url(images/discord.png) center/22px no-repeat, white;
-}
 
 #palette {
 	transition: transform .3s ease-out;
@@ -517,10 +394,6 @@ place-chat-button > img {
 	#colours div{
 		flex-basis: calc(100% / 4 - 4px);
 	}
-}
-
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
-	box-shadow: 0 0 30px black;
 }
 
 #eventCountdown {
@@ -738,17 +611,19 @@ body[eventphase="3"] .coverer-title {
 	width: 330px;
 	bottom: 20px;
 	right: 20px;
-	border-radius: 10px;
-	background-color: white;
 	z-index: 99;
-	padding: 10px;
 	transform: translateX(calc(100% + 20px));
 	transition: transform .2s;
 }
-
 #chatPanel.open{
 	transform: translateX(0);
-	box-shadow: 0 0 30px black;
+}
+
+.chat-header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items:center
 }
 
 #chatMessages {
@@ -883,21 +758,6 @@ body[eventphase="3"] .coverer-title {
 	}
 }
 
-
-input {
-	background-color: white;
-	border-radius: 10px;
-	font-size: 16px;
-	border: none;
-	box-shadow: 0 0 10px rgba(0,0,0,0.4);
-	height: 35px;
-	padding: 5px;
-}
-
-a {
-	cursor: pointer;
-}
-
 #messageInput {
 	flex-shrink: 0;
 	width: calc(100% - 40px);
@@ -1009,10 +869,6 @@ a {
 	top: 60px;
 	left: 50%;
 	width: 380px;
-	padding: 10px;
-	line-height: 17px;
-	background: white;
-	border-radius: 15px;
 	transition: all .2s ease-in;
 	z-index: 5;
 }
