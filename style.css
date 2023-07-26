@@ -172,22 +172,6 @@ btn{
 	transform: scale(0.02) translate(-13px,9px) rotate(3.21deg);
 	z-index: 1;
 }
-#posel{
-	position: absolute;
-	top: 20px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 155px;
-	height: 24px;
-	padding: 5px;
-	line-height: 17px;
-	background: white;
-	border-radius: 100px;
-	text-align: center;
-	z-index: 5;
-	font-family: mono;
-	transition: .2s border-radius;
-}
 
 #place {
 	position: absolute;
