@@ -869,7 +869,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=3.13" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=3.14" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -891,7 +891,7 @@
 		</div>
 		<div id="maincontent">
 			<div id="posel" noselect>(0,0) 2.5x</div>
-			<div id="overlayMenu" noselect class="toastMenu" style="transform: translateX(-50%) translateY(-330px)">
+			<div id="overlayMenu" noselect class="toastMenu">
 				<div style="display: flex;">
 					<h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;flex-grow: 1;">Overlay:</h2>
 					<icon-close noselect="" class="close-button" onclick="overlayMenu.removeAttribute('opened')" class="active">
@@ -2313,12 +2313,6 @@
 		function updateTlTimer() {
 			let elapsedTime = Date.now() - tlTimerStart
 			document.getElementById("tlTimer").innerText = ((elapsedTime / 1000).toFixed(3)) + "s"
-		}
-
-
-		function openOverlayMenu() {
-			overlayMenu.style.transform = "translateX(-50%)"
-			overlayMenu.opened = true
 		}
 
 		var overlayInfo = { x: 0, y: 0, w: 0, h: 0, opacity: 0.8, type: "" }
