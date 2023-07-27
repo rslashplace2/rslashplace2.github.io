@@ -1169,6 +1169,22 @@
 						</postcopy>
 					</div>
 				</div>
+				<div onclick="switchGameServer('raw.githubusercontent.com/rplacetk/canvas1/27072023/place archive.rplace.tk:445')" class="post">
+					<img src="images/rplace.png" style="filter: grayscale(100%);">
+					<div><div>Main canvas archive - 27/07/2023</div>1000x1000 (cooldown: ∞)
+						<postcopy onclick="
+							event.stopPropagation()
+							navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/archive.rplace.tk:445&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/27072023/place')
+							this.children[1].animate([
+									{ opacity: 1 },
+									{ scale: 1.1 }
+								], { duration: 1000, iterations: 1, })
+						" title="copy canvas link">
+							<img src="svg/clipboard.svg">
+							<span style="opacity: 0;">Copied to clipboard!</span>
+						</postcopy>
+					</div>
+				</div>
 				<div onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;">
 					<img src="images/timelapse.png">
 					<div><div>Timelapse tool</div>Combine a sequence from the history of the canvas to create your own timelapse video!</div>

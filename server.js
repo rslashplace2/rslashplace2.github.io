@@ -39,7 +39,8 @@ catch (e) {
         "CHAT_MAX_LENGTH": 400,
         "CHAT_COOLDOWN_MS": 2500,
         "PUSH_INTERVAL_MINS": 30,
-        "CAPTCHA_EXPIRY_SECS": 45
+        "CAPTCHA_EXPIRY_SECS": 45,
+        "CAPTCHA_MIN_MS": 100 //min solvetime
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
@@ -47,7 +48,7 @@ catch (e) {
 }
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE,
 	PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS,
-	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS } = JSON.parse(config)
+	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS } = JSON.parse(config)
 
 try {
     BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
@@ -341,7 +342,10 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     p.send(dv)
                 }
                 else {
-                    let info = { fails: (captchaFailed.get(IP) || 0) + 1, last: NOW }
+                    let prev = captchaFailed.get(IP)
+                    // Block bots attempting to bruteforce captcha quickly
+                    if (prev && NOW - prev.last < CAPTCHA_MIN_MS) prev.fails += 3
+                    let info = { fails: (prev?.fails || 0) + 1, last: NOW }
                     captchaFailed.set(IP, info)
                     let acceptableFails = Math.min(zcaptcha.dummiesCount / 2, 10)
                     if (info.fails < acceptableFails) return p.close()
@@ -662,7 +666,7 @@ function mute(identifier, duration) {
 
 // Broadcast a message as the server to a specific client (p) or all players, in a channel
 function announce(msg, channel, p = null) {
-    let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.TK\n${channel}`)
+    let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.LIVE✓\n${channel}`)
     let dv = new DataView(byteArray.buffer)
     dv.setUint8(0, 15)
     if (p != null) p.send(dv)
