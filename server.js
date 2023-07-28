@@ -165,7 +165,7 @@ let BANS = new Map((await Promise.all(await fs.readFile('bansheets.txt')
 for (let banFin of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
     let parts = banFin?.split(" ")
     if (!parts || !parts.length) continue
-    BANS.set(parts[0].trim(), parseInt(parts[1].trim()) || Date.now() + 0xFFFFFFFF)
+    BANS.set(parts[0].trim(), parseInt(parts[1]?.trim()) || Date.now() + 0xFFFFFFFF)
 }
 let MUTES = new Map() // ip : finish (date Number)
 try { 
@@ -546,7 +546,10 @@ setInterval(function () {
     // Captcha tick
     if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
         for (let [c, info] of toValidate.entries()) {
-            if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) { c.close() }
+            if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) {
+                c.close()
+                toValidate.delete(c.ip)
+            }
         }
 
         // How long before the server will forget their captcha fails

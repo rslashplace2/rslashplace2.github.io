@@ -4,12 +4,14 @@
 *.pem
 *.key
 
+server_config.json
 vip.txt
 reserved_names.txt
 blacklist.txt
 cooldown_overrides.txt
 webhook_url.txt
-server_config.json
 mutes.txt
+pxps.txt
+stats.txt
 
 node_modules/

@@ -12,7 +12,11 @@
     "async-es": "^3.2.4",
     "image-data-uri": "^2.0.1",
     "imagemagick": "^0.1.3",
+    "skia-canvas": "^1.0.1",
     "ws": "^8.5.0"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "eslint": "^8.45.0"
+  }
 }
