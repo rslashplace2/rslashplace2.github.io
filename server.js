@@ -412,9 +412,9 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let actionCli = null
 
                     if (actionUidLen != 0) {
-                        let actionCli = null
+                        actionCli = null
                         for (let [p, uid] of playerUids) {
-                            if(uid === actionUid) actionCli = p
+                            if (uid === actionUid) actionCli = p
                         }
                         if (actionCli == null) return
                         
@@ -427,8 +427,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
 					}
 					
 					let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                    modMessage = `Moderator (${p.codehash}) requested to **force captcha revalidation** for 
-                        }  ${actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`
+                    modMessage = `Moderator (${p.codehash}) requested to **force captcha revalidation** for ${
+                        actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`
                 }
 
                 if (!modMessage) return
@@ -441,15 +441,19 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             case 99: {
                 if (p.admin !== true) return
                 let w = data[1], h = data[2], i = data.readUInt32BE(3)
-                if (i % 2000 + w >= 2000) return
-                if (i + h * 2000 >= 4000000) return
-                let hi = 0
+                if (i % WIDTH + w >= WIDTH) return
+                if (i + h * HEIGHT >= WIDTH * HEIGHT) return
+                let hi = 7
+                const target = w * h + 7
 
-                while (hi < h) {
-                    CHANGES.set(data.slice(hi * w + 7, hi * w + w + 7), i)
-                    i += 2000
-                    hi++
+                while (hi < target) {
+                    CHANGES.set(data.subarray(hi, hi + w), i)
+                    i += WIDTH
+                    hi += w
                 }
+
+                modWebhookLog(`Moderator (${p.codehash}) requested to **rollback area** at (${
+                    i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                 break
             }
         }
