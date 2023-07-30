@@ -435,16 +435,17 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 console.log(modMessage)
                 if (!MOD_WEBHOOK_URL) return
                 let msgHook = { username: "RPLACE SERVER", content: modMessage }
-                await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
+                await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                 break
             }
             case 99: {
                 if (p.admin !== true) return
-                let w = data[1], h = data[2], i = data.readUInt32BE(3)
-                if (i % WIDTH + w >= WIDTH) return
-                if (i + h * HEIGHT >= WIDTH * HEIGHT) return
-                let hi = 7
-                const target = w * h + 7
+                let w = data[1], i = data.readUInt32BE(2)
+                let h = Math.floor((data.length - 6) / w)
+                if (i % WIDTH + w >= WIDTH || i + h * HEIGHT >= WIDTH * HEIGHT) return
+
+                let hi = 6
+                const target = w * h + 6
 
                 while (hi < target) {
                     CHANGES.set(data.subarray(hi, hi + w), i)
