@@ -347,7 +347,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     if (prev && NOW - prev.last < CAPTCHA_MIN_MS) prev.fails += 3
                     let info = { fails: (prev?.fails || 0) + 1, last: NOW }
                     captchaFailed.set(IP, info)
-                    let acceptableFails = Math.min(zcaptcha.dummiesCount / 2, 10)
+                    let acceptableFails = Math.min(zcaptcha.config.dummiesCount / 2, 10)
                     if (info.fails < acceptableFails) return p.close()
                     let banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
                     ban(IP, banLengthS)
