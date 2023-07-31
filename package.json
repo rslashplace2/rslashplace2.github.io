@@ -7,6 +7,7 @@
     "ipapi-sync": "^1.0.0",
     "node-fetch": "^3.2.3",
     "sha256": "^0.2.0",
+    "webp-converter": "^2.3.3",
     "websocket": "^1.0.34",
     "ws": "^8.5.0"
   },

@@ -479,6 +479,8 @@ setInterval(() => {
     NOW = Date.now()
 }, 50)
 
+let currentCaptcha = zcaptcha.genEmojiCaptcha2
+
 /**
  * Force a client to redo the captcha
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
@@ -493,7 +495,7 @@ async function forceCaptchaSolve(identifier) {
     if (!cli) return
     
     try {
-        const result = await zcaptcha.genEmojiCaptcha()
+        const result = await currentCaptcha()
         if (!result) return cli.close()
         const encodedDummies = encoderUTF8.encode(result.dummies)
 

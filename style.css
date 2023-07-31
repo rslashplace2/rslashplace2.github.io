@@ -705,8 +705,8 @@ body[eventphase="3"] .coverer-title {
 	display: block;
 	border: 1px solid grey;
 	position: relative;
-	width: 90px;
-	height: 90px;
+	width: 196px;
+	height: 196px;
 	border-radius: 5px;
 	image-rendering: pixelated;
 	align-self: center;
