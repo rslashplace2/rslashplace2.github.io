@@ -2117,7 +2117,7 @@
             channelMineImg.src = info?.flag
             channelMineImg.style.display = ((info?.flag) ? "inline" : "none")
             extraLanguage = code
-            cMessages[code] = []
+            cMessages[code] ||= []
         }
 
         function switchLanguageChannel(selected) {
