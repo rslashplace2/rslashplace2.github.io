@@ -334,6 +334,29 @@
             vip: "<kbd>Apply a VIP cooldown code</kbd>"
         }
 
+        // Flag emojis all sourced from openmoji.org, https://www.langoly.com/most-spoken-languages/
+        const LANG_INFOS = new Map([
+            ["en", { name: "English", flag: "https://openmoji.org/data/color/svg/1F1EC-1F1E7.svg" }],
+            ["zh", { name: "中文", flag: "https://openmoji.org/data/color/svg/1F1E8-1F1F3.svg" }],
+            ["hi", { name: "हिन्दी", flag: "https://openmoji.org/data/color/svg/1F1EE-1F1F3.svg" }],
+            ["sp", { name: "Español", flag: "https://openmoji.org/data/color/svg/1F1EA-1F1F8.svg" }],
+            ["fr", { name: "Français", flag: "https://openmoji.org/data/color/svg/1F1EB-1F1F7.svg" }],
+            ["ar", { name: "عربي", flag: "https://openmoji.org/data/color/svg/1F1F8-1F1E6.svg", rtl: true }],
+            ["bn", { name: "বাংলা", flag: "https://openmoji.org/data/color/svg/1F1EE-1F1F3.svg" }],
+            ["ru", { name: "pусский", flag: "https://openmoji.org/data/color/svg/1F1F7-1F1FA.svg" }],
+            ["pt", { name: "Português", flag: "https://openmoji.org/data/color/svg/1F1E7-1F1F7.svg" }],
+            ["ur", { name: "اردو", flag: "https://openmoji.org/data/color/svg/1F1F5-1F1F0.svg", rtl: true }],
+            ["de", { name: "Deutsch", flag: "https://openmoji.org/data/color/svg/1F1E9-1F1EA.svg" }],
+            ["jp", { name: "日本語", flag: "https://openmoji.org/data/color/svg/1F1EF-1F1F5.svg" }],
+            ["tr", { name: "Türkçe", flag: "https://openmoji.org/data/color/svg/1F1F9-1F1F7.svg" }],
+            ["vi", { name: "Tiếng Việt", flag: "https://openmoji.org/data/color/svg/1F1FB-1F1F3.svg" }],
+            ["ko", { name: "한국인", flag: "https://openmoji.org/data/color/svg/1F1F0-1F1F7.svg" }],
+            ["it", { name: "Italiana", flag: "https://openmoji.org/data/color/svg/1F1EE-1F1F9.svg" }],
+            ["fa", { name: "فارسی", flag: "https://openmoji.org/data/color/svg/1F1EE-1F1F7.svg", rtl: true }],
+            ["sr", { name: "Српски", flag: "https://openmoji.org/data/color/svg/1F1E6-1F1F1.svg"}],
+            ["az", { name: "Azərbaycan", flag: "https://openmoji.org/data/color/svg/1F1E6-1F1FF.svg", rtl: true }],
+        ])
+
         const THEMES = [
             { css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" },
             { css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" },
@@ -871,7 +894,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.15" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.16" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1217,7 +1240,8 @@
                 </div>
             </div>
         </div>
-        <div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'" onclick="chatContext.style.display = 'none'">
+        <div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"
+                onclick="chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')">
             <div id="namePanel">
                 <h2 id="namePanelHeader" translate="nicknameToContinue">Enter a nickname to continue:</h2>
                 <h4 id="nicknameSubheading" style="color: lightgrey;" translate="pleaseBeRespectful">Please be respectful and try not to spam!</h4>
@@ -1238,15 +1262,30 @@
                 <p style="white-space:nowrap" translate="liveChat" style="display: none;" style="display: none;" class="live-chat-header2">Live Chat:</p>
                 <h2 style="white-space:nowrap" translate="liveChat" class="live-chat-header1">Live Chat:</h2>
                 <div class="channels-options">
-                    <!--
-                        Flag emojis all sourced from openmoji.org, have all been minified in order to reduce HTML size, see
-                        https://openmoji.org/library/#emoji=1F1EC-1F1E7,
-                        https://openmoji.org/library/#group=flags&emoji=1F1F9-1F1F7,
-                        https://openmoji.org/library/emoji-1F1EE-1F1F7/
-                    -->
-                    <span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">FAS</span>
-                    <span id="channelTu" style="opacity: 1;" onclick="switchLanguageChannel('tr')">
-                        <img src="svg/flag-tu.svg" style="height: 20px; vertical-align:sub">TÜ
+                    <span id="channelDropParent" style="opacity: 1;">
+                        <svg onclick="event.stopPropagation(); channelDropParent.toggleAttribute('open')" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+                            <path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"/>
+                        </svg>
+                        <div id="channelDrop" class="context-menu">
+                            <ul onclick="
+                                let target = event.target
+                                while (target && target != this) {
+                                    if (target.nodeName != 'LI') {
+                                        target = target.parentElement
+                                        continue
+                                    }
+                                    let lang = target['lang']
+                                    if (lang != extraLanguage && lang != 'en') extraChannel(lang)
+                                    switchLanguageChannel(lang)
+                                    event.stopPropagation()
+                                    channelDropParent.removeAttribute('open')
+                                    break
+                                }
+                            "><!--Language channel options--></ul>
+                        </div>
+                    </span>
+                    <span id="channelMine" style="opacity: 0.5;" onclick="switchLanguageChannel(extraLanguage)">
+                        <img id="channelMineImg" style="height: 20px; vertical-align:sub"><span id="channelMineName"></span>
                     </span>
                     <span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
                         <img src="svg/flag-gb.svg" style="height: 20px; vertical-align:sub">EN
@@ -1271,7 +1310,7 @@
                     </svg>
                 </icon-close>
             </div>
-            <div id="chatContext" class="contextMenu" style="display:none">
+            <div id="chatContext" class="context-menu" style="display:none">
                 <ul>
                     <li style="font-size: 8px; display: none;" id="userNote"></li>
                     <li id="mentionUser"><a translate="mention" onclick="
@@ -1985,14 +2024,12 @@
         const mobile = window.matchMedia("(orientation: portrait)").matches
         const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
         let online = 1
-        let extraLanguage = "fa"
-        if (lang != "tr" && lang != "en") {
-            extraLanguage = lang
-            channelMine.innerText = extraLanguage.toUpperCase()
-        }
-        let cMessages = { [extraLanguage]: [], tr: [], en: [] }
+        let extraLanguage = (lang == "en" ? "tr" : lang)
+        let cMessages = { [extraLanguage]: [], en: [] }
         let currentChannel = lang
         let fetchCooldown = 500, fetchFailTimeout = -1
+        extraChannel(extraLanguage)
+        initChannelDrop()
         switchLanguageChannel(currentChannel)
         wscapsule()
 
@@ -2062,24 +2099,38 @@
             namePanel.style.visibility = "hidden"
         }
 
+        function initChannelDrop() {
+            channelDrop.children[0].innerHTML = ""
+            for (let [code, info] of LANG_INFOS) {
+                let el = document.createElement("li")
+                el.innerHTML = `<span>${info.name}</span> <img src="${info.flag}" style="height: 24px;">`
+                el["lang"] = code
+                channelDrop.children[0].appendChild(el)
+            }
+        }
+
+        function extraChannel(code) {
+            // TODO: Implement if presisting all channels becomes too heavy
+            // delete cMessages[extraLanguage]
+            let info = LANG_INFOS.get(code)
+            channelMineName.innerText = code.toUpperCase()
+            channelMineImg.src = info?.flag
+            channelMineImg.style.display = ((info?.flag) ? "inline" : "none")
+            extraLanguage = code
+            cMessages[code] = []
+        }
+
         function switchLanguageChannel(selected) {
-            channelTu.style.opacity = "0.5"
             channelMine.style.opacity = "0.5"
             channelEn.style.opacity = "0.5"
             currentChannel = selected
-            chatMessages.style.direction = "ltr"
+            chatMessages.style.direction = (LANG_INFOS.get(selected)?.rtl) ? "rtl" : "ltr"
 
-            switch (selected) {
-                case "tr":
-                    channelTu.style.opacity = "1"
-                    break
-                case "en":
-                    channelEn.style.opacity = "1"
-                    break
-                default:
-                    channelMine.style.opacity = "1"
-                    chatMessages.style.direction = ""
-            }
+            if (selected == "en")
+                channelEn.style.opacity = "1"
+            else if (selected == extraLanguage)
+                channelMine.style.opacity = "1"
+            
             chatMessages.innerHTML = ""
 
             for (const el of cMessages[selected]) {
@@ -2336,7 +2387,7 @@
             ev.preventDefault()
 
             if (chatContext.style.display == "block") {
-                hideChatContext()
+                chatContext.style.display = "none"
             }
             else {
                 if (uname[uname.length - 1] === "~") {
@@ -2374,10 +2425,6 @@
                 chatContext.style.left = ev.pageX - chatPanel.offsetLeft + "px"
                 chatContext.style.top = ev.pageY - chatPanel.offsetTop + "px"
             }
-        }
-
-        function hideChatContext() {
-            chatContext.style.display = "none"
         }
 
         let redirectLocation = ({
