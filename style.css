@@ -904,37 +904,49 @@ kbd {
 	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
 }
 
-.contextMenu {
+.context-menu {
 	position: absolute;
-	background: white;
-	border-radius: 5px;
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 	transform: translateX(5px);
 	padding: 5px;
 	transition: transform .1s;
 	z-index: 2;
 }
-.contextMenu ul {
+.context-menu ul {
 	padding: 0px;
 	margin: 0px;
 	min-width: 150px;
 	list-style: none;
 }
-.contextMenu ul li {
-	padding-bottom: 5px;
-	padding-top: 5px;
-	padding-left: 5px;
+.context-menu > ul > li {
+	padding: 5px;
 }
-.contextMenu ul li a {
+.context-menu > ul > li > a {
 	text-decoration: none;
 	color: black;
 
 }
-.contextMenu ul li:hover {
-	background: lightgrey;
-	border-radius: 5px;
+
+#channelDrop {
+	overflow-y: scroll;
+	max-height: 400px;
+	left: -8px;
+	top: 30px;
+	display: none;
+}
+#channelDrop > ul > li {
+	display: flex;
+}
+#channelDrop > ul > li > span {
+	flex-grow: 1;
+	text-align: left;
 }
 
+#channelDropParent[open] > #channelDrop {
+	display: block;
+}
+#channelDropParent[open] > svg {
+	transform: rotate(180deg);
+}
 
 @keyframes rainbow-text {
 	0% {color: #e87d7d;}
@@ -1205,7 +1217,7 @@ postcopy span {
 .reddit-modal .header {
 	color: black;
 	padding: 16px;
-	background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
+	background: url(images/reddit-login-banner.png);
 	background-size: cover;
 	min-width: 144px;
 }

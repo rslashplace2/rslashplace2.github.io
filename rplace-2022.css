@@ -148,6 +148,16 @@ a {
 	position: relative;
 }
 
+.context-menu {
+	background: white;
+	border-radius: 5px;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+}
+.context-menu > ul > li:hover {
+	background: lightgrey;
+	border-radius: 4px;
+}
+
 /* Layout buttons */
 .layout {
 	display: block;
