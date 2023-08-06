@@ -622,9 +622,38 @@ body[eventphase="3"] .coverer-title {
     touch-action: pan-y;
 }
 
+#chatMessages > div {
+	position: relative;
+}
+
 #chatMessages > div:hover {
     background-color: #d3d3d333;
 	border-radius: 4px;
+}
+
+#chatMessages > div > span:nth-child(1) {
+	cursor: pointer;
+}
+
+#chatMessages > div > div {
+	position: absolute;
+	right: 0px;
+	top: -4px;
+	display: flex;
+	border-radius: 4px;
+	padding: 0px 4px;
+	border: 1px solid grey;
+	font-size: 70%;
+	font-weight: 700;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+	column-gap: 2px;
+	opacity: 0;
+	transition: .2s opacity;
+}
+
+#chatMessages > div:hover > div {
+	opacity: 1;
+	cursor: pointer;
 }
 
 .channels-options {
@@ -774,6 +803,13 @@ body[eventphase="3"] .coverer-title {
 }
 #messageEmojisPanel > div:hover {
 	background: lightgrey;
+}
+#messageReplyPanel {
+	height: 74px;
+	display: flex;
+}
+#messageReplyPanel > div {
+	flex-grow: 1;
 }
 
 .messageTypeBtn {

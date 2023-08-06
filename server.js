@@ -1,6 +1,6 @@
+/* eslint-disable no-process-exit */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-constant-condition */
-/* eslint-disable no-undef */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { WebSocketServer } from 'ws'
@@ -13,6 +13,7 @@ import util from 'util'
 import path from 'path'
 import * as zcaptcha from './zcaptcha/server.js'
 import { isUser } from 'ipapi-sync'
+import { Worker, isMainThread } from 'worker_threads'
 
 let BOARD, CHANGES, VOTES
 
@@ -50,15 +51,13 @@ let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, C
 	PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS,
 	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS } = JSON.parse(config)
 
-try {
-    BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place"))
-    CHANGES = await fs.readFile(path.join(PUSH_PLACE_PATH, "change"))
-    VOTES = new Uint32Array((await fs.readFile('./votes')).buffer)
-} catch (e) {
-    BOARD = new Uint8Array(WIDTH * HEIGHT)
-    CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
-    VOTES = new Uint32Array(32)
-}
+try { BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place")) }
+catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
+try { CHANGES = await fs.readFile(path.join(PUSH_PLACE_PATH, "change")) }
+catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
+try { VOTES = new Uint32Array((await fs.readFile('./votes')).buffer) }
+catch(e) { VOTES = new Uint32Array(32) }
+
 let newPos = [], newCols = []
 let wss, cooldowns = new Map()
 
@@ -126,6 +125,15 @@ class DoubleMap { // Bidirectional map
     size() { return this.foward.size }
 }
 
+class PublicPromise {
+    constructor() {
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve
+            this.reject = reject
+        })
+    }
+}
+
 if (SECURE) {
     wss = new WebSocketServer({
         perMessageDeflate: false, server: createServer({
@@ -180,6 +188,24 @@ let printChatInfo = false
 let toValidate = new Map()
 let captchaFailed = new Map()
 const encoderUTF8 = new util.TextEncoder()
+
+let dbReqId = 0
+const dbReqs = new Map()
+const dbWorker = new Worker("./db-worker.js")
+async function makeDbRequest(message) {
+    let handle = dbReqId++
+    let promise = new PublicPromise()
+    
+    message.handle = handle
+    dbReqs.set(handle, promise)
+    dbWorker.postMessage(message)
+    return await promise.promise
+}
+dbWorker.on("message", (message) => {
+    dbReqs.get(message.handle)?.resolve(message.data)
+})
+
+let chatMessageId = await makeDbRequest({ call: "getMaxLiveChatId" })
 
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
@@ -310,14 +336,74 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 }
                 let res_name = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
                 name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
-                let msgPacket = encoderUTF8.encode("\x0f" + [txt, name, messageChannel, type, placeX, placeY, playerUids.get(p)].join("\n"))
+                
+// A chat message packet (server -> client) is made up of the following  
+// `uint` messageID
+// message (either `short, byte[]` or dataproto string)
+// name (7 bits, 1 bit messageType)
+// senderUid (7 bits, 1 bit uidType) ________________________
+// |                                                         |
+// |                                                         |
+// v                                                         v
+// messagetype == MessageType.Live                           messageType == MessageType.Place
+// `long` sendDate (unix time)                               `uint` position               
+// `byte` reactionsCount
+// reactions (either byte[] comma separated string or idk)
+// channel (either byte, byte[] or dataproto string)
+// `uint32` repliesTo (messageId)
+                let encodedChannel = encoderUTF8.encode("en")
+                let encodedTxt = encoderUTF8.encode(txt)
+                let encodedName = encoderUTF8.encode(name)
+                let encodedUid = encoderUTF8.encode(playerUids.get(p))
+                let messageId = ++chatMessageId
+                let i = 0;
+                const msgPacket = new Uint8Array(encodedName.byteLength + encodedTxt.byteLength +
+                    encodedUid.byteLength + (type == "live" ? 20 + encodedChannel.byteLength : 10))
+                msgPacket[i] = 15; i++
+                msgPacket[i] = messageId >> 24; i++
+                msgPacket[i] = messageId >> 16; i++
+                msgPacket[i] = messageId >> 8; i++
+                msgPacket[i] = messageId; i++
+                msgPacket[i] = encodedTxt.byteLength >> 8; i++
+                msgPacket[i] = encodedTxt.byteLength; i++
+                msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
+                msgPacket[i] = encodedName.byteLength & (type == "live" ? 127 : 255); i++
+                msgPacket.set(encodedName, i); i += encodedName.byteLength
+                msgPacket[i] = encodedUid.byteLength & (true ? 127 : 255); i++ // TODO: Use of first bit will make sense when we have accounts
+                msgPacket.set(encodedUid, i); i += encodedUid.byteLength
+
+                if (type == "live") {
+                    msgPacket[i] = NOW >> 24; i++
+                    msgPacket[i] = NOW >> 16; i++
+                    msgPacket[i] = NOW >> 8; i++
+                    msgPacket[i] = NOW; i++
+                    msgPacket[i] = 0; i++ // TODO: reactions
+                    msgPacket[i] = encodedChannel.byteLength; i++
+                    msgPacket.set(encodedChannel, i); i += encodedChannel.byteLength
+                    msgPacket[i] = 0 >> 24; i++
+                    msgPacket[i] = 0 >> 16; i++
+                    msgPacket[i] = 0 >> 8; i++
+                    msgPacket[i] = 0
+
+                    dbWorker.postMessage({ call: "insertLiveChat", data: { messageId: messageId, message: txt,
+                        name: name, channel: messageChannel, senderUid: IP, sendDate: NOW } })    
+                }
+                else {
+                    let pos = placeY * WIDTH + placeX
+                    msgPacket[i] = pos >> 24; i++
+                    msgPacket[i] = pos >> 16; i++
+                    msgPacket[i] = pos >> 8; i++
+                    msgPacket[i] = pos
+
+                    dbWorker.postMessage({ call: "inserPlaceChat", data: { messageId: messageId, message: txt,
+                        name: name, uid: IP, sendDate: NOW, x: placeX, y: placeY } })
+                }
+                
                 for (let c of wss.clients) {
                     c.send(msgPacket)
                 }
 
-                if (!CHAT_WEBHOOK_URL) {
-                    return
-                }
+                if (!CHAT_WEBHOOK_URL) return
                 try {
                     txt = txt.replaceAll("@", "")
                     name = name.replaceAll("@", "")
@@ -683,4 +769,21 @@ function announce(msg, channel, p = null) {
     else for (let c of wss.clients) c.send(dv)
 }
 
-process.on('uncaughtException', console.warn)
+let shutdown = false
+process.on("uncaughtException", console.warn)
+process.on('SIGINT', function () {
+    if (shutdown) {
+        console.log("Bruh impatient")
+        process.exit(0)
+    }
+    else {
+        (async function() {
+            await makeDbRequest({ call: "commitShutdown" })
+            console.log("rBye-bye!                             ")
+            process.exit(0)
+        })()
+
+        shutdown = true
+        process.stdout.write("\rShutdown received. Wait a sec");
+    }
+})
