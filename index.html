@@ -44,7 +44,8 @@
                 sendInLiveChat: "📨 Send in live chat",
                 overlayMenu: "Overlay menu",
                 modalAboutContent: "There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.",
-                overlayMenuDesciption: "Visualise your build with a template image!"
+                overlayMenuDesciption: "Visualise your build with a template image!",
+                messageCouldntBeLoaded: "Message could not be loaded"
             },
             fa: {
                 connecting: "در حال وصل شدن",
@@ -180,7 +181,51 @@
                 tryClickingHere: "попробуйте нажать здесь",
                 pleaseBeRespectful: "Пожалуйста, будьте уважительны и старайтесь не спамить!",
                 enterNickname: "Введите псевдоним...",
-                enterMessage: "Введите сообщение..."
+                enterMessage: "Введите сообщение...",
+                signInInstead: "зарегистрироваться вместо этого",
+                createNewAccount: "создайте новый аккаунт",
+                mention: "упомянуть",
+                replyto: "ответить",
+                report: "пожаловаться",
+                block: "заблокировать",
+                unblock: "разблокировать",
+                changeMyName: "изменить моё имя",
+                //putOnCanvas: ,
+                sendInLiveChat: "Incoming_envelope:отправить в живой чат",
+                overlaymenu: "меню наложения",
+                modelAboutContent: "есть пустое полотно.<br><br> Вы можете поставить пиксель на нём,но вы должны подождать чтобы поставить ещё.<br<br>Вы можете создать что-то.<br><br> Вместе вы можете создать много.",
+                overlayMenuDescription: "визуализируйте вашу постройку с шаблоном вашего изображения!" 
+            },
+            uk: {
+                connecting: "підключення...",
+                connectingFail: "Не вдалося підключитися!",
+                downloadingImage: "Завантажую зображення",
+                placeTile: "Покласти піксель",
+                donate: "Пожертвувати",
+                chat: "Чат",
+                liveChat: "Живий чат",
+                nicknameToContinue: "Введіть ім'я щоб продовжити",
+                changeChannel: "Зменіть канал",
+                captchaPrompt: "вирішіть цю мальнеку captcha щоб допомогти залишити rplace.live веселим для всіх",
+                webappInstall: "скачайте rplace.live веб-программу",
+                connectionProblems: "Проблеми с підключенням?",
+                tryClickingHere: "спробуйте клацнути сюди",
+                pleaseBeRespectful: "будь ласка будьте поважними і не спамьте!",
+                enterNickname: "Введіть ім'я...",
+                enterMessage: "Введіть повідомлення",
+                signInInstead: "Увійти замість цього",
+                createNewAccount: "Створіть новий аккаунт",
+                mention: "згадати",
+                replyto: "Відповісти на",
+                report: "Доповідь",
+                block: "Заблокувати",
+                unblock: "Разблокувати",
+                changeMyName: "Змінити ім'я",
+                putOnCanvas: "🫧поставити на полотно",
+                sendInLiveChat: "📨відправьте в живий чат",
+                overlaymenu: "Меню накладки",
+                modelAboutContent: "Є пусте полотно.<br><br>Ви можете поставити піксель на ньому,<br><br>але вам треба почекати перед тим як поставити іще один.<br><br>Індиаідуально ви можете створити багато чого.",
+                overlayMenuDescription: "Візуалізуйте вашу творчість с шаблоном зображення!"
             },
             de: {
                 connecting: "Zugreifen...",
@@ -234,7 +279,21 @@
                 tryClickingHere: "جرب ان تضغط هنا",
                 pleaseBeRespectful: "رجاءا كن محترما ولا تزعج الاخرين!",
                 enterNickname: "اكتب اسم مستعار...",
-                enterMessage: "اكتب الرسالة..."
+                enterMessage: "اكتب الرسالة...",
+                signInInstead: "قم بتسجيل الدخول من هنا بدلا من ذلك",
+                createNewAccount: "انشئ حساب جديد",
+                mention: "ذِكر",
+                replyTo: "الرد على",
+                report: "ابلاغ",
+                block: "حظر",
+                unblock: "ازالة الحظر",
+                changeMyName: "غير اسمي",
+                putOnCanvas: "🫧 ضع على اللوحه",
+                sendInLiveChat: "📨 ارسل في الدردشة المباشرة",
+                overlayMenu: "قائمة الصوره",
+                modalAboutContent: "هنالك لوح فاضي.<br><br>تستطيع اضافة بلاطه, ولكن يجب عليك الانتظار لإضافة اخرى<br><br>لوحدك, تستطيع انشاء شيء.<br><br>مع الاخرين, تستطيع انشاء الكثير.",
+                overlayMenuDesciption: "تصور بناءك بصورة نموذج!",
+                messageCouldntBeLoaded: "لا يمكن تحميل الرسالة"
             },
             jp: {
                 connecting: "接続中...",
@@ -364,6 +423,16 @@
             { css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" },
             { css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" },
         ]
+
+        const PUNISHMENT_STATE = {
+            mute: 0,
+            ban: 1 << 0,
+            appealable: 1 << 1,
+            alreadyAppealed: 1 << 2,
+            appealRejected: 1 << 3
+        }
+
+        const MAX_CHANNEL_MESSAGES = 100
     </script>
     <script>
         // csrfstate not used at the moment, may be later to encode some extra info for client
@@ -386,7 +455,12 @@
         if ('serviceWorker' in navigator)
             navigator.serviceWorker.register("./sw.js")
 
+        const intIdNames = new Map() // intId : name
         let account = null
+        let intId = null
+        let chatName = null
+        let setName = null // function
+
         const wscapsule = ((send, addEventListener, call) => {
             let focused = true
             call(addEventListener, window, 'blur', () => focused = false)
@@ -537,24 +611,63 @@
                     seti(data.getUint32(5), data.getUint8(9))
                     break
                 }
+                case 11: { // Player int ID // TODO: Integrate into packet 1
+                    intId = data.getUint32(1)
+                    break
+                }
+                case 12: { // Name info
+                    for (let i = 1; i < data.byteLength;) {
+                        let pIntId = data.getUint32(i); i += 4
+                        let pNameLen = data.getUint8(i); i++
+                        let pName = decoder.decode(data.buffer.slice(i, (i += pNameLen)))
+
+                        intIdNames.set(pIntId, pName)
+                        // Occurs either if server has sent us name it has remembered from a previous session,
+                        // or we have just sent server packet 12 name update, and it is sending us back our name
+                        if (pIntId == intId) {
+                            chatName = pName
+                            namePanel.style.visibility = "hidden"
+                        }
+                    }
+                    break
+                }
+                case 14: { // Moderation
+                    let state = data.getUint8(1)
+                    let startDate = data.getUint32(5)
+                    let endDate = data.getUint32(9)
+                    let reasonLen = data.getUint8(13)
+                    let reason = decoder.decode(data.slice(14, 14 + reasonLen))
+                    let appealLen = data.getUint8(15 + reasonLen)
+                    let appeal = decoder.decode(data.slice(16 + reasonLen, 16 + reasonLen + appealLen))
+                    
+                    // TODO: UI
+                    if (state & PUNISHMENT_STATE.mute == PUNISHMENT_STATE.mute) {
+                        alert("You have been muted from sending in live chat.")
+                    }
+                    else if (state & PUNISHMENT_STATE.ban == PUNISHMENT_STATE.ban) {
+                        alert("You have been banned from placing on the canvas.")
+                    }
+                }
                 case 15: {
-                    let i = 1
-                    let messageId = data.getUint32(i); i += 4
-                    let txtL = data.getUint16(i); i += 2
-                    let txt = decoder.decode(data.buffer.slice(i, (i += txtL)))
-                    let nameL = data.getUint8(i) & 127;
-                    let msgType = (data.getUint8(i) & 128) >> 7; i++
-                    let name = decoder.decode(data.buffer.slice(i, (i += nameL)))
-                    let uidL = data.getUint8(i) & 127;
-                    let uidType = data.getUint8(i) & 128; i++
-                    let uid = decoder.decode(data.buffer.slice(i, (i += uidL)))
+                    let repliesTo = null
+
+                    let offset = 1
+                    let msgType = data.getUint8(offset); offset++
+                    let messageId = data.getUint32(offset); offset += 4
+                    let txtL = data.getUint16(offset); offset += 2
+                    let txt = decoder.decode(data.buffer.slice(offset, (offset += txtL)))
+                    let intId = data.getUint32(offset); offset += 4 // sender int ID
                     
                     if (msgType == 0) { // live
-                        let sendDate = data.getUint32(i); i += 4
-                        let reactionsL = data.getUint8(i); i++ // TODO: Reactions
-                        let channelL = data.getUint8(i); i++
-                        let channel = decoder.decode(data.buffer.slice(i, (i += channelL)))
-                        let replies = data.getUint32(i)
+                        let sendDate = data.getUint32(offset); offset += 4
+                        let reactionsL = data.getUint8(offset); offset++ // TODO: Reactions
+                        // let reactions = .. TODO: we worry about this later
+                        let channelL = data.getUint8(offset); offset++
+                        let channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
+                        if (data.byteLength - offset >= 4) {
+                            repliesTo = data.getUint32(offset)
+                        }
+
                         if (!(channel in cMessages)) return
 
                         // Custom emoji regex
@@ -576,19 +689,58 @@
                             }
                         })
 
+                        const name = intIdNames.get(intId)
                         let newMessage = document.createElement("div")
+                        newMessage.messageId = messageId
+                        newMessage.name = name
+                        newMessage.originalContent = txt
+
                         newMessage.oncontextmenu = (e) => onChatContext(e, name, uid, messageId)
                         let namePart = document.createElement("span")
-                        namePart.style.color = CHAT_COLOURS[name ? hash(uid) & 7 : (Math.round(Math.random() * 8))]
+                        namePart.style.color = CHAT_COLOURS[name ? hash("" + intId) & 7 : (Math.round(Math.random() * 8))]
                         namePart.style.cursor = "pointer" // TODO: CSS
                         namePart.title = (new Date(sendDate)).toString()
                         namePart.onclick = (e) => chatMentionUser(name)
                         namePart.textContent = "[" + name + "] "
                         let txtPart = document.createElement("span")
                         txtPart.textContent = txt
+
+                        if (repliesTo != null) {
+                            let replyingMessage = null
+                            for (let message of cMessages[currentChannel]) {
+                                if (message.messageId == repliesTo) {
+                                    replyingMessage = message
+                                    break
+                                }
+                            }
+                            if (replyingMessage == null) {
+                                replyingMessage = { name: "[?????]", originalContent: translate("messageCouldntBeLoaded"), fake: true }
+                            }
+
+                            let repliesPart = document.createElement("p")
+                            if (!replyingMessage.fake) {
+                                repliesPart.onclick = () => {
+                                    let height = 0
+                                    for (let message of cMessages[currentChannel]) {
+                                        if (message == replyingMessage) break
+                                        height += message.offsetHeight
+                                    }
+                                    
+                                    replyingMessage.setAttribute("highlight", "true")
+                                    setTimeout(() => {
+                                        replyingMessage.removeAttribute("highlight")
+                                    }, 500)
+                                    
+                                    chatMessages.scroll({ top: height, left: 0, behavior: "smooth" })
+                                }
+                            }
+                            repliesPart.innerText = `↪️ ${replyingMessage.name} ${replyingMessage.originalContent}`
+                            newMessage.appendChild(repliesPart)
+                        }
+
                         let actionsPart = document.createElement("div")
                         actionsPart.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId})" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
+                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId}, '${name}')" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
                                 <path d="M780-200v-156q0-60-39-99t-99-39H236l163 163-43 43-236-236 236-236 43 43-163 163h406q85 0 141.5 56.5T840-356v156h-60Z"></path>
                             </svg>
                             <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
@@ -600,30 +752,30 @@
 
                         let scroll = chatMessages.scrollTop + chatMessages.offsetHeight + 10 >= chatMessages.scrollHeight
 
-                        if (name !== localStorage.name && blockedUsers.includes(uid)) {
+                        if (name !== chatName && blockedUsers.includes(intId)) {
                             newMessage.style.color = "transparent"
                             newMessage.style.textShadow = "0px 0px 6px black"
                         }
-                        if (txt.includes("@" + localStorage.name) || txt.includes("@everyone")) {
-                            newMessage.style.backgroundColor = "rgba(255, 255, 0, 0.5)"
+                        if (txt.includes("@" + chatName) || txt.includes("@everyone")) {
+                            newMessage.setAttribute("mention", "true")
                             if (currentChannel == channel) AUDIOS.closePalette.run()
                         }
-                        channel = channel || 'en'
-                        cMessages[channel].push(newMessage)
-                        if (cMessages[channel].length > 100) cMessages[channel].unshift()
-                        if (currentChannel == channel) {
-                            chatMessages.insertAdjacentElement("beforeEnd", newMessage)
-                        }
 
-                        if (chatMessages.children.length > 100){
-                            chatMessages.children[0].remove()
+                        // Inset the message into the 
+                        cMessages[channel].push(newMessage)
+                        if (cMessages[channel].length > MAX_CHANNEL_MESSAGES) {
+                            cMessages[channel].shift()
+                        }
+                        if (channel == currentChannel) {
+                            if (chatMessages.children.length > MAX_CHANNEL_MESSAGES) chatMessages.children[0].remove()
+                            chatMessages.insertAdjacentElement("beforeEnd", newMessage)
                         }
 
                         scroll && chatMessages.scrollTo(0,10e8)
                     }
                     else { // place
                         if (!placeChat) return
-                        let msgPos = data.getUint32(i)
+                        let msgPos = data.getUint32(offset)
                         txt = txt.substring(0, 56)
 
                         const placeMessage = document.createElement("placechat")
@@ -692,6 +844,15 @@
                 showLoadingScreen()
             }
 
+            function _setName(uname) {
+                if (!uname || uname.length > 16) return
+                nameInput.textContent = uname.replace(/\W+/g, "").toLowerCase()
+
+                let nameBuf = encoder.encode("\x0C" + uname)
+                call(send, ws, nameBuf)
+            }
+            setName = _setName
+
             function put() {
                 // If CD is null but we have already made that initial connection, we have likely ghost disconnected from the WS
                 if (!focused || !initialConnect || (CD === null && initialConnect) || CD > Date.now()) {
@@ -730,7 +891,7 @@
             }
             call(addEventListener, pok, 'click', oclick)
 
-            function sendMsg(message){
+            function sendLiveChatMsg(message){
                 if (message.startsWith(":name")) {
                     namePanel.style.visibility = 'visible'
                     nameInput.value = message.slice(5).trim()
@@ -747,20 +908,54 @@
                     return
                 }
 
-                call(send, ws, encoder.encode(
-                    "\x0f" + message +
-                    (localStorage.name ? "\n" + localStorage.name : "") +
-                    "\n" + currentChannel +
-                    "\n" + "live" +
-                    "\n" + 0 +
-                    "\n" + 0
-                ))
+                const encodedChannel = encoder.encode(currentChannel)
+                const encodedMsg = encoder.encode(message)
+
+                let msgArray = new Uint8Array(1 + 1 + 2 + encodedMsg.byteLength + 1
+                    + encodedChannel.byteLength + (currentReply ? 4 : 0))
+                let msgView = new DataView(msgArray.buffer)
+                
+                let offset = 0;
+                msgView.setUint8(offset++, 15)
+                msgView.setUint8(offset++, 0) // type
+                msgView.setUint16(offset, encodedMsg.byteLength) // msg length
+                offset += 2
+                msgArray.set(encodedMsg, offset)
+                offset += encodedMsg.byteLength
+                msgView.setUint8(offset, encodedChannel.byteLength)
+                offset += 1
+                msgArray.set(encodedChannel, offset)
+                offset += encodedChannel.byteLength
+                if (currentReply != null) {
+                    msgView.setUint32(offset, currentReply)
+                }
+
+                chatCancelReplies()
+                call(send, ws, msgView)
             }
 
-            function sendPlaceMsg(message) {
+            function sendPlaceMsg(message) { // message put on the canvas
+                // id
+                // type
+                // message
+                // x, y
+                // index = y * width + x
+                const encodedMsg = encoder.encode(message)
+
+                let msgArray = new Uint8Array(2 + 4 + encodedMsg.byteLength)
+                let msgView = new DataView(msgArray.buffer)
+                let offset = 0
+                msgView.setUint8(offset++, 15)
+                msgView.setUint8(offset++, 1) // type
+                msgView.setUint16(offset, encodedMsg.byteLength)
+                offset += 2;
+                msgArray.set(encodedMsg, offset)
+                offset += encodedMsg.byteLength;
+                msgView.setUint32(Mathf.floor(y) * WIDTH + Mathf.floor(x))
+
                 call(send, ws, encoder.encode(
                     "\x0f" + message +
-                    (localStorage.name ? "\n" + localStorage.name : "") +
+                    (chatName ? "\n" + chatName : "") +
                     "\n" + currentChannel +
                     "\n" + "place" +
                     "\n" + Math.floor(x) +
@@ -774,7 +969,7 @@
             }
 
             messageTypePanel.children[1].onclick = e => {
-                sendMsg(messageInput.value)
+                sendLiveChatMsg(messageInput.value)
                 messageInput.value = ""
             }
 
@@ -782,7 +977,7 @@
                 if (e.keyCode == 13) {
                     //shift + enter send as place chat, enter send as normal live chat
                     if (e.shiftKey) sendPlaceMsg(messageInput.value)
-                    else sendMsg(messageInput.value)
+                    else sendLiveChatMsg(messageInput.value)
                     messageInput.value = ""
                 }
             }
@@ -928,7 +1123,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.17" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.19" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1286,7 +1481,7 @@
                             setName(this.value)
                             this.value = ''
                         }
-                    " maxlength="15">
+                    " maxlength="16">
                     <button onclick="setName(nameInput.value)">
                         <img src="svg/green-checkmark.svg">
                     </button>
@@ -1300,7 +1495,7 @@
                         <svg onclick="event.stopPropagation(); channelDropParent.toggleAttribute('open')" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
                             <path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"/>
                         </svg>
-                        <div id="channelDrop" class="context-menu">
+                        <div id="channelDrop" class="context-menu" ontouchstart="event.stopPropagation()">
                             <ul onclick="
                                 let target = event.target
                                 while (target && target != this) {
@@ -1348,12 +1543,12 @@
                 <ul>
                     <li style="font-size: 8px; display: none;" id="userNote"></li>
                     <li id="mentionUser"><a translate="mention" onclick="
-                            chatMentionUser(targetedUser)
+                            chatMentionUser(targetedName)
                             chatContext.style.display = 'none'
                         ">Mention user</a>
                     </li>
                     <li id="replyUser"><a translate="replyTo" onclick="
-                            chatReply(targetedId)
+                            chatReply(targetedMsgId, targetedName)
                             chatContext.style.display = 'none'
                         ">Reply to user</a>
                     </li>
@@ -1369,13 +1564,13 @@
                     <li id="changeMyName" style="display: none;">
                         <a onclick="
                             namePanel.style.visibility = 'visible'
-                            nameInput.value = targetedUser
+                            nameInput.value = targetedName
                             chatContext.style.display = 'none'
                         "><em translate="changeMyName">Change my name</em></a>
                     </li>
                 </ul>
             </div>
-            <a id="ad" href="mailto:admin@rplace.tk" target="_blank" style="display:block;aspect-ratio: 2/1;flex-shrink: 0; background: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png?width=1240&amp;height=620) center/cover;"></a>
+            <a id="ad" href="mailto:admin@rplace.tk" target="_blank" style="display:block;aspect-ratio: 2/1;flex-shrink: 0; background: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png?width=1240&amp;height=620) center/cover;max-height: 180px;background-position-y: center;"></a>
             <div id="chatMessages"></div>
             <div id="messageTypePanel" class="chat-input-panel" closed>
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
@@ -1384,9 +1579,11 @@
             <div id="messageEmojisPanel" class="chat-input-panel" closed><!--Message emoji suggestions--></div>
             <div id="messageReplyPanel" class="chat-input-panel" closed>
                 <div id="messageReplyLabel">Replying to:</div>
-                <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48">
-                    <path d="m330-288 150-150 150 150 42-42-150-150 150-150-42-42-150 150-150-150-42 42 150 150-150 150 42 42ZM480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"/>
-                </svg>
+                <div style="cursor: pointer;" onclick="chatCancelReplies()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" height="24" width="32">
+                        <path d="m330-288 150-150 150 150 42-42-150-150 150-150-42-42-150 150-150-150-42 42 150 150-150 150 42 42ZM480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"></path>
+                    </svg>    
+                </div>
             </div>
             <div style="display: flex; column-gap: 8px; z-index: 1;">
                 <input id="messageInput" onclick="chatPanel.classList.add('open')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
@@ -2136,22 +2333,26 @@
         }
         generateIndicators(localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
         
-        if (localStorage.name) {
-            namePanel.style.visibility = "hidden"
-        }
-
-        function setName(name) {
-            name = name.replace(/\W+/g, "").toLowerCase() || "anon"
-            localStorage.name = name
+        if (chatName) {
             namePanel.style.visibility = "hidden"
         }
 
         function initChannelDrop() {
+            let containsMy = false
+
             channelDrop.children[0].innerHTML = ""
             for (let [code, info] of LANG_INFOS) {
+                if (code == lang) containsMy = true
                 let el = document.createElement("li")
                 el.innerHTML = `<span>${info.name}</span> <img src="${info.flag}" style="height: 24px;">`
                 el["lang"] = code
+                channelDrop.children[0].appendChild(el)
+            }
+
+            if (!containsMy) {
+                let el = document.createElement("li")
+                el.innerHTML = `<span>${lang}</span>`
+                el["lang"] = lang
                 channelDrop.children[0].appendChild(el)
             }
         }
@@ -2170,9 +2371,9 @@
         function switchLanguageChannel(selected) {
             channelMine.style.opacity = "0.5"
             channelEn.style.opacity = "0.5"
+            if (currentChannel != selected) chatCancelReplies()
             currentChannel = selected
             chatMessages.style.direction = (LANG_INFOS.get(selected)?.rtl) ? "rtl" : "ltr"
-
 
             if (selected == "en")
                 channelEn.style.opacity = "1"
@@ -2192,11 +2393,36 @@
             messageInput.setRangeText("@" + user, start, end, "end")
         }
 
-        function chatReply(messageId) {
-            console.log(messageId)
+        function chatReply(messageId, uname) {
+            for (let m of cMessages[currentChannel]) {
+                m.removeAttribute("reply")
+            }
+            currentReply = messageId
+
+            messageReplyPanel.removeAttribute("closed")
+            messageReplyLabel.innerText = translate("replyTo") + ": " + uname
+            for (let m of cMessages[currentChannel]) {
+                if (m["messageId"] == messageId) {
+                    m.setAttribute("reply", "true")
+                    break
+                }
+            }
         }
 
-        function chatReport(messageId) {
+        function chatCancelReplies() {
+            for (let m of cMessages[currentChannel]) {
+                m.removeAttribute("reply")
+            }
+            currentReply = null
+
+            messageReplyPanel.setAttribute('closed', 'true')
+        }
+
+        function chatReport(messageId) { // TODO: Make UI
+            let reason = prompt("Enter reason for why you are reporting this message (max 280 chars)")
+            if (!reason) return
+
+            alert("Report sent!\nIn the meantime you can block this user with 'right click/press hold > block'")
             console.log(messageId)
         }
 
@@ -2435,12 +2661,13 @@
             return `${location.origin}/?server=${localStorage.server || DEFAULT_SERVER}&board=${localStorage.board || DEFAULT_BOARD}&overlay=${btoa(JSON.stringify(overlayInfo))}`
         }
 
-        let blockedUsers = localStorage.blocked.split(",") ?? []
-        let targetedUser = null
+        let blockedUsers = localStorage.blocked?.split(",") || []
+        let targetedName = null
         let targetedUid = null
-        let targetedId = null
+        let targetedMsgId = null
+        let currentReply = null
 
-        function onChatContext(ev, uname, uid, id) {
+        function onChatContext(ev, uname, uid, msgId) {
             ev.preventDefault()
 
             if (chatContext.style.display == "block") {
@@ -2459,9 +2686,9 @@
                 }
                 else { userNote.style.display = "none" }
 
-                targetedId = id
+                targetedMsgId = msgId
                 targetedUid = uid
-                targetedUser = uname
+                targetedName = uname
                 chatContext.style.display = "block"
                 mentionUser.children[0].textContent = translate("mention") + " " + uname
 
@@ -2470,7 +2697,7 @@
                 else
                     blockUser.children[0].textContent = translate("block") + " " + uname
 
-                if (uname === localStorage.name) {
+                if (uname === chatName) {
                     blockUser.style.pointerEvents = "none"
                     blockUser.children[0].style.color = "grey"
                     changeMyName.style.display = ""

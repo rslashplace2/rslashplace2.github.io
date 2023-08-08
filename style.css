@@ -624,11 +624,34 @@ body[eventphase="3"] .coverer-title {
 
 #chatMessages > div {
 	position: relative;
+	transition: .2s background-color;
 }
 
 #chatMessages > div:hover {
     background-color: #d3d3d333;
 	border-radius: 4px;
+}
+
+#chatMessages > div[highlight] {
+	background-color: #4dd77780;
+}
+
+#chatMessages > div[mention] {
+	background-color: #ffff0080;
+}
+
+#chatMessages > div[reply] {
+	background-color: #e4efff;
+}
+
+#chatMessages > div > p {
+	border-left: 4px solid gray;
+	padding: 2px 4px 2px 8px;
+	font-size: 12px;
+	margin-left: 1px;
+	opacity: 0.8;
+	font-style: italic;
+	user-select: none;
 }
 
 #chatMessages > div > span:nth-child(1) {
@@ -645,6 +668,7 @@ body[eventphase="3"] .coverer-title {
 	border: 1px solid grey;
 	font-size: 70%;
 	font-weight: 700;
+	background-color: white;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
 	column-gap: 2px;
 	opacity: 0;
@@ -805,10 +829,10 @@ body[eventphase="3"] .coverer-title {
 	background: lightgrey;
 }
 #messageReplyPanel {
-	height: 74px;
+	height: 84px;
 	display: flex;
 }
-#messageReplyPanel > div {
+#messageReplyPanel > div:nth-child(1) {
 	flex-grow: 1;
 }
 
@@ -959,9 +983,12 @@ kbd {
 .context-menu > ul > li > a {
 	text-decoration: none;
 	color: black;
-
+	display: block;
 }
 
+#channelDrop, #channelDrop * {
+	touch-action: pan-y;
+}
 #channelDrop {
 	overflow-y: scroll;
 	max-height: 400px;
