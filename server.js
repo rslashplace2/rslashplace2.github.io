@@ -41,7 +41,8 @@ catch (e) {
         "CHAT_COOLDOWN_MS": 2500,
         "PUSH_INTERVAL_MINS": 30,
         "CAPTCHA_EXPIRY_SECS": 45,
-        "CAPTCHA_MIN_MS": 100 //min solvetime
+        "CAPTCHA_MIN_MS": 100, //min solvetime
+        "INCLUDE_PLACER": false // pixel placer
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
@@ -49,7 +50,7 @@ catch (e) {
 }
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, PALETTE, COOLDOWN, CAPTCHA, USE_CLOUDFLARE,
 	PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS,
-	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS } = JSON.parse(config)
+	PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER } = JSON.parse(config)
 
 try { BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place")) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -58,7 +59,7 @@ catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
 try { VOTES = new Uint32Array((await fs.readFile('./votes')).buffer) }
 catch(e) { VOTES = new Uint32Array(32) }
 
-let newPos = [], newCols = []
+let newPos = [], newCols = [], newIds = []
 let wss, cooldowns = new Map()
 
 const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
@@ -210,7 +211,7 @@ let bans = new Map() // ws client : EndDate
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
     return text
-        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|bitch|blowjob|clit|cock|cunt|dick|fag|faggot|jizz|lesbian|masturbat(e|ion)|nigga|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
+        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|b[i1]tch|blowjob|clit|c[o0]ck|cunt|dick|(f[Aa4][g6](g?[oi]t)?)|jizz|lesbian|masturbat(e|ion)|nigga|卐|卍|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
             match => "*".repeat(match.length))
         .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
             match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
@@ -329,6 +330,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 cooldowns.set(IP, NOW + CD - 500)
                 newPos.push(i)
                 newCols.push(c)
+                if (INCLUDE_PLACER) newIds.push(p.intId)
                 break
             }
             case 12: { // Submit name
@@ -383,7 +385,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     positionIndex = data.readUint32BE(offset)
                 }
 
-                if (!channel || !message) return
+                if ((type == 0 && !channel) || !message) return
                 message = censorText(message)
                 if (!p.admin && !p.vip) {
                     message = message.replaceAll("@everyone", "*********")
@@ -398,7 +400,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 let messageId = ++chatMessageId
                 let i = 0;
                 const msgPacket = new Uint8Array(encodedTxt.byteLength +
-                    (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 10))
+                    (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
                 msgPacket[i] = 15; i++
                 msgPacket[i] = type; i++
                 msgPacket[i] = messageId >> 24; i++
@@ -412,7 +414,7 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                 msgPacket[i] = p.intId >> 16; i++
                 msgPacket[i] = p.intId >> 8; i++
                 msgPacket[i] = p.intId; i++
-
+                
                 if (type == 0) { // Live chat message
                     msgPacket[i] = NOW >> 24; i++
                     msgPacket[i] = NOW >> 16; i++
@@ -494,12 +496,12 @@ wss.on('connection', async function (p, { headers, url: uri }) {
             }
             case 98: { // User moderation
                 if (p.admin !== true) return
-                let action = data[1]
+                let offset = 1
+                let action = data[offset++]
 
-                let modMessage = null
                 if (action == 0) {
-                    let actionUidLen = data[2]
-                    let actionTxt = data.slice(3).toString()
+                    let actionUidLen = data[offset++]
+                    let actionTxt = data.slice((offset += actionUidLen)).toString()
                     let actionUid = actionTxt.slice(0, actionUidLen)
                     let actionCli = null
 
@@ -511,8 +513,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
 
                     if (action == 0) { // kick
-                        modMessage = `Moderator (${p.codehash}) requested to **kick** user **${
-                            actionCli.ip}**, with reason: '${actionReason}'`
+                        modWebhookLog(`Moderator (${p.codehash}) requested to **kick** user **${
+                            actionCli.ip}**, with reason: '${actionReason}'`)
                         actionCli.close()
                     }
                 }
@@ -529,8 +531,8 @@ wss.on('connection', async function (p, { headers, url: uri }) {
                     if (actionCli == null) return
 
                     let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                    modMessage = `Moderator (${p.codehash}) requested to **${["mute", "ban"][action - 1]
-                        }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`
+                    modWebhookLog(`Moderator (${p.codehash}) requested to **${["mute", "ban"][action - 1]
+                        }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`)
 
                     if (action == 1) mute(actionCli, actionTimeS)
                     else if (action == 2) ban(actionCli)
@@ -557,15 +559,15 @@ wss.on('connection', async function (p, { headers, url: uri }) {
 					}
 					
 					let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                    modMessage = `Moderator (${p.codehash}) requested to **force captcha revalidation** for ${
-                        actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`
+                    modWebhookLog(`Moderator (${p.codehash}) requested to **force captcha revalidation** for ${
+                        actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`)
                 }
+                if (action == 4) { // Set preban
+                    let x1, y1, x2, y2, violation
 
-                if (!modMessage) return
-                console.log(modMessage)
-                if (!MOD_WEBHOOK_URL) return
-                let msgHook = { username: "RPLACE SERVER", content: modMessage }
-                await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                    modWebhookLog(`Moderator (${p.codeHash}) requested to **set preban area** from (${
+                        x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "ignore"][violation]}`)
+                }
                 break
             }
             case 99: {
@@ -597,11 +599,12 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     })
 })
 
-async function modWebhookLog(string) {
-    console.log(string)
+async function modWebhookLog(message) {
+    console.log(message)
 
     if (!MOD_WEBHOOK_URL) return
-    let msgHook = { username: "RPLACE SERVER", content: string }
+    message = message.replace("@", "@​")
+    let msgHook = { username: "RPLACE SERVER", content: message }
     await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
 }
 
@@ -668,14 +671,20 @@ let captchaTick = 0
 setInterval(function () {
     fs.appendFile("./pxps.txt", "\n" + newPos.length)
     if (!newPos.length) return
-    let pos
-    let buf = Buffer.alloc(1 + newPos.length * 5)
-    buf[0] = 6
+    let pos, buf
+    if (INCLUDE_PLACER) {
+        buf = Buffer.alloc(1 + newPos.length * 9)
+        buf[0] = 5
+    }
+    else {
+        buf = Buffer.alloc(1 + newPos.length * 5)
+        buf[0] = 6
+    }
     let i = 1
     while ((pos = newPos.pop()) != undefined) {
-        buf.writeInt32BE(pos, i)
-        i += 4
+        buf.writeInt32BE(pos, i); i += 4
         buf[i++] = newCols.pop()
+        if (INCLUDE_PLACER) buf.writeInt32BE(newIds.pop(), i)
     }
     for (let c of wss.clients) {
         c.send(buf)
@@ -858,7 +867,10 @@ process.on('SIGINT', function () {
     else {
         shutdown = true
         process.stdout.write("\rShutdown received. Wait a sec");
-        
+        for (let c of wss.clients) {
+            c.close()
+        }
+
         (async function() {
             await makeDbRequest({ call: "commitShutdown" })
             console.log("rBye-bye!                             ")

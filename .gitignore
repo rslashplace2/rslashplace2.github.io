@@ -17,4 +17,8 @@ server.db
 server.db-shm
 server.db-wal
 
+place
+change
+change2
+
 node_modules/

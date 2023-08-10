@@ -79,7 +79,10 @@ const createUsers = `
         uidType TEXT CHECK (uidType IN ('Account', 'IP')),
         chatName TEXT,
         vipKey TEXT,
-        adminKey TEXT
+        adminKey TEXT,
+        lastJoined INTEGER,
+        pixelsPlaced INTEGER,
+        playTimeSeconds INTEGER
     );
 `
 db.exec(createUsers)

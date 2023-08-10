@@ -652,9 +652,10 @@ body[eventphase="3"] .coverer-title {
 	opacity: 0.8;
 	font-style: italic;
 	user-select: none;
+	border-radius: 2px 0px 0px 0px;
 }
 
-#chatMessages > div > span:nth-child(1) {
+#chatMessages > div > span:nth-of-type(1) {
 	cursor: pointer;
 }
 
@@ -1217,7 +1218,7 @@ placechat {
 	box-shadow: 0px 0px 1px black;
 	transform: translateX(-50%) translateY(-150%);
 	max-width: 65px;
-	width: max-content;
+	min-width: 8px;
 }
 
 placechat::after {
