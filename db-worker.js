@@ -1,6 +1,7 @@
 import { parentPort } from "worker_threads"
 import Database from 'better-sqlite3'
 import { Queue } from '@datastructures-js/queue'
+import { punishmentType } from "./types"
 
 const db = new Database("server.db")
 db.pragma("journal_mode = WAL")
@@ -100,11 +101,23 @@ setInterval(insertLiveChats, 10000)
 
 const internal = {
     getPunishments: function(uid) {
-        const bansQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal) FROM Bans where userUid = ?")
+        const punishments = []
+
+        const bansQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where userUid = ?")
         let banInfo = bansQuery.get(uid)
-        const mutesQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal) FROM Mutes where userUid = ?")
+        if (banInfo) {
+            banInfo.type = 0
+            punishments.push(banInfo)
+        }
+
+        const mutesQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where userUid = ?")
         let muteInfo = mutesQuery.get(uid)
-        return { ban: banInfo, mute: muteInfo }
+        if (muteInfo) {
+            muteInfo.type = 1
+            punishments.push(muteInfo)
+        }
+
+        return punishments
     },
     setUserChatName: function(data) {
         const updateQuery = db.prepare("UPDATE Users SET chatName = ? WHERE uid = ?")

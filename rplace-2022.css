@@ -256,6 +256,25 @@ a {
 	transition: .2s border-radius;
 }
 
+#namePanel {
+	background-color: white;
+	border-radius: 15px;
+}
+
+.name-input-container > button {
+	background: white;
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border: none;
+	border-radius: 10px;
+	padding: 2px;
+	transition: transform .1s ease-in;
+	cursor: pointer;
+}
+
+.name-input-container > button:hover {
+	transform: rotate(5deg) scale(110%);
+}
+
 .messageOptions {
 	height: 35px;
 	aspect-ratio: 1/1;

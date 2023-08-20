@@ -420,17 +420,18 @@
             ["az", { name: "Azərbaycan", flag: "https://openmoji.org/data/color/svg/1F1E6-1F1FF.svg", rtl: true }],
         ])
 
-        const THEMES = [
-            { css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" },
-            { css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" },
-        ]
+        const DEFAULT_THEMES = new Map([
+            [ "r/place 2022", { css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" }],
+        ])
 
         const PUNISHMENT_STATE = {
             mute: 0,
-            ban: 1 << 0,
-            appealable: 1 << 1,
-            alreadyAppealed: 1 << 2,
-            appealRejected: 1 << 3
+            ban: 1,
+            appealable: 2,
+            alreadyAppealed: 4,
+            appealRejected: 8,
+			hasFinish: 16
         }
 
         const MAX_CHANNEL_MESSAGES = 100
@@ -461,7 +462,7 @@
         let account = null
         let intId = null
         let chatName = null
-        let setName = null // function
+        let setName = null // function injected by wscapsule
         let canvasLocked = false
 
         const wscapsule = ((send, addEventListener, call) => {
@@ -865,7 +866,6 @@
             function _setName(uname) {
                 if (uname.length > 16) return
                 uname ||= "anon"
-                nameInput.textContent = uname.replace(/\W+/g, "").toLowerCase()
 
                 let nameBuf = encoder.encode("\x0C" + uname)
                 call(send, ws, nameBuf)
@@ -1298,7 +1298,7 @@
                 </div>
                 <div class="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
                 <div class="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
-                <div class="modal-footer">
+				<div class="modal-footer">
                     <mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
                         muted = !muted
                         localStorage.muted =+ muted
@@ -1306,7 +1306,39 @@
                     ">
                         <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
                     </mute-button>
-                    <img noselect alt="Place Logo" height="40" width="40" src="images/rplace.png" />
+                    <!--<img noselect alt="Place Logo" height="40" width="40" src="images/rplace.png" />-->
+					<div id="themeDropParent"
+                        style="border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,0.4);padding: 4px;width: fit-content;align-self: center;margin-top: 8px;"
+                        onclick="event.stopPropagation(); themeDropParent.toggleAttribute('open')">
+						<span id="themeDropName">🖼️ r/place 2023</span>
+						<svg style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+							<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
+						</svg>
+						<div id="themeDrop" class="context-menu" ontouchstart="event.stopPropagation()">
+							<ul onclick="
+                                {
+                                    let target = event.target
+                                    while (target && target != this) {
+                                        if (target.nodeName != 'LI') {
+                                            target = target.parentElement
+                                            continue
+                                        }
+                                        let targetTheme = target.getAttribute('theme')
+                                        themeDropParent.removeAttribute('open')
+                                        event.stopPropagation()
+
+                                        if (!targetTheme || curStylesheet === DEFAULT_THEMES.get(targetTheme).css) return
+                                        themeDropName.textContent = '🖼️ ' + targetTheme
+                                        theme(DEFAULT_THEMES.get(targetTheme))
+                                        break
+                                    }
+                                }
+                            ">
+								<li theme="r/place 2022"><span>r/place 2022</span> <img src="" style="height: 24px;"></li>
+								<li theme="r/place 2023"><span>r/place 2023</span> <img src="" style="height: 24px;"></li>
+							</ul>
+						</div>
+					</div>	
                     <place-chat-button class="modal-footer-button" title="Enable canvas chat" onclick="
                         placeChat =! placeChat
                         localStorage.placeChat = +placeChat
@@ -1487,12 +1519,9 @@
                 <h4 id="nicknameSubheading" style="color: lightgrey;" translate="pleaseBeRespectful">Please be respectful and try not to spam!</h4>
                 <br>
                 <div class="name-input-container">
-                    <input id="nameInput" type="text" placeholder="Enter nickname..." translate="enterNickname" onkeyup="
-                        if (event.keyCode == 13) {
-                            setName(this.value)
-                            this.value = ''
-                        }
-                    " maxlength="16">
+                    <input id="nameInput" type="text" placeholder="Enter nickname..." translate="enterNickname"
+                        onkeydown="if (event.keyCode == 13) setName(this.value)"
+                        oninput="this.value = this.value.replace(/\W+/g, '').toLowerCase()" maxlength="16">
                     <button onclick="setName(nameInput.value)">
                         <img src="svg/green-checkmark.svg">
                     </button>
@@ -2214,9 +2243,10 @@
             let left = Math.floor((CD - Date.now()) / 1000)
             place.innerHTML = initialConnect
                 ? CD === null // They have made initial connect
-                    ? `<span style="color:#f50">${translate("connectingFail")}</span>` // They connected but now have disconnected
+                    ? `<span style="color:#f50; white-space: nowrap;">${translate("connectingFail")}</span>` // They connected but now have disconnected
                     : left > 0
-                        ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${(''+Math.floor(left/3600)).padStart(2,"0")}:${(''+Math.floor((left/60))%60).padStart(2,"0")}:${(''+left%60).padStart(2,"0")}` // They are connected + still connected but in cooldown
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${
+                                ("" + Math.floor(left/3600)).padStart(2, "0")}:${("" + Math.floor((left / 60)) % 60).padStart(2, "0")}:${("" + left % 60).padStart(2, "0")}` // They are connected + still connected but in cooldown
                         : translate("placeTile") // They are connected + still connected + after cooldown
                 : translate("connecting") // They are yet to connect
 
@@ -2356,7 +2386,6 @@
         }
 
         function rebindIndicator(e, i) {
-            console.log(e.key.length)
             if (!e.key || e.key.length != 1) return
             e.target.innerText = e.key
             e.target.blur()
@@ -2402,7 +2431,7 @@
         }
 
         function extraChannel(code) {
-            // TODO: Implement if presisting all channels becomes too heavy
+            // TODO: Implement if persisting all channels becomes too heavy
             // delete cMessages[extraLanguage]
             let info = LANG_INFOS.get(code)
             channelMineName.innerText = code.toUpperCase()
@@ -2579,7 +2608,7 @@
                     element.innerHTML = set[element.getAttribute("theme")] || element.innerHTML
             })
         }
-        theme(THEMES[localStorage.theme || 0])
+        theme(DEFAULT_THEMES.get(localStorage.theme) || DEFAULT_THEMES.get("r/place 2023"))
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
         function translate(key) {

@@ -853,8 +853,6 @@ body[eventphase="3"] .coverer-title {
 	text-align: center;
 	width: 100%;
 	padding: 10px;
-	background-color: white;
-	border-radius: 15px;
 	left: 0
 }
 
@@ -871,17 +869,6 @@ body[eventphase="3"] .coverer-title {
 .name-input-container > button {
 	width: 40px;
 	height: 40px;
-	background: white;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border: none;
-	border-radius: 10px;
-	padding: 2px;
-	transition: all .1s ease-in;
-	cursor: pointer;
-}
-
-.name-input-container > button:hover {
-	transform: rotate(5deg) scale(110%);
 }
 
 .toastMenu {
@@ -987,7 +974,8 @@ kbd {
 	display: block;
 }
 
-#channelDrop, #channelDrop * {
+/* TODO: Classify  to generealise functionality */
+#themeDrop, #themeDrop *, #channelDrop, #channelDrop * {
 	touch-action: pan-y;
 }
 #channelDrop {
@@ -1005,10 +993,21 @@ kbd {
 	text-align: left;
 }
 
+/* TODO: Classify to generalise functionality, perhaps class context-menu-parent */
 #channelDropParent[open] > #channelDrop {
 	display: block;
 }
 #channelDropParent[open] > svg {
+	transform: rotate(180deg);
+}
+
+#themeDrop {
+	display: none;
+}
+#themeDropParent[open] > #themeDrop {
+	display: block;
+}
+#themeDropParent[open] > svg {
 	transform: rotate(180deg);
 }
 

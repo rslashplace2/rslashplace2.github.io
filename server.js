@@ -1,6 +1,5 @@
 /* eslint-disable no-process-exit */
 /* eslint-disable no-unused-vars */
-/* eslint-disable no-constant-condition */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { WebSocketServer } from 'ws'
@@ -295,18 +294,9 @@ wss.on('connection', async function (p, { headers, url: uri }) {
     }
     p.send(nmInfoBuf)
 
-    /*const punishments = await makeDbRequest({ call: "getPunishments", data: IP })
-    const ban = punishments.ban
-    const mute = punishments.mute
-    if (ban) {
-        let modBuf = Buffer.alloc(9 + punishments.ban.reason.length + punishments.ban.userAppeal.length)
-        modBuf.writeUInt8(14, 0)
-        modBuf.writeUInt32BE(punishments.ban)
-
-    }
-    if (mute) {
-
-    }*/
+    //let modBufL = 1
+    //let modBuf = Buffer.alloc(32)
+   // const punishments = await makeDbRequest({ call: "getPunishments", data: IP })
 
     p.on("error", console.warn)
     p.on('message', async function (data) {
@@ -818,7 +808,7 @@ function ban(identifier, duration, reason = null, mod = null) {
  * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
 */
 function mute(identifier, duration, reason = null, mod = null) {
-    let ip = identifier
+    /*let ip = identifier
     if (identifier instanceof Object) {
         const cli = identifier
         ip = cli.ip
@@ -827,7 +817,7 @@ function mute(identifier, duration, reason = null, mod = null) {
     
     let finish = NOW + duration * 1000
     MUTES.set(ip, finish)
-    fs.appendFile("mutes.txt", `\n ${ip} ${finish}`)
+    fs.appendFile("mutes.txt", `\n ${ip} ${finish}`)*/
 }
 
 function blacklist(identifier) {
