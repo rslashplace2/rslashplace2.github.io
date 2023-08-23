@@ -1,4 +1,3 @@
-
 * { margin: 0; padding: 0; touch-action: none } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; overflow: hidden; position: absolute }
 
 html {
@@ -610,8 +609,8 @@ body[eventphase="3"] .coverer-title {
 }
 
 #ad {
-	/* Default: 'Advertise here', will be overriden in element style */
-	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png)
+    /* Default: 'Advertise here', will be overriden in element style */
+    --adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png)
     display: block;
     aspect-ratio: 2/1;
     flex-shrink: 0;
@@ -620,8 +619,8 @@ body[eventphase="3"] .coverer-title {
     background-size: contain;
     max-height: 180px;
     background-repeat: no-repeat;
-	position: relative;
-	overflow: clip;
+    position: relative;
+    overflow: clip;
 }
 
 #ad::before {
