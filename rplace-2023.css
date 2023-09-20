@@ -136,6 +136,21 @@ input {
     font-size: 14px;
 }
 
+#namePanel {
+    border-top: var(--pixel-border);
+}
+
+.name-input-container > button {
+    background: white;
+    border: var(--pixel-border);
+    padding: 4px;
+    transition: background-color .1s ease-in;
+}
+
+.name-input-container > button:hover {
+    background-color: lightgray;
+}
+
 .messageOptions {
 	height: 38px;
 	aspect-ratio: 1/1;

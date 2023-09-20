@@ -1,6 +1,5 @@
 /* eslint-disable no-process-exit */
 /* eslint-disable no-unused-vars */
-/* eslint-disable no-constant-condition */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { promises as fs } from 'fs'
@@ -823,7 +822,7 @@ function ban(identifier, duration, reason = null, mod = null) {
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
  * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
 */
-function mute(identifier, duration, reason = null, mod = null) {
+/*function mute(identifier, duration, reason = null, mod = null) {
     let ip = identifier
     if (identifier instanceof Object) {
         const cli = identifier

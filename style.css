@@ -609,6 +609,35 @@ body[eventphase="3"] .coverer-title {
 	align-items:center
 }
 
+#ad {
+	/* Default: 'Advertise here', will be overriden in element style */
+	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png)
+    display: block;
+    aspect-ratio: 2/1;
+    flex-shrink: 0;
+    background-image: var(--adurl);
+    background-position: center;
+    background-size: contain;
+    max-height: 180px;
+    background-repeat: no-repeat;
+	position: relative;
+	overflow: clip;
+}
+
+#ad::before {
+    content: " ";
+    background-image: var(--adurl);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-size: cover;
+    transform: scale(1.5);
+    filter: blur(6px) saturate(1.2);	
+}
+
 #chatMessages {
 	overflow-wrap: break-word;
 	word-wrap: break-word;
@@ -853,8 +882,6 @@ body[eventphase="3"] .coverer-title {
 	text-align: center;
 	width: 100%;
 	padding: 10px;
-	background-color: white;
-	border-radius: 15px;
 	left: 0
 }
 
@@ -871,17 +898,6 @@ body[eventphase="3"] .coverer-title {
 .name-input-container > button {
 	width: 40px;
 	height: 40px;
-	background: white;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border: none;
-	border-radius: 10px;
-	padding: 2px;
-	transition: all .1s ease-in;
-	cursor: pointer;
-}
-
-.name-input-container > button:hover {
-	transform: rotate(5deg) scale(110%);
 }
 
 .toastMenu {
@@ -987,7 +1003,8 @@ kbd {
 	display: block;
 }
 
-#channelDrop, #channelDrop * {
+/* TODO: Classify  to generealise functionality */
+#themeDrop, #themeDrop *, #channelDrop, #channelDrop * {
 	touch-action: pan-y;
 }
 #channelDrop {
@@ -1005,10 +1022,21 @@ kbd {
 	text-align: left;
 }
 
+/* TODO: Classify to generalise functionality, perhaps class context-menu-parent */
 #channelDropParent[open] > #channelDrop {
 	display: block;
 }
 #channelDropParent[open] > svg {
+	transform: rotate(180deg);
+}
+
+#themeDrop {
+	display: none;
+}
+#themeDropParent[open] > #themeDrop {
+	display: block;
+}
+#themeDropParent[open] > svg {
 	transform: rotate(180deg);
 }
 
