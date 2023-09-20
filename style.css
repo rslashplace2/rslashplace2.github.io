@@ -249,13 +249,11 @@ btn{
 }
 
 .modal-footer-button {
-	display: block;
-	width: 36px;
+	display: flex;
+	min-width: 36px;
 	height: 36px;
 	padding: 8px;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border-radius: 18px;
-	position: absolute;
+	position: relative;
 	cursor: pointer;
 }
 

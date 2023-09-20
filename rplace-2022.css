@@ -148,6 +148,11 @@ a {
 	position: relative;
 }
 
+.modal-footer-button {
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border-radius: 18px;
+}
+
 .context-menu {
 	background: white;
 	border-radius: 5px;

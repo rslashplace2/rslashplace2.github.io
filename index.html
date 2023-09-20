@@ -1298,7 +1298,7 @@
                     </icon-close>
                 </div>
                 <div class="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
-                <div class="modal-install" onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
+                <div class="modal-install" noselect onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
 				<div class="modal-footer">
                     <mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
                         muted = !muted
@@ -1308,14 +1308,13 @@
                         <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
                     </mute-button>
                     <!--<img noselect alt="Place Logo" height="40" width="40" src="images/rplace.png" />-->
-					<div id="themeDropParent"
-                        style="border-radius: 20px;box-shadow: 0 0 10px rgba(0,0,0,0.4);padding: 4px;width: fit-content;align-self: center;margin-top: 8px;"
+					<div id="themeDropParent" noselect class="modal-footer-button" style="width: auto; align-items: center;justify-content: center;"
                         onclick="event.stopPropagation(); themeDropParent.toggleAttribute('open')">
-						<span id="themeDropName">🖼️ r/place 2023</span>
+						<span style="white-space: nowrap;" id="themeDropName">🖌️ r/place 2023</span>
 						<svg style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
 							<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
 						</svg>
-						<div id="themeDrop" class="context-menu" ontouchstart="event.stopPropagation()">
+						<div id="themeDrop" style="top: 40px;" class="context-menu" ontouchstart="event.stopPropagation()">
 							<ul onclick="
                                 {
                                     let target = event.target
@@ -1329,7 +1328,7 @@
                                         event.stopPropagation()
 
                                         if (!targetTheme || curStylesheet === DEFAULT_THEMES.get(targetTheme).css) return
-                                        themeDropName.textContent = '🖼️ ' + targetTheme
+                                        themeDropName.textContent = '🖌️ ' + targetTheme
                                         theme(DEFAULT_THEMES.get(targetTheme))
                                         break
                                     }

@@ -52,6 +52,10 @@ input {
     background: linear-gradient(rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 0px), rgb(255, 255, 255);
 }
 
+#themeDropParent {
+    border-bottom: var(--pixel-border);
+}
+
 .context-menu {
     border: var(--pixel-border);
     background-color: white;
