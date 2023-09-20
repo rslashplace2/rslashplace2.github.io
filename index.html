@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <script>
-        if(!('subtle' in (window.crypto||{})))location.protocol='https:'
         const DEFAULT_SERVER = "wss://server.rplace.tk:443"
         const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
         const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
@@ -436,6 +435,8 @@
         const MAX_CHANNEL_MESSAGES = 100
     </script>
     <script>
+        if(!("subtle" in (window.crypto || {}))) location.protocol = "https:"
+
         // csrfstate not used at the moment, may be later to encode some extra info for client
         let params = new URLSearchParams(location.search)
         let csrfState = params.get("state"),

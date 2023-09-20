@@ -10,10 +10,8 @@ Site link: https://rplace.live/
 
 *Feel free to contribute!*
 
-
 # Setting up my own custom canvas!
 To set up your own custom canvas to be played on rplace.tk, we have made a guide at our [Manual](MANUAL.md)!
-
 
 # Forking
 
@@ -29,3 +27,5 @@ We request forks are not run commercially (That is, it must not generate more th
 - Making `https://rplace.live` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Cool, non-commercially]
 - My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not cool: Uses both different app and different server]
 
+### Also see:
+ - [bun vscode extension](https://marketplace.visualstudio.com/items?itemName=oven.bun-vscode)

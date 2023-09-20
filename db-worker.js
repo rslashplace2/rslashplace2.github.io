@@ -1,10 +1,9 @@
 import { parentPort } from "worker_threads"
-import Database from 'better-sqlite3'
+import { Database } from "bun:sqlite";
+
 import { Queue } from '@datastructures-js/queue'
 
 const db = new Database("server.db")
-db.pragma("journal_mode = WAL")
-db.pragma("foreign_keys = ON")
 
 try{
 const createLiveChatMessages = `
@@ -13,20 +12,20 @@ const createLiveChatMessages = `
         sendDate INTEGER,
         channel TEXT,
         message TEXT,
-        senderUid TEXT,
+        senderIntId INTEGER,
         repliesTo INTEGER,
         FOREIGN KEY (repliesTo) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderUid) REFERENCES Users(uid)
-    );
+        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
+    )
 `
 db.exec(createLiveChatMessages)
 const createLiveChatReactions = `
     CREATE TABLE IF NOT EXISTS LiveChatReactions (
         messageId INTEGER NOT NULL,
         reaction TEXT,
-        senderUid TEXT,
+        senderIntId INTEGER,
         FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderUid) REFERENCES Users(uid)
+        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
     )
 `
 db.exec(createLiveChatReactions)
@@ -35,26 +34,26 @@ const createPlaceChatMessages = `
         messageId INTEGER PRIMARY KEY NOT NULL,
         sendDate INTEGER,
         message TEXT,
-        senderUid TEXT,
+        senderIntId INTEGER,
         x INTEGER,
         y INTEGER,
-        FOREIGN KEY (senderUid) REFERENCES Users(uid)
-    );
+        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
+    )
 `
 db.exec(createPlaceChatMessages)
 const createBans = `
     CREATE TABLE IF NOT EXISTS Bans (
         banId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        userIntId INTEGER UNIQUE,
         startDate INTEGER,
         finishDate INTEGER,
-        userUid TEXT UNIQUE,
-        moderatorUid TEXT,
+        moderatorIntId INTEGER,
         reason TEXT,
         userAppeal TEXT,
         appealRejected INTEGER,
-        FOREIGN KEY (userUid) REFERENCES Users(uid),
-        FOREIGN KEY (moderatorUid) REFERENCES Users(uid)
-    );
+        FOREIGN KEY (userIntId) REFERENCES Users(intId),
+        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
+    )
 `
 db.exec(createBans)
 const createMutes = `
@@ -62,33 +61,42 @@ const createMutes = `
         muteId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         startDate INTEGER,
         finishDate INTEGER,
-        userUid TEXT UNIQUE,
-        moderatorUid TEXT,
+        userIntId INTEGER UNIQUE,
+        moderatorIntId INTEGER,
         reason TEXT,
         userAppeal TEXT,
         appealRejected INTEGER,
-        FOREIGN KEY (userUid) REFERENCES Users(uid),
-        FOREIGN KEY (moderatorUid) REFERENCES Users(uid)
-    );
+        FOREIGN KEY (userIntId) REFERENCES Users(intId),
+        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
+    )
 `
 db.exec(createMutes)
 const createUsers = `
     CREATE TABLE IF NOT EXISTS Users (
-        uid TEXT PRIMARY KEY NOT NULL,
-        intId INTEGER UNIQUE,
-        uidType TEXT CHECK (uidType IN ('Account', 'IP')),
+        intId INTEGER PRIMARY KEY NOT NULL,
+        accountId TEXT NOT NULL,
         chatName TEXT,
         vipKey TEXT,
-        adminKey TEXT,
+        token TEXT,
         lastJoined INTEGER,
         pixelsPlaced INTEGER,
         playTimeSeconds INTEGER
     );
 `
 db.exec(createUsers)
+const createUserIps = `
+    CREATE TABLE IF NOT EXISTS KnownIps (
+        userIntId INTERGER NOT NULL,
+        ip TEXT,
+        lastUsed INTEGER,
+        FOREIGN KEY (userIntId) REFERENCES Users(intId)
+    )
+` // We disallow an IP being associated with more than 3 userIntIds within a week
+db.exec(createUserIps)
 
-const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, sendDate, channel, message, senderUid, repliesTo) VALUES (@messageId, @sendDate, @channel, @message, @senderUid, @repliesTo)")
-const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, sendDate, message, senderUid, x, y) VALUES (@messageId, @sendDate, @message, @senderUid, @x, @y)")
+/*
+const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, sendDate, channel, message, senderIntId, repliesTo) VALUES (@messageId, @sendDate, @channel, @message, @senderIntId, @repliesTo)")
+const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, sendDate, message, senderIntId, x, y) VALUES (@messageId, @sendDate, @message, @senderIntId, @x, @y)")
 
 const liveChatInserts = new Queue()
 const insertLiveChats = db.transaction(() => {
@@ -97,6 +105,7 @@ const insertLiveChats = db.transaction(() => {
     }
 })
 setInterval(insertLiveChats, 10000)
+*/
 
 const internal = {
     getPunishments: function(uid) {
@@ -116,7 +125,7 @@ const internal = {
     },
     getOrCreateUserUid: function(uid) {
         const selectUserQuery = db.prepare("SELECT intId FROM Users WHERE uid = ?")
-        const insertUserQuery = db.prepare("INSERT INTO Users (uid, intId, uidType) VALUES (?, ?, ?)")
+        const insertUserQuery = db.prepare("INSERT INTO Users (intId, uid, uidType) VALUES (?, ?, ?)")
     
         const existingUser = selectUserQuery.get(uid)
         if (existingUser)  return existingUser.intId
@@ -137,12 +146,12 @@ const internal = {
         const maxMessageID = getMaxMessageId.get().maxMessageID || 0
         return maxMessageID      
     },
+    getMaxPlaceChatId: function() {
+        const getMaxMessageId = db.prepare("SELECT MAX(messageID) AS maxMessageID FROM PlaceChatMessages")
+        const maxMessageID = getMaxMessageId.get().maxMessageID || 0
+        return maxMessageID
+    },
     insertLiveChat: function(data) {
-        // messageId, sendDate, channel, message, name, senderUid, uidType, repliesTo
-        // data.messageId, data.sendDate, data.channel, data.message, data.name, data.senderUid, "IP", data.replies || "NULL"
-        //data.uidType = "IP"
-        //data.repliesTo ||=  null
-        //liveChatInserts.enqueue(data)
     },
     insertPlaceChat: function(data) {
         
@@ -157,9 +166,9 @@ const internal = {
         insertLiveChats()
         db.close()
     },
-    executeQuery: function(data) {
-        let query = db.prepare(data)
-        return query?.all()
+    exec: function(data) {
+        let query = db.prepare(data.stmt)
+        return query?.all(...data.params)
     }
 }
 

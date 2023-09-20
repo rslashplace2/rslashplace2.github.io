@@ -20,5 +20,6 @@ server.db-wal
 place
 change
 change2
+.uidtoken
 
 node_modules/
