@@ -1008,6 +1008,16 @@
                     modal.style.display = "flex"
                     bg.style.display = "block"
                 }
+                else if (e.key === "=" || e.key == "+") {
+                    e.preventDefault()
+                    z += 0.02
+                    pos()
+                }
+                else if (e.key === "-") {
+                    e.preventDefault()
+                    z -= 0.02
+                    pos()
+                }
 
                 // Move around with arrow keys
                 let moveEaseI = 10

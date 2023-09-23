@@ -219,7 +219,7 @@ function censorText(text) {
         .trim()
 }
 
-function getRandomString(length) {
+function randomString(length) {
     const buf = new Uint8Array()
     crypto.getRandomValues(buf)
     let str = ""
@@ -245,8 +245,10 @@ const wss = Bun.serve({
                 headers: req.headers
             },
             headers: {
-                "Set-Cookie": cookie.serialize(uidTokenName,
-                    "STANDIN_VALUE", { domain: req.url, expires: new Date(4e12), httpOnly: true, sameSite: true })
+                ...newToken && {
+                    "Set-Cookie": cookie.serialize(uidTokenName,
+                        newToken, { domain: req.url, expires: new Date(4e12), httpOnly: true, sameSite: true })    
+                }
             }
         })
 
