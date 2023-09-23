@@ -72,10 +72,9 @@ db.exec(createMutes)
 const createUsers = `
     CREATE TABLE IF NOT EXISTS Users (
         intId INTEGER PRIMARY KEY NOT NULL,
-        accountId TEXT NOT NULL,
         chatName TEXT,
         vipKey TEXT,
-        token TEXT,
+        token TEXT NOT NULL,
         lastJoined INTEGER,
         pixelsPlaced INTEGER,
         playTimeSeconds INTEGER
@@ -85,11 +84,11 @@ db.exec(createUsers)
 const createUserIps = `
     CREATE TABLE IF NOT EXISTS KnownIps (
         userIntId INTERGER NOT NULL,
-        ip TEXT,
+        ip TEXT NOT NULL,
         lastUsed INTEGER,
         FOREIGN KEY (userIntId) REFERENCES Users(intId)
     )
-` // We disallow an IP being associated with more than 3 userIntIds within a week
+` // ip and userIntId combined form a composite key to identify a record
 db.exec(createUserIps)
 
 /*
@@ -106,18 +105,18 @@ setInterval(insertLiveChats, 10000)
 */
 
 const internal = {
-    getPunishments: function(uid) {
+    getPunishments: function(intId) {
         const punishments = []
 
-        const bansQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where userUid = ?")
-        let banInfo = bansQuery.get(uid)
+        const bansQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where intId = ?")
+        const banInfo = bansQuery.get(intId)
         if (banInfo) {
             banInfo.type = 0
             punishments.push(banInfo)
         }
 
-        const mutesQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where userUid = ?")
-        let muteInfo = mutesQuery.get(uid)
+        const mutesQuery = db.prepare("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where intId = ?")
+        const muteInfo = mutesQuery.get(intId)
         if (muteInfo) {
             muteInfo.type = 1
             punishments.push(muteInfo)
@@ -125,31 +124,47 @@ const internal = {
 
         return punishments
     },
+    /** @param {{ newName: string, intId: number }} data */
     setUserChatName: function(data) {
-        const updateQuery = db.prepare("UPDATE Users SET chatName = ? WHERE uid = ?")
-        updateQuery.run(data.newName, data.uid)
+        const updateQuery = db.prepare("UPDATE Users SET chatName = ? WHERE intId = ?")
+        updateQuery.run(data.newName, data.intId)
     },
-    getUserChatName: function(uid) {
-        const getNameQuery = db.prepare("SELECT chatName FROM Users AS chatName WHERE uid = ?")
-        return getNameQuery.get(uid).chatName
+    getUserChatName: function(intId) {
+        const getNameQuery = db.prepare("SELECT chatName FROM Users WHERE intId = ?")
+        return getNameQuery.get(intId).chatName
     },
-    getOrCreateUserUid: function(uid) {
-        const selectUserQuery = db.prepare("SELECT intId FROM Users WHERE uid = ?")
-        const insertUserQuery = db.prepare("INSERT INTO Users (intId, uid, uidType) VALUES (?, ?, ?)")
-    
-        const existingUser = selectUserQuery.get(uid)
-        if (existingUser)  return existingUser.intId
+    /** @param {{ token: string, ip: string }} data */
+    authenticateUser: function(data) { //  
+        const selectUser = db.prepare("SELECT * FROM Users WHERE token = ?")
+        const epochMs = Date.now()
         
-        const selectMaxIntIdQuery = db.prepare("SELECT MAX(intId) as maxIntId FROM Users")
-        const newIntId = db.transaction(() => {
-            const { maxIntId } = selectMaxIntIdQuery.get()
-            const intId = maxIntId !== null ? maxIntId + 1 : 1
-            insertUserQuery.run(uid, intId, "IP")
-            
+        let user = selectUser.get(data.token)
+        if (!user)  {
+            // Create new user
+            const insertUser = db.prepare("INSERT INTO Users (token, lastJoined, pixelsPlaced, playTimeSeconds) VALUES (?, ?, ?, ?) RETURNING intId")
+            const intId = insertUser.get(data.token, epochMs, epochMs, 0)
             return intId
-        })()
-        
-        return newIntId
+        }
+        else { // Update last joined
+            const updateUser = db.prepare("UPDATE Users SET lastJoined = ? WHERE intId = ?")
+            updateUser.run(epochMs, user.intId)
+        }
+        // Add known Ip if not already there
+        const getIpsQuery = db.prepare("SELECT * FROM KnownIps WHERE userIntId = ")
+        let ipExists
+        for (let ipRecord of getIpsQuery.all(user.intId)) {
+            if (ipRecord.ip === data.ip) ipExists = true
+        }
+        if (ipExists) { // Update last used
+            const updateIp = db.prepare("UPDATE KnownIps SET lastUsed = ? WHERE userIntId = ? AND ip = ?")
+            updateIp.run(epochMs, user.intId, data.ip)
+        }
+        else { // Create new
+            const createIp = db.prepare("INSERT INTO KnownIps (userIntId, ip, lastUsed) VALUES (?, ?, ?")
+            createIp.run(user.intId, data.ip, epochMs)
+        }
+
+        return user.intId
     },
     getMaxLiveChatId: function() {
         const getMaxMessageId = db.prepare("SELECT MAX(messageID) AS maxMessageID FROM LiveChatMessages")
@@ -160,18 +175,6 @@ const internal = {
         const getMaxMessageId = db.prepare("SELECT MAX(messageID) AS maxMessageID FROM PlaceChatMessages")
         const maxMessageID = getMaxMessageId.get().maxMessageID || 0
         return maxMessageID
-    },
-    insertLiveChat: function(data) {
-
-    },
-    insertPlaceChat: function(data) {
-        
-    },
-    insertMute: function(data) {
-
-    },
-    insertBan: function(data) {
-
     },
     commitShutdown: function() {
         insertLiveChats()

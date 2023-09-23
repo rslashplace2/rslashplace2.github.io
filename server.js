@@ -238,11 +238,13 @@ const wss = Bun.serve({
             newToken = randomString(32)
         }
 
+        let url = new URL(req.url)
         server.upgrade(req, {
             data: {
-                url: req.url.slice(1).trim(),
+                url: url.pathname.slice(1).trim(),
                 uidToken: cookies[uidTokenName],
-                headers: req.headers
+                headers: req.headers,
+                token: newToken
             },
             headers: {
                 ...newToken && {
@@ -274,12 +276,12 @@ const wss = Bun.serve({
             if (URL) {
                 let codeHash = sha256(URL)
                 if (!VIP.has(codeHash)) {
-                    return ws.close()
+                    return ws.close(4000, "Invalid VIP code. Please do not try again.")
                 }
                 ws.data.codehash = codeHash
                 if (URL.startsWith("!")) {
                     ws.data.admin = true
-                    toValidate.delete(p)
+                    toValidate.delete(ws)
                     CD = 30
                 }
                 else {
@@ -287,7 +289,9 @@ const wss = Bun.serve({
                     CD /= 2
                 }
             }
-            if (CAPTCHA && !ws.data.admin) await forceCaptchaSolve(p)
+            ws.data.cd = CD
+
+            if (CAPTCHA && !ws.data.admin) await forceCaptchaSolve(ws)
             ws.data.lchat = 0 //last chat
             ws.data.cdate = NOW //connection date
             ws.data.pHistory = [] //place history
@@ -311,18 +315,18 @@ const wss = Bun.serve({
             }
             
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const pIntId = await makeDbRequest({ call: "getOrCreateUserUid", data: IP })
+            const pIntId = await makeDbRequest({ call: "authenticateUser", data: { token: ws.data.token, ip: IP } })
             ws.data.intId = pIntId
-            playerIntIds.set(p, pIntId)
+            playerIntIds.set(ws, pIntId)
             let pIdBuf = Buffer.alloc(5)
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
         
-            const pName = await makeDbRequest({ call: "getUserChatName", data: IP })
+            const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
             if (pName) {
                 ws.data.chatName = pName
-                playerChatNames.set(p, pName)
+                playerChatNames.set(ws, pName)
             }
             let nmInfoBufL = 1
             for (let [p, name] of playerChatNames) nmInfoBufL += encoderUTF8.encode(name).length + 5
@@ -338,9 +342,13 @@ const wss = Bun.serve({
             ws.send(nmInfoBuf)        
         },
         async message(ws, data) {
+            // Redefine as message handler is now separate from open
+            const IP = ws.data.ip
+            const CD = ws.data.cd
+
             switch (data[0]) {
                 case 4: { // pixel place
-                    if (data.length < 6 || LOCKED === true || toValidate.has(p)) return
+                    if (data.length < 6 || LOCKED === true || toValidate.has(ws)) return
                     let i = data.readUInt32BE(1), c = data[5]
                     if (i >= BOARD.length || c >= PALETTE_SIZE) return
                     let cd = cooldowns.get(IP)
@@ -369,9 +377,9 @@ const wss = Bun.serve({
     
                     // Update chatNames so new players joining will also see the name and pass to DB
                     ws.data.chatName = name
-                    playerChatNames.set(p, name)
-                    dbWorker.postMessage({ call: "setUserChatName", data: { uid: IP, newName: name }})
-    
+                    playerChatNames.set(ws, name)
+                    //dbWorker.postMessage({ call: "setUserChatName", data: { uid: IP, newName: name }})
+
                     // Combine with player intId and alert all other clients of name change
                     const encName = encoderUTF8.encode(name)
                     const nmInfoBuf = Buffer.alloc(6 + encName.length)
@@ -435,7 +443,7 @@ const wss = Bun.serve({
                     msgPacket.writeUInt32BE(ws.data.intId, i); i +=  4
                     
                     if (type == 0) { // Live chat message
-                        msgPacket.writeUInt32BE(NOW, i); i += 4
+                        msgPacket.writeUInt32BE(NOW / 1000, i); i += 4
                         // TODO: reactions
                         msgPacket[i] = 0; i++
                         // TODO: reactions
@@ -446,13 +454,13 @@ const wss = Bun.serve({
                         }
     
                         //dbWorker.postMessage({ call: "insertLiveChat", data: { messageId: messageId, message: message,
-                        //    name: name, channel: messageChannel, senderUid: IP, sendDate: NOW } })    
+                        //    name: name, channel: messageChannel, senderUid: IP, sendDate: NOW / 1000 } })    
                     }
                     else { // Place (canvas chat message)
                         msgPacket.writeUInt32BE(positionIndex, i); i += 4
     
                         //dbWorker.postMessage({ call: "inserPlaceChat", data: { messageId: messageId, message: message,
-                        //    name: name, uid: IP, sendDate: NOW, x: placeX, y: placeY } })
+                        //    name: name, uid: IP, sendDate: NOW / 1000, x: placeX, y: placeY } })
                     }
                     wss.publish(msgPacket)
 
@@ -472,10 +480,10 @@ const wss = Bun.serve({
                 }
                 case 16: {
                     let response = data.slice(1).toString()
-                    let info = toValidate.get(p)
+                    let info = toValidate.get(ws)
                     if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
                         captchaFailed.delete(IP)
-                        toValidate.delete(p)
+                        toValidate.delete(ws)
                         let dv = new DataView(new ArrayBuffer(2))
                         dv.setUint8(0, 16)
                         dv.setUint8(1, 255)
@@ -561,7 +569,10 @@ const wss = Bun.serve({
                             await forceCaptchaSolve(actionCli)
                         }
                         else {
-                            ws.publish("all", forceCaptchaSolve(c))
+                            // TODO: figure out how to iterate over all wss clients
+                            for (let c of wss.clients) {
+                                forceCaptchaSolve(c)
+                            }
                         }
                         
                         let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)

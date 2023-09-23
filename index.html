@@ -571,7 +571,7 @@
             ws.onmessage = async function({data}) {
                 delete sessionStorage.err
                 data = new DataView(await data.arrayBuffer())
-                
+
                 switch (data.getUint8(0)) {
                 case 0: {
                     PALETTE = [...new Uint32Array(data.buffer.slice(1))]
@@ -637,6 +637,7 @@
                         let pIntId = data.getUint32(i); i += 4
                         let pNameLen = data.getUint8(i); i++
                         let pName = decoder.decode(data.buffer.slice(i, (i += pNameLen)))
+                        console.log(pName)
 
                         intIdNames.set(pIntId, pName)
                         // Occurs either if server has sent us name it has remembered from a previous session,
