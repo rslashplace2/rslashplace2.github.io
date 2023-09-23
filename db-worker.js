@@ -1,9 +1,6 @@
 import { parentPort } from "worker_threads"
 import { Database } from "bun:sqlite";
 
-import { Queue } from '@datastructures-js/queue'
-import { punishmentType } from "./types"
-
 const db = new Database("server.db")
 
 try{
@@ -165,6 +162,7 @@ const internal = {
         return maxMessageID
     },
     insertLiveChat: function(data) {
+
     },
     insertPlaceChat: function(data) {
         

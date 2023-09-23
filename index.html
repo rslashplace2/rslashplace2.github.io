@@ -990,13 +990,51 @@
                 }
             }
 
-            call(addEventListener, document.body, 'keypress', function(e) {
-                if (!e.isTrusted)return
-
+            call(addEventListener, document.body, "keydown", function(e) {
+                if (!e.isTrusted) return
+                
                 //"Shift+O" to open overlay menu
-                if (e.code == 'KeyO' && e.shiftKey && !('value' in document.activeElement)) {
+                if (e.key === "O" && e.shiftKey && !("value" in document.activeElement)) {
+                    e.preventDefault()
                     overlayMenu.toggleAttribute("opened")
                 }
+                else if (e.key === "/") {
+                    e.preventDefault()
+                    chatPanel.toggleAttribute('open')
+                }
+                else if (e.key === "Escape") {
+                    // TODO: Not optimal, but it works for now
+                    e.preventDefault()
+                    modal.style.display = "flex"
+                    bg.style.display = "block"
+                }
+
+                // Move around with arrow keys
+                let moveEaseI = 10
+                let repeatFunc = setInterval(function() {
+                    // We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
+                    switch (e.keyCode) {
+                    case 37:
+                        x -= moveEaseI / 55
+                        arrowkeyDown.right = true
+                        break //right
+                    case 38:
+                        y -= moveEaseI / 55
+                        arrowkeyDown.up = true
+                        break //up
+                    case 39:
+                        x += moveEaseI / 55
+                        arrowkeyDown.left = true
+                        break //left
+                    case 40:
+                        y += moveEaseI / 55
+                        arrowkeyDown.down = true
+                        break //down
+                    }
+                    pos()
+                    moveEaseI--
+                    if (moveEaseI <= 0) clearInterval(repeatFunc)
+                }, 16)
                 
                 //Begin palette commands
                 if (onCooldown || canvasLocked) return
@@ -1012,8 +1050,9 @@
                 for (let c = 0; c < document.getElementById("colours").children.length; c++) {
                     document.getElementById("colours").children[c].firstChild.style.visibility = "visible"
                 }
-                let i = [...(document.getElementById("colours").children)].indexOf(document.getElementById("colours").children[keyIndex])
-                if (i<0) return
+                let colourI = [...(document.getElementById("colours").children)]
+                    .indexOf(document.getElementById("colours").children[keyIndex])
+                if (colourI < 0) return
                 let el = document.getElementById("colours").children[PEN]
                 if (el) {
                     el.classList.remove('sel')
@@ -1250,7 +1289,7 @@
                 <a style="text-align: center;" href=".">(generate new captcha)</a>
                 <div id="captchaOptions"><!--clickable captcha answers--></div>
             </div>
-            <div id="chatbtn" class="layout" noselect onclick="chatPanel.classList.add('open')">
+            <div id="chatbtn" class="layout" noselect onclick="chatPanel.setAttribute('open', 'true')">
                 <img src="svg/chat.svg" style="width:16px; height:21px">
             </div>
             <div id="popup" style="height:calc(65.2vmin + 36px);display:none">
@@ -1280,7 +1319,7 @@
                 bg.style.opacity = '0.5'
                 bg.style.display = 'block'
                 messageInput.blur()
-                chatPanel.classList.remove('open')
+                chatPanel.removeAttribute('open')
                 document.body.id = 'out'
                 window.onresize()
             ">...</div>
@@ -1300,6 +1339,7 @@
                 <div class="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
                 <div class="modal-install" noselect onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
 				<div class="modal-footer">
+                    <img noselect="" alt="Place Logo" height="40" width="40" src="images/rplace.png" style="position: absolute;left: 50%;transform: translateX(-50%);opacity: 0.2;">
                     <mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
                         muted = !muted
                         localStorage.muted =+ muted
@@ -1307,10 +1347,9 @@
                     ">
                         <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
                     </mute-button>
-                    <!--<img noselect alt="Place Logo" height="40" width="40" src="images/rplace.png" />-->
 					<div id="themeDropParent" noselect class="modal-footer-button" style="width: auto; align-items: center;justify-content: center;"
                         onclick="event.stopPropagation(); themeDropParent.toggleAttribute('open')">
-						<span style="white-space: nowrap;" id="themeDropName">🖌️ r/place 2023</span>
+						<span style="white-space: nowrap;" id="themeDropName">🖌️ r/place 2022</span>
 						<svg style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
 							<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
 						</svg>
@@ -1327,15 +1366,15 @@
                                         themeDropParent.removeAttribute('open')
                                         event.stopPropagation()
 
-                                        if (!targetTheme || curStylesheet === DEFAULT_THEMES.get(targetTheme).css) return
+                                        if (!targetTheme || currentTheme === DEFAULT_THEMES.get(targetTheme)) return
                                         themeDropName.textContent = '🖌️ ' + targetTheme
                                         theme(DEFAULT_THEMES.get(targetTheme))
                                         break
                                     }
                                 }
                             ">
-								<li theme="r/place 2022"><span>r/place 2022</span> <img src="" style="height: 24px;"></li>
-								<li theme="r/place 2023"><span>r/place 2023</span> <img src="" style="height: 24px;"></li>
+								<li theme="r/place 2022"><span>r/place 2022</span></li>
+								<li theme="r/place 2023"><span>r/place 2023</span></li>
 							</ul>
 						</div>
 					</div>	
@@ -1397,7 +1436,7 @@
                     <input id="postInput" type="text" watermark="Create post" onclick="window.open('https:\/\/www.reddit.com/r/placetk/submit','_blank')"/>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-top: 8px;" height="30" width="30"><path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/></svg>
                 </div>
-                <div onclick="chatPanel.classList.toggle('open')" class="post">
+                <div onclick="chatPanel.setAttribute('open', 'true')" class="post">
                     <img src="images/live.png"><div><div translate="liveChat">Live Chat</div><span id="onlineCounter2">... online</span></div>
                 </div>
                 <div onclick="switchGameServer()" class="post">
@@ -1572,7 +1611,7 @@
                 </div>
                 <icon-close noselect="" class="close-button" onclick="
                     messageInput.blur()
-                    chatPanel.classList.remove('open')
+                    chatPanel.removeAttribute('open')
                 " class="active">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
                         <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
@@ -1629,7 +1668,7 @@
                 </div>
             </div>
             <div style="display: flex; column-gap: 8px; z-index: 1;">
-                <input id="messageInput" onclick="chatPanel.classList.add('open')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
+                <input id="messageInput" onclick="chatPanel.setAttribute('open', 'true')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
                 <div class="messageOptions" onclick="messageTypePanel.toggleAttribute('closed')">...</div>
             </div>
         </div>
@@ -1852,34 +1891,6 @@
             right: false,
             up: false,
             down: false
-        }
-
-        document.body.onkeyup = function(e) {
-            let i = 10
-            let repeatFunc = setInterval(function() {
-                // We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
-                switch (e.keyCode) {
-                case 37:
-                    x -= i / 55
-                    arrowkeyDown.right = true
-                    break //right
-                case 38:
-                    y -= i / 55
-                    arrowkeyDown.up = true
-                    break //up
-                case 39:
-                    x += i / 55
-                    arrowkeyDown.left = true
-                    break //left
-                case 40:
-                    y += i / 55
-                    arrowkeyDown.down = true
-                    break //down
-                }
-                pos()
-                i--
-                if (i <= 0) clearInterval(repeatFunc)
-            }, 16)
         }
 
         let selX = 0
@@ -2591,15 +2602,18 @@
             storage.board = boardAddress
         }
 
-        let curStylesheet = null
-        function theme(set) {
-            if (curStylesheet) document.head.removeChild(curStylesheet)
+        let currentTheme = null
+        let styleElement = null
+        function theme(set) {            
             let link = document.createElement("link")
             link.rel = "stylesheet"
             link.type = "text/css"
             link.href = set.css + "?v=" + Date.now() // TEMP FIX: Annoying theme caching
             document.head.appendChild(link)
-            curStylesheet = link
+            // Swap out stylesheets
+            if (styleElement) document.head.removeChild(styleElement)
+            styleElement = link
+            currentTheme = set
 
             document.querySelectorAll("[theme]").forEach((element) => {
                 if (element.tagName == "IMG")
@@ -2608,7 +2622,7 @@
                     element.innerHTML = set[element.getAttribute("theme")] || element.innerHTML
             })
         }
-        theme(DEFAULT_THEMES.get(localStorage.theme) || DEFAULT_THEMES.get("r/place 2023"))
+        theme(DEFAULT_THEMES.get(localStorage.theme) || DEFAULT_THEMES.get("r/place 2022"))
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
         function translate(key) {

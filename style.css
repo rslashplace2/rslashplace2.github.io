@@ -196,10 +196,19 @@ btn{
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	display: flex;
+	display: none;
 	flex-direction: column;
 	z-index: 7;
 	box-sizing: content-box;
+}
+
+#bg {
+	display: block;
+	position: absolute;
+	background: rgba(0, 0, 0, 0.4);
+	inset: 0px;
+	z-index: 6;
+	opacity: 1;
 }
 
 @media (max-width:500px){
@@ -243,9 +252,7 @@ btn{
 .modal-footer {
 	margin-top: 16px;
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: relative;
+	justify-content: space-between;
 }
 
 .modal-footer-button {
@@ -265,6 +272,7 @@ mute-button {
 place-chat-button {
 	bottom: -2px;
 	right: -6px;
+	margin-left: -36px; /* HACK: Until how to centre the middle select can be figured out */
 	width: 72px !important
 }
 
@@ -391,6 +399,10 @@ place-chat-button > img {
 	justify-content: center;
 	background: white;
 	overflow: hidden;
+}
+
+#out #eventCountdown {
+	display: none;
 }
 
 body[eventphase="0"] #eventCountdown {
@@ -596,7 +608,7 @@ body[eventphase="3"] .coverer-title {
 	transform: translateX(calc(100% + 20px));
 	transition: transform .2s;
 }
-#chatPanel.open{
+#chatPanel[open] {
 	transform: translateX(0);
 }
 

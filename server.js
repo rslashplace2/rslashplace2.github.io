@@ -219,9 +219,24 @@ function censorText(text) {
         .trim()
 }
 
+function getRandomString(length) {
+    const buf = new Uint8Array()
+    crypto.getRandomValues(buf)
+    let str = ""
+    for (let i = 0; i < buf.length; i++) {
+        str += (buf[i].toString(16)).slice(-1)
+    }
+
+    return str
+}
+
 const wss = Bun.serve({
     fetch(req, server) {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
+        let newToken = null
+        if (!cookies[uidTokenName]) {
+            newToken = randomString(32)
+        }
 
         server.upgrade(req, {
             data: {
@@ -406,47 +421,33 @@ const wss = Bun.serve({
                     const encodedChannel = channel && encoderUTF8.encode(channel)
                     const encodedTxt = encoderUTF8.encode(message)
                     const messageId = type == 0 ? ++liveChatMessageId : ++placeChatMessageId
-                    const msgPacket = new Uint8Array(encodedTxt.byteLength +
+                    const msgPacket = Buffer.alloc(encodedTxt.byteLength +
                         (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
     
                     let i = 0
                     msgPacket[i] = 15; i++
                     msgPacket[i] = type; i++
-                    msgPacket[i] = messageId >> 24; i++
-                    msgPacket[i] = messageId >> 16; i++
-                    msgPacket[i] = messageId >> 8; i++
-                    msgPacket[i] = messageId; i++
-                    msgPacket[i] = encodedTxt.byteLength >> 8; i++
-                    msgPacket[i] = encodedTxt.byteLength; i++
+                    msgPacket.writeUInt32BE(messageId, i); i += 4
+                    msgPacket.writeUInt16BE(encodedTxt, i); i += 2
                     msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
-                    msgPacket[i] = ws.data.intId >> 24; i++
-                    msgPacket[i] = ws.data.intId >> 16; i++
-                    msgPacket[i] = ws.data.intId >> 8; i++
-                    msgPacket[i] = ws.data.intId; i++
+                    msgPacket.writeUInt32BE(ws.data.intId, i); i +=  4
                     
                     if (type == 0) { // Live chat message
-                        msgPacket[i] = NOW >> 24; i++
-                        msgPacket[i] = NOW >> 16; i++
-                        msgPacket[i] = NOW >> 8; i++
-                        msgPacket[i] = NOW; i++
-                        msgPacket[i] = 0; i++ // TODO: reactions
+                        msgPacket.writeUInt32BE(NOW, i); i += 4
+                        // TODO: reactions
+                        msgPacket[i] = 0; i++
+                        // TODO: reactions
                         msgPacket[i] = encodedChannel.byteLength; i++
                         msgPacket.set(encodedChannel, i); i += encodedChannel.byteLength
                         if (repliesTo != null) {
-                            msgPacket[i] = repliesTo >> 24; i++
-                            msgPacket[i] = repliesTo >> 16; i++
-                            msgPacket[i] = repliesTo >> 8; i++
-                            msgPacket[i] = repliesTo    
+                            msgPacket.writeUInt32BE(repliesTo, i); i += 4
                         }
     
                         //dbWorker.postMessage({ call: "insertLiveChat", data: { messageId: messageId, message: message,
                         //    name: name, channel: messageChannel, senderUid: IP, sendDate: NOW } })    
                     }
                     else { // Place (canvas chat message)
-                        msgPacket[i] = positionIndex >> 24; i++
-                        msgPacket[i] = positionIndex >> 16; i++
-                        msgPacket[i] = positionIndex >> 8; i++
-                        msgPacket[i] = positionIndex
+                        msgPacket.writeUInt32BE(positionIndex, i); i += 4
     
                         //dbWorker.postMessage({ call: "inserPlaceChat", data: { messageId: messageId, message: message,
                         //    name: name, uid: IP, sendDate: NOW, x: placeX, y: placeY } })
@@ -554,7 +555,7 @@ const wss = Bun.serve({
                                 if (uid === actionUid) actionCli = p
                             }
                             if (actionCli == null) return
-                            
+
                             await forceCaptchaSolve(actionCli)
                         }
                         else {
@@ -587,7 +588,7 @@ const wss = Bun.serve({
                         i += WIDTH
                         hi += w
                     }
-    
+
                     modWebhookLog(`Moderator (${ws.data.codehash}) requested to **rollback area** at (${
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                     break
@@ -641,7 +642,7 @@ async function forceCaptchaSolve(identifier) {
         }
     }
     if (!cli) return
-    
+
     try {
         const result = await currentCaptcha()
         if (!result) return cli.close()
@@ -667,7 +668,7 @@ async function forceCaptchaSolve(identifier) {
 
 
 async function pushImage() {
-    for (let i = BOARD.length - 1; i >= 0; i--)if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
+    for (let i = BOARD.length - 1; i >= 0; i--) if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "place"), BOARD)
 	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), (e) => { }).catch((e) => { })
     await new Promise((r, t) => exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`, e => e ? t(e) : r()))
@@ -864,7 +865,7 @@ function blacklist(identifier) {
 
 let shutdown = false
 process.on("uncaughtException", console.warn)
-process.on('SIGINT', function () {
+process.on("SIGINT", function () {
     if (shutdown) {
         console.log("Bruh impatient")
         process.exit(0)
@@ -875,7 +876,7 @@ process.on('SIGINT', function () {
 
         (async function() {
             await makeDbRequest({ call: "commitShutdown" })
-            console.log("rBye-bye!                             ")
+            console.log("\rBye-bye!                             ")
             process.exit(0)
         })()
     }

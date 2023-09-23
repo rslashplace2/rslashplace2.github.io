@@ -140,14 +140,6 @@ a {
 	line-height: 38px;
 }
 
-.modal-footer {
-	margin-top: 16px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: relative;
-}
-
 .modal-footer-button {
 	box-shadow: 0 3px 10px rgba(0,0,0,.3);
 	border-radius: 18px;
@@ -233,7 +225,7 @@ a {
 	background-color: white;
 	padding: 10px;
 }
-#chatPanel.open {
+#chatPanel[open] {
 	box-shadow: 0 0 30px black;
 }
 
