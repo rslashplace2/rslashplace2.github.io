@@ -54,13 +54,13 @@ let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, P
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
     CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER } = JSON.parse(config)
 
-try { BOARD = await fs.readFile(path.join(PUSH_PLACE_PATH, "place")) }
+try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
-try { CHANGES = await fs.readFile(path.join(PUSH_PLACE_PATH, "change")) }
+try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change")).arrayBuffer()) }
 catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
-try { VOTES = new Uint32Array((await fs.readFile('./votes')).buffer) }
+try { VOTES = new Uint32Array(await Bun.file('./votes').arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
-let uidTokenFile = await Bun.file(".uidtoken")
+let uidTokenFile = Bun.file(".uidtoken")
 let uidTokenName = null
 if (!uidTokenFile.size) {
     uidTokenName = "__Host-uidToken_" + Math.random().toString(36).slice(2)
@@ -378,7 +378,7 @@ const wss = Bun.serve({
                     // Update chatNames so new players joining will also see the name and pass to DB
                     ws.data.chatName = name
                     playerChatNames.set(ws, name)
-                    //dbWorker.postMessage({ call: "setUserChatName", data: { uid: IP, newName: name }})
+                    dbWorker.postMessage({ call: "setUserChatName", data: { intId: ws.data.intId, newName: name }})
 
                     // Combine with player intId and alert all other clients of name change
                     const encName = encoderUTF8.encode(name)
@@ -433,12 +433,12 @@ const wss = Bun.serve({
                     const messageId = type == 0 ? ++liveChatMessageId : ++placeChatMessageId
                     const msgPacket = Buffer.alloc(encodedTxt.byteLength +
                         (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
-    
+
                     let i = 0
                     msgPacket[i] = 15; i++
                     msgPacket[i] = type; i++
                     msgPacket.writeUInt32BE(messageId, i); i += 4
-                    msgPacket.writeUInt16BE(encodedTxt, i); i += 2
+                    msgPacket.writeUInt16BE(encodedTxt.byteLength, i); i += 2
                     msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
                     msgPacket.writeUInt32BE(ws.data.intId, i); i +=  4
                     
@@ -462,7 +462,7 @@ const wss = Bun.serve({
                         //dbWorker.postMessage({ call: "inserPlaceChat", data: { messageId: messageId, message: message,
                         //    name: name, uid: IP, sendDate: NOW / 1000, x: placeX, y: placeY } })
                     }
-                    wss.publish(msgPacket)
+                    wss.publish("all", msgPacket)
 
                     if (!CHAT_WEBHOOK_URL) return
                     try {
@@ -679,18 +679,20 @@ async function forceCaptchaSolve(identifier) {
     }
 }
 
-
 async function pushImage() {
-    for (let i = BOARD.length - 1; i >= 0; i--) if (CHANGES[i] != 255) BOARD[i] = CHANGES[i]
-    await fs.writeFile(path.join(PUSH_PLACE_PATH, "place"), BOARD)
+    for (let i = BOARD.length - 1; i >= 0; i--) { if (CHANGES[i] != 255) BOARD[i] = CHANGES[i] }
+
+    await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
 	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), (e) => { }).catch((e) => { })
-    await new Promise((r, t) => exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`, e => e ? t(e) : r()))
+    await new Promise((resolve, reject) =>
+        exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`,
+        error => error ? reject(error) : resolve()))
 
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
     let curr = new Uint8Array(CHANGES)
     setTimeout(() => {
         // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
-        for (let i = curr.length - 1; i >= 0; i--)if (curr[i] == CHANGES[i]) CHANGES[i] = 255
+        for (let i = curr.length - 1; i >= 0; i--) { if (curr[i] == CHANGES[i]) CHANGES[i] = 255 }
     }, 200e3)
 }
 
@@ -761,8 +763,7 @@ setInterval(async function () {
     }
 }, 5000)
 
-let a, c, test
-repl('$', (input) => eval(input))
+repl("|place$ ", (input) => eval(input))
 function fill(x, y, x1, y1, c = 27, random = false) {
     let w = x1 - x, h = y1 - y
     for (; y < y1; y++) {
@@ -775,7 +776,8 @@ function fill(x, y, x1, y1, c = 27, random = false) {
     return `Filled an area of ${w}*${h} (${(w * h)} pixels), reload the game to see the effects`
 }
 
-// This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters) by banning them as soon as we notice them placing a pixel in such area.  
+// This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters)
+// by banning them as soon as we notice them placing a pixel in such area.  
 const prebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" } // kick, ignore, ban, or function(p, x, y): bool
 function setPreban(_x, _y, _x1, _y1, _action = "kick") {
     prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action;
