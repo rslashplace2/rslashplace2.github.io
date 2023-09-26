@@ -164,7 +164,7 @@ for (let i = 0; i < criticalFiles.length; i++) {
 
 let players = 0
 let VIP = new Set()
-try { VIP = new Set((await fs.readFile('../vip.txt')).toString().split('\n')) } catch (e) { /* ignored */ }
+try { VIP = new Set((await fs.readFile('./vip.txt')).toString().split('\n')) } catch (e) { /* ignored */ }
 let RESERVED_NAMES = new DoubleMap()
 try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
     let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
@@ -278,7 +278,7 @@ const wss = Bun.serve({
                 if (!VIP.has(codeHash)) {
                     return ws.close(4000, "Invalid VIP code. Please do not try again.")
                 }
-                ws.data.codehash = codeHash
+                ws.data.codeHash = codeHash
                 if (URL.startsWith("!")) {
                     ws.data.admin = true
                     toValidate.delete(ws)
@@ -292,9 +292,8 @@ const wss = Bun.serve({
             ws.data.cd = CD
 
             if (CAPTCHA && !ws.data.admin) await forceCaptchaSolve(ws)
-            ws.data.lchat = 0 //last chat
-            ws.data.cdate = NOW //connection date
-            ws.data.pHistory = [] //place history
+            ws.data.lastChat = 0 //last chat
+            ws.data.connDate = NOW //connection date
             let buf = Buffer.alloc(9)
             buf[0] = 1
             buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
@@ -322,6 +321,12 @@ const wss = Bun.serve({
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
+
+            if (ws.data.admin || ws.data.vip) {
+                makeDbRequest({ call: "exec", data: {
+                    stmt: "UPDATE Users SET vipKey = ?1, vipType = ?2 WHERE intId = ?3",
+                    params: [ ws.data.codeHash, ws.data.admin ? "Admin" : "VIP", pIntId ] } })
+            }
         
             const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
             if (pName) {
@@ -391,10 +396,10 @@ const wss = Bun.serve({
                     break
                 }
                 case 15: { // chat
-                    if (ws.data.lchat + (CHAT_COOLDOWN_MS || 2500) > NOW || data.length > (CHAT_MAX_LENGTH || 400)) {
+                    if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW || data.length > (CHAT_MAX_LENGTH || 400)) {
                         return
                     }
-                    ws.data.lchat = NOW
+                    ws.data.lastChat = NOW
     
                     // These may or may not be defined depending on message type
                     let channel = null
@@ -472,10 +477,7 @@ const wss = Bun.serve({
     
                         let msgHook = { username: `[${hookChannel || 'place chat'}] ${hookName} @rplace.live`, content: hookMessage }
                         await fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
-                    }
-                    catch (err) {
-                        console.log("Could not post chat message to discord: " + err)
-                    }
+                    }catch (err){console.log("Could not post chat message to discord: " + err)}
                     break
                 }
                 case 16: {
@@ -529,7 +531,7 @@ const wss = Bun.serve({
                         let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
     
                         if (action == 0) { // kick
-                            modWebhookLog(`Moderator (${ws.data.codehash}) requested to **kick** user **${
+                            modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
                                 actionCli.ip}**, with reason: '${actionReason}'`)
                             actionCli.close()
                         }
@@ -547,7 +549,7 @@ const wss = Bun.serve({
                         if (actionCli == null) return
     
                         let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                        modWebhookLog(`Moderator (${ws.data.codehash}) requested to **${["mute", "ban"][action - 1]
+                        modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
                             }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`)
     
                         if (action == 1) mute(actionCli, actionTimeS)
@@ -576,7 +578,7 @@ const wss = Bun.serve({
                         }
                         
                         let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                        modWebhookLog(`Moderator (${ws.data.codehash}) requested to **force captcha revalidation** for ${
+                        modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
                             actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`)
                     }
                     if (action == 4) { // Set preban
@@ -602,7 +604,7 @@ const wss = Bun.serve({
                         hi += w
                     }
 
-                    modWebhookLog(`Moderator (${ws.data.codehash}) requested to **rollback area** at (${
+                    modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **rollback area** at (${
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                     break
                 }
@@ -612,7 +614,10 @@ const wss = Bun.serve({
             players--
             playerChatNames.delete(ws)
             playerIntIds.delete(ws)
-            toValidate.delete(ws)    
+            toValidate.delete(ws)
+            makeDbRequest({ call: "exec", data: {
+                stmt: "UPDATE Users SET playTimeSeconds = playTimeSeconds + ?1 WHERE intId = ?2",
+                params: [ Math.floor((NOW - ws.data.connDate) / 1000), ws.data.intId ] } })
         },
         perMessageDeflate: false,
     },

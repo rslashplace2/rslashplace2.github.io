@@ -74,6 +74,7 @@ const createUsers = `
         intId INTEGER PRIMARY KEY,
         chatName TEXT,
         vipKey TEXT,
+        vipType TEXT CHECK(vipType IN ('VIP', 'Admin')),
         token TEXT NOT NULL,
         lastJoined INTEGER,
         pixelsPlaced INTEGER,
@@ -108,14 +109,14 @@ const internal = {
     getPunishments: function(intId) {
         const punishments = []
 
-        const bansQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where intId = ?")
+        const bansQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where intId = ?1")
         const banInfo = bansQuery.get(intId)
         if (banInfo) {
             banInfo.type = 0
             punishments.push(banInfo)
         }
 
-        const mutesQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where intId = ?")
+        const mutesQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where intId = ?1")
         const muteInfo = mutesQuery.get(intId)
         if (muteInfo) {
             muteInfo.type = 1
@@ -134,14 +135,13 @@ const internal = {
         return getNameQuery.get(intId).chatName
     },
     /** @param {{ token: string, ip: string }} data */
-    authenticateUser: function(data) { //  
+    authenticateUser: function(data) {
         try {
         const selectUser = db.query("SELECT * FROM Users WHERE token = ?")
         const epochMs = Date.now()
         
         let user = selectUser.get(data.token)
-        if (!user)  {
-            // Create new user
+        if (!user)  { // Create new user
             const insertUser = db.query(
                 "INSERT INTO Users (token, lastJoined, pixelsPlaced, playTimeSeconds) VALUES (?1, ?2, ?3, ?4) RETURNING intId")
             const intId = insertUser.get(data.token, epochMs, 0, 0)
@@ -152,7 +152,7 @@ const internal = {
             const updateUser = db.query("UPDATE Users SET lastJoined = ?1 WHERE intId = ?2")
             updateUser.run(epochMs, user.intId)
         }
-        // Add known Ip if not already there
+        // Add known IP if not already there
         const getIpsQuery = db.query("SELECT * FROM KnownIps WHERE userIntId = ?1")
         let ipExists = false
         for (let ipRecord of getIpsQuery.all(user.intId)) {
@@ -183,6 +183,7 @@ const internal = {
         //insertLiveChats()
         db.close()
     },
+    /** @param {{ stmt: string, params: any }} data */
     exec: function(data) {
         let query = db.query(data.stmt)
         return query?.all(...data.params)
