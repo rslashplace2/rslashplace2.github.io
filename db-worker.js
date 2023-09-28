@@ -1,5 +1,6 @@
 import { parentPort } from "worker_threads"
 import { Database } from "bun:sqlite";
+import { Queue } from '@datastructures-js/queue';
 
 const db = new Database("server.db")
 
@@ -92,18 +93,36 @@ const createUserIps = `
 ` // ip and userIntId combined form a composite key to identify a record
 db.exec(createUserIps)
 
-/*
-const insertLiveChat = db.query("INSERT INTO LiveChatMessages (messageId, sendDate, channel, message, senderIntId, repliesTo) VALUES (@messageId, @sendDate, @channel, @message, @senderIntId, @repliesTo)")
-const insertPlaceChat = db.query("INSERT INTO PlaceChatMessages (messageId, sendDate, message, senderIntId, x, y) VALUES (@messageId, @sendDate, @message, @senderIntId, @x, @y)")
 
+const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
+const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, message, sendDate, senderIntId, x, y) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
+const updatePixelPlaces = db.prepare("UPDATE Users SET pixelsPlaced = pixelsPlaced + ?1 WHERE intId = ?2")
+
+const pixelPlaces = new Map() // intId, count
 const liveChatInserts = new Queue()
-const insertLiveChats = db.transaction(() => {
-    while (!liveChatInserts.isEmpty()) {
-        insertLiveChat.run(liveChatInserts.dequeue())
-    }
-})
-setInterval(insertLiveChats, 10000)
-*/
+const placeChatInserts = new Queue()
+function performBulkInsertions() {
+    // insert all new pixel places
+    db.transaction(() => {
+        for (let placePair of pixelPlaces) {
+            updatePixelPlaces.run(placePair[1], placePair[0])
+            pixelPlaces.delete(placePair)
+        }
+    })()
+    
+    // insert all new chats
+    db.transaction(() => {
+        while (!liveChatInserts.isEmpty()) {
+            const data = liveChatInserts.dequeue()
+            insertLiveChat.run(...data)
+        }
+        while (!placeChatInserts.isEmpty()) {
+            const data = placeChatInserts.dequeue()
+            insertPlaceChat.run(...data)
+        }
+    })()
+}
+setInterval(performBulkInsertions, 10000)
 
 const internal = {
     getPunishments: function(intId) {
@@ -169,6 +188,9 @@ const internal = {
         return user.intId
         }catch(e){console.error("Failed to authenticate", e)}
     },
+    updatePixelPlace: function(intId) {
+        pixelPlaces.set(intId, (pixelPlaces.get(intId)||0) + 1)
+    },
     getMaxLiveChatId: function() {
         const getMaxMessageId = db.query("SELECT MAX(messageID) AS maxMessageID FROM LiveChatMessages")
         const maxMessageID = getMaxMessageId.get().maxMessageID || 0
@@ -180,14 +202,34 @@ const internal = {
         return maxMessageID
     },
     commitShutdown: function() {
-        //insertLiveChats()
+        performBulkInsertions()
         db.close()
+    },
+    // Send date is seconds unix epoch offset, we just hope whoever calls these funcs func passed in the args in the right order
+    // else the DB is screwed.
+    /** @param {[ messageId: number, message: string, sendDate: number, channel: string, senderIntId: number, repliesTo: number  ]} data */
+    insertLiveChat: function(data) {
+        if (!Array.isArray(data) || data.length < 5) {
+            return
+        }
+        if (data.length == 5) {
+            // repliesTo default value
+            data.push(null)
+        }
+        liveChatInserts.push(data)
+    },
+    /** @param {[messageId: number, message: string, sendDate: number, senderIntId: number, x: number, y: number ]} data */
+    insertPlaceChat: function(data) {
+        if (!Array.isArray(data) || data.length < 6) {
+            return
+        }
+        placeChatInserts.push(data)
     },
     /** @param {{ stmt: string, params: any }} data */
     exec: function(data) {
         let query = db.query(data.stmt)
         return query?.all(...data.params)
-    }
+    },
 }
 
 parentPort.on("message", (message) => {

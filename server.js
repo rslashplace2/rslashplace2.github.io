@@ -188,6 +188,9 @@ const decoderUTF8 = new util.TextDecoder()
 let dbReqId = 0
 const dbReqs = new Map()
 const dbWorker = new Worker("./db-worker.js")
+/** Please always await this, if you want something that you can just fire and 
+ *  forget then use dbWorker.postMessage instead
+ */
 async function makeDbRequest(message) {
     let handle = dbReqId++
     let promise = new PublicPromise()
@@ -323,7 +326,7 @@ const wss = Bun.serve({
             ws.send(pIdBuf)
 
             if (ws.data.admin || ws.data.vip) {
-                makeDbRequest({ call: "exec", data: {
+                dbWorker.postMessage({ call: "exec", data: {
                     stmt: "UPDATE Users SET vipKey = ?1, vipType = ?2 WHERE intId = ?3",
                     params: [ ws.data.codeHash, ws.data.admin ? "Admin" : "VIP", pIntId ] } })
             }
@@ -372,6 +375,7 @@ const wss = Bun.serve({
                     newPos.push(i)
                     newCols.push(c)
                     if (INCLUDE_PLACER) newIds.push(ws.data.intId)
+                    dbWorker.postMessage({ call: "updatePixelPlace", data: ws.data.intId })
                     break
                 }
                 case 12: { // Submit name
@@ -458,14 +462,14 @@ const wss = Bun.serve({
                             msgPacket.writeUInt32BE(repliesTo, i); i += 4
                         }
     
-                        //dbWorker.postMessage({ call: "insertLiveChat", data: { messageId: messageId, message: message,
-                        //    name: name, channel: messageChannel, senderUid: IP, sendDate: NOW / 1000 } })    
+                        dbWorker.postMessage({ call: "insertLiveChat", data: [ messageId,
+                            message, Math.floor(NOW / 1000), channel, ws.data.intId, repliesTo ] })
                     }
                     else { // Place (canvas chat message)
                         msgPacket.writeUInt32BE(positionIndex, i); i += 4
-    
-                        //dbWorker.postMessage({ call: "inserPlaceChat", data: { messageId: messageId, message: message,
-                        //    name: name, uid: IP, sendDate: NOW / 1000, x: placeX, y: placeY } })
+
+                        dbWorker.postMessage({ call: "insertPlaceChat", data: [ messageId,
+                            message, Math.floor(NOW / 1000), ws.data.intId, placeX, placeY ] })
                     }
                     wss.publish("all", msgPacket)
 
@@ -615,7 +619,7 @@ const wss = Bun.serve({
             playerChatNames.delete(ws)
             playerIntIds.delete(ws)
             toValidate.delete(ws)
-            makeDbRequest({ call: "exec", data: {
+            dbWorker.postMessage({ call: "exec", data: {
                 stmt: "UPDATE Users SET playTimeSeconds = playTimeSeconds + ?1 WHERE intId = ?2",
                 params: [ Math.floor((NOW - ws.data.connDate) / 1000), ws.data.intId ] } })
         },
