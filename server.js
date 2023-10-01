@@ -1,5 +1,4 @@
 /* eslint-disable no-process-exit */
-/* eslint-disable no-unused-vars */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { promises as fs } from 'fs'
@@ -14,7 +13,7 @@ import { Worker } from 'worker_threads'
 import cookie from 'cookie';
 import { exec } from 'child_process'
 import repl from 'basic-repl'
-import { channel } from 'diagnostics_channel'
+import minify from 'jsonminify'
 
 let BOARD, CHANGES, VOTES
 
@@ -63,7 +62,7 @@ catch(e) { VOTES = new Uint32Array(32) }
 let uidTokenFile = Bun.file(".uidtoken")
 let uidTokenName = null
 if (!uidTokenFile.size) {
-    uidTokenName = "__Host-uidToken_" + Math.random().toString(36).slice(2)
+    uidTokenName = "UidToken_" + Math.random().toString(36).slice(2)
     await Bun.write(".uidtoken", uidTokenName)
 }
 else {
@@ -152,7 +151,7 @@ class PublicPromise {
     }
 }
 
-let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt"]
+let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
     if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => {
         if (err) {
@@ -162,22 +161,47 @@ for (let i = 0; i < criticalFiles.length; i++) {
     })
 }
 
+function randomString(length) {
+    const buf = new Uint8Array(length)
+    crypto.getRandomValues(buf)
+    let str = ""
+    for (let i = 0; i < buf.length; i++) {
+        str += (buf[i].toString(16))
+    }
+
+    return str.slice(0, length)
+}
+
 let players = 0
-let VIP = new Set()
-try { VIP = new Set((await fs.readFile('./vip.txt')).toString().split('\n')) } catch (e) { /* ignored */ }
+// vip key, cooldown
+let vipFile = Bun.file("./vip.txt")
+if (vipFile.size == 0) {
+    Bun.write("./vip.txt",
+        "# VIP Key configuration file\n" +
+        "# Below is the correct format of a VIP key configuration:\n" +
+        "# MY_SHA256_HASHED_VIP_KEY { perms: \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", cooldownMs: N }\n\n" +
+        "# Example VIP key configuration:\n" +
+        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
+        "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
+}
+let VIP = new Map((await vipFile.text())
+    .split('\n')
+    .filter(line => line.trim() && !line.trim().startsWith("#"))
+    .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 let RESERVED_NAMES = new DoubleMap()
-try { // `reserverd_name private_code\n`, for example "zekiah 124215253113\n"
-    let reserved_lines = (await fs.readFile('reserved_names.txt')).toString().split('\n')
-    for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
-} catch (e) { /* ignored */ }
-let BLACKLISTED = new Set((await Promise.all(await fs.readFile("bansheets.txt")
-    .then(bansheets => bansheets.toString().trim().split('\n')
-    .map(banListUrl => fetch(banListUrl)
-    .then(response => response.text())))))
-    .flatMap(line => line.trim().split('\n')
-    .map(ip => ip.split(':')[0].trim())))
-for (let banFin of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
-    banFin.trim()
+// `reserved_name private_code\n`, for example "zekiah 124215253113\n"
+let reserved_lines = (await Bun.file("reserved_names.txt").text()).split('\n')
+for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
+let BLACKLISTED = new Set(
+    (await Promise.all((
+        (await Bun.file("bansheets.txt").text())
+            .trim()
+            .split('\n')
+            .map(banListUrl => fetch(banListUrl).then(response => response.text())))))
+    .flatMap(line => line.trim().split('\n').map(ip => ip.split(':')[0].trim())))
+
+for (let ban of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
+    BLACKLISTED.add(ban)
 }
 
 let toValidate = new Map()
@@ -222,15 +246,48 @@ function censorText(text) {
         .trim()
 }
 
-function randomString(length) {
-    const buf = new Uint8Array()
-    crypto.getRandomValues(buf)
-    let str = ""
-    for (let i = 0; i < buf.length; i++) {
-        str += (buf[i].toString(16)).slice(-1)
+/**
+ * 
+ * @param {number} type (0|1) message type (0 - Live chat message, 1 - place chat message)
+ * @param {string} message Message text content (maxlen(65534))
+ * @param {number} sendDate Unix epoch offset __**seconds**__ of message send
+ * @param {number} messageId Message integer id (u32)
+ * @param {number} intId Sender integer id (u32)
+ * @param {string} channel String channel (maxlen(16))
+ * @param {number} repliesTo Integer message id replies to (u32)
+ * @param {number} positionIndex Index on canvas of place chat message (u32)
+ * @returns {Buffer} Message packet data prepended with packet code (15)
+ */
+function createChatPacket(type, message, sendDate, messageId, intId, channel = null, repliesTo = null, positionIndex = null) {
+    const encodedChannel = channel && encoderUTF8.encode(channel)
+    const encodedTxt = encoderUTF8.encode(message)
+    const msgPacket = Buffer.allocUnsafe(encodedTxt.byteLength +
+        (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
+
+    let i = 0
+    msgPacket[i] = 15; i++
+    msgPacket[i] = type; i++
+    msgPacket.writeUInt32BE(messageId, i); i += 4
+    msgPacket.writeUInt16BE(encodedTxt.byteLength, i); i += 2
+    msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
+    msgPacket.writeUInt32BE(intId, i); i +=  4
+    
+    if (type == 0) { // Live chat message
+        msgPacket.writeUInt32BE(sendDate, i); i += 4
+        // TODO: reactions
+        msgPacket[i] = 0; i++
+        // TODO: reactions
+        msgPacket[i] = encodedChannel.byteLength; i++
+        msgPacket.set(encodedChannel, i); i += encodedChannel.byteLength
+        if (repliesTo != null) {
+            msgPacket.writeUInt32BE(repliesTo, i); i += 4
+        }
+    }
+    else { // Place (canvas chat message)
+        msgPacket.writeUInt32BE(positionIndex, i); i += 4
     }
 
-    return str
+    return msgPacket
 }
 
 const wss = Bun.serve({
@@ -245,14 +302,14 @@ const wss = Bun.serve({
         server.upgrade(req, {
             data: {
                 url: url.pathname.slice(1).trim(),
-                uidToken: cookies[uidTokenName],
                 headers: req.headers,
-                token: newToken
+                token: cookies[uidTokenName] || newToken
             },
             headers: {
                 ...newToken && {
                     "Set-Cookie": cookie.serialize(uidTokenName,
-                        newToken, { domain: req.url, expires: new Date(4e12), httpOnly: true, sameSite: true })    
+                        newToken, { domain: url.hostname, expires: new Date(4e12),
+                            httpOnly: SECURE, sameSite: SECURE ? "strict" : "none", secure: SECURE })
                 }
             }
         })
@@ -270,31 +327,24 @@ const wss = Bun.serve({
                 ws.close()
                 return
             }
-            if (USE_CLOUDFLARE && headers['origin'] != 'https://rplace.live'
-                && headers['origin'] != 'https://rplace.tk') return ws.close()
+            if (USE_CLOUDFLARE && !ORIGINS.includes(headers["origin"])) return ws.close()
             if (!IP || IP.startsWith("%")) return ws.close()
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
             let CD = COOLDOWN
             if (URL) {
                 let codeHash = sha256(URL)
-                if (!VIP.has(codeHash)) {
+                let vip = VIP.get(codeHash)
+                if (!vip) {
                     return ws.close(4000, "Invalid VIP code. Please do not try again.")
                 }
                 ws.data.codeHash = codeHash
-                if (URL.startsWith("!")) {
-                    ws.data.admin = true
-                    toValidate.delete(ws)
-                    CD = 30
-                }
-                else {
-                    ws.data.vip = true
-                    CD /= 2
-                }
+                ws.data.vip = vip
+                CD = vip.cooldownMs
             }
             ws.data.cd = CD
 
-            if (CAPTCHA && !ws.data.admin) await forceCaptchaSolve(ws)
+            if (CAPTCHA && !ws.data.vip.perms !== "admin") await forceCaptchaSolve(ws)
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
             let buf = Buffer.alloc(9)
@@ -324,30 +374,26 @@ const wss = Bun.serve({
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
-
-            if (ws.data.admin || ws.data.vip) {
-                dbWorker.postMessage({ call: "exec", data: {
-                    stmt: "UPDATE Users SET vipKey = ?1, vipType = ?2 WHERE intId = ?3",
-                    params: [ ws.data.codeHash, ws.data.admin ? "Admin" : "VIP", pIntId ] } })
-            }
         
             const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
             if (pName) {
                 ws.data.chatName = pName
                 playerChatNames.set(ws, pName)
             }
-            let nmInfoBufL = 1
-            for (let [p, name] of playerChatNames) nmInfoBufL += encoderUTF8.encode(name).length + 5
-            const nmInfoBuf = Buffer.alloc(nmInfoBufL)
-            nmInfoBuf.writeUInt8(12, 0)
+            let nmInfoBufSize = 1
+            for (let [,name] of playerChatNames) {
+                nmInfoBufSize += encoderUTF8.encode(name).length + 5
+            }
+            const nmInfoBuf = Buffer.allocUnsafe(nmInfoBufSize)
+            nmInfoBuf[0] = 12
             let nmI = 1
-            for (let [p, name] of playerChatNames) {
+            for (let [,name] of playerChatNames) {
                 const encName = encoderUTF8.encode(name)
-                nmInfoBuf.writeUInt32BE(ws.data.intId, nmI); nmI += 4
+                nmInfoBuf.writeUInt32BE(pIntId, nmI); nmI += 4
                 nmInfoBuf.writeUInt8(encName.length, nmI); nmI++
                 nmInfoBuf.set(encName, nmI); nmI += encName.length
             }
-            ws.send(nmInfoBuf)        
+            ws.send(nmInfoBuf)
         },
         async message(ws, data) {
             // Redefine as message handler is now separate from open
@@ -399,6 +445,56 @@ const wss = Bun.serve({
                     wss.publish("all", nmInfoBuf)
                     break
                 }
+                case 13: { // Live chat history
+                    let messageId = data.readUint32BE(1)
+                    let count = data[5] & 128
+                    let before = data[5] >> 7
+                    let messageHistory = null
+                    
+                    // If messageId is 0 and we are getting before, it will return [count] most recent messages
+                    if (before) {
+                        messageId = Math.min(liveChatMessageId, messageId)
+                        count = Math.min(liveChatMessageId, count)
+                        if (messageId == 0) {
+                            messageHistory = await makeDbRequest({ call: "exec", data: {
+                                stmt: `SELECT * FROM LiveChatMessages ORDER BY messageId ASC LIMIT ?1`,
+                                params: [ count ] } })    
+                        }
+                        else {
+                            messageHistory = await makeDbRequest({ call: "exec", data: {
+                                stmt: `SELECT * FROM LiveChatMessages WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2`,
+                                params: [ messageId, count ] } })    
+                        }
+                    }
+                    else {
+                        count = Math.min(liveChatMessageId - messageId, count)
+                        messageHistory = await makeDbRequest({ call: "exec", data: {
+                            stmt: `SELECT * FROM LiveChatMessages WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2`,
+                            params: [ messageId, count ] } })
+                    }
+
+                    const messages = []
+                    let size = 6
+                    for (let row of messageHistory) {
+                        // We do needessly write and then subarray out 1 byte per packet for unused packet code, too bad!
+                        const messageData = createChatPacket(0, row.message, row.sendDate, row.messageId,
+                            row.senderIntId, row.channel, row.repliesTo).subarray(1)
+                        size += messageData.byteLength
+                        messages.push(messageData)
+                    }
+                    
+                    let i = 0
+                    const historyBuffer = Buffer.allocUnsafe(size)
+                    historyBuffer[0] = 13; i++
+                    historyBuffer.writeUInt32BE(messageId); i += 4
+                    historyBuffer[5] = data[5]; i++
+                    for (let message of messages) {
+                        message.copy(historyBuffer, i, 0, message.byteLength)
+                        i += message.byteLength
+                    }
+                    ws.send(historyBuffer)
+                    break
+                }
                 case 15: { // chat
                     if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW || data.length > (CHAT_MAX_LENGTH || 400)) {
                         return
@@ -429,59 +525,39 @@ const wss = Bun.serve({
     
                     if ((type == 0 && !channel) || !message) return
                     message = censorText(message)
-                    if (!ws.data.admin && !ws.data.vip) {
+                    if (ws.data.vip.perms !== "admin" && ws.data.vip.perms !== "vip" && ws.data.perms !== "chatmod") {
                         message = message.replaceAll("@everyone", "*********")
                         message = message.replaceAll("@here", "*****")
                     }
-                    else if (!ws.data.admin) {
+                    else if (ws.data.vip.perms !== "admin") {
                         message = message.replaceAll("@everyone", "*********")
                     }
                     
-                    const encodedChannel = channel && encoderUTF8.encode(channel)
-                    const encodedTxt = encoderUTF8.encode(message)
-                    const messageId = type == 0 ? ++liveChatMessageId : ++placeChatMessageId
-                    const msgPacket = Buffer.alloc(encodedTxt.byteLength +
-                        (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
-
-                    let i = 0
-                    msgPacket[i] = 15; i++
-                    msgPacket[i] = type; i++
-                    msgPacket.writeUInt32BE(messageId, i); i += 4
-                    msgPacket.writeUInt16BE(encodedTxt.byteLength, i); i += 2
-                    msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
-                    msgPacket.writeUInt32BE(ws.data.intId, i); i +=  4
-                    
-                    if (type == 0) { // Live chat message
-                        msgPacket.writeUInt32BE(NOW / 1000, i); i += 4
-                        // TODO: reactions
-                        msgPacket[i] = 0; i++
-                        // TODO: reactions
-                        msgPacket[i] = encodedChannel.byteLength; i++
-                        msgPacket.set(encodedChannel, i); i += encodedChannel.byteLength
-                        if (repliesTo != null) {
-                            msgPacket.writeUInt32BE(repliesTo, i); i += 4
-                        }
-    
+                    let messageId = null
+                    const sendDateS = NOW / 1000
+                    if (type === 0) {
+                        messageId = ++liveChatMessageId
                         dbWorker.postMessage({ call: "insertLiveChat", data: [ messageId,
-                            message, Math.floor(NOW / 1000), channel, ws.data.intId, repliesTo ] })
+                            message, sendDateS, channel, ws.data.intId, repliesTo ] })
                     }
-                    else { // Place (canvas chat message)
-                        msgPacket.writeUInt32BE(positionIndex, i); i += 4
-
+                    else {
+                        messageId = ++placeChatMessageId
                         dbWorker.postMessage({ call: "insertPlaceChat", data: [ messageId,
-                            message, Math.floor(NOW / 1000), ws.data.intId, placeX, placeY ] })
+                            message, sendDateS, ws.data.intId, Math.floor(positionIndex % WIDTH),
+                            Math.floor(positionIndex / HEIGHT) ] })
                     }
-                    wss.publish("all", msgPacket)
 
-                    if (!CHAT_WEBHOOK_URL) return
+                    wss.publish("all", createChatPacket(type, message, sendDateS, messageId, ws.data.intId,
+                        channel, repliesTo, positionIndex))
+
+                    if (!CHAT_WEBHOOK_URL) break
                     try {
-                        const hookMessage = message.replaceAll("@", "")
                         const hookName = ws.data.chatName.replaceAll("@", "")
-                        const hookChannel = channel.replaceAll("@", "")
-    
+                        const hookChannel = channel.replaceAll("@", "")    
+                        const hookMessage = message.replaceAll("@", "")
                         let msgHook = { username: `[${hookChannel || 'place chat'}] ${hookName} @rplace.live`, content: hookMessage }
-                        await fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
-                    }catch (err){console.log("Could not post chat message to discord: " + err)}
+                        fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                    }catch (err){console.log("Could not post chat message to discord: " + err)}        
                     break
                 }
                 case 16: {
@@ -517,7 +593,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 98: { // User moderation
-                    if (ws.data.admin !== true) return
+                    if (ws.data.vip.perms !== "admin" || ws.data.vip.perms !== "chatmod") return
                     let offset = 1
                     let action = data[offset++]
     
@@ -594,7 +670,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 99: {
-                    if (ws.data.admin !== true) return
+                    if (ws.data.vip.perms !== "admin" && ws.data.vip.perms !== "canvasmod") return
                     let w = data[1], i = data.readUInt32BE(2)
                     let h = Math.floor((data.length - 6) / w)
                     if (i % WIDTH + w >= WIDTH || i + h * HEIGHT >= WIDTH * HEIGHT) return
@@ -707,7 +783,7 @@ async function pushImage() {
 
 let captchaTick = 0
 setInterval(function () {
-    fs.appendFile("./pxps.txt", "\n" + newPos.length)
+    fs.appendFile("./pxps.txt", "\n" + newPos.length + "," + NOW)
     if (!newPos.length) return
     let pos, buf
     if (INCLUDE_PLACER) {
@@ -755,16 +831,15 @@ setInterval(async function () {
     }
     wss.publish("all", infoBuffer)
 
-    fs.appendFile("./stats.txt", "\n" + players)
-    if (LOCKED) return
+    fs.appendFile("./stats.txt", "\n" + players + "," + NOW)
+    if (LOCKED === true) return
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
     if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
         try {
             await pushImage()
-            await fs.writeFile('./votes', VOTES)
-            console.log("[" + new Date().toISOString() + "] Successfully saved r/place!")
+            await fs.writeFile("./votes", VOTES)
         } catch (e) {
-            console.log("[" + new Date().toISOString() + "] Error pushing image")
+            console.log("[" + new Date().toISOString() + "] Error pushing image", e)
         }
         for (let [k, t] of cooldowns) {
             if (t > NOW) cooldowns.delete(k)
@@ -772,7 +847,7 @@ setInterval(async function () {
     }
 }, 5000)
 
-repl("|place$ ", (input) => eval(input))
+repl("|place$ ", input => eval(input))
 function fill(x, y, x1, y1, c = 27, random = false) {
     let w = x1 - x, h = y1 - y
     for (; y < y1; y++) {

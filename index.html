@@ -763,7 +763,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId}, '${name}')" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
                                 <path d="M780-200v-156q0-60-39-99t-99-39H236l163 163-43 43-236-236 236-236 43 43-163 163h406q85 0 141.5 56.5T840-356v156h-60Z"></path>
                             </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
+                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId}, ${intId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
                                 <path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-348h60v-224h-60v224Zm26-122Z"></path>
                             </svg>`
                         newMessage.appendChild(namePart)
@@ -2513,12 +2513,13 @@
             messageReplyPanel.setAttribute('closed', 'true')
         }
 
-        function chatReport(messageId) { // TODO: Make UI
-            let reason = prompt("Enter reason for why you are reporting this message (max 280 chars)")
+        // TODO: Implement
+        function chatReport(messageId, senderId) {
+            let reason = prompt("Enter the reason for why you are reporting this message (max 280 chars)\n\n" +
+                `Additional info:\nMessage ID: ${messageId}\nSender ID: ${senderId}\n`)
             if (!reason) return
 
-            alert("Report sent!\nIn the meantime you can block this user with 'right click/press hold > block'")
-            console.log(messageId)
+            alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
         }
 
         messageInput.oninput = function() {

@@ -4,7 +4,7 @@ import { Queue } from '@datastructures-js/queue';
 
 const db = new Database("server.db")
 
-//try{
+try{
 const createLiveChatMessages = `
     CREATE TABLE IF NOT EXISTS LiveChatMessages (
         messageId INTEGER PRIMARY KEY,
@@ -74,13 +74,11 @@ const createUsers = `
     CREATE TABLE IF NOT EXISTS Users (
         intId INTEGER PRIMARY KEY,
         chatName TEXT,
-        vipKey TEXT,
-        vipType TEXT CHECK(vipType IN ('VIP', 'Admin')),
         token TEXT NOT NULL,
         lastJoined INTEGER,
         pixelsPlaced INTEGER,
         playTimeSeconds INTEGER
-    );
+    )
 `
 db.exec(createUsers)
 const createUserIps = `
@@ -92,7 +90,6 @@ const createUserIps = `
     )
 ` // ip and userIntId combined form a composite key to identify a record
 db.exec(createUserIps)
-
 
 const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
 const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, message, sendDate, senderIntId, x, y) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
@@ -151,21 +148,20 @@ const internal = {
     },
     getUserChatName: function(intId) {
         const getNameQuery = db.query("SELECT chatName FROM Users WHERE intId = ?1")
-        return getNameQuery.get(intId).chatName
+        const result = getNameQuery.get(intId)
+        return result ? result.chatName : null
     },
     /** @param {{ token: string, ip: string }} data */
     authenticateUser: function(data) {
-        try {
-        const selectUser = db.query("SELECT * FROM Users WHERE token = ?")
+        const selectUser = db.query("SELECT * FROM Users WHERE token = ?1")
         const epochMs = Date.now()
         
         let user = selectUser.get(data.token)
         if (!user)  { // Create new user
             const insertUser = db.query(
                 "INSERT INTO Users (token, lastJoined, pixelsPlaced, playTimeSeconds) VALUES (?1, ?2, ?3, ?4) RETURNING intId")
-            const intId = insertUser.get(data.token, epochMs, 0, 0)
-            
-            return intId
+            user = insertUser.get(data.token, epochMs, 0, 0)
+            return user.intId
         }
         else { // Update last joined
             const updateUser = db.query("UPDATE Users SET lastJoined = ?1 WHERE intId = ?2")
@@ -186,7 +182,6 @@ const internal = {
             createIp.run(user.intId, data.ip, epochMs)
         }
         return user.intId
-        }catch(e){console.error("Failed to authenticate", e)}
     },
     updatePixelPlace: function(intId) {
         pixelPlaces.set(intId, (pixelPlaces.get(intId)||0) + 1)
@@ -236,5 +231,7 @@ parentPort.on("message", (message) => {
     const result = internal[message.call] && internal[message.call](message.data)
     parentPort.postMessage({ handle: message.handle, data: result })
 })
-//}
-//catch(e){console.error(e)}
+}
+catch(e){
+    console.error("Error from DB worker:", e)
+}

@@ -1,9 +1,9 @@
 {
     "env": {
-        "bun": true
+        "node": true
     },
     "plugins": [
-        "bun"
+        "bun",
     ],    
     "extends": [
         "eslint:recommended",
