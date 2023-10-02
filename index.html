@@ -648,6 +648,12 @@
                     }
                     break
                 }
+                case 13: {
+                    let fromMessageId = data.getUint32(1)
+                    let count = data.getUint8(5) & 127
+                    let before = data.getUint8(5) >> 7
+                    break
+                }
                 case 14: { // Moderation
                     let state = data.getUint8(1)
                     let startDate = data.getUint32(5)
@@ -1168,6 +1174,13 @@
                 call(send, authSocket, buffer)
                 call(send, authSocket, new Uint8Array([4]))
             })
+            call(addEventListener, chatPreviousButton, "click", function() {
+                let view = new DataView(new Uint8Array(6).buffer)
+                view.setUint8(0, 13)
+                view.setUint32(1, chatMessages.children[0]?.messageId || 0)
+                view.setUint8(5, 192) // TODO: Current - 64 messages, before
+                call(send, ws, view.buffer)
+            })
         }).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
         WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)}; const I=HTMLIFrameElement.prototype;
         delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
@@ -1663,6 +1676,7 @@
                 </ul>
             </div>
             <a id="ad" href="https://bonziworld.org" target="_blank" style="--adurl: url(https://cdn.discordapp.com/attachments/737425164823953470/1143849254360711198/bonzi-ad.gif);"></a>
+            <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages"></div>
             <div id="messageTypePanel" class="chat-input-panel" closed>
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">

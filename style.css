@@ -648,6 +648,25 @@ body[eventphase="3"] .coverer-title {
     filter: blur(6px) saturate(1.2);	
 }
 
+#chatPreviousButton {
+	background: none;
+	border: none;
+	color: gray;
+	font-weight: bold;
+	display: flex;
+	cursor: pointer;
+	column-gap: 4px;
+}
+#chatPreviousButton > hr {
+	flex-grow: 1;
+	height: 1px;
+	margin-top: 8px;
+	opacity: 0.2;
+}
+#chatPreviousButton > span {
+	font-size: 14px;
+}
+
 #chatMessages {
 	overflow-wrap: break-word;
 	word-wrap: break-word;

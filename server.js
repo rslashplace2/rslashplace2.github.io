@@ -230,11 +230,11 @@ dbWorker.on("message", (message) => {
 dbWorker.on("error", console.warn)
 
 let playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
-let playerChatNames = new Map() // Player ws instance<Object>, chatName<String>
+let playerChatNames = new Map() // intId<Number> : chatName<String>
 let liveChatMessageId = (await makeDbRequest({ call: "getMaxLiveChatId" })) || 0
 let placeChatMessageId = (await makeDbRequest({ call: "getMaxPlaceChatId" })) || 0
-let mutes = new Map() // ws client : EndDate
-let bans = new Map() // ws client : EndDate
+let mutes = new Map() // Player ws instance<Object> : EndDate
+let bans = new Map() // Player ws instance<Object> : EndDate
 
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
@@ -288,6 +288,32 @@ function createChatPacket(type, message, sendDate, messageId, intId, channel = n
     }
 
     return msgPacket
+}
+
+/**
+ * 
+ * @param {Map<number, string>} names IntId : String names map to be encoded
+ * @returns {Buffer} Name packet data prepended with packet code (12)
+ */
+function createNamesPacket(names) {
+    let size = 1
+    let encodedNames = new Map()
+    for (let [intId, name] of names) {
+        let encName = encoderUTF8.encode(name)
+        encodedNames.set(intId, encName)
+        size += encName.length + 5
+    }
+
+    const infoBuffer = Buffer.allocUnsafe(size)
+    infoBuffer[0] = 12
+    let i = 1
+    for (let [intId, encName] of encodedNames) {
+        infoBuffer.writeUInt32BE(intId, i); i += 4
+        infoBuffer.writeUInt8(encName.length, i); i++
+        infoBuffer.set(encName, i); i += encName.length
+    }
+
+    return infoBuffer
 }
 
 const wss = Bun.serve({
@@ -378,21 +404,9 @@ const wss = Bun.serve({
             const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
             if (pName) {
                 ws.data.chatName = pName
-                playerChatNames.set(ws, pName)
+                playerChatNames.set(ws.data.intId, pName)
             }
-            let nmInfoBufSize = 1
-            for (let [,name] of playerChatNames) {
-                nmInfoBufSize += encoderUTF8.encode(name).length + 5
-            }
-            const nmInfoBuf = Buffer.allocUnsafe(nmInfoBufSize)
-            nmInfoBuf[0] = 12
-            let nmI = 1
-            for (let [,name] of playerChatNames) {
-                const encName = encoderUTF8.encode(name)
-                nmInfoBuf.writeUInt32BE(pIntId, nmI); nmI += 4
-                nmInfoBuf.writeUInt8(encName.length, nmI); nmI++
-                nmInfoBuf.set(encName, nmI); nmI += encName.length
-            }
+            const nmInfoBuf = createNamesPacket(playerChatNames)
             ws.send(nmInfoBuf)
         },
         async message(ws, data) {
@@ -432,7 +446,7 @@ const wss = Bun.serve({
     
                     // Update chatNames so new players joining will also see the name and pass to DB
                     ws.data.chatName = name
-                    playerChatNames.set(ws, name)
+                    playerChatNames.set(ws.data.intId, name)
                     dbWorker.postMessage({ call: "setUserChatName", data: { intId: ws.data.intId, newName: name }})
 
                     // Combine with player intId and alert all other clients of name change
@@ -447,46 +461,55 @@ const wss = Bun.serve({
                 }
                 case 13: { // Live chat history
                     let messageId = data.readUint32BE(1)
-                    let count = data[5] & 128
+                    let count = data[5] & 127
                     let before = data[5] >> 7
-                    let messageHistory = null
+                    let params = []
+                    let query = `
+                        SELECT LiveChatMessages.*, Users.chatName AS chatName
+                        FROM LiveChatMessages
+                        INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
                     
                     // If messageId is 0 and we are getting before, it will return [count] most recent messages
                     if (before) {
                         messageId = Math.min(liveChatMessageId, messageId)
                         count = Math.min(liveChatMessageId, count)
                         if (messageId == 0) {
-                            messageHistory = await makeDbRequest({ call: "exec", data: {
-                                stmt: `SELECT * FROM LiveChatMessages ORDER BY messageId ASC LIMIT ?1`,
-                                params: [ count ] } })    
+                            query += "ORDER BY messageId ASC LIMIT ?1"
+                            params.push(count)
                         }
                         else {
-                            messageHistory = await makeDbRequest({ call: "exec", data: {
-                                stmt: `SELECT * FROM LiveChatMessages WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2`,
-                                params: [ messageId, count ] } })    
+                            query += "WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2"
+                            params.push(messageId)
+                            params.push(count)
                         }
                     }
-                    else {
+                    else { // Ater
                         count = Math.min(liveChatMessageId - messageId, count)
-                        messageHistory = await makeDbRequest({ call: "exec", data: {
-                            stmt: `SELECT * FROM LiveChatMessages WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2`,
-                            params: [ messageId, count ] } })
+                        query += "WHERE messageId > ?1 ORDER BY messageId ASC LIMIT ?2"
+                        params.push(messageId)
+                        params.push(count)
                     }
+                    let messageHistory = await makeDbRequest({ call: "exec", data: { stmt: query, params: params } })
 
                     const messages = []
+                    const usernames = new Map()
                     let size = 6
                     for (let row of messageHistory) {
-                        // We do needessly write and then subarray out 1 byte per packet for unused packet code, too bad!
+                        usernames.set(row.intId, row.chatName)
                         const messageData = createChatPacket(0, row.message, row.sendDate, row.messageId,
-                            row.senderIntId, row.channel, row.repliesTo).subarray(1)
+                            row.senderIntId, row.channel, row.repliesTo).subarray(2)
                         size += messageData.byteLength
                         messages.push(messageData)
                     }
+
+                    // Client may race between applying intId:name bindings and inserting the new messages w/ usernames. Oof!
+                    const nmInfoBuf = createNamesPacket(usernames)
+                    ws.send(nmInfoBuf)
                     
                     let i = 0
                     const historyBuffer = Buffer.allocUnsafe(size)
                     historyBuffer[0] = 13; i++
-                    historyBuffer.writeUInt32BE(messageId); i += 4
+                    historyBuffer.writeUInt32BE(messageId, i); i += 4
                     historyBuffer[5] = data[5]; i++
                     for (let message of messages) {
                         message.copy(historyBuffer, i, 0, message.byteLength)
@@ -692,7 +715,7 @@ const wss = Bun.serve({
         },
         async close(ws, code, message) {
             players--
-            playerChatNames.delete(ws)
+            playerChatNames.delete(ws.data.intId)
             playerIntIds.delete(ws)
             toValidate.delete(ws)
             dbWorker.postMessage({ call: "exec", data: {
