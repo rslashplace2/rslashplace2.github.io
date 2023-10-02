@@ -365,12 +365,12 @@ const wss = Bun.serve({
                     return ws.close(4000, "Invalid VIP code. Please do not try again.")
                 }
                 ws.data.codeHash = codeHash
-                ws.data.vip = vip
+                ws.data.perms = vip.perms
                 CD = vip.cooldownMs
             }
             ws.data.cd = CD
 
-            if (CAPTCHA && !ws.data.vip.perms !== "admin") await forceCaptchaSolve(ws)
+            if (CAPTCHA && !ws.data.perms !== "admin") await forceCaptchaSolve(ws)
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
             let buf = Buffer.alloc(9)
@@ -548,11 +548,11 @@ const wss = Bun.serve({
     
                     if ((type == 0 && !channel) || !message) return
                     message = censorText(message)
-                    if (ws.data.vip.perms !== "admin" && ws.data.vip.perms !== "vip" && ws.data.perms !== "chatmod") {
+                    if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
                         message = message.replaceAll("@everyone", "*********")
                         message = message.replaceAll("@here", "*****")
                     }
-                    else if (ws.data.vip.perms !== "admin") {
+                    else if (ws.data.perms !== "admin") {
                         message = message.replaceAll("@everyone", "*********")
                     }
                     
@@ -616,7 +616,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 98: { // User moderation
-                    if (ws.data.vip.perms !== "admin" || ws.data.vip.perms !== "chatmod") return
+                    if (ws.data.perms !== "admin" || ws.data.perms !== "chatmod") return
                     let offset = 1
                     let action = data[offset++]
     
@@ -693,7 +693,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 99: {
-                    if (ws.data.vip.perms !== "admin" && ws.data.vip.perms !== "canvasmod") return
+                    if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
                     let w = data[1], i = data.readUInt32BE(2)
                     let h = Math.floor((data.length - 6) / w)
                     if (i % WIDTH + w >= WIDTH || i + h * HEIGHT >= WIDTH * HEIGHT) return

@@ -776,7 +776,6 @@
                         newMessage.appendChild(txtPart)
                         newMessage.appendChild(actionsPart)
 
-                        let scroll = chatMessages.scrollTop + chatMessages.offsetHeight + 10 >= chatMessages.scrollHeight
 
                         if (blockedUsers.includes(intId)) {
                             newMessage.style.color = "transparent"
@@ -786,6 +785,8 @@
                             newMessage.setAttribute("mention", "true")
                             if (currentChannel == channel) AUDIOS.closePalette.run()
                         }
+
+                        let atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 16 >= chatMessages.scrollHeight
 
                         // Inset the message into the 
                         cMessages[channel].push(newMessage)
@@ -797,7 +798,10 @@
                             chatMessages.insertAdjacentElement("beforeEnd", newMessage)
                         }
 
-                        scroll && chatMessages.scrollTo(0,10e8)
+                        // If at scroll bottom (we scroll down when new chat messages come)
+                        if (atScrollBottom) {
+                            chatMessages.scrollTo(0, 10e8)
+                        }
                     }
                     else { // place
                         if (!placeChat) return
@@ -1677,7 +1681,22 @@
             </div>
             <a id="ad" href="https://bonziworld.org" target="_blank" style="--adurl: url(https://cdn.discordapp.com/attachments/737425164823953470/1143849254360711198/bonzi-ad.gif);"></a>
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
-            <div id="chatMessages"></div>
+            <div id="chatMessages" onscroll=" // TODO: Flesh out
+                let styleChange = new Map()
+                if (this.scrollTop < 4) {
+                    styleChange.set('transform', 'scaleY(1)')
+                    styleChange.set('height', 'auto')
+                }
+                else {
+                    styleChange.set('transform', 'scaleY(0)')
+                    styleChange.set('height', '0px')
+                }
+                for (let [key, value] of styleChange) {
+                    if (chatPreviousButton.style[key] != value) {
+                        chatPreviousButton.style[key] = value
+                    }
+                }
+            "></div>
             <div id="messageTypePanel" class="chat-input-panel" closed>
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">

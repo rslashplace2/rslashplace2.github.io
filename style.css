@@ -656,6 +656,7 @@ body[eventphase="3"] .coverer-title {
 	display: flex;
 	cursor: pointer;
 	column-gap: 4px;
+	transition: .2s transform, .2s height;
 }
 #chatPreviousButton > hr {
 	flex-grow: 1;
