@@ -13,7 +13,6 @@ import { Worker } from 'worker_threads'
 import cookie from 'cookie';
 import { exec } from 'child_process'
 import repl from 'basic-repl'
-import minify from 'jsonminify'
 
 let BOARD, CHANGES, VOTES
 
@@ -236,6 +235,9 @@ let placeChatMessageId = (await makeDbRequest({ call: "getMaxPlaceChatId" })) ||
 let mutes = new Map() // Player ws instance<Object> : EndDate
 let bans = new Map() // Player ws instance<Object> : EndDate
 
+// Server is player ID 0, all server messages have message ID 0
+playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
+
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 function censorText(text) {
     return text
@@ -344,6 +346,7 @@ const wss = Bun.serve({
     },
     websocket: {
         async open(ws) {
+            wss.clients.add(ws)
             ws.data.ip = USE_CLOUDFLARE
                 ? ws.data.headers["x-forwarded-for"].split(",").pop().split(":", 4).join(":")
                 : ws.remoteAddress.split(":", 4).join(":")
@@ -373,12 +376,13 @@ const wss = Bun.serve({
             if (CAPTCHA && !ws.data.perms !== "admin") await forceCaptchaSolve(ws)
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
+            players++
+
             let buf = Buffer.alloc(9)
             buf[0] = 1
             buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
             buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
             ws.send(buf)
-            players++
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
         
@@ -721,6 +725,7 @@ const wss = Bun.serve({
             dbWorker.postMessage({ call: "exec", data: {
                 stmt: "UPDATE Users SET playTimeSeconds = playTimeSeconds + ?1 WHERE intId = ?2",
                 params: [ Math.floor((NOW - ws.data.connDate) / 1000), ws.data.intId ] } })
+            wss.clients.delete(ws)
         },
         perMessageDeflate: false,
     },
@@ -734,6 +739,7 @@ const wss = Bun.serve({
         }
     },
 })
+wss.clients = new Set() // Hack for compatibility with old node code
 
 async function modWebhookLog(message) {
     console.log(message)
@@ -935,37 +941,53 @@ function ban(identifier, duration, reason = null, mod = null) {
     if (!ip) return
 
     let finish = NOW + duration * 1000
-    BLACKLISTED.set(ip, finish)
-    fs.appendFile("blacklist.txt", `\n${ip} ${finish}`)
+    //bans.set(ip, finish)
     //dbWorker.postMessage({ call: "insertBan", data: { uidType: "IP" } })
 }
 
 /**
- * Mute a client using either ip or their websocket instance
- * @param {string|WebSocket} identifier - String client ip address or client websocket instance
+ * Mute a client using either ip, their websocket instance, or their intId
+ * @param {string|ServerWebSocket<any>|number} identifier - String client ip address or client websocket instance
  * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
 */
-/*function mute(identifier, duration, reason = null, mod = null) {
+function mute(identifier, duration, reason = null, mod = null) {
     let ip = identifier
-    if (identifier instanceof Object) {
+    if (typeof identifier === "number") {
+        const cli = playerIntIds.get(identifier)
+        if (!cli) return
+        cli.close()
+        ip = cli.ip
+    }
+    else if (identifier instanceof Object) {
         const cli = identifier
         ip = cli.ip
     }
     if (!ip) return
     
     let finish = NOW + duration * 1000
-    mutes.set(ip, finish)
+    //mutes.set(ip, finish)
     //dbWorker.postMessage("exec", { stmt: "INSERT INTO Mutes", params: [ ] })
 }
 
+/**
+ * Permanment IP block a player by IP, via WS instance or via intID
+ * @param {string|ServerWebSocket<any>|number} identifier IP/WS Instance/intID
+ */
 function blacklist(identifier) {
     let ip = null
-    if (typeof identifier === "string") {
+    if (typeof identifier === "number") {
+        const cli = playerIntIds.get(identifier)
+        if (!cli) return
+        cli.close()
+        ip = cli.ip
+    }
+    else if (typeof identifier === "string") {
         ip = identifier
         for (const p of wss.clients) {
             if (p.data.ip === ip) p.close()
         }
-    } else if (identifier instanceof Object) {
+    }
+    else if (identifier instanceof Object) {
         const cli = identifier
         cli.close()
         ip = cli.ip
@@ -976,14 +998,17 @@ function blacklist(identifier) {
     fs.appendFile("blacklist.txt", "\n" + ip)
 }
 
-// Broadcast a message as the server to a specific client (p) or all players, in a channel
-/*function announce(msg, channel, p = null) {
-    let byteArray = encoderUTF8.encode(`\x0f${msg}\nSERVER@RPLACE.LIVE✓\n${channel}`)
-    let dv = new DataView(byteArray.buffer)
-    dv.setUint8(0, 15)
-    if (p != null) p.send(dv)
-    else for (let c of wss.clients) c.send(dv)
-}*/
+/**
+ * Broadcast a message as the server to a specific client (p) or all players, in a channel
+ * @param {string} msg Message being sent
+ * @param {string} channel Channel message could be sent in
+ * @param {ServerWebSocket<any>} p WS instance message is being sent to
+ */
+function announce(msg, channel, p = null) {
+    let packet = createChatPacket(0, msg, NOW / 1000, 0, 0, channel, 0)
+    if (p != null) p.send(packet)
+    else for (let c of wss.clients) c.send(packet)
+}
 
 let shutdown = false
 process.on("uncaughtException", console.warn)
