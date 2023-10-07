@@ -1,18 +1,36 @@
 {
     "env": {
-        "node": true
+        "browser": true,
+        "es2021": true
     },
-    "plugins": [
-        "bun",
-    ],    
     "extends": [
         "eslint:recommended",
-        "plugin:node/recommended"
+        "plugin:@typescript-eslint/recommended"
     ],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "rules": {
+        "indent": [
+            "error",
+            4
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "never"
+        ]
     }
 }

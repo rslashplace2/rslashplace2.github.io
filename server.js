@@ -13,6 +13,7 @@ import { Worker } from 'worker_threads'
 import cookie from 'cookie';
 import { exec } from 'child_process'
 import repl from 'basic-repl'
+import { createContext, runInContext } from 'vm'
 
 let BOARD, CHANGES, VOTES
 
@@ -211,9 +212,8 @@ const decoderUTF8 = new util.TextDecoder()
 let dbReqId = 0
 const dbReqs = new Map()
 const dbWorker = new Worker("./db-worker.js")
-/** Please always await this, if you want something that you can just fire and 
- *  forget then use dbWorker.postMessage instead
- */
+/** **Always await this**, and only use in cases where you **WANT the response**, if you want something that
+ * you can just fire and forget then use dbWorker.postMessage instead */
 async function makeDbRequest(message) {
     let handle = dbReqId++
     let promise = new PublicPromise()
@@ -797,7 +797,7 @@ async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--) { if (CHANGES[i] != 255) BOARD[i] = CHANGES[i] }
 
     await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
-	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), (e) => { }).catch((e) => { })
+	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), _ => { }).catch(_ => { })
     await new Promise((resolve, reject) =>
         exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`,
         error => error ? reject(error) : resolve()))
@@ -876,7 +876,19 @@ setInterval(async function () {
     }
 }, 5000)
 
-repl("|place$ ", input => eval(input))
+// HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope
+const replExports = {
+    BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES, VIP,
+    SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
+    USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER,
+    dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
+    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
+    makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
+    setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
+}
+const context = createContext(replExports)
+repl("|place$ ", input => console.log(runInContext(input, context)))
 function fill(x, y, x1, y1, c = 27, random = false) {
     let w = x1 - x, h = y1 - y
     for (; y < y1; y++) {
