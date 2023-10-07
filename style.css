@@ -686,6 +686,10 @@ body[eventphase="3"] .coverer-title {
 	transition: .2s background-color;
 }
 
+#chatMessages .special-glow {
+	animation: text-glow 1s ease-in-out infinite alternate;
+}
+
 #chatMessages > div:hover {
     background-color: #d3d3d333;
 	border-radius: 4px;
@@ -738,6 +742,14 @@ body[eventphase="3"] .coverer-title {
 #chatMessages > div:hover > div {
 	opacity: 1;
 	cursor: pointer;
+}
+
+@keyframes text-glow {
+	0% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #00e62f, 0 0 4px #00e64f, 0 0 5px #07e600, 0 0 6px #00e60e, 0 0 7px #0bcc4d; }
+	25% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #007ae6, 0 0 4px #009be6, 0 0 5px #007ae6, 0 0 6px #00a5e6, 0 0 7px #0b72cc }
+	50% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #dfe600, 0 0 4px #e6e200, 0 0 5px #e6c200, 0 0 6px #e6c200, 0 0 7px #cc930b; }
+	75% { text-shadow: 0 0 2px #fff, 0 0 3px #ff4da6, 0 0 4px #ff4da6, 0 0 5px #ff4da6, 0 0 6px #ff4da6, 0 0 7px #ff4da6, 0 0 8px #ff4da6; }
+	100% { text-shadow: 0 0 2px #fff, 0 0 3px #ffb6a5, 0 0 4px #ff4d4d, 0 0 5px #ff554d, 0 0 6px #ff4d4d, 0 0 7px #ff5e4d, 0 0 8px #ff6e4d; }
 }
 
 .channels-options {

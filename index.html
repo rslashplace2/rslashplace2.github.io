@@ -675,10 +675,10 @@
                     let repliesTo = null
 
                     let offset = 1
-                    let msgType = data.getUint8(offset); offset++
-                    let messageId = data.getUint32(offset); offset += 4
-                    let txtL = data.getUint16(offset); offset += 2
-                    let txt = decoder.decode(data.buffer.slice(offset, (offset += txtL)))
+                    const msgType = data.getUint8(offset); offset++
+                    const messageId = data.getUint32(offset); offset += 4
+                    const txtLength = data.getUint16(offset); offset += 2
+                    let txt = decoder.decode(data.buffer.slice(offset, (offset += txtLength)))
                     const intId = data.getUint32(offset); offset += 4 // sender int ID
                     const name = intIdNames.get(intId)
 
@@ -720,7 +720,12 @@
 
                         newMessage.oncontextmenu = (e) => onChatContext(e, name, intId, messageId)
                         let namePart = document.createElement("span")
-                        namePart.style.color = CHAT_COLOURS[hash("" + intId) & 7]
+                        if (messageId === 0) {
+                            namePart.classList.add("special-glow")
+                        }
+                        else {
+                            namePart.style.color = CHAT_COLOURS[hash("" + intId) & 7]
+                        }
                         namePart.title = (new Date(sendDate)).toLocaleString()
                         namePart.onclick = (e) => chatMentionUser(name)
                         namePart.textContent = `[${name}] `
@@ -764,20 +769,21 @@
                             newMessage.appendChild(repliesPart)
                         }
 
-                        let actionsPart = document.createElement("div")
-                        actionsPart.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId}, '${name}')" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
-                                <path d="M780-200v-156q0-60-39-99t-99-39H236l163 163-43 43-236-236 236-236 43 43-163 163h406q85 0 141.5 56.5T840-356v156h-60Z"></path>
-                            </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId}, ${intId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
-                                <path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-348h60v-224h-60v224Zm26-122Z"></path>
-                            </svg>`
                         newMessage.appendChild(namePart)
                         newMessage.appendChild(txtPart)
-                        newMessage.appendChild(actionsPart)
+                        if (messageId !== 0) {
+                            let actionsPart = document.createElement("div")
+                            actionsPart.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId}, '${name}')" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
+                                    <path d="M780-200v-156q0-60-39-99t-99-39H236l163 163-43 43-236-236 236-236 43 43-163 163h406q85 0 141.5 56.5T840-356v156h-60Z"></path>
+                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId}, ${intId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
+                                    <path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-348h60v-224h-60v224Zm26-122Z"></path>
+                                </svg>`
+                            newMessage.appendChild(actionsPart)
+                        }
 
-
-                        if (blockedUsers.includes(intId)) {
+                        if (intId !== 0 && blockedUsers.includes(intId)) {
                             newMessage.style.color = "transparent"
                             newMessage.style.textShadow = "0px 0px 6px black"
                         }

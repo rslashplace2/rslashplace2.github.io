@@ -883,7 +883,7 @@ const replExports = {
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
     CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER,
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
-    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
+    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha, players,
     makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
 }
@@ -1016,8 +1016,8 @@ function blacklist(identifier) {
  * @param {string} channel Channel message could be sent in
  * @param {ServerWebSocket<any>} p WS instance message is being sent to
  */
-function announce(msg, channel, p = null) {
-    let packet = createChatPacket(0, msg, NOW / 1000, 0, 0, channel, 0)
+function announce(msg, channel, p = null, repliesTo = null) {
+    let packet = createChatPacket(0, msg, NOW / 1000, 0, 0, channel, repliesTo)
     if (p != null) p.send(packet)
     else for (let c of wss.clients) c.send(packet)
 }
