@@ -428,7 +428,7 @@
         const PUNISHMENT_STATE = {
             mute: 0,
             ban: 1,
-            appealRejected: 8,
+            appealRejected: 2,
         }
 
         const MAX_CHANNEL_MESSAGES = 100
@@ -785,14 +785,14 @@
                     let startDate = data.getUint32(i); i += 4
                     let endDate = data.getUint32(i); i+= 4
                     let reasonLen = data.getUint8(i++)
-                    let reason = decoder.decode(data.slice(i, i + reasonLen)); i += reasonLen
+                    let reason = decoder.decode(data.buffer.slice(i, i + reasonLen)); i += reasonLen
                     let appealLen = data.getUint8(i++)
-                    let appeal = decoder.decode(data.slice(i, i + appealLen)); i += appealLen
+                    let appeal = decoder.decode(data.buffer.slice(i, i + appealLen)); i += appealLen
                     
                     messageInput.disabled = true
                     chatPunishPanel.removeAttribute("closed")
                     if (state & PUNISHMENT_STATE.mute == PUNISHMENT_STATE.mute) {
-                        chatPunishNote.innerText = "You have been muted from sending messages in live chat."
+                        chatPunishNote.innerText = "You have been muted. You can not send messages in live chat."
                     }
                     else if (state & PUNISHMENT_STATE.ban == PUNISHMENT_STATE.ban) {
                         chatPunishNote.innerText = "You have been banned from placing on the canvas or sending messages in live chat."

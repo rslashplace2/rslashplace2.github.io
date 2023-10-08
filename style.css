@@ -917,6 +917,7 @@ body[eventphase="3"] .coverer-title {
 	align-items: center;
 	flex-direction: column;
 	justify-content: center;
+	text-align: center;
 	row-gap: 4px;
 }
 

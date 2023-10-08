@@ -246,6 +246,12 @@ let placeChatMessageId = (await makeDbRequest("getMaxPlaceChatId")) || 0
 let mutes = new Map() // IP : finishDate (unix epoch offset ms)
 let bans = new Map() // IP : finishDate (unix epoch offset ms)
 
+const PUNISHMENT_STATE = {
+    mute: 0,
+    ban: 1,
+    appealRejected: 2,
+}
+
 // Fetch all mutes, bans
 let muteIdFinishes = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Mutes WHERE finishDate > ?",
@@ -254,8 +260,8 @@ for (let idFinish of muteIdFinishes) {
     let idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
-    for (let ip of idIps) {
-        mutes.set(ip, idFinish.finishDate * 1000)
+    for (let ipObject of idIps) {
+        mutes.set(ipObject.ip, idFinish.finishDate * 1000)
     }
 }
 let banIdFinishes = await makeDbRequest("exec", {
@@ -265,8 +271,8 @@ for (let idFinish of banIdFinishes) {
     let idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
-    for (let ip of idIps) {
-        bans.set(ip, idFinish.finishDate * 1000)
+    for (let ipObject of idIps) {
+        bans.set(ipObject.ip, idFinish.finishDate * 1000)
     }
 }
 
@@ -355,12 +361,12 @@ function createNamesPacket(names) {
 
 function createPunishPacket(type, startDate, finishDate, reason, userAppeal, appealRejected) {
     const encReason = encoderUTF8.encode(reason)
-    const encAppeal = encoder.encode(userAppeal)
+    const encAppeal = encoderUTF8.encode(userAppeal)
     const buf = Buffer.allocUnsafe(12 + encReason.byteLength + encAppeal.byteLength)
     
     let offset = 0
     buf[offset++] = 14
-    buf[offset++] = type | (+appealRejected) // state
+    buf[offset++] = type | (appealRejected ? PUNISHMENT_STATE.appealRejected : 0) // state
     buf.writeUInt32BE(startDate, offset); offset += 4
     buf.writeUInt32BE(finishDate, offset); offset += 4
     buf[offset++] = encReason.byteLength
@@ -378,9 +384,11 @@ async function applyPunishments(ws, intId, ip) {
         }
         else {
             let banInfo = await makeDbRequest("exec", {
-                stmt: "SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans WHERE intId = ?1",
+                stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Bans WHERE userIntId = ?",
                 params: intId })
-            ws.send(createPunishPacket(PUNISHMENT_STATE.ban, ...banInfo))
+            if (banInfo) { 
+                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, ...banInfo))
+            }
         }
     }
     let muteFinish = mutes.get(ip)
@@ -390,9 +398,11 @@ async function applyPunishments(ws, intId, ip) {
         }
         else {
             let muteInfo = await makeDbRequest("exec", {
-                stmt: "SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes WHERE intId = ?1",
+                stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Mutes WHERE userIntId = ?1",
                 params: intId })
-            ws.send(createPunishPacket(PUNISHMENT_STATE.mute, ...muteInfo))
+            if (muteInfo) {
+                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, ...muteInfo))
+            }
         }
     }
 }
@@ -981,6 +991,7 @@ const replExports = {
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
     players, get players() { return players }, set players(value) { players = value },
     NOW, get NOW() { return NOW }, set NOW(value) { NOW = value },
+    console: console, // The context will have it's own console so prints in expressions would not appear
     makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
 }
@@ -1046,8 +1057,8 @@ async function ban(intId, duration, reason = null, modIntId = null) {
         params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
 
     let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
-    for (let ip of ips) {
-        bans.set(ip, finish * 1000)
+    for (let ipObject of ips) {
+        bans.set(ipObject.ip, finish * 1000)
     }
 }
 
@@ -1065,8 +1076,8 @@ async function mute(intId, duration, reason = null, modIntId = null) {
         params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
 
     let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
-    for (let ip of ips) {
-        mutes.set(ip, finish * 1000)
+    for (let ipObject of ips) {
+        mutes.set(ipObject.ip, finish * 1000)
     }
 }
 
