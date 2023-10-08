@@ -255,24 +255,24 @@ const PUNISHMENT_STATE = {
 // Fetch all mutes, bans
 let muteIdFinishes = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Mutes WHERE finishDate > ?",
-    params: Date.now() / 1000 })
+    params: Date.now() })
 for (let idFinish of muteIdFinishes) {
     let idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
     for (let ipObject of idIps) {
-        mutes.set(ipObject.ip, idFinish.finishDate * 1000)
+        mutes.set(ipObject.ip, idFinish.finishDate)
     }
 }
 let banIdFinishes = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Bans WHERE finishDate > ?",
-    params: Date.now() / 1000 })
+    params: Date.now() })
 for (let idFinish of banIdFinishes) {
     let idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
     for (let ipObject of idIps) {
-        bans.set(ipObject.ip, idFinish.finishDate * 1000)
+        bans.set(ipObject.ip, idFinish.finishDate)
     }
 }
 
@@ -367,8 +367,8 @@ function createPunishPacket(type, startDate, finishDate, reason, userAppeal, app
     let offset = 0
     buf[offset++] = 14
     buf[offset++] = type | (appealRejected ? PUNISHMENT_STATE.appealRejected : 0) // state
-    buf.writeUInt32BE(startDate, offset); offset += 4
-    buf.writeUInt32BE(finishDate, offset); offset += 4
+    buf.writeUInt32BE(startDate / 1000, offset); offset += 4
+    buf.writeUInt32BE(finishDate / 1000, offset); offset += 4
     buf[offset++] = encReason.byteLength
     buf.set(encReason, offset); offset += encReason.byteLength
     buf[offset++] = encAppeal.byteLength
@@ -1049,16 +1049,16 @@ function checkPreban(incomingX, incomingY, p) {
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
 */
 async function ban(intId, duration, reason = null, modIntId = null) {
-    let start = Math.floor(NOW / 1000)
-    let finish = start + duration
+    let start = NOW
+    let finish = start + duration * 1000
     dbWorker.postMessage({ call: "exec", data: {
-        stmt: "INSERT INTO Bans (startDate, finishDate, userIntId, moderatorIntId," +
+        stmt: "INSERT OR REPLACE INTO Bans (startDate, finishDate, userIntId, moderatorIntId, " +
             "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
-
+    
     let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
     for (let ipObject of ips) {
-        bans.set(ipObject.ip, finish * 1000)
+        bans.set(ipObject.ip, finish)
     }
 }
 
@@ -1068,16 +1068,16 @@ async function ban(intId, duration, reason = null, modIntId = null) {
  * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
 */
 async function mute(intId, duration, reason = null, modIntId = null) {    
-    let start = Math.floor(NOW / 1000)
-    let finish = start + duration
+    let start = NOW
+    let finish = start + duration * 1000
     dbWorker.postMessage({ call: "exec", data: {
-        stmt: "INSERT INTO Mutes (startDate, finishDate, userIntId, moderatorIntId," +
+        stmt: "INSERT OR REPLACE INTO Mutes (startDate, finishDate, userIntId, moderatorIntId," +
             "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
 
     let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
     for (let ipObject of ips) {
-        mutes.set(ipObject.ip, finish * 1000)
+        mutes.set(ipObject.ip, finish)
     }
 }
 
