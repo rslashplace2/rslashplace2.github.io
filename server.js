@@ -783,11 +783,16 @@ const wss = Bun.serve({
                             actionUidLen == 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${actionReason}`)
                     }
                     if (action == 4) { // Set preban
+                        let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
                         let startI = data.readUint32BE(offset); offset += 4
                         let endI = data.readUint32BE(offset); offset += 4
+                        let x1 = startI % WIDTH
+                        let y1 = Math.floor(startI / WIDTH)
+                        let x2 = endI % WIDTH
+                        let y2 = Math.floor(endI / WIDTH)
 
                         modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **set preban area** from (${
-                            x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "ignore"][violation]}`)
+                            x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "none"][violation]}`)
                     }
                     break
                 }
