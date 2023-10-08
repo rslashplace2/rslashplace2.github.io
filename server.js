@@ -1,4 +1,5 @@
-/* eslint-disable no-process-exit */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { promises as fs } from 'fs'
@@ -18,7 +19,7 @@ import { createContext, runInContext } from 'vm'
 let BOARD, CHANGES, VOTES
 
 let config = null
-try { config = await fs.readFile('./server_config.json') }
+try { config = await fs.readFile("./server_config.json") }
 catch (e) {
     await fs.writeFile("server_config.json", JSON.stringify({
         "SECURE": true,
@@ -57,7 +58,7 @@ try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place"))
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
 try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change")).arrayBuffer()) }
 catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
-try { VOTES = new Uint32Array(await Bun.file('./votes').arrayBuffer()) }
+try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
 let uidTokenFile = Bun.file(".uidtoken")
 let uidTokenName = null
@@ -212,15 +213,25 @@ const decoderUTF8 = new util.TextDecoder()
 let dbReqId = 0
 const dbReqs = new Map()
 const dbWorker = new Worker("./db-worker.js")
-/** **Always await this**, and only use in cases where you **WANT the response**, if you want something that
- * you can just fire and forget then use dbWorker.postMessage instead */
-async function makeDbRequest(message) {
+/** 
+ * __Always await this__, and only use in cases where you __WANT the response__, if you want something that
+ * you can just fire and forget then use dbWorker.postMessage instead.
+ * @param {({call: string, data: any}|string)} messageCall - String method name | Method call + arguments to be executed on DB worker.
+ * @param {string} args - Arguments that makeDbRequest will use.
+ */
+async function makeDbRequest(messageCall, args = null) {
     let handle = dbReqId++
     let promise = new PublicPromise()
     
-    message.handle = handle
+    if (typeof messageCall === "object" && messageCall?.call)
+        messageCall.handle = handle
+    else if (typeof messageCall === "string")
+        messageCall = { call: messageCall, data: args, handle: handle }
+    else
+        throw new Error("DB request fail. Invalid arguments (string name, any[] args)|({call: string name,data: any[] args})")
+    
     dbReqs.set(handle, promise)
-    dbWorker.postMessage(message)
+    dbWorker.postMessage(messageCall)
     return await promise.promise
 }
 dbWorker.on("message", (message) => {
@@ -230,10 +241,34 @@ dbWorker.on("error", console.warn)
 
 let playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
 let playerChatNames = new Map() // intId<Number> : chatName<String>
-let liveChatMessageId = (await makeDbRequest({ call: "getMaxLiveChatId" })) || 0
-let placeChatMessageId = (await makeDbRequest({ call: "getMaxPlaceChatId" })) || 0
-let mutes = new Map() // Player ws instance<Object> : EndDate
-let bans = new Map() // Player ws instance<Object> : EndDate
+let liveChatMessageId = (await makeDbRequest("getMaxLiveChatId")) || 0
+let placeChatMessageId = (await makeDbRequest("getMaxPlaceChatId")) || 0
+let mutes = new Map() // IP : finishDate (unix epoch offset ms)
+let bans = new Map() // IP : finishDate (unix epoch offset ms)
+
+// Fetch all mutes, bans
+let muteIdFinishes = await makeDbRequest("exec", {
+    stmt: "SELECT userIntId AS intId, finishDate FROM Mutes WHERE finishDate > ?",
+    params: Date.now() / 1000 })
+for (let idFinish of muteIdFinishes) {
+    let idIps = await makeDbRequest("exec", {
+        stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
+        params: idFinish.intId })
+    for (let ip of idIps) {
+        mutes.set(ip, idFinish.finishDate * 1000)
+    }
+}
+let banIdFinishes = await makeDbRequest("exec", {
+    stmt: "SELECT userIntId AS intId, finishDate FROM Bans WHERE finishDate > ?",
+    params: Date.now() / 1000 })
+for (let idFinish of banIdFinishes) {
+    let idIps = await makeDbRequest("exec", {
+        stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
+        params: idFinish.intId })
+    for (let ip of idIps) {
+        bans.set(ip, idFinish.finishDate * 1000)
+    }
+}
 
 // Server is player ID 0, all server messages have message ID 0
 playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
@@ -316,6 +351,50 @@ function createNamesPacket(names) {
     }
 
     return infoBuffer
+}
+
+function createPunishPacket(type, startDate, finishDate, reason, userAppeal, appealRejected) {
+    const encReason = encoderUTF8.encode(reason)
+    const encAppeal = encoder.encode(userAppeal)
+    const buf = Buffer.allocUnsafe(12 + encReason.byteLength + encAppeal.byteLength)
+    
+    let offset = 0
+    buf[offset++] = 14
+    buf[offset++] = type | (+appealRejected) // state
+    buf.writeUInt32BE(startDate, offset); offset += 4
+    buf.writeUInt32BE(finishDate, offset); offset += 4
+    buf[offset++] = encReason.byteLength
+    buf.set(encReason, offset); offset += encReason.byteLength
+    buf[offset++] = encAppeal.byteLength
+    buf.set(encAppeal, offset); offset += encAppeal.byteLength
+    return buf
+}
+
+async function applyPunishments(ws, intId, ip) {
+    let banFinish = bans.get(ip)
+    if (banFinish) {
+        if (banFinish < NOW) {
+            bans.delete(ip)
+        }
+        else {
+            let banInfo = await makeDbRequest("exec", {
+                stmt: "SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans WHERE intId = ?1",
+                params: intId })
+            ws.send(createPunishPacket(PUNISHMENT_STATE.ban, ...banInfo))
+        }
+    }
+    let muteFinish = mutes.get(ip)
+    if (muteFinish) {
+        if (muteFinish < NOW) {
+            mutes.delete(ip)
+        }
+        else {
+            let muteInfo = await makeDbRequest("exec", {
+                stmt: "SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes WHERE intId = ?1",
+                params: intId })
+            ws.send(createPunishPacket(PUNISHMENT_STATE.mute, ...muteInfo))
+        }
+    }
 }
 
 const wss = Bun.serve({
@@ -404,7 +483,9 @@ const wss = Bun.serve({
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
-        
+
+            await applyPunishments(ws, pIntId, IP)
+
             const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
             if (pName) {
                 ws.data.chatName = pName
@@ -420,7 +501,7 @@ const wss = Bun.serve({
 
             switch (data[0]) {
                 case 4: { // pixel place
-                    if (data.length < 6 || LOCKED === true || toValidate.has(ws)) return
+                    if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP)) return
                     let i = data.readUInt32BE(1), c = data[5]
                     if (i >= BOARD.length || c >= PALETTE_SIZE) return
                     let cd = cooldowns.get(IP)
@@ -474,15 +555,16 @@ const wss = Bun.serve({
                         INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
                     
                     // If messageId is 0 and we are getting before, it will return [count] most recent messages
+                    // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
                     if (before) {
                         messageId = Math.min(liveChatMessageId, messageId)
                         count = Math.min(liveChatMessageId, count)
                         if (messageId == 0) {
-                            query += "ORDER BY messageId ASC LIMIT ?1"
+                            query += "ORDER BY messageId DESC LIMIT ?1"
                             params.push(count)
                         }
                         else {
-                            query += "WHERE messageId < ?1 ORDER BY messageId ASC LIMIT ?2"
+                            query += "WHERE messageId < ?1 ORDER BY messageId DESC LIMIT ?2"
                             params.push(messageId)
                             params.push(count)
                         }
@@ -499,9 +581,11 @@ const wss = Bun.serve({
                     const usernames = new Map()
                     let size = 6
                     for (let row of messageHistory) {
-                        usernames.set(row.intId, row.chatName)
+                        usernames.set(row.senderIntId, row.chatName)
                         const messageData = createChatPacket(0, row.message, row.sendDate, row.messageId,
-                            row.senderIntId, row.channel, row.repliesTo).subarray(2)
+                            row.senderIntId, row.channel, row.repliesTo)
+                        // We reuse the first two bytes (would be type and packetcode) for length. Could overflow if txt is 100% of the 2 byte max len
+                        messageData.writeUint16BE(messageData.byteLength, 0)
                         size += messageData.byteLength
                         messages.push(messageData)
                     }
@@ -523,7 +607,8 @@ const wss = Bun.serve({
                     break
                 }
                 case 15: { // chat
-                    if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW || data.length > (CHAT_MAX_LENGTH || 400)) {
+                    if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW
+                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)) {
                         return
                     }
                     ws.data.lastChat = NOW
@@ -582,7 +667,7 @@ const wss = Bun.serve({
                         const hookName = ws.data.chatName.replaceAll("@", "")
                         const hookChannel = channel.replaceAll("@", "")    
                         const hookMessage = message.replaceAll("@", "")
-                        let msgHook = { username: `[${hookChannel || 'place chat'}] ${hookName} @rplace.live`, content: hookMessage }
+                        let msgHook = { username: `[${hookChannel || "place chat"}] ${hookName} @rplace.live`, content: hookMessage }
                         fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                     }catch (err){console.log("Could not post chat message to discord: " + err)}        
                     break
@@ -627,7 +712,7 @@ const wss = Bun.serve({
                     if (action == 0) {
                         let actionUidLen = data[offset++]
                         let actionTxt = data.slice((offset += actionUidLen)).toString()
-                        let actionUid = actionTxt.slice(0, actionUidLen)
+                        let actionUid = +actionTxt.slice(0, actionUidLen)
                         let actionCli = null
     
                         for(let [p, uid] of playerIntIds) {
@@ -647,7 +732,7 @@ const wss = Bun.serve({
                         let actionTimeS = data.readUInt32BE(2)
                         let actionUidLen = data[6]
                         let actionTxt = data.slice(7).toString()
-                        let actionUid = actionTxt.slice(0, actionUidLen)
+                        let actionUid = +actionTxt.slice(0, actionUidLen)
                         let actionCli = null
     
                         for(let [p, uid] of playerIntIds) {
@@ -665,7 +750,7 @@ const wss = Bun.serve({
                     if (action == 3) { // Force captcha revalidation
                         let actionUidLen = data[2]
                         let actionTxt = data.slice(3).toString()
-                        let actionUid = actionTxt.slice(0, actionUidLen)
+                        let actionUid = +actionTxt.slice(0, actionUidLen)
                         let actionCli = null
     
                         if (actionUidLen != 0) {
@@ -678,7 +763,6 @@ const wss = Bun.serve({
                             await forceCaptchaSolve(actionCli)
                         }
                         else {
-                            // TODO: figure out how to iterate over all wss clients
                             for (let c of wss.clients) {
                                 forceCaptchaSolve(c)
                             }
@@ -686,11 +770,12 @@ const wss = Bun.serve({
                         
                         let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
                         modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
-                            actionUidLen == 0 ? '**__all clients__**' : ('user **' + actionCli.ip + '**')}, with reason: '${actionReason}`)
+                            actionUidLen == 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${actionReason}`)
                     }
                     if (action == 4) { // Set preban
-                        let x1, y1, x2, y2, violation
-    
+                        let startI = data.readUint32BE(offset); offset += 4
+                        let endI = data.readUint32BE(offset); offset += 4
+
                         modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **set preban area** from (${
                             x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "ignore"][violation]}`)
                     }
@@ -876,14 +961,26 @@ setInterval(async function () {
     }
 }, 5000)
 
-// HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope
+// HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope, so we have to patch
 const replExports = {
     BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES, VIP,
     SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
-    USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER,
+    USE_CLOUDFLARE, get USE_CLOUDFLARE() { return USE_CLOUDFLARE }, set USE_CLOUDFLARE(value) { USE_CLOUDFLARE = value },
+    PUSH_LOCATION, get PUSH_LOCATION() { return PUSH_LOCATION }, set PUSH_LOCATION(value) { PUSH_LOCATION = value },
+    PUSH_PLACE_PATH, get PUSH_PLACE_PATH() { return PUSH_PLACE_PATH }, set PUSH_PLACE_PATH(value) { PUSH_PLACE_PATH = value },
+    LOCKED, get LOCKED() { return LOCKED }, set LOCKED(value) { LOCKED = value },
+    CHAT_WEBHOOK_URL, get CHAT_WEBHOOK_URL() { return CHAT_WEBHOOK_URL }, set CHAT_WEBHOOK_URL(value) { CHAT_WEBHOOK_URL = value },
+    MOD_WEBHOOK_URL, get MOD_WEBHOOK_URL() { return MOD_WEBHOOK_URL }, set MOD_WEBHOOK_URL(value) { MOD_WEBHOOK_URL = value },
+    CHAT_MAX_LENGTH, get CHAT_MAX_LENGTH() { return CHAT_MAX_LENGTH }, set CHAT_MAX_LENGTH(value) { CHAT_MAX_LENGTH = value },
+    CHAT_COOLDOWN_MS, get CHAT_COOLDOWN_MS() { return CHAT_COOLDOWN_MS }, set CHAT_COOLDOWN_MS(value) { CHAT_COOLDOWN_MS = value },
+    PUSH_INTERVAL_MINS, get PUSH_INTERVAL_MINS() { return PUSH_INTERVAL_MINS }, set PUSH_INTERVAL_MINS(value) { PUSH_INTERVAL_MINS = value },
+    CAPTCHA_EXPIRY_SECS, get CAPTCHA_EXPIRY_SECS() { return CAPTCHA_EXPIRY_SECS }, set CAPTCHA_EXPIRY_SECS(value) { CAPTCHA_EXPIRY_SECS = value },
+    CAPTCHA_MIN_MS, get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
+    INCLUDE_PLACER, get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
-    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha, players,
+    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
+    players, get players() { return players }, set players(value) { players = value },
+    NOW, get NOW() { return NOW }, set NOW(value) { NOW = value },
     makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
 }
@@ -905,56 +1002,53 @@ function fill(x, y, x1, y1, c = 27, random = false) {
 // by banning them as soon as we notice them placing a pixel in such area.  
 const prebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" } // kick, ignore, ban, or function(p, x, y): bool
 function setPreban(_x, _y, _x1, _y1, _action = "kick") {
-    prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action;
+    prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action
 }
 function clearPreban() {
-    prebanArea.x = 0; prebanArea.y = 0; prebanArea.x1 = 0; prebanArea.y1 = 0; prebanArea.action = "kick";
+    prebanArea.x = 0; prebanArea.y = 0; prebanArea.x1 = 0; prebanArea.y1 = 0; prebanArea.action = "kick"
 }
 function checkPreban(incomingX, incomingY, p) {
     if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
-        if (prebanArea.action instanceof Function) {
-            return prebanArea.action(p, incomingX, incomingY)            
-        }
-        if (prebanArea.action == "ban") {
-            ban(p.data.ip, 0xFFFFFFFF / 1000)
-            return true
-        }
-        if (prebanArea.action == "kick") {
-            p.close()
-            return true
-        }
-        if (prebanArea.action == "ignore") {
-            return true
-        }
+        modWebhookLog(`Pixel placed in preban area at ${incomingX}, ${incomingY} by ${p.ip}`)
 
-        console.log(`Pixel placed in preban area at ${incomingX},${incomingY} by ${p.ip}`)
+        if (prebanArea.action instanceof Function) {
+            return prebanArea.action(p, incomingX, incomingY)
+        }
+        switch(prebanArea.action) {
+            case "blacklist":
+                blacklist(p.data.ip, )
+                return true
+            case "ban":
+                ban(p.data.intId, 0xFFFFFFFF / 1000, "Violating canvas preban")
+                return true
+            case "kick":
+                p.close()
+                return true
+            case "none":
+                return true
+        }
     }
 
     return false
 }
 
 /**
- * Ban a client using either ip or their websocket instance
+ * Softban a client using either ip or their websocket instance
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
 */
-function ban(identifier, duration, reason = null, mod = null) {
-    let ip = null
-    if (typeof identifier === "string") {
-        ip = identifier
-        for (const p of wss.clients) {
-            if (p.data.ip === ip) p.close()
-        }
-    } else if (identifier instanceof Object) {
-        const cli = identifier
-        cli.close()
-        ip = cli.ip
-    }
-    if (!ip) return
+async function ban(intId, duration, reason = null, modIntId = null) {
+    let start = Math.floor(NOW / 1000)
+    let finish = start + duration
+    dbWorker.postMessage({ call: "exec", data: {
+        stmt: "INSERT INTO Bans (startDate, finishDate, userIntId, moderatorIntId," +
+            "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
 
-    let finish = NOW + duration * 1000
-    //bans.set(ip, finish)
-    //dbWorker.postMessage({ call: "insertBan", data: { uidType: "IP" } })
+    let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
+    for (let ip of ips) {
+        bans.set(ip, finish * 1000)
+    }
 }
 
 /**
@@ -962,23 +1056,18 @@ function ban(identifier, duration, reason = null, mod = null) {
  * @param {string|ServerWebSocket<any>|number} identifier - String client ip address or client websocket instance
  * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
 */
-function mute(identifier, duration, reason = null, mod = null) {
-    let ip = identifier
-    if (typeof identifier === "number") {
-        const cli = playerIntIds.get(identifier)
-        if (!cli) return
-        cli.close()
-        ip = cli.ip
+async function mute(intId, duration, reason = null, modIntId = null) {    
+    let start = Math.floor(NOW / 1000)
+    let finish = start + duration
+    dbWorker.postMessage({ call: "exec", data: {
+        stmt: "INSERT INTO Mutes (startDate, finishDate, userIntId, moderatorIntId," +
+            "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
+
+    let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
+    for (let ip of ips) {
+        mutes.set(ip, finish * 1000)
     }
-    else if (identifier instanceof Object) {
-        const cli = identifier
-        ip = cli.ip
-    }
-    if (!ip) return
-    
-    let finish = NOW + duration * 1000
-    //mutes.set(ip, finish)
-    //dbWorker.postMessage("exec", { stmt: "INSERT INTO Mutes", params: [ ] })
 }
 
 /**
@@ -1006,7 +1095,7 @@ function blacklist(identifier) {
     }
     if (!ip) return
 
-    BLACKLISTED.set(ip, Infinity)
+    BLACKLISTED.add(ip)
     fs.appendFile("blacklist.txt", "\n" + ip)
 }
 

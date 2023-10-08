@@ -308,7 +308,7 @@ place-chat-button > img {
 	height: 100%;
 	left: 0px;
 	top: 0px;
-	/*display: flex;*/
+	padding-top: 12px;
 	justify-content: center;
 	align-items: center;
 	background: #ffffffd4;
@@ -908,6 +908,18 @@ body[eventphase="3"] .coverer-title {
 	flex-grow: 1;
 }
 
+#chatPunishPanel {
+	position: absolute;
+	top: 50%;
+	margin: 8px;
+	width: calc(100% - 16px);
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	row-gap: 4px;
+}
+
 .messageTypeBtn {
 	width: calc(50% - 10px);
 	margin-bottom: 5px;
@@ -1174,7 +1186,7 @@ kbd {
 
 #spaceFiller {
 	height: 100vh;
-	transition: height .5s;
+	transition: .5s height;
 }
 
 #more #contents {

@@ -122,25 +122,6 @@ function performBulkInsertions() {
 setInterval(performBulkInsertions, 10000)
 
 const internal = {
-    getPunishments: function(intId) {
-        const punishments = []
-
-        const bansQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Bans where intId = ?1")
-        const banInfo = bansQuery.get(intId)
-        if (banInfo) {
-            banInfo.type = 0
-            punishments.push(banInfo)
-        }
-
-        const mutesQuery = db.query("SELECT (startDate, finishDate, reason, userAppeal, appealRejected) FROM Mutes where intId = ?1")
-        const muteInfo = mutesQuery.get(intId)
-        if (muteInfo) {
-            muteInfo.type = 1
-            punishments.push(muteInfo)
-        }
-
-        return punishments
-    },
     /** @param {{ newName: string, intId: number }} data */
     setUserChatName: function(data) {
         const updateQuery = db.query("UPDATE Users SET chatName = ?1 WHERE intId = ?2")
@@ -222,8 +203,16 @@ const internal = {
     },
     /** @param {{ stmt: string, params: any }} data */
     exec: function(data) {
-        let query = db.query(data.stmt)
-        return query?.all(...data.params)
+        try {
+            let query = db.query(data.stmt)
+            return (typeof data.params[Symbol.iterator] === 'function'
+                ? query.all(...data.params)
+                : query.all(data.params))
+        }
+        catch(err) {
+            console.log(err)
+            return null
+        }
     },
 }
 

@@ -10,7 +10,7 @@ select {
 	color: #747474;
 }
 
-input{
+input {
 	-webkit-appearance: none;
 	background: transparent;
 	outline: none;
@@ -22,6 +22,10 @@ input{
 	color: unset;
 	width: 4rem;
 	border-radius: 0;
+}
+
+input[type="button"] {
+	cursor: pointer;
 }
 
 input[type=file]::file-selector-button {
