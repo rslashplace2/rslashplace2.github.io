@@ -10,7 +10,7 @@ select {
 	color: #747474;
 }
 
-input{
+input {
 	-webkit-appearance: none;
 	background: transparent;
 	outline: none;
@@ -22,6 +22,10 @@ input{
 	color: unset;
 	width: 4rem;
 	border-radius: 0;
+}
+
+input[type="button"] {
+	cursor: pointer;
 }
 
 input[type=file]::file-selector-button {
@@ -140,12 +144,9 @@ a {
 	line-height: 38px;
 }
 
-.modal-footer {
-	margin-top: 16px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: relative;
+.modal-footer-button {
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border-radius: 18px;
 }
 
 .context-menu {
@@ -228,7 +229,7 @@ a {
 	background-color: white;
 	padding: 10px;
 }
-#chatPanel.open {
+#chatPanel[open] {
 	box-shadow: 0 0 30px black;
 }
 
@@ -254,6 +255,25 @@ a {
 	z-index: 5;
 	font-family: mono;
 	transition: .2s border-radius;
+}
+
+#namePanel {
+	background-color: white;
+	border-radius: 15px;
+}
+
+.name-input-container > button {
+	background: white;
+	box-shadow: 0 3px 10px rgba(0,0,0,.3);
+	border: none;
+	border-radius: 10px;
+	padding: 2px;
+	transition: transform .1s ease-in;
+	cursor: pointer;
+}
+
+.name-input-container > button:hover {
+	transform: rotate(5deg) scale(110%);
 }
 
 .messageOptions {

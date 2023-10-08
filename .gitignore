@@ -13,5 +13,13 @@ webhook_url.txt
 mutes.txt
 pxps.txt
 stats.txt
+server.db
+server.db-shm
+server.db-wal
+
+place
+change
+change2
+.uidtoken
 
 node_modules/
