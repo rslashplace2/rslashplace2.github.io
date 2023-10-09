@@ -60,14 +60,14 @@ try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change
 catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
 try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
-let uidTokenFile = Bun.file(".uidtoken")
+let uidToken = (await fs.readFile(".uidtoken")).toString()
 let uidTokenName = null
-if (!uidTokenFile.size) {
+if (!uidToken) {
     uidTokenName = "UidToken_" + Math.random().toString(36).slice(2)
-    await Bun.write(".uidtoken", uidTokenName)
+    await fs.writeFile(".uidtoken", uidTokenName)
 }
 else {
-    uidTokenName = await uidTokenFile.text()
+    uidTokenName = uidToken
 }
 
 let newPos = [], newCols = [], newIds = []
@@ -175,8 +175,8 @@ function randomString(length) {
 
 let players = 0
 // vip key, cooldown
-let vipFile = Bun.file("./vip.txt")
-if (vipFile.size == 0) {
+let vipFile = (await fs.readFile("./vip.txt")).toString()
+if (!vipFile) {
     Bun.write("./vip.txt",
         "# VIP Key configuration file\n" +
         "# Below is the correct format of a VIP key configuration:\n" +
@@ -185,17 +185,17 @@ if (vipFile.size == 0) {
         "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
         "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
 }
-let VIP = new Map((await vipFile.text())
+let VIP = new Map(vipFile
     .split('\n')
     .filter(line => line.trim() && !line.trim().startsWith("#"))
     .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 let RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
-let reserved_lines = (await Bun.file("reserved_names.txt").text()).split('\n')
+let reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
 for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
 let BLACKLISTED = new Set(
     (await Promise.all((
-        (await Bun.file("bansheets.txt").text())
+        (await fs.readFile("bansheets.txt")).toString()
             .trim()
             .split('\n')
             .map(banListUrl => fetch(banListUrl).then(response => response.text())))))
@@ -426,7 +426,8 @@ const wss = Bun.serve({
                 ...newToken && {
                     "Set-Cookie": cookie.serialize(uidTokenName,
                         newToken, { domain: url.hostname, expires: new Date(4e12),
-                            httpOnly: SECURE, sameSite: SECURE ? "strict" : "none", secure: SECURE })
+                            httpOnly: SECURE, sameSite: SECURE ? "none" : "none", secure: SECURE })
+                            // TODO: was "strict" when SECURE
                 }
             }
         })
@@ -437,15 +438,15 @@ const wss = Bun.serve({
         async open(ws) {
             wss.clients.add(ws)
             ws.data.ip = USE_CLOUDFLARE
-                ? ws.data.headers["x-forwarded-for"].split(",").pop().split(":", 4).join(":")
+                ? /*ws.data.headers["x-forwarded-for"]?.split(",").pop().split(":", 4).join(":")||*/ ws.remoteAddress.split(":", 4).join(":")
                 : ws.remoteAddress.split(":", 4).join(":")
             const IP = ws.data.ip
             const URL = ws.data.url
             if (!isUser(IP)) {
-                ws.close()
+                ws.close(4000, "Not user")
                 return
             }
-            if (USE_CLOUDFLARE && !ORIGINS.includes(headers["origin"])) return ws.close()
+            if (USE_CLOUDFLARE && !ORIGINS.includes(ws.data.headers["origin"])) return ws.close(4000, "No origin")
             if (!IP || IP.startsWith("%")) return ws.close()
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
@@ -524,7 +525,7 @@ const wss = Bun.serve({
                         ws.send(data)
                         return
                     }
-                    if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), p)) return
+                    if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) return
                     CHANGES[i] = c
                     cooldowns.set(IP, NOW + CD - 500)
                     newPos.push(i)
@@ -979,7 +980,13 @@ setInterval(async function () {
 // HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope, so we have to patch
 const replExports = {
     BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES, VIP,
-    SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
+    SECURE, CERT_PATH, PORT, KEY_PATH, PALETTE,
+    WIDTH, get WIDTH() { return WIDTH }, set WIDTH(value) { WIDTH = value },
+    HEIGHT, get HEIGHT() { return HEIGHT }, set HEIGHT(value) { HEIGHT = value },
+    PALETTE_SIZE, get PALETTE_SIZE() { return PALETTE_SIZE }, set PALETTE_SIZE(value) { PALETTE_SIZE = value },
+    ORIGINS, get ORIGINS() { return ORIGINS }, set ORIGINS(value) { ORIGINS = value }, 
+    COOLDOWN, get COOLDOWN() { return COOLDOWN }, set COOLDOWN(value) { COOLDOWN = value },
+    CAPTCHA, get CAPTCHA() { return CAPTCHA }, set CAPTCHA(value) { CAPTCHA = value },
     USE_CLOUDFLARE, get USE_CLOUDFLARE() { return USE_CLOUDFLARE }, set USE_CLOUDFLARE(value) { USE_CLOUDFLARE = value },
     PUSH_LOCATION, get PUSH_LOCATION() { return PUSH_LOCATION }, set PUSH_LOCATION(value) { PUSH_LOCATION = value },
     PUSH_PLACE_PATH, get PUSH_PLACE_PATH() { return PUSH_PLACE_PATH }, set PUSH_PLACE_PATH(value) { PUSH_PLACE_PATH = value },
@@ -996,6 +1003,7 @@ const replExports = {
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
     players, get players() { return players }, set players(value) { players = value },
     NOW, get NOW() { return NOW }, set NOW(value) { NOW = value },
+    isUser,
     console: console, // The context will have it's own console so prints in expressions would not appear
     makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
