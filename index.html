@@ -507,7 +507,7 @@
                 else {
                     namePart.style.color = CHAT_COLOURS[hash("" + intId) & 7]
                 }
-                namePart.title = (new Date(sendDate)).toLocaleString()
+                namePart.title = (new Date(sendDate * 1000)).toLocaleString()
                 namePart.onclick = (e) => chatMentionUser(name)
                 namePart.textContent = `[${name || ("#" + intId)}] `
                 let txtPart = document.createElement("span")
@@ -883,10 +883,6 @@
                             captchaOptions.innerHTML = "" 
 
                             for (let emoji of emojis) {
-                                /*let el = document.createElement("input")
-                                el.setAttribute("type", "button")
-                                el.setAttribute("value", emoji)
-                                captchaOptions.appendChild(el)*/
                                 let buttonParent = document.createElement("button")
                                 let emojiImg = document.createElement("img")
                                 emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
@@ -1735,7 +1731,7 @@
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll=" // TODO: Flesh out
                 let styleChange = new Map()
-                if (this.scrollTop < 4 && chatMessages.children[0]?.messageId <= 1) {
+                if (this.scrollTop < 4 && chatMessages.children[0]?.messageId > 1) {
                     styleChange.set('transform', 'scaleY(1)')
                     styleChange.set('height', 'auto')
                 }
