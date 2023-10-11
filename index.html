@@ -748,7 +748,7 @@
 
                     let offset = 6
                     let newMessage = null
-                    while (offset < data.byteLength - 1) {
+                    while (offset < data.byteLength - 6) {
                         const messageLength = data.getUint16(offset); offset += 2
                         const messageId = data.getUint32(offset); offset += 4
                         const txtLength = data.getUint16(offset); offset += 2
@@ -1058,7 +1058,7 @@
                     e.preventDefault()
                     overlayMenu.toggleAttribute("opened")
                 }
-                else if (e.key === "/") {
+                else if (e.key === "/" && !("value" in document.activeElement)) {
                     e.preventDefault()
                     chatPanel.toggleAttribute('open')
                 }
@@ -1733,7 +1733,7 @@
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll=" // TODO: Flesh out
                 let styleChange = new Map()
-                if (this.scrollTop < 4) {
+                if (this.scrollTop < 4 && chatMessages.children[0]?.messageId <= 1) {
                     styleChange.set('transform', 'scaleY(1)')
                     styleChange.set('height', 'auto')
                 }
@@ -2581,6 +2581,8 @@
             }
             currentReply = messageId
 
+            // HACK: Ensure no overlap between reply and send features
+            messageTypePanel.style.height = "132px" 
             messageInput.focus()
             messageReplyPanel.removeAttribute("closed")
             messageReplyLabel.innerText = translate("replyTo") + ": " + uname
@@ -2597,6 +2599,8 @@
                 m.removeAttribute("reply")
             }
             currentReply = null
+            // HACK: Ensure no overlap between reply and send features
+            messageTypePanel.style.height = "100px" 
 
             messageReplyPanel.setAttribute('closed', 'true')
         }
