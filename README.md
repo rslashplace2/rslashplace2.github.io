@@ -4,7 +4,7 @@ This site aims to be as similar to the april fools r/place event, where users we
 
 "Alone you can create something, but together, you can create something more" (or something like that)
 
-Site link: https://rplace.live/
+**Site link: https://rplace.live/**
 
 ![https://rplace.live running on firefox as of 18/4/2022](site_demo.png)
 
@@ -13,11 +13,12 @@ Site link: https://rplace.live/
 # Setting up my own custom canvas!
 To set up your own custom canvas to be played on rplace.tk, we have made a guide at our [Manual](MANUAL.md)!
 
-# Forking
 
-Forks of this project must either:
+# Development
+
+Forks of this project should either:
 - Connect to the same server, that is, wss://server.rplace.tk:443
-- Or use the same app, that is, https://rplace.tk
+- Or use the same app, that is, https://rplace.live
 
 We request forks are not run commercially (That is, it must not generate more than the cost of server upkeep)
 
@@ -27,5 +28,12 @@ We request forks are not run commercially (That is, it must not generate more th
 - Making `https://rplace.live` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Cool, non-commercially]
 - My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not cool: Uses both different app and different server]
 
+### Testing:
+ - While in theory, all dependencies should be installable using `bun install` within the root directory. Some
+ modules, such as skia canvas may have dependency issues using the bun package manager. It is reccomended you
+ also run `npm i` to ensure all dependencies, such as n-api v6 are installed.
+ - The server can be run with `bun run server.js` in the root directory of the project.
+ - You can use a simple HTTP server, such as the npm static-server module to test the client with a local server. For example, `npx static-server --cors='*'`
+ 
 ### Also see:
  - [bun vscode extension](https://marketplace.visualstudio.com/items?itemName=oven.bun-vscode)

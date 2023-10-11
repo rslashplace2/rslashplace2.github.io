@@ -60,14 +60,11 @@ try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change
 catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
 try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
-let uidToken = (await fs.readFile(".uidtoken")).toString()
-let uidTokenName = null
-if (!uidToken) {
-    uidTokenName = "UidToken_" + Math.random().toString(36).slice(2)
-    await fs.writeFile(".uidtoken", uidTokenName)
-}
-else {
-    uidTokenName = uidToken
+let uidToken = null
+try { uidToken = (await fs.readFile("uidtoken")).toString() }
+catch(e) { 
+    uidToken = "UidToken_" + Math.random().toString(36).slice(2)
+    await fs.writeFile("uidtoken", uidToken)
 }
 
 let newPos = [], newCols = [], newIds = []
@@ -411,7 +408,7 @@ const wss = Bun.serve({
     fetch(req, server) {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
         let newToken = null
-        if (!cookies[uidTokenName]) {
+        if (!cookies[uidToken]) {
             newToken = randomString(32)
         }
 
@@ -420,11 +417,11 @@ const wss = Bun.serve({
             data: {
                 url: url.pathname.slice(1).trim(),
                 headers: req.headers,
-                token: cookies[uidTokenName] || newToken
+                token: cookies[uidToken] || newToken
             },
             headers: {
                 ...newToken && {
-                    "Set-Cookie": cookie.serialize(uidTokenName,
+                    "Set-Cookie": cookie.serialize(uidToken,
                         newToken, { domain: url.hostname, expires: new Date(4e12),
                             httpOnly: SECURE, sameSite: SECURE ? "none" : "none", secure: SECURE })
                             // TODO: was "strict" when SECURE
@@ -438,7 +435,7 @@ const wss = Bun.serve({
         async open(ws) {
             wss.clients.add(ws)
             ws.data.ip = USE_CLOUDFLARE
-                ? /*ws.data.headers["x-forwarded-for"]?.split(",").pop().split(":", 4).join(":")||*/ ws.remoteAddress.split(":", 4).join(":")
+                ? ws.data.headers["x-forwarded-for"]?.split(",")[0]?.split(":", 4).join(":")|| ws.remoteAddress.split(":", 4).join(":")
                 : ws.remoteAddress.split(":", 4).join(":")
             const IP = ws.data.ip
             const URL = ws.data.url
@@ -856,7 +853,7 @@ setInterval(() => {
     NOW = Date.now()
 }, 50)
 
-let currentCaptcha = zcaptcha.genEmojiCaptcha2
+let currentCaptcha = zcaptcha.genEmojiCaptcha
 
 /**
  * Force a client to redo the captcha
@@ -1004,8 +1001,9 @@ const replExports = {
     players, get players() { return players }, set players(value) { players = value },
     NOW, get NOW() { return NOW }, set NOW(value) { NOW = value },
     isUser,
+    currentCaptcha, get currentCaptcha() { return currentCaptcha }, set currentCaptcha(value) { currentCaptcha = value },
     console: console, // The context will have it's own console so prints in expressions would not appear
-    makeDbRequest, pushImage, currentCaptcha, forceCaptchaSolve, fill,
+    makeDbRequest, pushImage, forceCaptchaSolve, fill,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
 }
 const context = createContext(replExports)

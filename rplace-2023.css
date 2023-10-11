@@ -175,6 +175,27 @@ input {
     border-bottom: var(--pixel-border);
 }
 
+#captchaPopup {
+	width: 450px;
+	padding: 24px;
+    border: var(--pixel-border);
+	background-color: white;
+}
+
+#captchaOptions > button {
+	background: white;
+    border: var(--pixel-border);
+    cursor: default;
+}
+
+#captchaOptions > button:hover {
+    background-color: lightgray;
+}
+
+#captchaImg {
+    border: var(--pixel-border);
+}
+
 /* TODO: Unjank */
 .live-chat-header1 {
     display: none;
