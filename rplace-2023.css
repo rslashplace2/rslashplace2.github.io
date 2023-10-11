@@ -176,10 +176,10 @@ input {
 }
 
 #captchaPopup {
-	width: 450px;
 	padding: 24px;
     border: var(--pixel-border);
 	background-color: white;
+    box-shadow: var(--pixel-box-shadow);
 }
 
 #captchaOptions > button {

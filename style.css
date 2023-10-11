@@ -772,6 +772,7 @@ body[eventphase="3"] .coverer-title {
 }
 
 #captchaPopup {
+	width: 450px;
 	z-index: 7;
 	position: absolute;
 	top: 50%;
