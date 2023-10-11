@@ -881,12 +881,19 @@
                             captchaOptions.innerHTML = "" 
 
                             for (let emoji of emojis) {
-                                let el = document.createElement("input")
+                                /*let el = document.createElement("input")
                                 el.setAttribute("type", "button")
                                 el.setAttribute("value", emoji)
-                                captchaOptions.appendChild(el)
+                                captchaOptions.appendChild(el)*/
+                                let buttonParent = document.createElement("button")
+                                let emojiImg = document.createElement("img")
+                                emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
+                                emojiImg.alt = emoji
+                                emojiImg.title = emoji
+                                buttonParent.appendChild(emojiImg)
+                                captchaOptions.appendChild(buttonParent)
                                 
-                                el.addEventListener("click", (event) => {
+                                buttonParent.addEventListener("click", (event) => {
                                     call(send, ws, encoder.encode("\x10" + event.target.value))
                                     captchaOptions.style.pointerEvents = "none"
                                 })
