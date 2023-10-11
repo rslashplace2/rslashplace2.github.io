@@ -746,9 +746,10 @@
                     let before = data.getUint8(5) >> 7
                     let prevNewMessage = null
 
-                    let offset = 6
+                    let i = 6
                     let newMessage = null
-                    while (offset < data.byteLength - 6) {
+                    while (i < data.byteLength) {
+                        let offset = i
                         const messageLength = data.getUint16(offset); offset += 2
                         const messageId = data.getUint32(offset); offset += 4
                         const txtLength = data.getUint16(offset); offset += 2
@@ -762,7 +763,7 @@
                         let channelL = data.getUint8(offset); offset++
                         let channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
                         let repliesTo = null
-                        if (messageLength - offset == 4) {
+                        if (messageLength - (offset - i) == 4) {
                             repliesTo = data.getUint32(offset); offset += 4
                         }
                         
@@ -773,6 +774,7 @@
                             chatMessages.prepend(newMessage)
                             chatMessages.scrollTop = scrollBefore + newMessage.offsetHeight
                         }
+                        i = offset
                     }
                     // chatPrevious button height (looks more seamless if the last of the
                     // loaded previous messages can be seen in place of the previous button 
