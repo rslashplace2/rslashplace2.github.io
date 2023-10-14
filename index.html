@@ -45,7 +45,7 @@
                 modalAboutContent: "There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.",
                 overlayMenuDesciption: "Visualise your build with a template image!",
                 messageCouldntBeLoaded: "Message could not be loaded",
-                placedBy: "placed by:",
+                placedBy: "Placed by:",
                 lockMessage: "This canvas is locked... You can't place pixels here anymore"
             },
             fa: {
@@ -462,7 +462,8 @@
         let intId = null
         let chatName = null
         let setName = null // function injected by wscapsule
-        let canvasLocked = false
+        let canvasLocked = false // Server will tell us this
+        let includesPlacer = false // Server will tell us this
 
         const wscapsule = ((send, addEventListener, call) => {
             let focused = true
@@ -693,13 +694,13 @@
                     runLengthChanges(data, await preloadedBoard)
                     break
                 }
-                case 3: {
+                case 3: { // Online
                     online = data.getUint16(1)
                     onlineCounter.textContent = online
                     onlineCounter2.textContent = online + ' online'
                     break
                 }
-                case 5: {
+                case 5: { // Pixel with included placer
                     let i = 1
                     while (i < data.byteLength) {
                         let position = data.getUint32(i); i += 4
@@ -708,14 +709,14 @@
                     }
                     break
                 }
-                case 6: {
+                case 6: { // Pixel without included placer
                     let i = 0
                     while (i < data.byteLength - 2) {
                         seti(data.getUint32(i += 1), data.getUint8(i += 4))
                     }
                     break
                 }
-                case 7: {
+                case 7: { // Rejected pixel
                     CD = data.getUint32(1) * 1000
                     seti(data.getUint32(5), data.getUint8(9))
                     break
@@ -1351,7 +1352,7 @@
                 </div>
                 <img id="templateImage" width="auto" height="auto" ondrag="return">
                 <placechat id="idPosition" style="display: none;">
-                    <span translate="placedBy">placed by:</span>
+                    <span translate="placedBy">Placed by:</span>
                     <span><!--placer name||id--></span>
                 </placechat>
             </div>
@@ -2230,7 +2231,7 @@
                     idPosition.style.left = intX + "px"
                     idPosition.style.top = intY + "px"
                     idPosition.children[1].style.color = CHAT_COLOURS[hash("" + id) & 7]
-                    idPosition.children[1].textContent = " [" + (intIdNames.get(id) || id) + "]"
+                    idPosition.children[1].textContent = intIdNames.get(id) || ("#" + id)
                 }, 2000)
             }
         }
