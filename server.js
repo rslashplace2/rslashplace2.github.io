@@ -44,7 +44,8 @@ catch (e) {
         "PUSH_INTERVAL_MINS": 30,
         "CAPTCHA_EXPIRY_SECS": 45,
         "CAPTCHA_MIN_MS": 100, //min solvetime
-        "INCLUDE_PLACER": false // pixel placer
+        "INCLUDE_PLACER": false, // pixel placer
+        "SECURE_COOKIE": false
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
@@ -52,7 +53,7 @@ catch (e) {
 }
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER } = JSON.parse(config)
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE } = JSON.parse(config)
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -423,7 +424,7 @@ const wss = Bun.serve({
                 ...newToken && {
                     "Set-Cookie": cookie.serialize(uidToken,
                         newToken, { domain: url.hostname, expires: new Date(4e12),
-                            httpOnly: SECURE, sameSite: SECURE ? "lax" : "none", secure: SECURE })
+                            httpOnly: SECURE_COOKIE, sameSite: SECURE_COOKIE ? "lax" : "none", secure: SECURE_COOKIE })
                 }
             }
         })
@@ -994,6 +995,7 @@ const replExports = {
     CAPTCHA_EXPIRY_SECS, get CAPTCHA_EXPIRY_SECS() { return CAPTCHA_EXPIRY_SECS }, set CAPTCHA_EXPIRY_SECS(value) { CAPTCHA_EXPIRY_SECS = value },
     CAPTCHA_MIN_MS, get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
     INCLUDE_PLACER, get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
+    SECURE_COOKIE, get SECURE_COOKIE() { return SECURE_COOKIE }, set SECURE_COOKIE(value) { SECURE_COOKIE = value },
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
     players, get players() { return players }, set players(value) { players = value },
@@ -1037,7 +1039,7 @@ function checkPreban(incomingX, incomingY, p) {
         }
         switch(prebanArea.action) {
             case "blacklist":
-                blacklist(p.data.ip, )
+                blacklist(p.data.ip)
                 return true
             case "ban":
                 ban(p.data.intId, 0xFFFFFFFF / 1000, "Violating canvas preban")
@@ -1097,10 +1099,12 @@ async function mute(intId, duration, reason = null, modIntId = null) {
 function blacklist(identifier) {
     let ip = null
     if (typeof identifier === "number") {
-        const cli = playerIntIds.get(identifier)
-        if (!cli) return
-        cli.close()
-        ip = cli.ip
+        for (let cli of wss.clients) { 
+            if (cli.intId == identifier) {
+                ip = cli.data.ip
+                cli.close()
+            }
+        }
     }
     else if (typeof identifier === "string") {
         ip = identifier
@@ -1116,7 +1120,7 @@ function blacklist(identifier) {
     if (!ip) return
 
     BLACKLISTED.add(ip)
-    fs.appendFile("blacklist.txt", "\n" + ip)
+    fs.appendFile("./blacklist.txt", "\n" + ip)
 }
 
 /**
