@@ -167,8 +167,8 @@ const internal = {
     },
     /** @param {{ messageId: number, count: number, before: boolean, channel: string? }} data */
     getLiveChatHistory: function(data) {
-        const liveChatMessageId = getMaxLiveChatId()
-        let params = [ ]
+        const liveChatMessageId = internal.getMaxLiveChatId()
+        let params = []
         let query = `
             SELECT LiveChatMessages.*, Users.chatName AS chatName
             FROM LiveChatMessages

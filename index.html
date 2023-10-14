@@ -743,7 +743,7 @@
                 }
                 case 13: {
                     let i = 1
-                    let fromMessageId = data.getUint32(i++)
+                    let fromMessageId = data.getUint32(i); i += 4
                     let count = data.getUint8(i) & 127
                     let before = data.getUint8(i) >> 7; i++
                     let channelLen = data.getUint8(i++)
