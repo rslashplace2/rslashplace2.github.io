@@ -165,6 +165,47 @@ const internal = {
         
         return user.intId
     },
+    /** @param {{ messageId: number, count: number, before: boolean, channel: string? }} data */
+    getLiveChatHistory: function(data) {
+        const liveChatMessageId = internal.getMaxLiveChatId()
+        let params = []
+        let query = `
+            SELECT LiveChatMessages.*, Users.chatName AS chatName
+            FROM LiveChatMessages
+            INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
+        
+        if (data.channel) {
+            query += "WHERE channel = ?1\n"
+            params.push(data.channel)
+        }
+
+        // If messageId is 0 and we are getting before, it will return [count] most recent messages
+        // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
+        if (data.before) {
+            data.messageId = Math.min(liveChatMessageId, data.messageId)
+            data.count = Math.min(liveChatMessageId, data.count)
+            if (data.messageId == 0) {
+                query += "ORDER BY messageId DESC LIMIT ?2"
+                params.push(data.count)
+            }
+            else {
+                query += data.channel ? "AND " : ""
+                query += "messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
+                params.push(data.messageId)
+                params.push(data.count)
+            }
+        }
+        else { // Ater
+            count = Math.min(liveChatMessageId - data.messageId, data.count)
+            query += data.channel ? "AND " : ""
+            query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
+            params.push(data.messageId)
+            params.push(data.count)
+        }
+
+        const stmt = db.query(query)
+        return stmt.all(params)
+    },
     updatePixelPlace: function(intId) {
         pixelPlaces.set(intId, (pixelPlaces.get(intId)||0) + 1)
     },
