@@ -435,7 +435,7 @@ const wss = Bun.serve({
         async open(ws) {
             wss.clients.add(ws)
             ws.data.ip = USE_CLOUDFLARE
-                ? ws.data.headers["x-forwarded-for"]?.split(",")[0]?.split(":", 4).join(":")|| ws.remoteAddress.split(":", 4).join(":")
+                ? ws.data.headers["x-forwarded-for"]?.split(",")[0]?.split(":", 4).join(":") || ws.remoteAddress.split(":", 4).join(":")
                 : ws.remoteAddress.split(":", 4).join(":")
             const IP = ws.data.ip
             const URL = ws.data.url
@@ -924,7 +924,10 @@ setInterval(function () {
     while ((pos = newPos.pop()) != undefined) {
         buf.writeInt32BE(pos, i); i += 4
         buf[i++] = newCols.pop()
-        if (INCLUDE_PLACER) buf.writeInt32BE(newIds.pop(), i); i += 4
+        if (INCLUDE_PLACER) {
+            buf.writeInt32BE(newIds.pop(), i);
+            i += 4
+        }
     }
     wss.publish("all", buf)
 
