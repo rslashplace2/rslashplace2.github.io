@@ -556,11 +556,15 @@ const wss = Bun.serve({
                     let messageId = data.readUint32BE(1)
                     let count = data[5] & 127
                     let before = data[5] >> 7
-                    let params = []
+                    const encChannel = data.subarray(6)
+                    const channel = decoderUTF8.decode(encChannel)
+                    if (!channel) return
+                    let params = [ channel ]
                     let query = `
                         SELECT LiveChatMessages.*, Users.chatName AS chatName
                         FROM LiveChatMessages
-                        INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
+                        INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId
+                        WHERE channel = ?1\n`
                     
                     // If messageId is 0 and we are getting before, it will return [count] most recent messages
                     // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
@@ -568,18 +572,18 @@ const wss = Bun.serve({
                         messageId = Math.min(liveChatMessageId, messageId)
                         count = Math.min(liveChatMessageId, count)
                         if (messageId == 0) {
-                            query += "ORDER BY messageId DESC LIMIT ?1"
+                            query += "ORDER BY messageId DESC LIMIT ?2"
                             params.push(count)
                         }
                         else {
-                            query += "WHERE messageId < ?1 ORDER BY messageId DESC LIMIT ?2"
+                            query += "AND messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
                             params.push(messageId)
                             params.push(count)
                         }
                     }
                     else { // Ater
                         count = Math.min(liveChatMessageId - messageId, count)
-                        query += "WHERE messageId > ?1 ORDER BY messageId ASC LIMIT ?2"
+                        query += "AND messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
                         params.push(messageId)
                         params.push(count)
                     }
@@ -587,7 +591,7 @@ const wss = Bun.serve({
 
                     const messages = []
                     const usernames = new Map()
-                    let size = 6
+                    let size = 7 + encChannel.byteLength
                     for (let row of messageHistory) {
                         usernames.set(row.senderIntId, row.chatName)
                         const messageData = createChatPacket(0, row.message, Math.floor(row.sendDate / 1000), row.messageId,
@@ -604,9 +608,11 @@ const wss = Bun.serve({
                     
                     let i = 0
                     const historyBuffer = Buffer.allocUnsafe(size)
-                    historyBuffer[0] = 13; i++
+                    historyBuffer[i++] = 13
                     historyBuffer.writeUInt32BE(messageId, i); i += 4
-                    historyBuffer[5] = data[5]; i++
+                    historyBuffer[i++] = data[5]
+                    historyBuffer[i++] = encChannel.byteLength
+                    historyBuffer.set(encChannel, i); i += encChannel.byteLength
                     for (let message of messages) {
                         message.copy(historyBuffer, i, 0, message.byteLength)
                         i += message.byteLength

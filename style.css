@@ -1297,6 +1297,7 @@ placechat {
 	transform: translateX(-50%) translateY(-150%);
 	max-width: 65px;
 	min-width: 8px;
+	width: max-content;
 }
 
 placechat::after {
