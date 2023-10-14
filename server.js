@@ -484,7 +484,7 @@ const wss = Bun.serve({
             }
             
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const pIntId = await makeDbRequest({ call: "authenticateUser", data: { token: ws.data.token, ip: IP } })
+            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
             ws.data.intId = pIntId
             playerIntIds.set(ws, pIntId)
             let pIdBuf = Buffer.alloc(5)
@@ -494,7 +494,7 @@ const wss = Bun.serve({
 
             await applyPunishments(ws, pIntId, IP)
 
-            const pName = await makeDbRequest({ call: "getUserChatName", data: pIntId })
+            const pName = await makeDbRequest("getUserChatName", pIntId)
             if (pName) {
                 ws.data.chatName = pName
                 playerChatNames.set(ws.data.intId, pName)
@@ -558,36 +558,7 @@ const wss = Bun.serve({
                     let before = data[5] >> 7
                     const encChannel = data.subarray(6)
                     const channel = decoderUTF8.decode(encChannel)
-                    if (!channel) return
-                    let params = [ channel ]
-                    let query = `
-                        SELECT LiveChatMessages.*, Users.chatName AS chatName
-                        FROM LiveChatMessages
-                        INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId
-                        WHERE channel = ?1\n`
-                    
-                    // If messageId is 0 and we are getting before, it will return [count] most recent messages
-                    // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
-                    if (before) {
-                        messageId = Math.min(liveChatMessageId, messageId)
-                        count = Math.min(liveChatMessageId, count)
-                        if (messageId == 0) {
-                            query += "ORDER BY messageId DESC LIMIT ?2"
-                            params.push(count)
-                        }
-                        else {
-                            query += "AND messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
-                            params.push(messageId)
-                            params.push(count)
-                        }
-                    }
-                    else { // Ater
-                        count = Math.min(liveChatMessageId - messageId, count)
-                        query += "AND messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
-                        params.push(messageId)
-                        params.push(count)
-                    }
-                    let messageHistory = await makeDbRequest({ call: "exec", data: { stmt: query, params: params } })
+                    const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel })
 
                     const messages = []
                     const usernames = new Map()
@@ -1156,7 +1127,7 @@ process.on("SIGINT", function () {
         process.stdout.write("\rShutdown received. Wait a sec");
 
         (async function() {
-            await makeDbRequest({ call: "commitShutdown" })
+            await makeDbRequest("commitShutdown")
             console.log("\rBye-bye!                             ")
             process.exit(0)
         })()
