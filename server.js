@@ -671,12 +671,12 @@ const wss = Bun.serve({
 
                     if (!CHAT_WEBHOOK_URL) break
                     try {
-                        const hookName = ws.data.chatName.replaceAll("@", "")
-                        const hookChannel = channel.replaceAll("@", "")    
-                        const hookMessage = message.replaceAll("@", "")
-                        let msgHook = { username: `[${hookChannel || "place chat"}] ${hookName} @rplace.live`, content: hookMessage }
+                        const hookName = ws.data.chatName?.replaceAll("@", "@​")
+                        const hookChannel = channel?.replaceAll("@", "@​")
+                        const hookMessage = message.replaceAll("@", "@​")
+                        let msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
                         fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
-                    }catch (err){console.log("Could not post chat message to discord: " + err)}        
+                    }catch (err){ console.log("Could not post chat message to discord: " + err) }        
                     break
                 }
                 case 16: {
