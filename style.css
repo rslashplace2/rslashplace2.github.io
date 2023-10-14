@@ -1,4 +1,3 @@
-
 * { margin: 0; padding: 0; touch-action: none } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; overflow: hidden; position: absolute }
 
 html {
@@ -196,10 +195,19 @@ btn{
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	display: flex;
+	display: none;
 	flex-direction: column;
 	z-index: 7;
 	box-sizing: content-box;
+}
+
+#bg {
+	display: block;
+	position: absolute;
+	background: rgba(0, 0, 0, 0.4);
+	inset: 0px;
+	z-index: 6;
+	opacity: 1;
 }
 
 @media (max-width:500px){
@@ -243,19 +251,15 @@ btn{
 .modal-footer {
 	margin-top: 16px;
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	position: relative;
+	justify-content: space-between;
 }
 
 .modal-footer-button {
-	display: block;
-	width: 36px;
+	display: flex;
+	min-width: 36px;
 	height: 36px;
 	padding: 8px;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border-radius: 18px;
-	position: absolute;
+	position: relative;
 	cursor: pointer;
 }
 
@@ -267,6 +271,7 @@ mute-button {
 place-chat-button {
 	bottom: -2px;
 	right: -6px;
+	margin-left: -36px; /* HACK: Until how to centre the middle select can be figured out */
 	width: 72px !important
 }
 
@@ -302,7 +307,7 @@ place-chat-button > img {
 	height: 100%;
 	left: 0px;
 	top: 0px;
-	/*display: flex;*/
+	padding-top: 12px;
 	justify-content: center;
 	align-items: center;
 	background: #ffffffd4;
@@ -393,6 +398,10 @@ place-chat-button > img {
 	justify-content: center;
 	background: white;
 	overflow: hidden;
+}
+
+#out #eventCountdown {
+	display: none;
 }
 
 body[eventphase="0"] #eventCountdown {
@@ -587,7 +596,8 @@ body[eventphase="3"] .coverer-title {
 }
 
 #chatPanel {
-	display: flex; flex-flow: column;
+	display: flex;
+	flex-flow: column;
 	gap: 5px;
 	position: absolute;
 	top: 20px;
@@ -598,7 +608,7 @@ body[eventphase="3"] .coverer-title {
 	transform: translateX(calc(100% + 20px));
 	transition: transform .2s;
 }
-#chatPanel.open{
+#chatPanel[open] {
 	transform: translateX(0);
 }
 
@@ -607,6 +617,55 @@ body[eventphase="3"] .coverer-title {
 	flex-direction: row;
 	justify-content: space-between;
 	align-items:center
+}
+
+#ad {
+	/* Default: 'Advertise here', will be overriden in element style */
+	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png)
+    display: block;
+    aspect-ratio: 2/1;
+    flex-shrink: 0;
+    background-image: var(--adurl);
+    background-position: center;
+    background-size: contain;
+    max-height: 180px;
+    background-repeat: no-repeat;
+	position: relative;
+	overflow: clip;
+}
+
+#ad::before {
+    content: " ";
+    background-image: var(--adurl);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-size: cover;
+    transform: scale(1.5);
+    filter: blur(6px) saturate(1.2);	
+}
+
+#chatPreviousButton {
+	background: none;
+	border: none;
+	color: gray;
+	font-weight: bold;
+	display: flex;
+	cursor: pointer;
+	column-gap: 4px;
+	transition: .2s transform, .2s height;
+}
+#chatPreviousButton > hr {
+	flex-grow: 1;
+	height: 1px;
+	margin-top: 8px;
+	opacity: 0.2;
+}
+#chatPreviousButton > span {
+	font-size: 14px;
 }
 
 #chatMessages {
@@ -622,9 +681,75 @@ body[eventphase="3"] .coverer-title {
     touch-action: pan-y;
 }
 
+#chatMessages > div {
+	position: relative;
+	transition: .2s background-color;
+}
+
+#chatMessages .special-glow {
+	animation: text-glow 1s ease-in-out infinite alternate;
+}
+
 #chatMessages > div:hover {
     background-color: #d3d3d333;
 	border-radius: 4px;
+}
+
+#chatMessages > div[highlight] {
+	background-color: #4dd77780;
+}
+
+#chatMessages > div[mention] {
+	background-color: #ffff0080;
+}
+
+#chatMessages > div[reply] {
+	background-color: #e4efff;
+}
+
+#chatMessages > div > p {
+	border-left: 4px solid gray;
+	padding: 2px 4px 2px 8px;
+	font-size: 12px;
+	margin-left: 1px;
+	opacity: 0.8;
+	font-style: italic;
+	user-select: none;
+	border-radius: 2px 0px 0px 0px;
+}
+
+#chatMessages > div > span:nth-of-type(1) {
+	cursor: pointer;
+}
+
+#chatMessages > div > div {
+	position: absolute;
+	right: 0px;
+	top: -4px;
+	display: flex;
+	border-radius: 4px;
+	padding: 0px 4px;
+	border: 1px solid grey;
+	font-size: 70%;
+	font-weight: 700;
+	background-color: white;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+	column-gap: 2px;
+	opacity: 0;
+	transition: .2s opacity;
+}
+
+#chatMessages > div:hover > div {
+	opacity: 1;
+	cursor: pointer;
+}
+
+@keyframes text-glow {
+	0% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #00e62f, 0 0 4px #00e64f, 0 0 5px #07e600, 0 0 6px #00e60e, 0 0 7px #0bcc4d; }
+	25% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #007ae6, 0 0 4px #009be6, 0 0 5px #007ae6, 0 0 6px #00a5e6, 0 0 7px #0b72cc }
+	50% { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #dfe600, 0 0 4px #e6e200, 0 0 5px #e6c200, 0 0 6px #e6c200, 0 0 7px #cc930b; }
+	75% { text-shadow: 0 0 2px #fff, 0 0 3px #ff4da6, 0 0 4px #ff4da6, 0 0 5px #ff4da6, 0 0 6px #ff4da6, 0 0 7px #ff4da6, 0 0 8px #ff4da6; }
+	100% { text-shadow: 0 0 2px #fff, 0 0 3px #ffb6a5, 0 0 4px #ff4d4d, 0 0 5px #ff554d, 0 0 6px #ff4d4d, 0 0 7px #ff5e4d, 0 0 8px #ff6e4d; }
 }
 
 .channels-options {
@@ -647,31 +772,16 @@ body[eventphase="3"] .coverer-title {
 }
 
 #captchaPopup {
+	width: 450px;
 	z-index: 7;
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translateY(-50%) translateX(-50%);
 	height: fit-content;
-	width: 450px;
-	padding: 24px;
-	border-radius: 8px;
-	background-color: white;
 	overflow: hidden;
 	flex-direction: column;
 	row-gap: 16px;
-}
-
-/* Captcha buttons container on captcha popup */
-#captchaPopup > div {
-	display: grid;
-	row-gap: 8px;
-	column-gap: 8px;
-	grid-template-columns: auto auto auto auto auto;
-	width: 80%;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: 16px;
 }
 
 #captchaPopup::before {
@@ -689,25 +799,35 @@ body[eventphase="3"] .coverer-title {
 	z-index: -1;
 }
 
-/* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
-#captchaOptions > input {
-	width: auto;
-	cursor: pointer;
-	box-shadow: 0px 0px 5px gray;
-	transition: transform cubic-bezier(0.215, 0.610, 0.355, 1) .1s;
+/* Captcha buttons container on captcha popup */
+#captchaOptions {
+	display: grid;
+	row-gap: 8px;
+	column-gap: 8px;
+	grid-template-columns: auto auto auto auto auto;
+	width: 80%;
+	margin-top: 16px;
+	align-self: center;
 }
 
-#captchaOptions > input:hover {
-	transform: scale(1.1);
+/* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
+#captchaOptions > button {
+	min-width: 0;
+	min-height: 0;
+	cursor: pointer;
+	aspect-ratio: 8/5;
+	padding: 4px;
+}
+
+#captchaOptions > button > img {
+	height: 100%;
 }
 
 #captchaImg {
 	display: block;
-	border: 1px solid grey;
 	position: relative;
 	width: 196px;
 	height: 196px;
-	border-radius: 5px;
 	image-rendering: pixelated;
 	align-self: center;
 }
@@ -775,6 +895,26 @@ body[eventphase="3"] .coverer-title {
 #messageEmojisPanel > div:hover {
 	background: lightgrey;
 }
+#messageReplyPanel {
+	height: 84px;
+	display: flex;
+}
+#messageReplyPanel > div:nth-child(1) {
+	flex-grow: 1;
+}
+
+#chatPunishPanel {
+	position: absolute;
+	top: 50%;
+	margin: 8px;
+	width: calc(100% - 16px);
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	text-align: center;
+	row-gap: 4px;
+}
 
 .messageTypeBtn {
 	width: calc(50% - 10px);
@@ -792,8 +932,6 @@ body[eventphase="3"] .coverer-title {
 	text-align: center;
 	width: 100%;
 	padding: 10px;
-	background-color: white;
-	border-radius: 15px;
 	left: 0
 }
 
@@ -810,17 +948,6 @@ body[eventphase="3"] .coverer-title {
 .name-input-container > button {
 	width: 40px;
 	height: 40px;
-	background: white;
-	box-shadow: 0 3px 10px rgba(0,0,0,.3);
-	border: none;
-	border-radius: 10px;
-	padding: 2px;
-	transition: all .1s ease-in;
-	cursor: pointer;
-}
-
-.name-input-container > button:hover {
-	transform: rotate(5deg) scale(110%);
 }
 
 .toastMenu {
@@ -923,9 +1050,13 @@ kbd {
 .context-menu > ul > li > a {
 	text-decoration: none;
 	color: black;
-
+	display: block;
 }
 
+/* TODO: Classify  to generealise functionality */
+#themeDrop, #themeDrop *, #channelDrop, #channelDrop * {
+	touch-action: pan-y;
+}
 #channelDrop {
 	overflow-y: scroll;
 	max-height: 400px;
@@ -941,10 +1072,21 @@ kbd {
 	text-align: left;
 }
 
+/* TODO: Classify to generalise functionality, perhaps class context-menu-parent */
 #channelDropParent[open] > #channelDrop {
 	display: block;
 }
 #channelDropParent[open] > svg {
+	transform: rotate(180deg);
+}
+
+#themeDrop {
+	display: none;
+}
+#themeDropParent[open] > #themeDrop {
+	display: block;
+}
+#themeDropParent[open] > svg {
 	transform: rotate(180deg);
 }
 
@@ -1040,7 +1182,7 @@ kbd {
 
 #spaceFiller {
 	height: 100vh;
-	transition: height .5s;
+	transition: .5s height;
 }
 
 #more #contents {
@@ -1154,7 +1296,7 @@ placechat {
 	box-shadow: 0px 0px 1px black;
 	transform: translateX(-50%) translateY(-150%);
 	max-width: 65px;
-	width: max-content;
+	min-width: 8px;
 }
 
 placechat::after {

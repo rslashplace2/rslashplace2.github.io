@@ -52,6 +52,10 @@ input {
     background: linear-gradient(rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 0px), rgb(255, 255, 255);
 }
 
+#themeDropParent {
+    border-bottom: var(--pixel-border);
+}
+
 .context-menu {
     border: var(--pixel-border);
     background-color: white;
@@ -136,6 +140,21 @@ input {
     font-size: 14px;
 }
 
+#namePanel {
+    border-top: var(--pixel-border);
+}
+
+.name-input-container > button {
+    background: white;
+    border: var(--pixel-border);
+    padding: 4px;
+    transition: background-color .1s ease-in;
+}
+
+.name-input-container > button:hover {
+    background-color: lightgray;
+}
+
 .messageOptions {
 	height: 38px;
 	aspect-ratio: 1/1;
@@ -154,6 +173,27 @@ input {
 
 .channels-options {
     border-bottom: var(--pixel-border);
+}
+
+#captchaPopup {
+	padding: 24px;
+    border: var(--pixel-border);
+	background-color: white;
+    box-shadow: var(--pixel-box-shadow);
+}
+
+#captchaOptions > button {
+	background: white;
+    border: var(--pixel-border);
+    cursor: default;
+}
+
+#captchaOptions > button:hover {
+    background-color: lightgray;
+}
+
+#captchaImg {
+    border: var(--pixel-border);
 }
 
 /* TODO: Unjank */
