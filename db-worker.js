@@ -162,6 +162,7 @@ const internal = {
             const createIp = db.query("INSERT INTO KnownIps (userIntId, ip, lastUsed) VALUES (?1, ?2, ?3)")
             createIp.run(user.intId, data.ip, epochMs)
         }
+        
         return user.intId
     },
     updatePixelPlace: function(intId) {

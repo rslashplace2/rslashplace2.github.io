@@ -423,8 +423,7 @@ const wss = Bun.serve({
                 ...newToken && {
                     "Set-Cookie": cookie.serialize(uidToken,
                         newToken, { domain: url.hostname, expires: new Date(4e12),
-                            httpOnly: SECURE, sameSite: SECURE ? "none" : "none", secure: SECURE })
-                            // TODO: was "strict" when SECURE
+                            httpOnly: SECURE, sameSite: SECURE ? "lax" : "none", secure: SECURE })
                 }
             }
         })
@@ -590,7 +589,7 @@ const wss = Bun.serve({
                     let size = 6
                     for (let row of messageHistory) {
                         usernames.set(row.senderIntId, row.chatName)
-                        const messageData = createChatPacket(0, row.message, row.sendDate, row.messageId,
+                        const messageData = createChatPacket(0, row.message, Math.floor(row.sendDate / 1000), row.messageId,
                             row.senderIntId, row.channel, row.repliesTo)
                         // We reuse the first two bytes (would be type and packetcode) for length. Could overflow if txt is 100% of the 2 byte max len
                         messageData.writeUint16BE(messageData.byteLength, 0)
@@ -654,20 +653,19 @@ const wss = Bun.serve({
                     }
                     
                     let messageId = null
-                    const sendDateS = NOW / 1000
                     if (type === 0) {
                         messageId = ++liveChatMessageId
                         dbWorker.postMessage({ call: "insertLiveChat", data: [ messageId,
-                            message, sendDateS, channel, ws.data.intId, repliesTo ] })
+                            message, NOW, channel, ws.data.intId, repliesTo ] })
                     }
                     else {
                         messageId = ++placeChatMessageId
                         dbWorker.postMessage({ call: "insertPlaceChat", data: [ messageId,
-                            message, sendDateS, ws.data.intId, Math.floor(positionIndex % WIDTH),
+                            message, NOW, ws.data.intId, Math.floor(positionIndex % WIDTH),
                             Math.floor(positionIndex / HEIGHT) ] })
                     }
 
-                    wss.publish("all", createChatPacket(type, message, sendDateS, messageId, ws.data.intId,
+                    wss.publish("all", createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
                         channel, repliesTo, positionIndex))
 
                     if (!CHAT_WEBHOOK_URL) break
@@ -925,7 +923,7 @@ setInterval(function () {
     while ((pos = newPos.pop()) != undefined) {
         buf.writeInt32BE(pos, i); i += 4
         buf[i++] = newCols.pop()
-        if (INCLUDE_PLACER) buf.writeInt32BE(newIds.pop(), i)
+        if (INCLUDE_PLACER) buf.writeInt32BE(newIds.pop(), i); i += 4
     }
     wss.publish("all", buf)
 
@@ -1128,7 +1126,7 @@ function blacklist(identifier) {
  * @param {ServerWebSocket<any>} p WS instance message is being sent to
  */
 function announce(msg, channel, p = null, repliesTo = null) {
-    let packet = createChatPacket(0, msg, NOW / 1000, 0, 0, channel, repliesTo)
+    let packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
     if (p != null) p.send(packet)
     else for (let c of wss.clients) c.send(packet)
 }
