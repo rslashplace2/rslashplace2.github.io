@@ -441,17 +441,17 @@ const wss = Bun.serve({
     websocket: {
         async open(ws) {
             wss.clients.add(ws)
-            ws.data.ip = USE_CLOUDFLARE
-                ? ws.data.headers["x-forwarded-for"]?.split(",")[0]?.split(":", 4).join(":") || ws.remoteAddress.split(":", 4).join(":")
-                : ws.remoteAddress.split(":", 4).join(":")
+            if (USE_CLOUDFLARE) ws.data.ip = ws.data.headers.get("cf-connecting-ip")?.split(":", 4).join(":")
+            if (!ws.data.ip) ws.data.ip = ws.data.headers.get("x-forwarded-for")?.split(",")[0]?.split(":", 4).join(":")
+            if (!ws.data.ip) ws.data.ip = ws.remoteAddress.split(":", 4).join(":")
+            if (!ws.data.ip || ws.data.ip.startsWith("%")) return ws.close(4000, "No IP")
             const IP = ws.data.ip
             const URL = ws.data.url
             if (!isUser(IP)) {
                 ws.close(4000, "Not user")
                 return
             }
-            if (USE_CLOUDFLARE && !ORIGINS.includes(ws.data.headers["origin"])) return ws.close(4000, "No origin")
-            if (!IP || IP.startsWith("%")) return ws.close()
+            if (USE_CLOUDFLARE && !ORIGINS.includes(ws.data.headers.get("origin"))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
             let CD = COOLDOWN

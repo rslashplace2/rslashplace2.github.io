@@ -555,13 +555,20 @@
                 newMessage.appendChild(txtPart)
                 if (messageId !== 0) {
                     let actionsPart = document.createElement("div")
-                    actionsPart.innerHTML = `
+                    // TODO: This code is disgusting
+                    let actionsInner = `
                         <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReply(${messageId}, '${name}')" title="${translate("replyTo")}" viewBox="0 -960 960 960" width="24" height="24">
                             <path d="M780-200v-156q0-60-39-99t-99-39H236l163 163-43 43-236-236 236-236 43 43-163 163h406q85 0 141.5 56.5T840-356v156h-60Z"></path>
                         </svg>
                         <svg xmlns="http://www.w3.org/2000/svg" onclick="chatReport(${messageId}, ${intId})" title="${translate("report")}" viewBox="0 -960 960 960" width="24">
                             <path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-348h60v-224h-60v224Zm26-122Z"></path>
                         </svg>`
+                    if (localStorage.vip) {
+                        actionsInner += `
+                            <svg xmlns="http://www.w3.org/2000/svg" onclick="chatModerate(${messageId}, ${intId})" height="24" viewBox="0 -960 960 960" width="24">
+                                <path d="M758.308-160 536.231-382.077l42.462-42.461 222.076 222.076L758.308-160Zm-555.846 0L160-202.462l278.307-278.307-118.768-118-21.847 21.846-37.923-38.692v72l-21.846 21.846-104.846-104.846 21.846-21.846h72l-38.462-37.693 86.616-86.615q13.846-13.847 30.308-20.539Q321.846-800 340.462-800q18.615 0 35.077 6.692 16.461 6.692 30.308 20.539L340-706.923l43.846 43.846L362-641.231l118.769 118 102.308-102.308q-9.385-13.307-13.039-27.23-3.653-13.923-3.653-30.539 0-49 33.961-82.961 33.962-33.962 82.962-33.962 10.384 0 20.038 1.462 9.654 1.461 19.039 5.923L639.539-710 710-639.539l82.846-82.846q4.693 9.385 6.039 19.039 1.346 9.654 1.346 20.038 0 49-33.962 82.962-33.961 33.961-82.961 33.961-16.616 0-30.539-3.538-13.923-3.538-27.23-13.154L202.462-160Z"></path>
+                            </svg>`
+                    }
                     newMessage.appendChild(actionsPart)
                 }
 
@@ -2616,6 +2623,10 @@
             if (!reason) return
 
             alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
+        }
+
+        function chatModerate(messageId, senderId) {
+            
         }
 
         messageInput.oninput = function() {
