@@ -62,10 +62,10 @@ catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
 try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
 let uidToken = null
-try { uidToken = (await fs.readFile("uidtoken")).toString() }
+try { uidToken = (await fs.readFile("uidtoken.txt")).toString() }
 catch(e) { 
     uidToken = "UidToken_" + Math.random().toString(36).slice(2)
-    await fs.writeFile("uidtoken", uidToken)
+    await fs.writeFile("uidtoken.txt", uidToken)
 }
 
 let newPos = [], newCols = [], newIds = []
@@ -902,7 +902,7 @@ setInterval(function () {
         buf.writeInt32BE(pos, i); i += 4
         buf[i++] = newCols.pop()
         if (INCLUDE_PLACER) {
-            buf.writeInt32BE(newIds.pop(), i);
+            buf.writeInt32BE(newIds.pop(), i)
             i += 4
         }
     }
@@ -957,33 +957,35 @@ setInterval(async function () {
 const replExports = {
     BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES, VIP,
     SECURE, CERT_PATH, PORT, KEY_PATH, PALETTE,
-    WIDTH, get WIDTH() { return WIDTH }, set WIDTH(value) { WIDTH = value },
-    HEIGHT, get HEIGHT() { return HEIGHT }, set HEIGHT(value) { HEIGHT = value },
-    PALETTE_SIZE, get PALETTE_SIZE() { return PALETTE_SIZE }, set PALETTE_SIZE(value) { PALETTE_SIZE = value },
-    ORIGINS, get ORIGINS() { return ORIGINS }, set ORIGINS(value) { ORIGINS = value }, 
-    COOLDOWN, get COOLDOWN() { return COOLDOWN }, set COOLDOWN(value) { COOLDOWN = value },
-    CAPTCHA, get CAPTCHA() { return CAPTCHA }, set CAPTCHA(value) { CAPTCHA = value },
-    USE_CLOUDFLARE, get USE_CLOUDFLARE() { return USE_CLOUDFLARE }, set USE_CLOUDFLARE(value) { USE_CLOUDFLARE = value },
-    PUSH_LOCATION, get PUSH_LOCATION() { return PUSH_LOCATION }, set PUSH_LOCATION(value) { PUSH_LOCATION = value },
-    PUSH_PLACE_PATH, get PUSH_PLACE_PATH() { return PUSH_PLACE_PATH }, set PUSH_PLACE_PATH(value) { PUSH_PLACE_PATH = value },
-    LOCKED, get LOCKED() { return LOCKED }, set LOCKED(value) { LOCKED = value },
-    CHAT_WEBHOOK_URL, get CHAT_WEBHOOK_URL() { return CHAT_WEBHOOK_URL }, set CHAT_WEBHOOK_URL(value) { CHAT_WEBHOOK_URL = value },
-    MOD_WEBHOOK_URL, get MOD_WEBHOOK_URL() { return MOD_WEBHOOK_URL }, set MOD_WEBHOOK_URL(value) { MOD_WEBHOOK_URL = value },
-    CHAT_MAX_LENGTH, get CHAT_MAX_LENGTH() { return CHAT_MAX_LENGTH }, set CHAT_MAX_LENGTH(value) { CHAT_MAX_LENGTH = value },
-    CHAT_COOLDOWN_MS, get CHAT_COOLDOWN_MS() { return CHAT_COOLDOWN_MS }, set CHAT_COOLDOWN_MS(value) { CHAT_COOLDOWN_MS = value },
-    PUSH_INTERVAL_MINS, get PUSH_INTERVAL_MINS() { return PUSH_INTERVAL_MINS }, set PUSH_INTERVAL_MINS(value) { PUSH_INTERVAL_MINS = value },
-    CAPTCHA_EXPIRY_SECS, get CAPTCHA_EXPIRY_SECS() { return CAPTCHA_EXPIRY_SECS }, set CAPTCHA_EXPIRY_SECS(value) { CAPTCHA_EXPIRY_SECS = value },
-    CAPTCHA_MIN_MS, get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
-    INCLUDE_PLACER, get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
-    SECURE_COOKIE, get SECURE_COOKIE() { return SECURE_COOKIE }, set SECURE_COOKIE(value) { SECURE_COOKIE = value },
+    get WIDTH() { return WIDTH }, set WIDTH(value) { WIDTH = value },
+    get HEIGHT() { return HEIGHT }, set HEIGHT(value) { HEIGHT = value },
+    get PALETTE_SIZE() { return PALETTE_SIZE }, set PALETTE_SIZE(value) { PALETTE_SIZE = value },
+    get ORIGINS() { return ORIGINS }, set ORIGINS(value) { ORIGINS = value }, 
+    get COOLDOWN() { return COOLDOWN }, set COOLDOWN(value) { COOLDOWN = value },
+    get CAPTCHA() { return CAPTCHA }, set CAPTCHA(value) { CAPTCHA = value },
+    get USE_CLOUDFLARE() { return USE_CLOUDFLARE }, set USE_CLOUDFLARE(value) { USE_CLOUDFLARE = value },
+    get PUSH_LOCATION() { return PUSH_LOCATION }, set PUSH_LOCATION(value) { PUSH_LOCATION = value },
+    get PUSH_PLACE_PATH() { return PUSH_PLACE_PATH }, set PUSH_PLACE_PATH(value) { PUSH_PLACE_PATH = value },
+    get LOCKED() { return LOCKED }, set LOCKED(value) { LOCKED = value },
+    get CHAT_WEBHOOK_URL() { return CHAT_WEBHOOK_URL }, set CHAT_WEBHOOK_URL(value) { CHAT_WEBHOOK_URL = value },
+    get MOD_WEBHOOK_URL() { return MOD_WEBHOOK_URL }, set MOD_WEBHOOK_URL(value) { MOD_WEBHOOK_URL = value },
+    get CHAT_MAX_LENGTH() { return CHAT_MAX_LENGTH }, set CHAT_MAX_LENGTH(value) { CHAT_MAX_LENGTH = value },
+    get CHAT_COOLDOWN_MS() { return CHAT_COOLDOWN_MS }, set CHAT_COOLDOWN_MS(value) { CHAT_COOLDOWN_MS = value },
+    get PUSH_INTERVAL_MINS() { return PUSH_INTERVAL_MINS }, set PUSH_INTERVAL_MINS(value) { PUSH_INTERVAL_MINS = value },
+    get CAPTCHA_EXPIRY_SECS() { return CAPTCHA_EXPIRY_SECS }, set CAPTCHA_EXPIRY_SECS(value) { CAPTCHA_EXPIRY_SECS = value },
+    get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
+    get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
+    get SECURE_COOKIE() { return SECURE_COOKIE }, set SECURE_COOKIE(value) { SECURE_COOKIE = value },
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
-    players, get players() { return players }, set players(value) { players = value },
-    NOW, get NOW() { return NOW }, set NOW(value) { NOW = value },
-    isUser,
-    currentCaptcha, get currentCaptcha() { return currentCaptcha }, set currentCaptcha(value) { currentCaptcha = value },
+    get players() { return players }, set players(value) { players = value },
+    get NOW() { return NOW }, set NOW(value) { NOW = value },
+    get newPos() { return newPos }, set newPos(value) { newPos = value },
+    get newCols() { return newCols }, set newCols(value) { newCols = value },
+    get newIds() { return newIds }, set newIds(value) { newIds = value },
+    get currentCaptcha() { return currentCaptcha }, set currentCaptcha(value) { currentCaptcha = value },
     console: console, // The context will have it's own console so prints in expressions would not appear
-    makeDbRequest, pushImage, forceCaptchaSolve, fill,
+    makeDbRequest, pushImage, forceCaptchaSolve, fill, isUser,
     setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
 }
 const context = createContext(replExports)
