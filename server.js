@@ -980,7 +980,9 @@ const replExports = {
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
     get players() { return players }, set players(value) { players = value },
     get NOW() { return NOW }, set NOW(value) { NOW = value },
-    newPos, newCols, newIds,
+    get newPos() { return newPos }, set newPos(value) { newPos = value },
+    get newCols() { return newCols }, set newCols(value) { newCols = value },
+    get newIds() { return newIds }, set newIds(value) { newIds = value },
     get currentCaptcha() { return currentCaptcha }, set currentCaptcha(value) { currentCaptcha = value },
     console: console, // The context will have it's own console so prints in expressions would not appear
     makeDbRequest, pushImage, forceCaptchaSolve, fill, isUser,
