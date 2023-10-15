@@ -45,7 +45,8 @@ catch (e) {
         "CAPTCHA_EXPIRY_SECS": 45,
         "CAPTCHA_MIN_MS": 100, //min solvetime
         "INCLUDE_PLACER": false, // pixel placer
-        "SECURE_COOKIE": false
+        "SECURE_COOKIE": true,
+        "CORS_COOKIE": false,
     }, null, 4))
 
     console.log("Config file created, please update it before restarting the server")
@@ -53,7 +54,8 @@ catch (e) {
 }
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE } = JSON.parse(config)
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
+    CORS_COOKIE } = JSON.parse(config)
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -185,12 +187,12 @@ if (!vipFile) {
 }
 let VIP = new Map(vipFile
     .split('\n')
-    .filter(line => line.trim() && !line.trim().startsWith("#"))
+    .filter(line => line.trim() && !line.trim().startsWith('#'))
     .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 let RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
 let reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
-for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(" ")[0], pair.split(" ")[1])
+for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
 let BLACKLISTED = new Set(
     (await Promise.all((
         (await fs.readFile("bansheets.txt")).toString()
@@ -423,8 +425,13 @@ const wss = Bun.serve({
             headers: {
                 ...newToken && {
                     "Set-Cookie": cookie.serialize(uidToken,
-                        newToken, { domain: url.hostname, expires: new Date(4e12),
-                            httpOnly: SECURE_COOKIE, sameSite: SECURE_COOKIE ? "lax" : "none", secure: SECURE_COOKIE })
+                        newToken, {
+                            domain: url.hostname,
+                            expires: new Date(4e12),
+                            httpOnly: true, // Inaccessible from JS
+                            sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
+                            secure: SECURE_COOKIE // Only over HTTPS
+                        })
                 }
             }
         })
@@ -976,6 +983,7 @@ const replExports = {
     get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
     get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
     get SECURE_COOKIE() { return SECURE_COOKIE }, set SECURE_COOKIE(value) { SECURE_COOKIE = value },
+    get CORS_COOKIE() { return CORS_COOKIE }, set CORS_COOKIE(value) { CORS_COOKIE = value },
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
     get players() { return players }, set players(value) { players = value },
