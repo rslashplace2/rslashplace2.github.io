@@ -2831,7 +2831,7 @@
             intermediate.type = "text/css"
             intermediate.href = "theme-switch.css"
             document.head.appendChild(intermediate)
-            await (new Promise(resolve => intermediate.onload = function() { resolve() }))
+            await (new Promise(resolve => intermediate.onload = resolve))
             // Load in new CSS
             let link = document.createElement("link")
             link.rel = "stylesheet"
