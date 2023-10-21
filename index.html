@@ -2824,11 +2824,20 @@
 
         let currentTheme = null
         let styleElement = null
-        function theme(set) {            
+        async function theme(set) {
+            // Intermediate stylesheet handles giving a nice transition animation during theme change
+            let intermediate = document.createElement("link")
+            intermediate.rel = "stylesheet"
+            intermediate.type = "text/css"
+            intermediate.href = "theme-switch.css"
+            document.head.appendChild(intermediate)
+            await (new Promise(resolve => intermediate.onload = function() { resolve() }))
+            // Load in new CSS
             let link = document.createElement("link")
             link.rel = "stylesheet"
             link.type = "text/css"
             link.href = set.css + "?v=" + set.cssVersion
+            link.onload = function(e) { setTimeout(() => document.head.removeChild(intermediate), 200) }
             document.head.appendChild(link)
             // Swap out stylesheets
             if (styleElement) document.head.removeChild(styleElement)
