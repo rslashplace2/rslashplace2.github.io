@@ -10,18 +10,31 @@ select {
 	color: #747474;
 }
 
-input {
-	-webkit-appearance: none;
-	background: transparent;
-	outline: none;
-	border-top: 2px #333 solid;
-	border-left: 2px #333 solid;
-	border-bottom: 2px #777 solid;
-	border-right: 2px #777 solid;
-	font: unset;
+input, button {
 	color: unset;
-	width: 4rem;
-	border-radius: 0;
+	font: unset;
+	background-color: white;
+	border-radius: 10px;
+	font-size: 16px;
+	border: none;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
+	height: 35px;
+	padding: 5px;
+	outline: none;
+}
+
+button {
+	cursor: pointer;
+}
+
+input[type="radio"] {
+	height: auto;
+	width: auto;
+	appearance: radio;
+}
+
+input[type="checkbox"] {
+	appearance: auto;
 }
 
 input[type="button"] {
@@ -38,7 +51,6 @@ input[type=file]::file-selector-button {
 
 input[type=range]::-moz-range-thumb {
 	position: relative;
-	-webkit-appearance: none;
 	appearance: none;
 	width: 25px;
 	height: 25px;
@@ -51,7 +63,6 @@ input[type=range]::-moz-range-thumb {
 
 input[type=range]::-webkit-slider-thumb {
 	position: relative;
-	-webkit-appearance: none;
 	appearance: none;
 	width: 25px;
 	height: 25px;
@@ -60,16 +71,6 @@ input[type=range]::-webkit-slider-thumb {
 	border-radius: 5px;
 	background: white;
 	cursor: pointer;
-}
-
-input {
-	background-color: white;
-	border-radius: 10px;
-	font-size: 16px;
-	border: none;
-	box-shadow: 0 0 10px rgba(0,0,0,0.4);
-	height: 35px;
-	padding: 5px;
 }
 
 a {
@@ -210,7 +211,7 @@ a {
 	background: url(images/discord.png) center/22px no-repeat, white;
 }
 
-#helpbtn, #posel, #place, #archiveView, .toastMenu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
+#helpbtn, #posel, #place, #archiveView, .toast-menu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
 	box-shadow: 0 0 30px black;
 }
 
@@ -233,11 +234,20 @@ a {
 	box-shadow: 0 0 30px black;
 }
 
-.toastMenu {
+.toast-menu {
     padding: 10px;
 	line-height: 17px;
 	background: white;
 	border-radius: 15px;
+}
+
+#modMessagePreview {
+	border-radius: 12px;
+	padding: 8px;
+	box-shadow: inset 2px 2px #dbdbdb;
+	background: #f7f7f7;
+	padding: 4px;
+	border: 1px solid lightgray;
 }
 
 #posel{

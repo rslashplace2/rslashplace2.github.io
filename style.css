@@ -950,7 +950,7 @@ body[eventphase="3"] .coverer-title {
 	height: 40px;
 }
 
-.toastMenu {
+.toast-menu {
 	position: absolute;
 	display: none;
 	top: 60px;
@@ -960,8 +960,53 @@ body[eventphase="3"] .coverer-title {
 	transform: translateX(-50%)
 }
 
-.toastMenu[opened] {
+.toast-menu[opened] {
 	display: block;
+}
+
+#moderationMenu[opened] {
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
+}
+#moderationMenu[mode="delete"] > #modMemberId {
+	display: none;
+}
+#modMessageIdForm {
+	display: none;
+}
+#moderationMenu[mode="delete"] > #modMessageIdForm {
+	display: flex;
+}
+#moderationMenu[mode="delete"] > #modDuration, #moderationMenu[mode="captcha"] > #modDuration, #moderationMenu[mode="kick"] > #modDuration {
+	display: none;
+}
+#modAffectsAllForm {
+	display: none;
+	flex-direction: column;
+}
+#moderationMenu[mode="captcha"] > #modAffectsAllForm {
+	display: flex;
+}
+#modMessagePreview {
+	margin-top: 8px;
+}
+#modMessagePreview > div {
+	display: none;
+}
+
+.mod-form {
+	display: flex;
+	flex-direction: column;
+}
+
+.mod-form div {
+	display: flex;
+	column-gap: 4px;
+}
+
+.mod-form label {
+	flex-grow: 1;
 }
 
 #serverInput {
