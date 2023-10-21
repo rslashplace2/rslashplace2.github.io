@@ -421,8 +421,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.01", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.01", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const PUNISHMENT_STATE = {
@@ -2797,7 +2797,7 @@
             let link = document.createElement("link")
             link.rel = "stylesheet"
             link.type = "text/css"
-            link.href = set.css + "?v=" + Date.now() // TEMP FIX: Annoying theme caching
+            link.href = set.css + "?v=" + set.cssVersion
             document.head.appendChild(link)
             // Swap out stylesheets
             if (styleElement) document.head.removeChild(styleElement)
