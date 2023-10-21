@@ -991,6 +991,9 @@ body[eventphase="3"] .coverer-title {
 #modMessagePreview {
 	margin-top: 8px;
 }
+#modMessagePreview > div {
+	display: none;
+}
 
 .mod-form {
 	display: flex;

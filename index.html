@@ -576,7 +576,7 @@
 
                     if (localStorage.vip) {
                         let moderateBtn = document.createElement("img")
-                        moderateBtn.onclick = function(e) { chatModerate(messageId, senderId) }
+                        moderateBtn.onclick = function(e) { chatModerate("delete", senderId, newMessage) }
                         replyBtn.title = "Moderation options"
                         replyBtn.tabIndex = "0"
                         moderateBtn.src = "svg/moderate-action.svg"
@@ -999,7 +999,6 @@
                 }
                 else if (message.startsWith(":vip")) {
                     let key = message.slice(4).trim()
-                    if (key[0] == "!") return
                     localStorage.vip = key
                     window.location.reload(true)
                     return
@@ -1360,13 +1359,18 @@
                     </icon-close>
                 </div>
                 <h4>Manage:</h4>
-                <form id="modMessageIdForm" class="mod-form">
-                    <input type="text" title="Message ID" placeholder="Message ID">
+                <div id="modMessageIdForm" class="mod-form">
+                    <input type="number" id="modMessageId" title="Message ID" placeholder="Message ID" oninput="
+                        let found = null
+                        for (let message of cMessages[currentChannel]) { if (message.messageId == this.value) {
+                            found = message
+                        }}
+                        modMessagePreview.innerHTML = found?.innerHTML ?? 'Message not found'">
                     <div id="modMessagePreview">Message not found</div>    
-                </form>
-                <input id="modMemberId" type="text" title="Member ID" placeholder="Member ID">
+                </div>
+                <input type="number" id="modMemberId"  title="Member ID" placeholder="Member ID">
                 <h4>Action:</h4>
-                <form id="modActionForm" class="mod-form">
+                <div id="modActionForm" class="mod-form">
                     <div onclick="moderationMenu.setAttribute('mode', 'delete')">
                         <input type="radio" id="modActionDelete" name="modaction" />
                         <label for="modActionDelete">Delete message</label>
@@ -1387,7 +1391,7 @@
                         <input type="radio" id="modActionCaptcha" name="modaction" />
                         <label for="modActionCaptcha">Captcha</label>
                     </div>
-                </form>
+                </div>
                 <div id="modDuration">
                     <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Hours" min="0">
                     <span>:</span>
@@ -1395,12 +1399,12 @@
                     <span>:</span>
                     <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Seconds" min="1">
                 </div>
-                <form id="modAffectsAllForm" class="mod-form">
+                <div id="modAffectsAllForm" class="mod-form">
                     <div>
                         <input type="checkbox" id="modAffectsAll" style="height: auto; width: 12px;" value="affectsall" />
                         <label for="modAffectsAll">Apply to all players</label>
                     </div>
-                </form>
+                </div>
                 <em>All moderation actions are logged by the server and reports sent to all other staff. Follow the moderation rules. Do not abuse power.</em>
                 <input type="text" placeholder="Reason">
                 <div style="display: flex; column-gap: 8px;">
@@ -1528,6 +1532,7 @@
                                         if (!targetTheme || currentTheme === DEFAULT_THEMES.get(targetTheme)) return
                                         themeDropName.textContent = '🖌️ ' + targetTheme
                                         theme(DEFAULT_THEMES.get(targetTheme))
+                                        localStorage.theme = targetTheme
                                         break
                                     }
                                 }
@@ -2696,8 +2701,34 @@
             alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
         }
 
-        function chatModerate(messageId, senderId) {
+        // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
+        function chatModerate(mode, senderId, messageElement = null) {
             moderationMenu.setAttribute("opened", "true")
+            moderationMenu.setAttribute("mode", mode)
+            switch(mode) {
+                case "delete": {
+                    modActionDelete.checked = true
+                    modMessageId.value = messageElement.messageId
+                    modMessagePreview.innerHTML = messageElement.innerHTML
+                    break
+                }
+                case "kick": {
+                    modActionKick.checked = true
+                    break
+                }
+                case "mute": {
+                    modActionMute.checked = true
+                    break
+                }
+                case "ban": {
+                    modActionBan.checked = true
+                    break
+                }
+                case "captcha": {
+                    modActionCaptcha.checked = true
+                    break
+                }
+            }
         }
 
         messageInput.oninput = function() {
@@ -2812,6 +2843,7 @@
             })
         }
         theme(DEFAULT_THEMES.get(localStorage.theme) || DEFAULT_THEMES.get("r/place 2022"))
+        themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
         function translate(key) {

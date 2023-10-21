@@ -290,7 +290,6 @@ function censorText(text) {
 }
 
 /**
- * 
  * @param {number} type (0|1) message type (0 - Live chat message, 1 - place chat message)
  * @param {string} message Message text content (maxlen(65534))
  * @param {number} sendDate Unix epoch offset __**seconds**__ of message send
