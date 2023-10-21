@@ -1,0 +1,2 @@
+/* Intermediate stylesheet to provide transitions during a theme switch */
+*, ::before, ::after { transition: .2s all; }
