@@ -21,6 +21,21 @@ input {
     padding: 4px;
 }
 
+input[type="radio"] {
+    height: auto;
+    width: 16px;
+}
+
+button, input[type="button"] {
+    border: var(--pixel-border);
+    background-color: white;
+    height: 36px;
+}
+
+button:hover, input[type="button"]:hover {
+    background-color: lightgray;
+}
+
 #loadingScreen {
     background: white;
 }
@@ -237,9 +252,17 @@ input {
     margin-right: 24px;
 }
 
-.toastMenu {
+.toast-menu {
     border: var(--pixel-border);
     box-shadow: var(--pixel-box-shadow);
     padding: 21px;
     background-color: white;
+}
+
+#modMessagePreview {
+	border: var(--pixel-border);
+	padding: 8px;
+	background: #f7f7f7;
+	padding: 4px;
+    opacity: 0.8;
 }
