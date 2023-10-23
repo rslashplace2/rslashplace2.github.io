@@ -173,7 +173,9 @@ function randomString(length) {
     return str.slice(0, length)
 }
 
-let players = 0
+let playersOffset = 0
+Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size() } })
+
 // vip key, cooldown
 let vipFile = (await fs.readFile("./vip.txt")).toString()
 if (!vipFile) {
@@ -469,7 +471,6 @@ const wss = Bun.serve({
             if (CAPTCHA && !ws.data.perms !== "admin") await forceCaptchaSolve(ws)
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
-            players++
 
             let buf = Buffer.alloc(9)
             buf[0] = 1
@@ -798,7 +799,6 @@ const wss = Bun.serve({
             }    
         },
         async close(ws, code, message) {
-            players--
             playerChatNames.delete(ws.data.intId)
             playerIntIds.delete(ws)
             toValidate.delete(ws)
@@ -936,14 +936,14 @@ let infoBuffer = Buffer.alloc(131)
 infoBuffer[0] = 3
 setInterval(async function () {
     pushTick++
-    infoBuffer[1] = players >> 8
-    infoBuffer[2] = players
+    infoBuffer[1] = (realPlayers + playersOffset) >> 8
+    infoBuffer[2] = realPlayers + playersOffset
     for (let i = 0; i < VOTES.length; i++) {
         infoBuffer.writeUint32BE(VOTES[i], (i << 2) + 3)
     }
     wss.publish("all", infoBuffer)
 
-    fs.appendFile("./stats.txt", "\n" + players + "," + NOW)
+    fs.appendFile("./stats.txt", "\n" + realPlayers + "," + NOW)
     if (LOCKED === true) return
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
     if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
@@ -985,7 +985,8 @@ const replExports = {
     get CORS_COOKIE() { return CORS_COOKIE }, set CORS_COOKIE(value) { CORS_COOKIE = value },
     dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
     liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
-    get players() { return players }, set players(value) { players = value },
+    get players() { return realPlayers + playersOffset }, set players(value) { playersOffset = value - realPlayers },
+    get realPlayers() { return realPlayers },
     get NOW() { return NOW }, set NOW(value) { NOW = value },
     get newPos() { return newPos }, set newPos(value) { newPos = value },
     get newCols() { return newCols }, set newCols(value) { newCols = value },
