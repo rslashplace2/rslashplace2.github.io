@@ -990,6 +990,7 @@ body[eventphase="3"] .coverer-title {
 }
 #modMessagePreview {
 	margin-top: 8px;
+	display: block;
 }
 #modMessagePreview > div {
 	display: none;

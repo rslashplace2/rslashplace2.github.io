@@ -1,6 +1,7 @@
+/* eslint-disable no-inner-declarations */
 import { parentPort } from "worker_threads"
-import { Database } from "bun:sqlite";
-import { Queue } from '@datastructures-js/queue';
+import { Database } from "bun:sqlite"
+import { Queue } from '@datastructures-js/queue'
 
 const db = new Database("server.db")
 
@@ -103,10 +104,10 @@ function performBulkInsertions() {
     db.transaction(() => {
         for (let placePair of pixelPlaces) {
             updatePixelPlaces.run(placePair[1], placePair[0])
-            pixelPlaces.delete(placePair)
+            pixelPlaces.delete(placePair[0])
         }
     })()
-    
+
     // insert all new chats
     db.transaction(() => {
         while (!liveChatInserts.isEmpty()) {
