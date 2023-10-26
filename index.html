@@ -3088,12 +3088,14 @@
             channelTooltip.style.display = "none"
         }, 0)
 
-        let adI = Math.floor(Math.random() * ADS.length) 
-        setInterval(() => {
+        let adI = Math.floor(Math.random() * ADS.length)
+        function cycleAd() {
             const currentAd = ADS[adI % ADS.length] 
             ad.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
             ad.href = currentAd.url
             adI++
-        }, 24e4)
+        }
+        setInterval(cycleAd, 24e4)
+        cycleAd()
     </script>
 </html>
