@@ -35,5 +35,7 @@ We request forks are not run commercially (That is, it must not generate more th
  - The server can be run with `bun run server.js` in the root directory of the project.
  - You can use a simple HTTP server, such as the npm static-server module to test the client with a local server. For example, `npx static-server --cors='*'`
  
+For more information on the game's protocol, look to the [protocol documentation](PROTOCOL.md).
+
 ### Also see:
  - [bun vscode extension](https://marketplace.visualstudio.com/items?itemName=oven.bun-vscode)
