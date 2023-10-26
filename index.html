@@ -425,6 +425,19 @@
             [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.01", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
+        const ADS = [
+            { url: "https://t.me/rplacelive", banners: { en: "images/telegram-ad.png" } },
+            { url: "https://arbitrum.life", banners: { en: "https://avatars.githubusercontent.com/u/131141781" } },
+            { 
+                url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                banners: {
+                    de: "https://media.discordapp.net/attachments/1096547665875046591/1133066712783265883/german.png?width=620&height=310",
+                    tr: "https://media.discordapp.net/attachments/1096547665875046591/1133066713039114281/turkish.png?width=620&height=310",
+                    en: "https://media.discordapp.net/attachments/1096547665875046591/1133066712523231414/english.png?width=620&height=310"
+                }
+            }
+        ]
+
         const PUNISHMENT_STATE = {
             mute: 0,
             ban: 1,
@@ -1816,7 +1829,7 @@
                     </li>
                 </ul>
             </div>
-            <a id="ad" href="https://arbitrum.life" target="_blank" style="--adurl: url(https://avatars.githubusercontent.com/u/131141781);"></a>
+            <a id="ad" target="_blank"></a>
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll="
                 let styleChange = new Map()
@@ -2029,8 +2042,6 @@
         let WIDTH = 2000
         let HEIGHT = 2000
         let COOLDOWN = 10e3
-        //ad.style.background = 'url('+CSS.escape(({de:'https://media.discordapp.net/attachments/1096547665875046591/1133066712783265883/german.png?width=620&height=310',tr:'https://media.discordapp.net/attachments/1096547665875046591/1133066713039114281/turkish.png?width=620&height=310'})[navigator.language.split('-')[0]] || 'https://media.discordapp.net/attachments/1096547665875046591/1133066712523231414/english.png?width=620&height=310')+') center/cover'
-        //ad.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     </script>
     <script>
         let i = +localStorage.vote
@@ -2856,8 +2867,8 @@
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
         function translate(key) {
-            if (TRANSLATIONS[navigator.language.split('-')[0]] != null)
-                return TRANSLATIONS[navigator.language.split('-')[0]][key] || TRANSLATIONS["en"][key]
+            if (TRANSLATIONS[lang] != null)
+                return TRANSLATIONS[lang][key] || TRANSLATIONS["en"][key]
             else
                 return TRANSLATIONS["en"][key] || key
         }
@@ -2865,15 +2876,15 @@
         function translateAll() {
             document.querySelectorAll("[translate]").forEach((element) => {
                 let key = element.getAttribute("translate")
-                if (TRANSLATIONS[navigator.language.split('-')[0]] == null) return
+                if (TRANSLATIONS[lang] == null) return
                 if (element.nodeName == "INPUT") {
                     if (element.getAttribute("type") == "text")
-                        element.placeholder = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.placeholder
+                        element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
                     else
-                        element.value = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.value
+                        element.value = TRANSLATIONS[lang][key] || element.value
                 }
                 else
-                    element.innerHTML = TRANSLATIONS[navigator.language.split('-')[0]][key] || element.innerHTML
+                    element.innerHTML = TRANSLATIONS[lang][key] || element.innerHTML
             })
         }
         translateAll()
@@ -3076,5 +3087,13 @@
             channelTooltip.style.opacity = "0"
             channelTooltip.style.display = "none"
         }, 0)
+
+        let adI = Math.floor(Math.random() * ADS.length) 
+        setInterval(() => {
+            const currentAd = ADS[adI % ADS.length] 
+            ad.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
+            ad.href = currentAd.url
+            adI++
+        }, 24e4)
     </script>
 </html>

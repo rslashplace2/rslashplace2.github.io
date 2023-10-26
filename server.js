@@ -174,7 +174,7 @@ function randomString(length) {
 }
 
 let playersOffset = 0
-Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size() } })
+Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size } })
 
 // vip key, cooldown
 let vipFile = (await fs.readFile("./vip.txt")).toString()
@@ -475,7 +475,7 @@ const wss = Bun.serve({
             let buf = Buffer.alloc(9)
             buf[0] = 1
             buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
-            buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : COOLDOWN, 5)
+            buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : ws.data.cd, 5)
             ws.send(buf)
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
