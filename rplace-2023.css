@@ -124,8 +124,6 @@ button:hover, input[type="button"]:hover {
 	line-height: 8px;
 }
 
-#discordbtn { display: none !important; }
-
 .close-button {
     position: absolute;
     right: 0px;
@@ -265,4 +263,31 @@ button:hover, input[type="button"]:hover {
 	background: #f7f7f7;
 	padding: 4px;
     opacity: 0.8;
+}
+
+.tooltip {
+    cursor: pointer;
+    background-color: white !important;
+    text-align: center !important;
+    border-radius: 0px !important;
+    padding: 2px 5px !important;
+    position: absolute;
+    z-index: 8;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity .2s ease-out;
+    border: var(--pixel-border);
+}
+
+.tooltip::before {
+    content: " ";
+    position: absolute;
+    left: calc(50% - 8px);
+    background: white !important;
+    width: 16px;
+    height: 16px;
+    transform: rotate(45deg) translate(-50%, -50%);
+    border: var(--pixel-border);
 }

@@ -200,18 +200,7 @@ a {
 	line-height: 8px;
 }
 
-#discordbtn{
-	right: unset;
-	left: 20px;
-	text-align: center;
-	font-size: 25px;
-	line-height: 8px;
-	top: unset;
-	bottom: 20px;
-	background: url(images/discord.png) center/22px no-repeat, white;
-}
-
-#helpbtn, #posel, #place, #archiveView, .toast-menu, #captchaPopup, #closebtn, #timelapsePanel, #discordbtn {
+#helpbtn, #posel, #place, #archiveView, .toast-menu, #captchaPopup, #closebtn, #timelapsePanel {
 	box-shadow: 0 0 30px black;
 }
 
