@@ -869,7 +869,7 @@
                         }
                         const atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 16 >= chatMessages.scrollHeight
 
-                        // Inset the message into the 
+                        // Insert the message into the channel 
                         cMessages[channel].push(newMessage)
                         if (cMessages[channel].length > MAX_CHANNEL_MESSAGES) {
                             cMessages[channel].shift()
@@ -942,6 +942,16 @@
                             break
                     }
                     break
+                } 
+                case 17: {// Live chat delete
+                    const messageId = data.getUint32(1)
+                    for (let channel of cMessages) {
+                        for (let messageEl of channel) {
+                            if (messageEl.messageId !== messageId) continue
+                            channel.splice(channel.indexOf(messageEl), 1)
+                            messageEl.remove()
+                        }
+                    }
                 }
                 }
             }

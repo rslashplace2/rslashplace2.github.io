@@ -1,6 +1,6 @@
 /* eslint-disable no-inner-declarations */
-import { parentPort } from "worker_threads"
-import { Database } from "bun:sqlite"
+import { parentPort } from 'worker_threads'
+import { Database } from 'bun:sqlite'
 import { Queue } from '@datastructures-js/queue'
 
 const db = new Database("server.db")
@@ -97,6 +97,7 @@ const createVipKeys = `
     CREATE TABLE IF NOT EXISTS UserVips (
         userIntId INTEGER NOT NULL,
         keyHash TEXT NOT NULL,
+        lastUsed INTEGER,
         FOREIGN KEY(userIntId) REFERENCES Users(intId)
     )
 `
@@ -188,7 +189,7 @@ const internal = {
         
         return user.intId
     },
-    /** @param {{ messageId: number, count: number, before: boolean, channel: string? }} data */
+    /** @param {{ messageId: number, count: number, before: boolean, channel: string?, includeDeleted?: boolean }} data */
     getLiveChatHistory: function(data) {
         const liveChatMessageId = internal.getMaxLiveChatId()
         let params = []
@@ -196,10 +197,16 @@ const internal = {
             SELECT LiveChatMessages.*, Users.chatName AS chatName
             FROM LiveChatMessages
             INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
-        
+        let preceeding = false
+
         if (data.channel) {
             query += "WHERE channel = ?1\n"
             params.push(data.channel)
+            preceeding = true
+        }
+        if (!data.includeDeleted) {
+            query += "AND deletionId IS NULL\n"
+            preceeding = true
         }
 
         // If messageId is 0 and we are getting before, it will return [count] most recent messages
@@ -212,7 +219,7 @@ const internal = {
                 params.push(data.count)
             }
             else {
-                query += data.channel ? "AND " : ""
+                query += preceeding ? "AND " : ""
                 query += "messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
                 params.push(data.messageId)
                 params.push(data.count)
@@ -220,7 +227,7 @@ const internal = {
         }
         else { // Ater
             count = Math.min(liveChatMessageId - data.messageId, data.count)
-            query += data.channel ? "AND " : ""
+            query += preceeding ? "AND " : ""
             query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
             params.push(data.messageId)
             params.push(data.count)
@@ -259,22 +266,24 @@ const internal = {
         data[6] = NULL // Live chat deletion
         liveChatInserts.push(data)
     },
-    /** Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions */
-    deleteLiveChat: function(messageId) {
-        let deletionId = 0
-        // TODO: Make deletion ID and place into table
-
+    /** Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
+     * @param {{ messageId: number, reason: string, moderatorIntId: number }} data
+     */
+    deleteLiveChat: function(data) {
+        const deletionQuery = db.query(
+            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES (?1, ?2, ?3) RETURNING deletionId")
+        const deletionId = deletionQuery.get()
 
         // If pending we can update the record in preflight
         let wasPending = false
         for (let messageData of liveChatInserts._elements) {
-            if (messageData[0] === messageId) {
+            if (messageData[0] === data.messageId) {
                 messageData[6] = deletionId // Live chat deletion
             }
         }
         if (wasPending) return
 
-        let query = db.query("UPDATE LiveChatInserts SET deleted = ?1 WHERE intId = ?2")
+        const query = db.query("UPDATE LiveChatMessages SET deletionId = ?1 WHERE messageId = ?2")
         query.run(messageId)
     },
     /** @param {[messageId: number, message: string, sendDate: number, senderIntId: number, x: number, y: number ]} data */
@@ -288,7 +297,7 @@ const internal = {
     exec: function(data) {
         try {
             let query = db.query(data.stmt)
-            return (typeof data.params[Symbol.iterator] === 'function'
+            return (typeof data.params[Symbol.iterator] === "function"
                 ? query.all(...data.params)
                 : query.all(data.params))
         }

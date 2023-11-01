@@ -780,7 +780,15 @@ const wss = Bun.serve({
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionMsgId === 0) return
 
-                            //await makeDbRequest({})
+                            dbWorker.postMessage({ call: "deleteLiveChat", data: {
+                                messageId: actionMsgId,
+                                reason: actionReason,
+                                moderatorIntId: ws.data.intId }})
+
+                            const deleteBuf = Buffer.allocUnsafe(9)
+                            deleteBuf[0] = 17
+                            deleteBuf.writeUInt32BE(actionMsgId, 1)
+                            wss.publish(all, deleteBuf)
 
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **delete chat message** with id ${actionMsgId
                                 }, with reason: '${actionReason}`)
