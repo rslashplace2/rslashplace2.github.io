@@ -14,8 +14,10 @@ const createLiveChatMessages = `
         message TEXT,
         senderIntId INTEGER,
         repliesTo INTEGER,
+        deletionId INTEGER,
         FOREIGN KEY (repliesTo) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
+        FOREIGN KEY (senderIntId) REFERENCES Users(intId),
+        FOREIGN KEY (deletionId) REFEREENCES LiveChatDeletions(deletionId)
     )
 `
 db.exec(createLiveChatMessages)
@@ -84,13 +86,33 @@ const createUsers = `
 db.exec(createUsers)
 const createUserIps = `
     CREATE TABLE IF NOT EXISTS KnownIps (
-        userIntId INTERGER NOT NULL,
+        userIntId INTEGER NOT NULL,
         ip TEXT NOT NULL,
         lastUsed INTEGER,
         FOREIGN KEY (userIntId) REFERENCES Users(intId)
     )
 ` // ip and userIntId combined form a composite key to identify a record
 db.exec(createUserIps)
+const createVipKeys = `
+    CREATE TABLE IF NOT EXISTS UserVips (
+        userIntId INTEGER NOT NULL,
+        keyHash TEXT NOT NULL,
+        FOREIGN KEY(userIntId) REFERENCES Users(intId)
+    )
+`
+db.exec(createVipKeys)
+const createLiveChatDeletions = `
+    CREATE TABLE IF NOT EXISTS LiveChatDeletions (
+        deletionId INTEGER PRIMARY KEY,
+        moderatorIntId INTEGER NOT NULL,
+        reason TEXT,
+        deletionDate INTEGER,
+        FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId),
+        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
+    )
+`
+db.exec(createLiveChatDeletions)
+
 
 const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
 const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, message, sendDate, senderIntId, x, y) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
@@ -224,18 +246,36 @@ const internal = {
         performBulkInsertions()
         db.close()
     },
-    // Send date is seconds unix epoch offset, we just hope whoever calls these funcs func passed in the args in the right order
-    // else the DB is screwed.
-    /** @param {[ messageId: number, message: string, sendDate: number, channel: string, senderIntId: number, repliesTo: number  ]} data */
+    /** Send date is seconds unix epoch offset, we just hope whoever calls these funcs passed in the args in the right order
+     * else the DB is screwed.
+     * @param {[ messageId: number, message: string, sendDate: number, channel: string, senderIntId: number, repliesTo: number  ]} data */
     insertLiveChat: function(data) {
         if (!Array.isArray(data) || data.length < 5) {
             return
         }
         if (data.length == 5) {
-            // repliesTo default value
-            data.push(null)
+            data[5] = null // Set column 6 to repliesTo default
         }
+        data[6] = NULL // Live chat deletion
         liveChatInserts.push(data)
+    },
+    /** Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions */
+    deleteLiveChat: function(messageId) {
+        let deletionId = 0
+        // TODO: Make deletion ID and place into table
+
+
+        // If pending we can update the record in preflight
+        let wasPending = false
+        for (let messageData of liveChatInserts._elements) {
+            if (messageData[0] === messageId) {
+                messageData[6] = deletionId // Live chat deletion
+            }
+        }
+        if (wasPending) return
+
+        let query = db.query("UPDATE LiveChatInserts SET deleted = ?1 WHERE intId = ?2")
+        query.run(messageId)
     },
     /** @param {[messageId: number, message: string, sendDate: number, senderIntId: number, x: number, y: number ]} data */
     insertPlaceChat: function(data) {
