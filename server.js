@@ -695,85 +695,97 @@ const wss = Bun.serve({
                     else VOTES[data[1] & 31]--
                     break
                 }
+                case 96: {// Set preban
+                    if (ws.data.perms !== "admin") return
+                    let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
+                    let startI = data.readUint32BE(offset); offset += 4
+                    let endI = data.readUint32BE(offset); offset += 4
+                    let x1 = startI % WIDTH
+                    let y1 = Math.floor(startI / WIDTH)
+                    let x2 = endI % WIDTH
+                    let y2 = Math.floor(endI / WIDTH)
+
+                    modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **set preban area** from (${
+                        x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "none"][violation]}`)
+                    break
+                }
                 case 98: { // User moderation
                     if (ws.data.perms !== "admin" || ws.data.perms !== "chatmod") return
                     let offset = 1
                     let action = data[offset++]
     
-                    if (action == 0) {
-                        let actionUidLen = data[offset++]
-                        let actionTxt = data.slice((offset += actionUidLen)).toString()
-                        let actionUid = +actionTxt.slice(0, actionUidLen)
-                        let actionCli = null
-    
-                        for(let [p, uid] of playerIntIds) {
-                            if(uid === actionUid) actionCli = p
-                        }
-                        if (actionCli == null) return
+                    switch (action) {
+                        case 0: {
+                            let actionIntId = data.readUInt32BE(offset); offset += 4
+                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+
+                            let actionCli = null
+                            for(let [p, uid] of playerIntIds) {
+                                if (uid === actionIntId) actionCli = p
+                            }
+                            if (actionCli === null) return
         
-                        let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-    
-                        if (action == 0) { // kick
-                            modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
-                                actionCli.ip}**, with reason: '${actionReason}'`)
-                            actionCli.close()
+                            if (action == 0) { // kick
+                                modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
+                                    actionCli.ip}**, with reason: '${actionReason}'`)
+                                actionCli.close()
+                            }
+                            break
                         }
-                    }
-                    if (action == 1 || action == 2) { // mute, ban
-                        let actionTimeS = data.readUInt32BE(2)
-                        let actionUidLen = data[6]
-                        let actionTxt = data.slice(7).toString()
-                        let actionUid = +actionTxt.slice(0, actionUidLen)
-                        let actionCli = null
-    
-                        for(let [p, uid] of playerIntIds) {
-                            if(uid === actionUid) actionCli = p
-                        }
-                        if (actionCli == null) return
-    
-                        let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                        modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
-                            }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`)
-    
-                        if (action == 1) mute(actionCli, actionTimeS)
-                        else if (action == 2) ban(actionCli)
-                    }
-                    if (action == 3) { // Force captcha revalidation
-                        let actionUidLen = data[2]
-                        let actionTxt = data.slice(3).toString()
-                        let actionUid = +actionTxt.slice(0, actionUidLen)
-                        let actionCli = null
-    
-                        if (actionUidLen != 0) {
-                            actionCli = null
-                            for (let [p, uid] of playerIntIds) {
-                                if (uid === actionUid) actionCli = p
+                        case 1: // Mute
+                        case 2: { // Ban
+                            let actionIntId = data.readUInt32BE(offset); offset += 4
+                            let actionTimeS = data.readUInt32BE(offset); offset += 4
+                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+
+                            let actionCli = null
+                            for(let [p, uid] of playerIntIds) {
+                                if(uid === actionIntId) actionCli = p
                             }
                             if (actionCli == null) return
-
-                            await forceCaptchaSolve(actionCli)
+        
+                            modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
+                                }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`)
+        
+                            if (action === 1) mute(actionCli, actionTimeS)
+                            else ban(actionCli)
+                            break
                         }
-                        else {
-                            for (let c of wss.clients) {
-                                forceCaptchaSolve(c)
+                        case 3: { // Force captcha revalidation
+                            let actionIntId = data.readUInt32BE(offset); offset += 4
+                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            let actionCli = null
+        
+                            if (actionIntId !== 0) {
+                                actionCli = null
+                                for (let [p, uid] of playerIntIds) {
+                                    if (uid === actionUid) actionCli = p
+                                }
+                                if (actionCli == null) return
+    
+                                await forceCaptchaSolve(actionCli)
                             }
+                            else {
+                                for (let c of wss.clients) {
+                                    forceCaptchaSolve(c)
+                                }
+                            }
+                            
+                            modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
+                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${actionReason}`)    
+                            break
                         }
-                        
-                        let actionReason = actionTxt.slice(actionUidLen, actionUidLen + 300)
-                        modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
-                            actionUidLen == 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${actionReason}`)
-                    }
-                    if (action == 4) { // Set preban
-                        let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
-                        let startI = data.readUint32BE(offset); offset += 4
-                        let endI = data.readUint32BE(offset); offset += 4
-                        let x1 = startI % WIDTH
-                        let y1 = Math.floor(startI / WIDTH)
-                        let x2 = endI % WIDTH
-                        let y2 = Math.floor(endI / WIDTH)
+                        case 4: { // Delete chat message
+                            let actionMsgId = data.readUInt32BE(offset); offset += 4
+                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            if (actionMsgId === 0) return
 
-                        modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **set preban area** from (${
-                            x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "none"][violation]}`)
+                            //await makeDbRequest({})
+
+                            modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **delete chat message** with id ${actionMsgId
+                                }, with reason: '${actionReason}`)
+                            break
+                        }
                     }
                     break
                 }
@@ -1048,6 +1060,7 @@ function checkPreban(incomingX, incomingY, p) {
 /**
  * Softban a client using either ip or their websocket instance
  * @param {string|WebSocket} identifier - String client ip address or client websocket instance
+ * @param {number} duration - Integer duration (seconds) for however long this client will be banned for
 */
 async function ban(intId, duration, reason = null, modIntId = null) {
     let start = NOW
