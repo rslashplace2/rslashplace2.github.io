@@ -1282,6 +1282,60 @@
                 }
                 call(send, ws, view.buffer)
             })
+            call(addEventListener, modOptionsButton, "click", function() {
+                const reason = modReason.value.slice(0, 300)
+                const encReason = encoder.encode(reason)
+                // 0 - kick, 1 - mute, 2 - ban, 3 - captcha, 4 - delete
+                let action = null
+                let view = null
+                let offset = 2
+                let statusMsg = ""
+
+                function setModView(extraLength) {
+                    view = new DataView(new Uint8Array(2 + extraLength + encReason.byteLength).buffer)
+                    view.setUint8(0, 98)
+                }
+                function setModReason(offset) {
+                    for (let ri = 0; ri < encReason.byteLength; ri++) {
+                        view.setUint8(offset + ri, encReason[ri])
+                    }
+                }
+                if (modActionKick.checked) {
+                    setModView(4)
+                    view.setUint8(1, 0)
+                    view.setUint32(2, modMemberId.value)
+                    setModReason(6)
+                    statusMsg = `Kicked player ${modMemberId.value} with reason '${reason}'`
+                }
+                else if (modActionMute.checked || modActionBan.checked) {
+                    const action = modActionMute.checked ? 1 : 2
+                    setModView(8)
+                    view.setUint8(1, action)
+                    view.setUint32(2, modMemberId.value)
+                    view.setUint32(6, modDurationsS.value + modDurationM.value * 60 + modDurationH.value * 3600)
+                    setModReason(10)
+                    statusMsg = `${["Kicked","Banned"][action-1]} player ${modMemberId.value} for ${modDurationH.value
+                        } hours, ${modDurationM.value} minutes, and ${modDurationsS.value} seconds with reason '${reason}'`
+                }
+                else if (modActionCaptcha.checked) {
+                    setModView(4)
+                    view.setUint8(1, 3)
+                    view.setUint32(2, modAffectsAll.checked ? 0 : modMemberId.value)
+                    setModReason(6)
+                    statusMsg = `Forced captcha for ${modAffectsAll.checked ? "all users" : "user " + modMemberId.value
+                        } with reason '${reason}'`
+                }
+                else if (modActionDelete.checked) {
+                    setModView(4)
+                    view.setUint8(1, 4)
+                    view.setUint32(2, modMessageId.value)
+                    setModReason(6)
+                    statusMsg = `Deleted message {modMessageId.value} with reason '${reason}'`
+                }
+                else return
+                call(send, ws, view.buffer)
+                alert(statusMsg)
+            })
         }).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
         WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)}; const I=HTMLIFrameElement.prototype;
         delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
@@ -1417,11 +1471,11 @@
                     </div>
                 </div>
                 <div id="modDuration">
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Hours" min="0">
+                    <input id="modDurationH" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Hours" min="0">
                     <span>:</span>
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Minutes" min="0">
+                    <input id="modDurationM" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Minutes" min="0">
                     <span>:</span>
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Seconds" min="1">
+                    <input id="modDurationS" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Seconds" min="1">
                 </div>
                 <div id="modAffectsAllForm" class="mod-form">
                     <div>
@@ -1430,9 +1484,9 @@
                     </div>
                 </div>
                 <em>All moderation actions are logged by the server and reports sent to all other staff. Follow the moderation rules. Do not abuse power.</em>
-                <input type="text" placeholder="Reason">
+                <input id="modReason" type="text" placeholder="Reason">
                 <div style="display: flex; column-gap: 8px;">
-                    <button style="flex-grow: 1;">Submit</button>
+                    <button style="flex-grow: 1;" id="modOptionsButton">Submit</button>
                     <button style="flex-grow: 1;">Cancel</button>
                 </div>
             </div>

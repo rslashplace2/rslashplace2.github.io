@@ -17,7 +17,7 @@ const createLiveChatMessages = `
         deletionId INTEGER,
         FOREIGN KEY (repliesTo) REFERENCES LiveChatMessages(messageId),
         FOREIGN KEY (senderIntId) REFERENCES Users(intId),
-        FOREIGN KEY (deletionId) REFEREENCES LiveChatDeletions(deletionId)
+        FOREIGN KEY (deletionId) REFERENCES LiveChatDeletions(deletionId)
     )
 `
 db.exec(createLiveChatMessages)
@@ -108,7 +108,6 @@ const createLiveChatDeletions = `
         moderatorIntId INTEGER NOT NULL,
         reason TEXT,
         deletionDate INTEGER,
-        FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId),
         FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
     )
 `
@@ -284,7 +283,7 @@ const internal = {
         if (wasPending) return
 
         const query = db.query("UPDATE LiveChatMessages SET deletionId = ?1 WHERE messageId = ?2")
-        query.run(messageId)
+        query.run(deletionId, data.messageId)
     },
     /** @param {[messageId: number, message: string, sendDate: number, senderIntId: number, x: number, y: number ]} data */
     insertPlaceChat: function(data) {

@@ -203,7 +203,7 @@ let BLACKLISTED = new Set(
             .map(banListUrl => fetch(banListUrl).then(response => response.text())))))
     .flatMap(line => line.trim().split('\n').map(ip => ip.split(':')[0].trim())))
 
-for (let ban of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
+for (let ban of (await fs.readFile("blacklist.txt")).toString().split('\n')) {
     BLACKLISTED.add(ban)
 }
 
@@ -715,7 +715,7 @@ const wss = Bun.serve({
                     let action = data[offset++]
     
                     switch (action) {
-                        case 0: {
+                        case 0: { // Kick
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
 
@@ -727,7 +727,8 @@ const wss = Bun.serve({
         
                             if (action == 0) { // kick
                                 modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
-                                    actionCli.ip}**, with reason: '${actionReason}'`)
+                                    actionCli.ip}**, with reason: '${
+                                    actionReason.replaceAll("@", "@​")}'`)
                                 actionCli.close()
                             }
                             break
@@ -745,7 +746,8 @@ const wss = Bun.serve({
                             if (actionCli == null) return
         
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
-                                }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${actionReason}'`)
+                                }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${
+                                actionReason.replaceAll("@", "@​")}'`)
         
                             if (action === 1) mute(actionCli, actionTimeS)
                             else ban(actionCli)
@@ -772,7 +774,8 @@ const wss = Bun.serve({
                             }
                             
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
-                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${actionReason}`)    
+                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${
+                                actionReason.replaceAll("@", "@​")}'`)    
                             break
                         }
                         case 4: { // Delete chat message
@@ -791,7 +794,7 @@ const wss = Bun.serve({
                             wss.publish(all, deleteBuf)
 
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **delete chat message** with id ${actionMsgId
-                                }, with reason: '${actionReason}`)
+                                }, with reason: '${actionReason.replaceAll("@", "@​")}'`)
                             break
                         }
                     }
