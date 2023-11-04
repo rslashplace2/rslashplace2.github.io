@@ -590,7 +590,7 @@
 
                     if (localStorage.vip) {
                         let moderateBtn = document.createElement("img")
-                        moderateBtn.onclick = function(e) { chatModerate("delete", senderId, newMessage) }
+                        moderateBtn.onclick = function(e) { chatModerate("delete", senderId, messageId, newMessage) }
                         replyBtn.title = "Moderation options"
                         replyBtn.tabIndex = "0"
                         moderateBtn.src = "svg/moderate-action.svg"
@@ -945,7 +945,7 @@
                 } 
                 case 17: {// Live chat delete
                     const messageId = data.getUint32(1)
-                    for (let channel of cMessages) {
+                    for (let channel of Object.values(cMessages)) {
                         for (let messageEl of channel) {
                             if (messageEl.messageId !== messageId) continue
                             channel.splice(channel.indexOf(messageEl), 1)
@@ -1312,10 +1312,10 @@
                     setModView(8)
                     view.setUint8(1, action)
                     view.setUint32(2, modMemberId.value)
-                    view.setUint32(6, modDurationsS.value + modDurationM.value * 60 + modDurationH.value * 3600)
+                    view.setUint32(6, modDurationS.value + modDurationM.value * 60 + modDurationH.value * 3600)
                     setModReason(10)
                     statusMsg = `${["Kicked","Banned"][action-1]} player ${modMemberId.value} for ${modDurationH.value
-                        } hours, ${modDurationM.value} minutes, and ${modDurationsS.value} seconds with reason '${reason}'`
+                        } hours, ${modDurationM.value} minutes, and ${modDurationS.value} seconds with reason '${reason}'`
                 }
                 else if (modActionCaptcha.checked) {
                     setModView(4)
@@ -1330,7 +1330,7 @@
                     view.setUint8(1, 4)
                     view.setUint32(2, modMessageId.value)
                     setModReason(6)
-                    statusMsg = `Deleted message {modMessageId.value} with reason '${reason}'`
+                    statusMsg = `Deleted message ${modMessageId.value} with reason '${reason}'`
                 }
                 else return
                 call(send, ws, view.buffer)
@@ -2777,32 +2777,33 @@
         }
 
         // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
-        function chatModerate(mode, senderId, messageElement = null) {
+        function chatModerate(mode, senderId, messageId = null, messageElement = null) {
             moderationMenu.setAttribute("opened", "true")
             moderationMenu.setAttribute("mode", mode)
+            modMemberId.value = senderId
+            modMessageId.value = messageId
+            modMessagePreview.innerHTML = messageElement?.innerHTML
+            modAffectsAll.checked = false
+            modDurationH.value = null
+            modDurationM.value = null
+            modDurationS.value = null
+
             switch(mode) {
-                case "delete": {
+                case "delete": 
                     modActionDelete.checked = true
-                    modMessageId.value = messageElement.messageId
-                    modMessagePreview.innerHTML = messageElement.innerHTML
                     break
-                }
-                case "kick": {
+                case "kick": 
                     modActionKick.checked = true
                     break
-                }
-                case "mute": {
+                case "mute": 
                     modActionMute.checked = true
                     break
-                }
-                case "ban": {
+                case "ban": 
                     modActionBan.checked = true
                     break
-                }
-                case "captcha": {
+                case "captcha": 
                     modActionCaptcha.checked = true
                     break
-                }
             }
         }
 

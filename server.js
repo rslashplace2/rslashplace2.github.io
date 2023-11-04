@@ -696,7 +696,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 96: {// Set preban
-                    if (ws.data.perms !== "admin") return
+                    if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
                     let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
                     let startI = data.readUint32BE(offset); offset += 4
                     let endI = data.readUint32BE(offset); offset += 4
@@ -710,7 +710,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 98: { // User moderation
-                    if (ws.data.perms !== "admin" || ws.data.perms !== "chatmod") return
+                    if (ws.data.perms !== "admin" && ws.data.perms !== "chatmod") return
                     let offset = 1
                     let action = data[offset++]
     
@@ -791,7 +791,7 @@ const wss = Bun.serve({
                             const deleteBuf = Buffer.allocUnsafe(9)
                             deleteBuf[0] = 17
                             deleteBuf.writeUInt32BE(actionMsgId, 1)
-                            wss.publish(all, deleteBuf)
+                            wss.publish("all", deleteBuf)
 
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **delete chat message** with id ${actionMsgId
                                 }, with reason: '${actionReason.replaceAll("@", "@​")}'`)

@@ -262,7 +262,6 @@ const internal = {
         if (data.length == 5) {
             data[5] = null // Set column 6 to repliesTo default
         }
-        data[6] = NULL // Live chat deletion
         liveChatInserts.push(data)
     },
     /** Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
