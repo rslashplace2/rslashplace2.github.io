@@ -1,6 +1,6 @@
 /* eslint-disable no-inner-declarations */
-import { parentPort } from "worker_threads"
-import { Database } from "bun:sqlite"
+import { parentPort } from 'worker_threads'
+import { Database } from 'bun:sqlite'
 import { Queue } from '@datastructures-js/queue'
 
 const db = new Database("server.db")
@@ -14,8 +14,10 @@ const createLiveChatMessages = `
         message TEXT,
         senderIntId INTEGER,
         repliesTo INTEGER,
+        deletionId INTEGER,
         FOREIGN KEY (repliesTo) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
+        FOREIGN KEY (senderIntId) REFERENCES Users(intId),
+        FOREIGN KEY (deletionId) REFERENCES LiveChatDeletions(deletionId)
     )
 `
 db.exec(createLiveChatMessages)
@@ -84,13 +86,33 @@ const createUsers = `
 db.exec(createUsers)
 const createUserIps = `
     CREATE TABLE IF NOT EXISTS KnownIps (
-        userIntId INTERGER NOT NULL,
+        userIntId INTEGER NOT NULL,
         ip TEXT NOT NULL,
         lastUsed INTEGER,
         FOREIGN KEY (userIntId) REFERENCES Users(intId)
     )
 ` // ip and userIntId combined form a composite key to identify a record
 db.exec(createUserIps)
+const createVipKeys = `
+    CREATE TABLE IF NOT EXISTS UserVips (
+        userIntId INTEGER NOT NULL,
+        keyHash TEXT NOT NULL,
+        lastUsed INTEGER,
+        FOREIGN KEY(userIntId) REFERENCES Users(intId)
+    )
+`
+db.exec(createVipKeys)
+const createLiveChatDeletions = `
+    CREATE TABLE IF NOT EXISTS LiveChatDeletions (
+        deletionId INTEGER PRIMARY KEY,
+        moderatorIntId INTEGER NOT NULL,
+        reason TEXT,
+        deletionDate INTEGER,
+        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
+    )
+`
+db.exec(createLiveChatDeletions)
+
 
 const insertLiveChat = db.prepare("INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
 const insertPlaceChat = db.prepare("INSERT INTO PlaceChatMessages (messageId, message, sendDate, senderIntId, x, y) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
@@ -166,7 +188,7 @@ const internal = {
         
         return user.intId
     },
-    /** @param {{ messageId: number, count: number, before: boolean, channel: string? }} data */
+    /** @param {{ messageId: number, count: number, before: boolean, channel: string?, includeDeleted?: boolean }} data */
     getLiveChatHistory: function(data) {
         const liveChatMessageId = internal.getMaxLiveChatId()
         let params = []
@@ -174,10 +196,16 @@ const internal = {
             SELECT LiveChatMessages.*, Users.chatName AS chatName
             FROM LiveChatMessages
             INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
-        
+        let preceeding = false
+
         if (data.channel) {
             query += "WHERE channel = ?1\n"
             params.push(data.channel)
+            preceeding = true
+        }
+        if (!data.includeDeleted) {
+            query += "AND deletionId IS NULL\n"
+            preceeding = true
         }
 
         // If messageId is 0 and we are getting before, it will return [count] most recent messages
@@ -190,7 +218,7 @@ const internal = {
                 params.push(data.count)
             }
             else {
-                query += data.channel ? "AND " : ""
+                query += preceeding ? "AND " : ""
                 query += "messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
                 params.push(data.messageId)
                 params.push(data.count)
@@ -198,7 +226,7 @@ const internal = {
         }
         else { // Ater
             count = Math.min(liveChatMessageId - data.messageId, data.count)
-            query += data.channel ? "AND " : ""
+            query += preceeding ? "AND " : ""
             query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
             params.push(data.messageId)
             params.push(data.count)
@@ -224,18 +252,37 @@ const internal = {
         performBulkInsertions()
         db.close()
     },
-    // Send date is seconds unix epoch offset, we just hope whoever calls these funcs func passed in the args in the right order
-    // else the DB is screwed.
-    /** @param {[ messageId: number, message: string, sendDate: number, channel: string, senderIntId: number, repliesTo: number  ]} data */
+    /** Send date is seconds unix epoch offset, we just hope whoever calls these funcs passed in the args in the right order
+     * else the DB is screwed.
+     * @param {[ messageId: number, message: string, sendDate: number, channel: string, senderIntId: number, repliesTo: number  ]} data */
     insertLiveChat: function(data) {
         if (!Array.isArray(data) || data.length < 5) {
             return
         }
         if (data.length == 5) {
-            // repliesTo default value
-            data.push(null)
+            data[5] = null // Set column 6 to repliesTo default
         }
         liveChatInserts.push(data)
+    },
+    /** Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
+     * @param {{ messageId: number, reason: string, moderatorIntId: number }} data
+     */
+    deleteLiveChat: function(data) {
+        const deletionQuery = db.query(
+            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES (?1, ?2, ?3) RETURNING deletionId")
+        const deletionId = deletionQuery.get()
+
+        // If pending we can update the record in preflight
+        let wasPending = false
+        for (let messageData of liveChatInserts._elements) {
+            if (messageData[0] === data.messageId) {
+                messageData[6] = deletionId // Live chat deletion
+            }
+        }
+        if (wasPending) return
+
+        const query = db.query("UPDATE LiveChatMessages SET deletionId = ?1 WHERE messageId = ?2")
+        query.run(deletionId, data.messageId)
     },
     /** @param {[messageId: number, message: string, sendDate: number, senderIntId: number, x: number, y: number ]} data */
     insertPlaceChat: function(data) {
@@ -248,7 +295,7 @@ const internal = {
     exec: function(data) {
         try {
             let query = db.query(data.stmt)
-            return (typeof data.params[Symbol.iterator] === 'function'
+            return (typeof data.params[Symbol.iterator] === "function"
                 ? query.all(...data.params)
                 : query.all(data.params))
         }

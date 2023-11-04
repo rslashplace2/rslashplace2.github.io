@@ -590,7 +590,7 @@
 
                     if (localStorage.vip) {
                         let moderateBtn = document.createElement("img")
-                        moderateBtn.onclick = function(e) { chatModerate("delete", senderId, newMessage) }
+                        moderateBtn.onclick = function(e) { chatModerate("delete", senderId, messageId, newMessage) }
                         replyBtn.title = "Moderation options"
                         replyBtn.tabIndex = "0"
                         moderateBtn.src = "svg/moderate-action.svg"
@@ -869,7 +869,7 @@
                         }
                         const atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 16 >= chatMessages.scrollHeight
 
-                        // Inset the message into the 
+                        // Insert the message into the channel 
                         cMessages[channel].push(newMessage)
                         if (cMessages[channel].length > MAX_CHANNEL_MESSAGES) {
                             cMessages[channel].shift()
@@ -942,6 +942,16 @@
                             break
                     }
                     break
+                } 
+                case 17: {// Live chat delete
+                    const messageId = data.getUint32(1)
+                    for (let channel of Object.values(cMessages)) {
+                        for (let messageEl of channel) {
+                            if (messageEl.messageId !== messageId) continue
+                            channel.splice(channel.indexOf(messageEl), 1)
+                            messageEl.remove()
+                        }
+                    }
                 }
                 }
             }
@@ -1272,6 +1282,60 @@
                 }
                 call(send, ws, view.buffer)
             })
+            call(addEventListener, modOptionsButton, "click", function() {
+                const reason = modReason.value.slice(0, 300)
+                const encReason = encoder.encode(reason)
+                // 0 - kick, 1 - mute, 2 - ban, 3 - captcha, 4 - delete
+                let action = null
+                let view = null
+                let offset = 2
+                let statusMsg = ""
+
+                function setModView(extraLength) {
+                    view = new DataView(new Uint8Array(2 + extraLength + encReason.byteLength).buffer)
+                    view.setUint8(0, 98)
+                }
+                function setModReason(offset) {
+                    for (let ri = 0; ri < encReason.byteLength; ri++) {
+                        view.setUint8(offset + ri, encReason[ri])
+                    }
+                }
+                if (modActionKick.checked) {
+                    setModView(4)
+                    view.setUint8(1, 0)
+                    view.setUint32(2, modMemberId.value)
+                    setModReason(6)
+                    statusMsg = `Kicked player ${modMemberId.value} with reason '${reason}'`
+                }
+                else if (modActionMute.checked || modActionBan.checked) {
+                    const action = modActionMute.checked ? 1 : 2
+                    setModView(8)
+                    view.setUint8(1, action)
+                    view.setUint32(2, modMemberId.value)
+                    view.setUint32(6, modDurationS.value + modDurationM.value * 60 + modDurationH.value * 3600)
+                    setModReason(10)
+                    statusMsg = `${["Kicked","Banned"][action-1]} player ${modMemberId.value} for ${modDurationH.value
+                        } hours, ${modDurationM.value} minutes, and ${modDurationS.value} seconds with reason '${reason}'`
+                }
+                else if (modActionCaptcha.checked) {
+                    setModView(4)
+                    view.setUint8(1, 3)
+                    view.setUint32(2, modAffectsAll.checked ? 0 : modMemberId.value)
+                    setModReason(6)
+                    statusMsg = `Forced captcha for ${modAffectsAll.checked ? "all users" : "user " + modMemberId.value
+                        } with reason '${reason}'`
+                }
+                else if (modActionDelete.checked) {
+                    setModView(4)
+                    view.setUint8(1, 4)
+                    view.setUint32(2, modMessageId.value)
+                    setModReason(6)
+                    statusMsg = `Deleted message ${modMessageId.value} with reason '${reason}'`
+                }
+                else return
+                call(send, ws, view.buffer)
+                alert(statusMsg)
+            })
         }).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
         WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)}; const I=HTMLIFrameElement.prototype;
         delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
@@ -1407,11 +1471,11 @@
                     </div>
                 </div>
                 <div id="modDuration">
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Hours" min="0">
+                    <input id="modDurationH" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Hours" min="0">
                     <span>:</span>
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Minutes" min="0">
+                    <input id="modDurationM" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Minutes" min="0">
                     <span>:</span>
-                    <input type="number" style="display: inline;height: auto;width: 80px;" placeholder="Seconds" min="1">
+                    <input id="modDurationS" type="number" style="display: inline;height: auto;width: 80px;" placeholder="Seconds" min="1">
                 </div>
                 <div id="modAffectsAllForm" class="mod-form">
                     <div>
@@ -1420,9 +1484,9 @@
                     </div>
                 </div>
                 <em>All moderation actions are logged by the server and reports sent to all other staff. Follow the moderation rules. Do not abuse power.</em>
-                <input type="text" placeholder="Reason">
+                <input id="modReason" type="text" placeholder="Reason">
                 <div style="display: flex; column-gap: 8px;">
-                    <button style="flex-grow: 1;">Submit</button>
+                    <button style="flex-grow: 1;" id="modOptionsButton">Submit</button>
                     <button style="flex-grow: 1;">Cancel</button>
                 </div>
             </div>
@@ -1477,7 +1541,7 @@
                 </icon-close>
                 <img src="https://media.discordapp.net/attachments/823957581545734204/1131983578155188334/e10a2234-9213-453e-acce-be697a9f7b25.png" style="
                         width: 100%;position: absolute;bottom: 0;cursor: pointer;
-                " onclick="window.open('https://www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
+                " onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
                 <div noselect="" style="position: absolute;top: 9px;left: 14px;font-size: 1.2em;">Special event!</div>			
             </div>
             <div noselect id="helpbtn" class="layout" onclick="
@@ -2713,32 +2777,33 @@
         }
 
         // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
-        function chatModerate(mode, senderId, messageElement = null) {
+        function chatModerate(mode, senderId, messageId = null, messageElement = null) {
             moderationMenu.setAttribute("opened", "true")
             moderationMenu.setAttribute("mode", mode)
+            modMemberId.value = senderId
+            modMessageId.value = messageId
+            modMessagePreview.innerHTML = messageElement?.innerHTML
+            modAffectsAll.checked = false
+            modDurationH.value = null
+            modDurationM.value = null
+            modDurationS.value = null
+
             switch(mode) {
-                case "delete": {
+                case "delete": 
                     modActionDelete.checked = true
-                    modMessageId.value = messageElement.messageId
-                    modMessagePreview.innerHTML = messageElement.innerHTML
                     break
-                }
-                case "kick": {
+                case "kick": 
                     modActionKick.checked = true
                     break
-                }
-                case "mute": {
+                case "mute": 
                     modActionMute.checked = true
                     break
-                }
-                case "ban": {
+                case "ban": 
                     modActionBan.checked = true
                     break
-                }
-                case "captcha": {
+                case "captcha": 
                     modActionCaptcha.checked = true
                     break
-                }
             }
         }
 
