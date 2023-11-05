@@ -11,7 +11,7 @@ import path from 'path'
 import * as zcaptcha from './zcaptcha/server.js'
 import { isUser } from 'ipapi-sync'
 import { Worker } from 'worker_threads'
-import cookie from 'cookie';
+import cookie from 'cookie'
 import { exec } from 'child_process'
 import repl from 'basic-repl'
 import { createContext, runInContext } from 'vm'
@@ -499,6 +499,10 @@ const wss = Bun.serve({
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
 
+            if (ws.data.codeHash) {
+                dbWorker.postMessage({ call: "updateUserVip",
+                    data: { intId: pIntId, codeHash: ws.data.codeHash } })
+            }
             await applyPunishments(ws, pIntId, IP)
 
             const pName = await makeDbRequest("getUserChatName", pIntId)

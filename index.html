@@ -588,7 +588,7 @@
                     reportBtn.src = "svg/report-action.svg"
                     actionsPart.appendChild(reportBtn)
 
-                    if (localStorage.vip) {
+                    if (localStorage.vip?.startsWith("!")) {
                         let moderateBtn = document.createElement("img")
                         moderateBtn.onclick = function(e) { chatModerate("delete", senderId, messageId, newMessage) }
                         replyBtn.title = "Moderation options"
@@ -1006,18 +1006,18 @@
                 localStorage.placed = (localStorage.placed >>> 0) + 1
                 call(send, ws, pixelView)
             }
-            let pok = document.getElementById('pok')
+            let pok = document.getElementById("pok")
             
             let oclick = e => {
                 if (!e.isTrusted) return
-                if (pok.classList.contains('enabled')) put()
+                if (pok.classList.contains("enabled")) put()
                 hideIndicators()
             }
-            call(addEventListener, pok, 'click', oclick)
+            call(addEventListener, pok, "click", oclick)
 
             function sendLiveChatMsg(message){
                 if (message.startsWith(":name")) {
-                    namePanel.style.visibility = 'visible'
+                    namePanel.style.visibility = "visible"
                     nameInput.value = message.slice(5).trim()
                     return
                 }
