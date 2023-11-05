@@ -172,11 +172,8 @@ const internal = {
             updateUser.run(epochMs, user.intId)
         }
         // Add known IP if not already there
-        const getIpsQuery = db.query("SELECT * FROM KnownIps WHERE userIntId = ?1")
-        let ipExists = false
-        for (let ipRecord of getIpsQuery.all(user.intId)) {
-            if (ipRecord.ip === data.ip) ipExists = true
-        }
+        const getIpsQuery = db.query("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2")
+        const ipExists = getIpsQuery.get(user.intId, data.ip)
         if (ipExists) { // Update last used
             const updateIp = db.query("UPDATE KnownIps SET lastUsed = ?1 WHERE userIntId = ?2 AND ip = ?3")
             updateIp.run(epochMs, user.intId, data.ip)
@@ -290,6 +287,21 @@ const internal = {
             return
         }
         placeChatInserts.push(data)
+    },
+    /** @param {{ intId: number, codeHash: string,}} data */
+    updateUserVip: function(data) {
+        const epochMs = Date.now()
+        const getKeysQuery = db.query("SELECT * FROM UserVips WHERE userIntId = ?1 AND keyHash = ?2")
+        const keyExists = getKeysQuery.get(data.intId, data.codeHash)
+        
+        if (keyExists) {
+            const updateKeysQuery = db.query("UPDATE UserVips SET lastUsed = ? WHERE userIntId = ?1 AND keyHash = ?2")
+            updateKeysQuery.run(epochMs, data.intId, data.codeHash)
+        }
+        else {
+            const createVipQuery = db.query("INSERT INTO UserVips (userIntId, keyHash, lastUsed) VALUES (?1, ?2, ?3)")
+            createVipQuery.run(user.intId, data.codeHash, epochMs)
+        }
     },
     /** @param {{ stmt: string, params: any }} data */
     exec: function(data) {
