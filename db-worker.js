@@ -295,7 +295,7 @@ const internal = {
         const keyExists = getKeysQuery.get(data.intId, data.codeHash)
         
         if (keyExists) {
-            const updateKeysQuery = db.query("UPDATE UserVips SET lastUsed = ? WHERE userIntId = ?1 AND keyHash = ?2")
+            const updateKeysQuery = db.query("UPDATE UserVips SET lastUsed = ?1 WHERE userIntId = ?2 AND keyHash = ?3")
             updateKeysQuery.run(epochMs, data.intId, data.codeHash)
         }
         else {
