@@ -300,7 +300,7 @@ const internal = {
         }
         else {
             const createVipQuery = db.query("INSERT INTO UserVips (userIntId, keyHash, lastUsed) VALUES (?1, ?2, ?3)")
-            createVipQuery.run(user.intId, data.codeHash, epochMs)
+            createVipQuery.run(data.intId, data.codeHash, epochMs)
         }
     },
     /** @param {{ stmt: string, params: any }} data */
