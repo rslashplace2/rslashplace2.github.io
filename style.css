@@ -913,6 +913,10 @@ body[eventphase="3"] .coverer-title {
 	justify-content: center;
 	text-align: center;
 	row-gap: 4px;
+	transform: translateY(-50%);
+	height: min-content;
+	overflow-x: scroll;
+	width: 100%;
 }
 
 .messageTypeBtn {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-check
 /* eslint-disable jsdoc/require-returns */
@@ -366,6 +367,15 @@ function createNamesPacket(names) {
     return infoBuffer
 }
 
+/**
+ * @param {typeof PUNISHMENT_STATE.mute|typeof PUNISHMENT_STATE.ban} type Punishment type being applied
+ * @param {number} startDate Punishment action creation (start) date
+ * @param {number} finishDate Punishment action finish date
+ * @param {string} reason Reason set by moderator and shared to client for why they were punished
+ * @param {string} userAppeal String appeal that the user provided against their own punishment
+ * @param {boolean} appealRejected Boolean indicating whether appeal is rejected and no logner editable
+ * @returns {Buffer}
+ */
 function createPunishPacket(type, startDate, finishDate, reason, userAppeal, appealRejected) {
     const encReason = encoderUTF8.encode(reason)
     const encAppeal = encoderUTF8.encode(userAppeal)
@@ -383,6 +393,14 @@ function createPunishPacket(type, startDate, finishDate, reason, userAppeal, app
     return buf
 }
 
+/**
+ * If a user changes their intId, they will still be banned, as it applies recursively to every IP used by that intId, however
+ * they will not receive the detailed info on why they were banned, instead just receiving when their ban finishes. They will also
+ * not be able to appeal the action
+ * @param {import('bun').ServerWebSocket} ws - Websocket client that punishments will be applied for
+ * @param {number} intId - Integer ID of player to have punishments scanned for
+ * @param {string} ip - IP address of client to have punishments applied and scanned for
+ */
 async function applyPunishments(ws, intId, ip) {
     let banFinish = bans.get(ip)
     if (banFinish) {
@@ -395,6 +413,9 @@ async function applyPunishments(ws, intId, ip) {
                 params: intId })
             if (banInfo) { 
                 ws.send(createPunishPacket(PUNISHMENT_STATE.ban, ...banInfo))
+            }
+            else {
+                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, NOW, banFinish, "Unknown", "N/A", true))
             }
         }
     }
@@ -409,6 +430,9 @@ async function applyPunishments(ws, intId, ip) {
                 params: intId })
             if (muteInfo) {
                 ws.send(createPunishPacket(PUNISHMENT_STATE.mute, ...muteInfo))
+            }
+            else {
+                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, NOW, muteFinish, "Unknown", "N/A", true))
             }
         }
     }
