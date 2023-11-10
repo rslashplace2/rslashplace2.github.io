@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-unused-vars */
+// @ts-check
+/* eslint-disable jsdoc/require-returns */
+/* eslint-disable jsdoc/require-jsdoc */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { promises as fs } from 'fs'
@@ -55,7 +57,7 @@ catch (e) {
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
     CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
-    CORS_COOKIE } = JSON.parse(config)
+    CORS_COOKIE } = JSON.parse(config.toString())
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -154,14 +156,13 @@ class PublicPromise {
 
 let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
-    if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "", err => {
-        if (err) {
-            console.error(err)
-            return
-        }
-    })
+    if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "")
 }
 
+/**
+ * @param {number} length Length of generated random string
+ * @returns {string} random string
+ */
 function randomString(length) {
     const buf = new Uint8Array(length)
     crypto.getRandomValues(buf)
@@ -219,7 +220,7 @@ const dbWorker = new Worker("./db-worker.js")
  * __Always await this__, and only use in cases where you __WANT the response__, if you want something that
  * you can just fire and forget then use dbWorker.postMessage instead.
  * @param {({call: string, data: any}|string)} messageCall - String method name | Method call + arguments to be executed on DB worker.
- * @param {string} args - Arguments that makeDbRequest will use.
+ * @param {object} args - Arguments that makeDbRequest will use.
  */
 async function makeDbRequest(messageCall, args = null) {
     let handle = dbReqId++
@@ -282,6 +283,11 @@ for (let idFinish of banIdFinishes) {
 playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
 
 let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
+/**
+ * 
+ * @param {string} text Input text to be sanitised 
+ * @returns {string} sanitised string
+ */
 function censorText(text) {
     return text
         .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|b[i1]tch|blowjob|clit|c[o0]ck|cunt|dick|(f[Aa4][g6](g?[oi]t)?)|jizz|lesbian|masturbat(e|ion)|nigga|卐|卍|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
@@ -297,9 +303,9 @@ function censorText(text) {
  * @param {number} sendDate Unix epoch offset __**seconds**__ of message send
  * @param {number} messageId Message integer id (u32)
  * @param {number} intId Sender integer id (u32)
- * @param {string} channel String channel (maxlen(16))
- * @param {number} repliesTo Integer message id replies to (u32)
- * @param {number} positionIndex Index on canvas of place chat message (u32)
+ * @param {string?} channel String channel (maxlen(16))
+ * @param {number?} repliesTo Integer message id replies to (u32)
+ * @param {number?} positionIndex Index on canvas of place chat message (u32)
  * @returns {Buffer} Message packet data prepended with packet code (15)
  */
 function createChatPacket(type, message, sendDate, messageId, intId, channel = null, repliesTo = null, positionIndex = null) {
@@ -468,7 +474,7 @@ const wss = Bun.serve({
             }
             ws.data.cd = CD
 
-            if (CAPTCHA && !ws.data.perms !== "admin") await forceCaptchaSolve(ws)
+            if (CAPTCHA && ws.data.perms !== "admin") await forceCaptchaSolve(ws)
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
 
@@ -514,6 +520,7 @@ const wss = Bun.serve({
             ws.send(nmInfoBuf)
         },
         async message(ws, data) {
+            if (typeof data === "string") return
             // Redefine as message handler is now separate from open
             const IP = ws.data.ip
             const CD = ws.data.cd
@@ -687,7 +694,7 @@ const wss = Bun.serve({
                         let acceptableFails = Math.min(zcaptcha.config.dummiesCount / 2, 10)
                         if (info.fails < acceptableFails) return ws.close()
                         let banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
-                        ban(IP, banLengthS)
+                        ban(ws.data.intId, banLengthS)
                         modWebhookLog(`Client **${IP}** **banned** by server for **${banLengthS
                             }** seconds for failing captcha **${info.fails}** times`)
                     }
@@ -700,6 +707,7 @@ const wss = Bun.serve({
                     break
                 }
                 case 96: {// Set preban
+                    let offset = 1
                     if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
                     let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
                     let startI = data.readUint32BE(offset); offset += 4
@@ -722,7 +730,6 @@ const wss = Bun.serve({
                         case 0: { // Kick
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
-
                             let actionCli = null
                             for(let [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
@@ -731,7 +738,7 @@ const wss = Bun.serve({
         
                             if (action == 0) { // kick
                                 modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
-                                    actionCli.ip}**, with reason: '${
+                                    actionCli.data.ip}**, with reason: '${
                                     actionReason.replaceAll("@", "@​")}'`)
                                 actionCli.close()
                             }
@@ -742,19 +749,18 @@ const wss = Bun.serve({
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionTimeS = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
-
                             let actionCli = null
                             for(let [p, uid] of playerIntIds) {
-                                if(uid === actionIntId) actionCli = p
+                                if (uid === actionIntId) actionCli = p
                             }
                             if (actionCli == null) return
         
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
-                                }** user **${actionCli.ip}**, for **${actionTimeS}** seconds, with reason: '${
+                                }** user **${actionCli.data.ip}**, for **${actionTimeS}** seconds, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)
         
-                            if (action === 1) mute(actionCli, actionTimeS)
-                            else ban(actionCli)
+                            if (action == 1) mute(actionIntId, actionTimeS, actionReason, ws.data.intId)
+                            else ban(actionIntId, actionTimeS, actionReason, ws.data.intId)
                             break
                         }
                         case 3: { // Force captcha revalidation
@@ -763,12 +769,11 @@ const wss = Bun.serve({
                             let actionCli = null
         
                             if (actionIntId !== 0) {
-                                actionCli = null
-                                for (let [p, uid] of playerIntIds) {
-                                    if (uid === actionUid) actionCli = p
+                                for(let [p, uid] of playerIntIds) {
+                                    if (uid === actionIntId) actionCli = p
                                 }
                                 if (actionCli == null) return
-    
+        
                                 await forceCaptchaSolve(actionCli)
                             }
                             else {
@@ -778,7 +783,7 @@ const wss = Bun.serve({
                             }
                             
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
-                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.ip + "**")}, with reason: '${
+                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.data.ip + "**")}, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)    
                             break
                         }
@@ -850,7 +855,6 @@ wss.clients = new Set() // Hack for compatibility with old node code
 
 async function modWebhookLog(message) {
     console.log(message)
-
     if (!MOD_WEBHOOK_URL) return
     message = message.replace("@", "@​")
     let msgHook = { username: "RPLACE SERVER", content: message }
@@ -866,13 +870,20 @@ let currentCaptcha = zcaptcha.genEmojiCaptcha
 
 /**
  * Force a client to redo the captcha
- * @param {string|WebSocket} identifier - String client ip address or client websocket instance
-*/
+ * @param {string|number|import('bun').ServerWebSocket} identifier - String client ip address, intId or client websocket instance
+ */
 async function forceCaptchaSolve(identifier) {
 	let cli = identifier
-    if (typeof identifier === "string") {
-        for (let c of wss.clients) {
-            if (c.ip === identifier) cli = identifier
+    if (typeof identifier === "number") {
+        for (let cli of wss.clients) { 
+            if (cli.data.intId == identifier) {
+                cli.close()
+            }
+        }
+    }
+    else if (typeof identifier === "string") {
+        for (let cli of wss.clients) {
+            if (cli.data.ip === identifier) cli = identifier
         }
     }
     if (!cli) return
@@ -907,7 +918,7 @@ async function pushImage() {
 	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), _ => { }).catch(_ => { })
     await new Promise((resolve, reject) =>
         exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`,
-        error => error ? reject(error) : resolve()))
+            error => error ? reject(error) : resolve()))
 
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
     let curr = new Uint8Array(CHANGES)
@@ -1051,7 +1062,7 @@ function checkPreban(incomingX, incomingY, p) {
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
         modWebhookLog(`Pixel placed in preban area at ${incomingX}, ${incomingY} by ${p.ip}`)
 
-        if (prebanArea.action instanceof Function) {
+        if (typeof prebanArea.action === "function") {
             return prebanArea.action(p, incomingX, incomingY)
         }
         switch(prebanArea.action) {
@@ -1073,38 +1084,45 @@ function checkPreban(incomingX, incomingY, p) {
 }
 
 /**
- * Softban a client using either ip or their websocket instance
- * @param {string|WebSocket} identifier - String client ip address or client websocket instance
- * @param {number} duration - Integer duration (seconds) for however long this client will be banned for
+ * Softban a client using their intId for a finite amount of time
+ * @param {number} intId - Integer id of client that is to be banned
+ * @param {number} duration - Integer duration (seconds) for however long this client will be muted for
+ * @param {string?} reason - String reason for which client is being muted
+ * @param {number?} modIntId - Responsible moderator integer ID 
 */
 async function ban(intId, duration, reason = null, modIntId = null) {
-    let start = NOW
-    let finish = start + duration * 1000
-    dbWorker.postMessage({ call: "exec", data: {
+    const start = NOW
+    const finish = start + duration * 1000
+    const banDbData = {
         stmt: "INSERT OR REPLACE INTO Bans (startDate, finishDate, userIntId, moderatorIntId, " +
             "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
+        params: [ start, finish, intId, modIntId, reason, null, 0 ] }
+    dbWorker.postMessage({ call: "exec", data: banDbData })
     
-    let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
+    const ips = await makeDbRequest("exec", {
+        stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
     for (let ipObject of ips) {
         bans.set(ipObject.ip, finish)
     }
 }
 
 /**
- * Mute a client using either ip, their websocket instance, or their intId
- * @param {string|ServerWebSocket<any>|number} identifier - String client ip address or client websocket instance
- * @param {Number} duration - Integer duration (seconds) for however long this client will be muted for
-*/
-async function mute(intId, duration, reason = null, modIntId = null) {    
-    let start = NOW
-    let finish = start + duration * 1000
-    dbWorker.postMessage({ call: "exec", data: {
+ * Mute a client using their intId for a finite amount of time
+ * @param {number} intId - Integer id of client that is to be muted
+ * @param {number} duration - Integer duration (seconds) for however long this client will be muted for
+ * @param {string?} reason - String reason for which client is being muted
+ * @param {number?} modIntId - Responsible moderator integer ID 
+ */
+async function mute(intId, duration, reason = null, modIntId = null) {       
+    const start = NOW
+    const finish = start + duration * 1000
+    const muteDbData = {
         stmt: "INSERT OR REPLACE INTO Mutes (startDate, finishDate, userIntId, moderatorIntId," +
             "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        params: [ start, finish, intId, modIntId, reason, null, 0 ] } })
+        params: [ start, finish, intId, modIntId, reason, null, 0 ] }
+    dbWorker.postMessage({ call: "exec", data: muteDbData })
 
-    let ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
+    const ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
     for (let ipObject of ips) {
         mutes.set(ipObject.ip, finish)
     }
@@ -1112,13 +1130,13 @@ async function mute(intId, duration, reason = null, modIntId = null) {
 
 /**
  * Permanment IP block a player by IP, via WS instance or via intID
- * @param {string|ServerWebSocket<any>|number} identifier IP/WS Instance/intID
+ * @param {string|import('bun').ServerWebSocket<any>|number} identifier IP/WS Instance/intID
  */
 function blacklist(identifier) {
     let ip = null
     if (typeof identifier === "number") {
         for (let cli of wss.clients) { 
-            if (cli.intId == identifier) {
+            if (cli.data.intId == identifier) {
                 ip = cli.data.ip
                 cli.close()
             }
@@ -1133,7 +1151,7 @@ function blacklist(identifier) {
     else if (identifier instanceof Object) {
         const cli = identifier
         cli.close()
-        ip = cli.ip
+        ip = cli.data.ip
     }
     if (!ip) return
 
@@ -1143,9 +1161,10 @@ function blacklist(identifier) {
 
 /**
  * Broadcast a message as the server to a specific client (p) or all players, in a channel
- * @param {string} msg Message being sent
- * @param {string} channel Channel message could be sent in
- * @param {ServerWebSocket<any>} p WS instance message is being sent to
+ * @param {string} msg - Message being sent
+ * @param {string} channel - Channel message could be sent in
+ * @param {import('bun').ServerWebSocket<any>?} p - WS instance message is being sent to
+ * @param {number?} repliesTo - Integer id message being replied to 
  */
 function announce(msg, channel, p = null, repliesTo = null) {
     let packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
