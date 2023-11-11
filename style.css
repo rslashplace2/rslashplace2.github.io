@@ -916,7 +916,6 @@ body[eventphase="3"] .coverer-title {
 	transform: translateY(-50%);
 	height: min-content;
 	overflow-x: scroll;
-	width: 100%;
 }
 
 .messageTypeBtn {

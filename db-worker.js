@@ -222,7 +222,7 @@ const internal = {
             }
         }
         else { // Ater
-            count = Math.min(liveChatMessageId - data.messageId, data.count)
+            data.count = Math.min(liveChatMessageId - data.messageId, data.count)
             query += preceeding ? "AND " : ""
             query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
             params.push(data.messageId)
@@ -303,7 +303,10 @@ const internal = {
             createVipQuery.run(data.intId, data.codeHash, epochMs)
         }
     },
-    /** @param {{ stmt: string, params: any }} data */
+    /**
+     * @param {{ stmt: string, params: any }} data SQL stmt, bind parms to be passed into query 
+     * @returns {any[]|null} query reusult
+     */
     exec: function(data) {
         try {
             let query = db.query(data.stmt)
