@@ -13,6 +13,8 @@ webhook_url.txt
 mutes.txt
 pxps.txt
 stats.txt
+uidtoken.txt
+.uidtoken
 server.db
 server.db-shm
 server.db-wal
@@ -20,6 +22,5 @@ server.db-wal
 place
 change
 change2
-.uidtoken
 
 node_modules/

@@ -179,8 +179,8 @@ let playersOffset = 0
 Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size } })
 
 // vip key, cooldown
-let vipFile = (await fs.readFile("./vip.txt")).toString()
-if (!vipFile) {
+let vipTxt = (await fs.readFile("./vip.txt")).toString()
+if (!vipTxt) {
     Bun.write("./vip.txt",
         "# VIP Key configuration file\n" +
         "# Below is the correct format of a VIP key configuration:\n" +
@@ -189,10 +189,24 @@ if (!vipFile) {
         "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
         "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
 }
-let VIP = new Map(vipFile
-    .split('\n')
-    .filter(line => line.trim() && !line.trim().startsWith('#'))
-    .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
+function readVip(vipTxt) {
+    return new Map(vipTxt
+        .split('\n')
+        .filter(line => line.trim() && !line.trim().startsWith('#'))
+        .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
+}
+let VIP = readVip(vipTxt)
+;(async function() {
+    for await (const _ of fs.watch("./vip.txt")) {
+        let beforeKeys = VIP.size
+        let vipTxt = (await fs.readFile("./vip.txt")).toString()
+        let newVip = readVip(vipTxt)
+        VIP.clear() // Gotta maintain same reference for REPL reasons :/
+        for (let [k, v] of newVip) VIP.set(k, v)
+        console.log(`Change in VIP config detected, VIP updated: ${beforeKeys} keys -> ${VIP.size} keys detected`)
+    }
+})()
+
 let RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
 let reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')

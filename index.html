@@ -1219,7 +1219,6 @@
             call(addEventListener, signupButton, 'click', function(e) {
                 signupUsername.style.border = 'initial'
                 signupEmail.style.border = 'initial'
-                signupConfirm.style.border = 'initial'
                 if (signupUsername.value.length < 4) {
                     signupUsername.style.border = '1px solid red'
                     loginSignupMessage.textContent = 'Username is too short!'
@@ -1228,11 +1227,6 @@
                 if (!signupEmail.validity.valid) {
                     signupEmail.style.border = '1px solid red'
                     loginSignupMessage.textContent = 'Email is not valid!'
-                    return
-                }
-                if (signupConfirm.value !== signupEmail.value) {
-                    signupConfirm.style.border = '1px solid red'
-                    loginSignupMessage.textContent = 'Emails do not match!'
                     return
                 }
                 loginSignupMessage.textContent = ''
@@ -1990,7 +1984,6 @@
                     <h4>Sign up</h4>
                     <input type="text" placeholder="Username*" id="signupUsername" maxlength="32" minlength="4">
                     <input type="email" placeholder="Email*" id="signupEmail" required>
-                    <input type="email" placeholder="Confirm Email*" id="signupConfirm" required>
                     <button id="signupButton">Continue</button>
                     <span id="loginSignupMessage"></span>
                 </div>
