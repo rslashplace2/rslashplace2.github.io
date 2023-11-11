@@ -820,8 +820,8 @@
                 case 14: { // Moderation
                     let i = 1
                     let state = data.getUint8(i++)
-                    let startDate = data.getUint32(i); i += 4
-                    let endDate = data.getUint32(i); i+= 4
+                    let startDate = data.getUint32(i) * 1000; i += 4
+                    let endDate = data.getUint32(i) * 1000; i+= 4
                     let reasonLen = data.getUint8(i++)
                     let reason = decoder.decode(data.buffer.slice(i, i + reasonLen)); i += reasonLen
                     let appealLen = data.getUint8(i++)
@@ -1317,13 +1317,16 @@
                 }
                 else if (modActionMute.checked || modActionBan.checked) {
                     const action = modActionMute.checked ? 1 : 2
+                    const seconds = (+modDurationS.value||0)
+                    const minutes = (+modDurationM.value||0)
+                    const hours = (+modDurationH.value||0)
                     setModView(8)
                     view.setUint8(1, action)
                     view.setUint32(2, modMemberId.value)
-                    view.setUint32(6, modDurationS.value + modDurationM.value * 60 + modDurationH.value * 3600)
+                    view.setUint32(6, seconds + minutes * 60 + hours * 3600)
                     setModReason(10)
-                    statusMsg = `${["Kicked","Banned"][action-1]} player ${modMemberId.value} for ${modDurationH.value
-                        } hours, ${modDurationM.value} minutes, and ${modDurationS.value} seconds with reason '${reason}'`
+                    statusMsg = `${["Kicked","Banned"][action-1]} player ${modMemberId.value} for ${hours
+                        } hours, ${minutes} minutes, and ${seconds} seconds with reason '${reason}'`
                 }
                 else if (modActionCaptcha.checked) {
                     setModView(4)

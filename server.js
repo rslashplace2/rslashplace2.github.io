@@ -380,7 +380,7 @@ function createPunishPacket(type, startDate, finishDate, reason, userAppeal, app
     const encReason = encoderUTF8.encode(reason)
     const encAppeal = encoderUTF8.encode(userAppeal)
     const buf = Buffer.allocUnsafe(12 + encReason.byteLength + encAppeal.byteLength)
-    
+
     let offset = 0
     buf[offset++] = 14
     buf[offset++] = type | (appealRejected ? PUNISHMENT_STATE.appealRejected : 0) // state
@@ -411,8 +411,10 @@ async function applyPunishments(ws, intId, ip) {
             let banInfo = await makeDbRequest("exec", {
                 stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Bans WHERE userIntId = ?",
                 params: intId })
-            if (banInfo) { 
-                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, ...banInfo))
+            if (banInfo && banInfo[0]) {
+                banInfo = banInfo[0] 
+                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, banInfo.startDate,
+                    banInfo.finishDate, banInfo.reason, banInfo.userAppeal, banInfo.appealRejected))
             }
             else {
                 ws.send(createPunishPacket(PUNISHMENT_STATE.ban, NOW, banFinish, "Unknown", "N/A", true))
@@ -428,8 +430,10 @@ async function applyPunishments(ws, intId, ip) {
             let muteInfo = await makeDbRequest("exec", {
                 stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Mutes WHERE userIntId = ?1",
                 params: intId })
-            if (muteInfo) {
-                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, ...muteInfo))
+            if (muteInfo && muteInfo[0]) {
+                muteInfo = muteInfo[0]
+                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, muteInfo.startDate,
+                    muteInfo.finishDate, muteInfo.reason, muteInfo.userAppeal, muteInfo.appealRejected))
             }
             else {
                 ws.send(createPunishPacket(PUNISHMENT_STATE.mute, NOW, muteFinish, "Unknown", "N/A", true))
