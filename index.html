@@ -1869,13 +1869,13 @@
                     <li style="font-size: 8px; display: none;" id="userNote"></li>
                     <li id="mentionUser">
                         <a translate="mention" onclick="
-                            chatMentionUser(targetedName || targetedIntId)
+                            chatMentionUser(targetedIntId)
                             chatContext.style.display = 'none'
                         ">Mention user</a>
                     </li>
                     <li id="replyUser">
                         <a translate="replyTo" onclick="
-                            chatReply(targetedMsgId, targetedName)
+                            chatReply(targetedMsgId, targetedIntId)
                             chatContext.style.display = 'none'
                         ">Reply to user</a>
                     </li>
@@ -1892,7 +1892,7 @@
                     <li id="changeMyName" style="display: none;">
                         <a onclick="
                             namePanel.style.visibility = 'visible'
-                            nameInput.value = targetedName
+                            nameInput.value = intIdNames.get(intId)
                             chatContext.style.display = 'none'
                         "><em translate="changeMyName">Change my name</em></a>
                     </li>
@@ -2738,10 +2738,10 @@
             }
         }
 
-        // username: string|intId: number
-        function chatMentionUser(identifier) {
+        function chatMentionUser(senderId) {
             let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
             let mentionText = "@"
+            const identifier = intIdNames.get(senderId) || ("#" + senderId)
             if (typeof identifier === "string") {
                 mentionText += identifier
             }
@@ -2762,7 +2762,7 @@
             messageTypePanel.style.height = "132px" 
             messageInput.focus()
             messageReplyPanel.removeAttribute("closed")
-            messageReplyLabel.innerText = translate("replyTo") + ": " + intIdNames.get(senderId)
+            messageReplyLabel.innerText = translate("replyTo") + ": " + (intIdNames.get(senderId) || ("#" + senderId))
             for (let m of cMessages[currentChannel]) {
                 if (m["messageId"] == messageId) {
                     m.setAttribute("reply", "true")
@@ -3080,7 +3080,6 @@
         }
 
         let blockedUsers = localStorage.blocked?.split(",") || []
-        let targetedName = null
         let targetedIntId = null
         let targetedMsgId = null
         let currentReply = null
@@ -3092,28 +3091,30 @@
                 chatContext.style.display = "none"
             }
             else {
-                if (msgName[msgName.length - 1] === "~") {
-                    msgName = msgName.slice(0, -1)
-                    userNote.style.display = "block"
-                    userNote.textContent = "This user is likely impersonating @" + msgName
+                const identifier = msgName || "#" + msgIntId
+                if (msgName) {
+                    if (msgName[msgName.length - 1] === "~") {
+                        msgName = msgName.slice(0, -1)
+                        userNote.style.display = "block"
+                        userNote.textContent = "This user is likely impersonating @" + msgName
+                    }
+                    else if (msgName[msgName.length - 1] === "✓") {
+                        msgName = msgName.slice(0, -1)
+                        userNote.style.display = "block"
+                        userNote.textContent = "This user is verified as @" + msgName
+                    }
+                    else { userNote.style.display = "none" }
                 }
-                else if (msgName[msgName.length - 1] === "✓") {
-                    msgName = msgName.slice(0, -1)
-                    userNote.style.display = "block"
-                    userNote.textContent = "This user is verified as @" + msgName
-                }
-                else { userNote.style.display = "none" }
 
                 targetedMsgId = msgId
                 targetedIntId = msgIntId
-                targetedName = msgName
                 chatContext.style.display = "block"
-                mentionUser.children[0].textContent = translate("mention") + " " + msgName
+                mentionUser.children[0].textContent = translate("mention") + " " + identifier
 
                 if (blockedUsers.includes(msgIntId))
-                    blockUser.children[0].textContent = translate("unblock") + " " + msgName
+                    blockUser.children[0].textContent = translate("unblock") + " " + identifier
                 else
-                    blockUser.children[0].textContent = translate("block") + " " + msgName
+                    blockUser.children[0].textContent = translate("block") + " " + identifier
 
                 if (msgIntId == intId) {
                     blockUser.style.pointerEvents = "none"
