@@ -772,6 +772,8 @@ const wss = Bun.serve({
                         case 0: { // Kick
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            if (actionReason.length == 0) return
+
                             let actionCli = null
                             for(let [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
@@ -791,6 +793,8 @@ const wss = Bun.serve({
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionTimeS = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            if (actionReason.length == 0) return
+
                             let actionCli = null
                             for(let [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
@@ -808,6 +812,7 @@ const wss = Bun.serve({
                         case 3: { // Force captcha revalidation
                             let actionIntId = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            if (actionReason.length == 0) return
                             let actionCli = null
         
                             if (actionIntId !== 0) {
@@ -832,7 +837,7 @@ const wss = Bun.serve({
                         case 4: { // Delete chat message
                             let actionMsgId = data.readUInt32BE(offset); offset += 4
                             let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
-                            if (actionMsgId === 0) return
+                            if (actionMsgId === 0 || actionReason.length == 0) return
 
                             dbWorker.postMessage({ call: "deleteLiveChat", data: {
                                 messageId: actionMsgId,
