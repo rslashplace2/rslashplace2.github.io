@@ -36,6 +36,13 @@ button:hover, input[type="button"]:hover {
     background-color: lightgray;
 }
 
+input[type="button"]:disabled, button:disabled {
+    cursor: default;
+    color: #0000009c;
+    pointer-events: none;
+    background-color: lightgray;
+}
+
 #loadingScreen {
     background: white;
 }

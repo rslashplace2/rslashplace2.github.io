@@ -421,8 +421,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.01", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.01", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.02", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.02", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -528,7 +528,7 @@
                     namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
                 }
                 namePart.title = (new Date(sendDate * 1000)).toLocaleString()
-                namePart.onclick = (e) => chatMentionUser(name)
+                namePart.onclick = (e) => chatMentionUser(name || messageId)
                 namePart.textContent = `[${name || ("#" + senderId)}] `
                 let txtPart = document.createElement("span")
                 txtPart.innerHTML = txt
@@ -852,8 +852,8 @@
                     const messageId = data.getUint32(offset); offset += 4
                     const txtLength = data.getUint16(offset); offset += 2
                     let txt = decoder.decode(data.buffer.slice(offset, (offset += txtLength)))
-                    const intId = data.getUint32(offset); offset += 4 // sender int ID
-                    const name = intIdNames.get(intId)
+                    const senderIntId = data.getUint32(offset); offset += 4 // sender int ID
+                    const name = intIdNames.get(senderIntId)
 
                     if (msgType == 0) { // live
                         let sendDate = data.getUint32(offset); offset += 4
@@ -866,12 +866,12 @@
                         }
                         if (!(channel in cMessages)) return
 
-                        const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo)
-                        if (intId !== 0 && blockedUsers.includes(intId)) {
+                        const newMessage = createLiveChatMessage(messageId, txt, senderIntId, name, sendDate, repliesTo)
+                        if (senderIntId !== 0 && blockedUsers.includes(senderIntId)) {
                             newMessage.style.color = "transparent"
                             newMessage.style.textShadow = "0px 0px 6px black"
                         }
-                        if (txt.includes("@" + chatName) || txt.includes("@everyone")) {
+                        if (txt.includes("@" + chatName) || txt.includes("@#" + intId) || txt.includes("@everyone")) {
                             newMessage.setAttribute("mention", "true")
                             if (currentChannel == channel) AUDIOS.closePalette.run()
                         }
@@ -898,7 +898,7 @@
                         txt = txt.substring(0, 56)
 
                         const placeMessage = document.createElement("placechat")
-                        placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[hash("" + intId) & 7]};">[${name}]</span><span>${txt}</span>`
+                        placeMessage.innerHTML = `<span title="${(new Date()).toLocaleString()}" style="color: ${CHAT_COLOURS[hash("" + senderIntId) & 7]};">[${name}]</span><span>${txt}</span>`
                         placeMessage.style.left = (msgPos % WIDTH) + "px"
                         placeMessage.style.top = (Math.floor(msgPos / WIDTH) + 0.5) + "px"
                         canvparent2.appendChild(placeMessage)
@@ -1435,7 +1435,7 @@
             <div id="moderationMenu" noselect="" mode="delete" class="toast-menu">
                 <div style="display: flex;margin-bottom: 16px;">
                     <h2 style="display: inline;flex-grow: 1;">Moderation options:</h2>
-                    <icon-close noselect="" class="close-button" onclick="moderationMenu.removeAttribute('opened')">
+                    <icon-close noselect="" class="close-button" onclick="closeChatModerate()">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
                             <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
                         </svg>
@@ -1489,10 +1489,10 @@
                     </div>
                 </div>
                 <em>All moderation actions are logged by the server and reports sent to all other staff. Follow the moderation rules. Do not abuse power.</em>
-                <input id="modReason" type="text" placeholder="Reason">
+                <input id="modReason" type="text" placeholder="Reason" oninput="modOptionsButton.disabled = !this.value">
                 <div style="display: flex; column-gap: 8px;">
-                    <button style="flex-grow: 1;" id="modOptionsButton">Submit</button>
-                    <button style="flex-grow: 1;">Cancel</button>
+                    <button style="flex-grow: 1;" id="modOptionsButton" disabled="true">Submit</button>
+                    <button style="flex-grow: 1;" onclick="closeChatModerate()">Cancel</button>
                 </div>
             </div>
             <div id="place" noselect onclick="
@@ -1869,7 +1869,7 @@
                     <li style="font-size: 8px; display: none;" id="userNote"></li>
                     <li id="mentionUser">
                         <a translate="mention" onclick="
-                            chatMentionUser(targetedName)
+                            chatMentionUser(targetedName || targetedIntId)
                             chatContext.style.display = 'none'
                         ">Mention user</a>
                     </li>
@@ -2738,10 +2738,18 @@
             }
         }
 
-        function chatMentionUser(user) {
-            messageInput.focus()
+        // username: string|intId: number
+        function chatMentionUser(identifier) {
             let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
-            messageInput.setRangeText("@" + user, start, end, "end")
+            let mentionText = "@"
+            if (typeof identifier === "string") {
+                mentionText += identifier
+            }
+            else if (typeof identifier === "number") {
+                mentionText += "#" + identifier
+            }
+            messageInput.setRangeText(mentionText, start, end, "end")
+            messageInput.focus()
         }
 
         function chatReply(messageId, senderId) {
@@ -2783,17 +2791,26 @@
             alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
         }
 
-        // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
-        function chatModerate(mode, senderId, messageId = null, messageElement = null) {
-            moderationMenu.setAttribute("opened", "true")
-            moderationMenu.setAttribute("mode", mode)
+        function clearChatModerate() {
             modMemberId.value = senderId
             modMessageId.value = messageId
-            modMessagePreview.innerHTML = messageElement?.innerHTML
             modAffectsAll.checked = false
             modDurationH.value = null
             modDurationM.value = null
             modDurationS.value = null
+        }
+
+        function closeChatModerate() {
+            moderationMenu.removeAttribute('opened')
+            clearChatModerate()
+        }
+
+        // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
+        function chatModerate(mode, senderId, messageId = null, messageElement = null) {
+            clearChatModerate()
+            moderationMenu.setAttribute("opened", "true")
+            moderationMenu.setAttribute("mode", mode)
+            modMessagePreview.innerHTML = messageElement?.innerHTML
 
             switch(mode) {
                 case "delete": 

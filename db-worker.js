@@ -270,13 +270,12 @@ const internal = {
         const deletionId = deletionQuery.get()
 
         // If pending we can update the record in preflight
-        let wasPending = false
         for (let messageData of liveChatInserts._elements) {
             if (messageData[0] === data.messageId) {
                 messageData[6] = deletionId // Live chat deletion
+                return
             }
         }
-        if (wasPending) return
 
         const query = db.query("UPDATE LiveChatMessages SET deletionId = ?1 WHERE messageId = ?2")
         query.run(deletionId, data.messageId)
