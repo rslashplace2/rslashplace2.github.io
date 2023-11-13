@@ -528,7 +528,7 @@
                     namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
                 }
                 namePart.title = (new Date(sendDate * 1000)).toLocaleString()
-                namePart.onclick = (e) => chatMentionUser(name || messageId)
+                namePart.onclick = (e) => chatMentionUser(name || senderId)
                 namePart.textContent = `[${name || ("#" + senderId)}] `
                 let txtPart = document.createElement("span")
                 txtPart.innerHTML = txt
@@ -3121,8 +3121,8 @@
                     changeMyName.style.display = ""
                 }
                 else  {
-                    blockUser.style.pointerEvents = "none"
-                    blockUser.children[0].style.color = "grey"
+                    blockUser.style.pointerEvents = "all"
+                    blockUser.children[0].style.color = "black"
                     changeMyName.style.display = "none"
                 }
 
