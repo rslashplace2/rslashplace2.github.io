@@ -519,7 +519,7 @@
                     }
                 })
 
-                newMessage.oncontextmenu = (e) => onChatContext(e, name, senderId, messageId)
+                newMessage.oncontextmenu = (e) => onChatContext(e, senderId, messageId)
                 let namePart = document.createElement("span")
                 if (messageId === 0) {
                     namePart.classList.add("special-glow")
@@ -528,7 +528,7 @@
                     namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
                 }
                 namePart.title = (new Date(sendDate * 1000)).toLocaleString()
-                namePart.onclick = (e) => chatMentionUser(name || senderId)
+                namePart.onclick = (e) => chatMentionUser(senderId)
                 namePart.textContent = `[${name || ("#" + senderId)}] `
                 let txtPart = document.createElement("span")
                 txtPart.innerHTML = txt
@@ -3084,14 +3084,15 @@
         let targetedMsgId = null
         let currentReply = null
 
-        function onChatContext(ev, msgName, msgIntId, msgId) {
+        function onChatContext(ev, senderId, msgId) {
             ev.preventDefault()
 
             if (chatContext.style.display == "block") {
                 chatContext.style.display = "none"
             }
             else {
-                const identifier = msgName || "#" + msgIntId
+                const msgName = intIdNames.get(senderId)
+                const identifier = msgName || ("#" + senderId)
                 if (msgName) {
                     if (msgName[msgName.length - 1] === "~") {
                         msgName = msgName.slice(0, -1)
@@ -3107,16 +3108,14 @@
                 }
 
                 targetedMsgId = msgId
-                targetedIntId = msgIntId
+                targetedIntId = senderId
                 chatContext.style.display = "block"
-                mentionUser.children[0].textContent = translate("mention") + " " + identifier
+                mentionUser.children[0].textContent = `${translate("mention")} ${identifier}`
+                replyUser.children[0].textContent = `${translate("replyTo")} ${identifier}` 
+                blockUser.children[0].textContent =
+                    `${translate(blockedUsers.includes(senderId) ? "unblock" : "block")} ${identifier}`
 
-                if (blockedUsers.includes(msgIntId))
-                    blockUser.children[0].textContent = translate("unblock") + " " + identifier
-                else
-                    blockUser.children[0].textContent = translate("block") + " " + identifier
-
-                if (msgIntId == intId) {
+                if (senderId == intId) {
                     blockUser.style.pointerEvents = "none"
                     blockUser.children[0].style.color = "grey"
                     changeMyName.style.display = ""
