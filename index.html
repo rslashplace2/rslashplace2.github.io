@@ -2792,8 +2792,6 @@
         }
 
         function clearChatModerate() {
-            modMemberId.value = senderId
-            modMessageId.value = messageId
             modAffectsAll.checked = false
             modDurationH.value = null
             modDurationM.value = null
@@ -2808,6 +2806,8 @@
         // Mode: string ("delete"|"kick"|"mute"|"ban"|"captcha")
         function chatModerate(mode, senderId, messageId = null, messageElement = null) {
             clearChatModerate()
+            modMemberId.value = senderId
+            modMessageId.value = messageId
             moderationMenu.setAttribute("opened", "true")
             moderationMenu.setAttribute("mode", mode)
             modMessagePreview.innerHTML = messageElement?.innerHTML
