@@ -621,8 +621,7 @@ body[eventphase="3"] .coverer-title {
 
 #ad {
 	/* Default: 'Advertise here', will be overriden in element style */
-	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png)
-    display: block;
+	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png);
     flex-shrink: 0;
     background-image: var(--adurl);
     background-position: center;
@@ -631,6 +630,7 @@ body[eventphase="3"] .coverer-title {
     background-repeat: no-repeat;
 	position: relative;
 	overflow: clip;
+	height: 100%;
 }
 
 #ad::before {
@@ -645,6 +645,15 @@ body[eventphase="3"] .coverer-title {
     background-size: cover;
     transform: scale(1.5);
     filter: blur(6px) saturate(1.2);	
+}
+
+.ad-close {
+	position: absolute;
+	right: -8px;
+	top: -8px;
+	height: 32px;
+	width: 32px;
+	color: black;
 }
 
 #chatPreviousButton {
