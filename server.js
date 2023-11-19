@@ -74,7 +74,7 @@ catch(e) {
 }
 
 let newPos = [], newCols = [], newIds = []
-let cooldowns = new Map()
+const cooldowns = new Map()
 
 const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
 CHANGEPACKET.setUint8(0, 2)
@@ -178,39 +178,10 @@ function randomString(length) {
 let playersOffset = 0
 Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size } })
 
-// vip key, cooldown
-const vipTxt = (await fs.readFile("./vip.txt")).toString()
-if (!vipTxt) {
-    Bun.write("./vip.txt",
-        "# VIP Key configuration file\n" +
-        "# Below is the correct format of a VIP key configuration:\n" +
-        "# MY_SHA256_HASHED_VIP_KEY { perms: \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", cooldownMs: N }\n\n" +
-        "# Example VIP key configuration:\n" +
-        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
-        "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
-}
-function readVip(vipTxt) {
-    return new Map(vipTxt
-        .split('\n')
-        .filter(line => line.trim() && !line.trim().startsWith('#'))
-        .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
-}
-const VIP = readVip(vipTxt)
-;(async function() {
-    for await (const _ of fs.watch("./vip.txt")) {
-        const beforeKeys = VIP.size
-        const vipTxt = (await fs.readFile("./vip.txt")).toString()
-        const newVip = readVip(vipTxt)
-        VIP.clear() // Gotta maintain same reference for REPL reasons :/
-        for (const [k, v] of newVip) VIP.set(k, v)
-        console.log(`Change in VIP config detected, VIP updated: ${beforeKeys} keys -> ${VIP.size} keys detected`)
-    }
-})()
-
 const RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
-const reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
-for (const pair of reserved_lines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
+const reservedLines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
+for (const pair of reservedLines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
 const BLACKLISTED = new Set(
     (await Promise.all((
         (await fs.readFile("bansheets.txt")).toString()
@@ -234,7 +205,7 @@ const dbWorker = new Worker("./db-worker.js")
 /** 
  * __Always await this__, and only use in cases where you __WANT the response__, if you want something that
  * you can just fire and forget then use dbWorker.postMessage instead.
- * @param {({call: string, data: any}|string)} messageCall - String method name | Method call + arguments to be executed on DB worker.
+ * @param {({call: string, data: any, handle?: number}|string)} messageCall - String method name | Method call + arguments to be executed on DB worker.
  * @param {object} args - Arguments that makeDbRequest will use.
  */
 async function makeDbRequest(messageCall, args = null) {
@@ -264,6 +235,58 @@ let placeChatMessageId = (await makeDbRequest("getMaxPlaceChatId")) || 0
 const mutes = new Map() // IP : finishDate (unix epoch offset ms)
 const bans = new Map() // IP : finishDate (unix epoch offset ms)
 const activeVips = new Map() // String VIP key : client
+
+// vip key, cooldown
+const vipTxt = (await fs.readFile("./vip.txt")).toString()
+if (!vipTxt) {
+    Bun.write("./vip.txt",
+        "# VIP Key configuration file\n" +
+        "# Below is the correct format of a VIP key configuration:\n" +
+        "# MY_SHA256_HASHED_VIP_KEY { perms: \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", cooldownMs: N }\n\n" +
+        "# Example VIP key configuration:\n" +
+        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
+        "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
+}
+function readVip(vipTxt) {
+    return new Map(vipTxt
+        .split('\n')
+        .filter(line => line.trim() && !line.trim().startsWith('#'))
+        .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
+}
+const VIP = readVip(vipTxt)
+;(async function() {
+    for await (const _ of fs.watch("./vip.txt")) {
+        const beforeKeys = VIP.size
+        try {
+            const vipTxt = (await fs.readFile("./vip.txt")).toString()
+            const newVip = readVip(vipTxt)
+            const addedKeys = new Map([...newVip].filter(([k]) => !VIP.has(k)))
+            const removedKeys = new Map([...VIP].filter(([k]) => !newVip.has(k)))
+            const modifiedKeys = new Map([...newVip].filter(([k, v]) => VIP.has(k) && VIP.get(k) !== v))
+
+            // Update VIP map
+            for (const [k, v] of addedKeys) VIP.set(k, v)
+            for (const [k] of removedKeys) VIP.delete(k)
+            for (const [k, v] of modifiedKeys) VIP.set(k, v)
+            let removedClients = 0 
+            for (const k of removedKeys) {
+                const activeClient = activeVips.get(k)
+                if (activeClient) {
+                    removedClients++
+                    k.close()
+                }
+            }
+            console.log(`Change in VIP config detected, VIP updated: ${beforeKeys} keys -> ${VIP.size} keys detected. ${
+                addedKeys.size > 0 ? `${addedKeys.size} keys found to be added. `: ""} ${
+                removedKeys.size > 0 ? `${removedKeys.size} keys found to be removed.`: ""} ${
+                modifiedKeys.size > 0 ? `${modifiedKeys.size} keys found to be modified. ` : ""} ${
+                removedClients > 0 ? `${removedClients} active key users removed.` : ""}`)
+        }
+        catch(e) {
+            console.log("Error reading or updating VIP:", e)
+        }
+    }
+})()
 
 const PUNISHMENT_STATE = {
     mute: 0,
@@ -922,7 +945,7 @@ let currentCaptcha = zcaptcha.genEmojiCaptcha
 
 /**
  * Force a client to redo the captcha
- * @param {string|number|import('bun').ServerWebSocket} identifier - String client ip address, intId or client websocket instance
+ * @param {string|number|import('bun').ServerWebSocket<any>} identifier - String client ip address, intId or client websocket instance
  */
 async function forceCaptchaSolve(identifier) {
 	const cli = identifier
@@ -938,7 +961,7 @@ async function forceCaptchaSolve(identifier) {
             if (cli.data.ip === identifier) cli = identifier
         }
     }
-    if (!cli) return
+    if (!cli || typeof cli != "object") return
 
     try {
         const result = await currentCaptcha()
@@ -973,7 +996,7 @@ async function pushImage() {
             error => error ? reject(error) : resolve()))
 
     // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
-    let curr = new Uint8Array(CHANGES)
+    const curr = new Uint8Array(CHANGES)
     setTimeout(() => {
         // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
         for (let i = curr.length - 1; i >= 0; i--) { if (curr[i] == CHANGES[i]) CHANGES[i] = 255 }
@@ -1101,9 +1124,26 @@ function fill(x, y, x1, y1, c = 27, random = false) {
     return `Filled an area of ${w}*${h} (${(w * h)} pixels), reload the game to see the effects`
 }
 
-// This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters)
-// by banning them as soon as we notice them placing a pixel in such area.  
-const prebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" } // kick, ignore, ban, or function(p, x, y): bool
+/** @typedef {("kick"|"ban"|"blacklist"|"none"|(function(import('bun').ServerWebSocket, number, number): boolean))} PrebanAction */
+/**
+ * @typedef {Object} PrebanArea
+ * @property {number} x - The x-coordinate.
+ * @property {number} y - The y-coordinate.
+ * @property {number} x1 - The x-coordinate of the other corner.
+ * @property {number} y1 - The y-coordinate of the other corner.
+ * @property {PrebanAction} action - The action to be performed on catch
+ */
+/** @type {PrebanArea} */
+const prebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" }
+/**
+ * This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters)
+ * by banning them as soon as we notice them placing a pixel in such area.
+ * @param {number} _x - x start
+ * @param {number} _y - y start
+ * @param {number} _x1 - x end
+ * @param {number} _y1 - y end
+ * @param {PrebanAction} _action - The action to be performed on catch
+ */
 function setPreban(_x, _y, _x1, _y1, _action = "kick") {
     prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action
 }
