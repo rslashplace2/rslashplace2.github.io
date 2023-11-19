@@ -1353,7 +1353,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.21" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.22" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1898,7 +1898,9 @@
                     </li>
                 </ul>
             </div>
-            <a id="ad" target="_blank"></a>
+            <a id="ad" target="_blank">
+                <button class="ad-close" onclick="event.stopPropagation(); ad.style.display = 'none'; localStorage.noad = true">x</button>
+            </a>
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll="
                 let styleChange = new Map()
@@ -3177,14 +3179,19 @@
             channelTooltip.style.display = "none"
         }, 0)
 
-        let adI = Math.floor(Math.random() * ADS.length)
-        function cycleAd() {
-            const currentAd = ADS[adI % ADS.length] 
-            ad.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
-            ad.href = currentAd.url
-            adI++
+        if (localStorage.noad) {
+            ad.style.display = "none"
         }
-        setInterval(cycleAd, 24e4)
-        cycleAd()
+        else {
+            let adI = Math.floor(Math.random() * ADS.length)
+            function cycleAd() {
+                const currentAd = ADS[adI % ADS.length] 
+                ad.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
+                ad.href = currentAd.url
+                adI++
+            }
+            setInterval(cycleAd, 12e4) // 2 mins
+            cycleAd()
+        }
     </script>
 </html>
