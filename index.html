@@ -467,7 +467,7 @@
         }
 
         // Register PWA Service worker
-        if ('serviceWorker' in navigator)
+        if ("serviceWorker" in navigator)
             navigator.serviceWorker.register("./sw.js")
 
         const intIdPositions = new Map() // position : intId
@@ -481,8 +481,8 @@
 
         const wscapsule = ((send, addEventListener, call) => {
             let focused = true
-            call(addEventListener, window, 'blur', () => focused = false)
-            call(addEventListener, window, 'focus', () => focused = true)
+            call(addEventListener, window, "blur", () => focused = false)
+            call(addEventListener, window, "focus", () => focused = true)
             
             let authSocket = new WebSocket("wss://server.poemanthology.org/auth")
             let svUri = localStorage.server || DEFAULT_SERVER
@@ -630,9 +630,9 @@
                     break
                 }
                 case 1: {
-                    loginPanel.style.display = 'flex'
-                    unauthedPage.style.display = 'none'
-                    profilePage.style.display = 'flex'
+                    loginPanel.style.display = "flex"
+                    unauthedPage.style.display = "none"
+                    profilePage.style.display = "flex"
 
                     account = JSON.parse(decoder.decode(data.buffer.slice(1)))
                     profileName2.textContent = profileName.textContent = account.Username
@@ -663,7 +663,7 @@
                     for (let i of account.Badges) {
                         let badgeImg = document.createElement("img")
                         badgeImg.src = BADGES[i]
-                        badgeImg.style.width = '16px'
+                        badgeImg.style.width = "16px"
                         badgeImg.title = BADGES[i][7].toUpperCase() + BADGES[i].replace("_", "").slice(8, BADGES[i].length - 4)
                         profileBadges.appendChild(badgeImg)
                     }
@@ -710,7 +710,7 @@
                     CD = data.getUint32(1) * 1000 // Current cooldown
                     COOLDOWN = data.getUint32(5)
                     if (COOLDOWN == 0xFFFFFFFF) { // TODO: Official server packet for this
-                        canvasLock.style.display = 'flex'
+                        canvasLock.style.display = "flex"
                         canvasLocked = true
                     }
 
@@ -731,7 +731,7 @@
                 case 3: { // Online
                     online = data.getUint16(1)
                     onlineCounter.textContent = online
-                    onlineCounter2.textContent = online + ' online'
+                    onlineCounter2.textContent = online + " online"
                     break
                 }
                 case 5: { // Pixel with included placer
@@ -1111,7 +1111,7 @@
                 }
                 else if (e.key === "/" && !("value" in document.activeElement)) {
                     e.preventDefault()
-                    chatPanel.toggleAttribute('open')
+                    chatPanel.toggleAttribute("open")
                 }
                 else if (e.key === "Escape") {
                     // TODO: Not optimal, but it works for now
@@ -1160,13 +1160,13 @@
                 //Begin palette commands
                 if (onCooldown || canvasLocked) return
                 //"Enter" key to place selected block without using mouse
-                if (e.keyCode == 13 && !('value' in document.activeElement)) call(oclick, pok, e)
+                if (e.keyCode == 13 && !("value" in document.activeElement)) call(oclick, pok, e)
                 //Keyboard shortcuts for selecting palette colours
                 let keyIndex = null
                 if (document.activeElement != document.body)return
                 keyIndex = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS).indexOf(e.key)
                 if (keyIndex == -1) return
-                if (palette.style.transform == 'translateY(100%)')
+                if (palette.style.transform == "translateY(100%)")
                     showPalette()
                 for (let c = 0; c < document.getElementById("colours").children.length; c++) {
                     document.getElementById("colours").children[c].firstChild.style.visibility = "visible"
@@ -1176,19 +1176,19 @@
                 if (colourI < 0) return
                 let el = document.getElementById("colours").children[PEN]
                 if (el) {
-                    el.classList.remove('sel')
+                    el.classList.remove("sel")
                 }
                 PEN = keyIndex;
                 AUDIOS.selectColour.run()
                 canvselect.style.background = document.getElementById("colours").children[keyIndex].style.background
-                document.getElementById("colours").children[keyIndex].classList.add('sel')
-                pok.classList.add('enabled')
+                document.getElementById("colours").children[keyIndex].classList.add("sel")
+                pok.classList.add("enabled")
                 canvselect.children[0].style.display = "none"
                 canvselect.style.outline= "8px white solid"
                 canvselect.style.boxShadow= "0px 2px 4px 0px rgb(0 0 0 / 50%)"
             })
 
-            call(addEventListener, document.body, 'touchend', function(e) {
+            call(addEventListener, document.body, "touchend", function(e) {
                 if (!e.isTrusted) return
 
                 for (let t of e.changedTouches) {
@@ -1201,7 +1201,7 @@
                             clicked(t.clientX, t.clientY)
                         }
                     }
-                    if ('value' in e.target) e.target.focus()
+                    if ("value" in e.target) e.target.focus()
                     let target = e.target
                     while (!target.dispatchEvent) {
                         target = target.parentElement

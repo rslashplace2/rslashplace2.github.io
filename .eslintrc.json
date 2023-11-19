@@ -33,7 +33,9 @@
         "no-constant-condition": "off",
         "no-undef": "off",
         "no-process-exit": "off",
-        "no-unused-vars": "off"
+        "no-unused-vars": "off",
+        "prefer-const": "warn",
+        "no-const-assign": "error"
     },
     "globals": {
         "Bun": false
