@@ -155,7 +155,7 @@ class PublicPromise {
     }
 }
 
-let criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
+const criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
     if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "")
 }
@@ -179,7 +179,7 @@ let playersOffset = 0
 Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size } })
 
 // vip key, cooldown
-let vipTxt = (await fs.readFile("./vip.txt")).toString()
+const vipTxt = (await fs.readFile("./vip.txt")).toString()
 if (!vipTxt) {
     Bun.write("./vip.txt",
         "# VIP Key configuration file\n" +
@@ -195,23 +195,23 @@ function readVip(vipTxt) {
         .filter(line => line.trim() && !line.trim().startsWith('#'))
         .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 }
-let VIP = readVip(vipTxt)
+const VIP = readVip(vipTxt)
 ;(async function() {
     for await (const _ of fs.watch("./vip.txt")) {
-        let beforeKeys = VIP.size
-        let vipTxt = (await fs.readFile("./vip.txt")).toString()
-        let newVip = readVip(vipTxt)
+        const beforeKeys = VIP.size
+        const vipTxt = (await fs.readFile("./vip.txt")).toString()
+        const newVip = readVip(vipTxt)
         VIP.clear() // Gotta maintain same reference for REPL reasons :/
-        for (let [k, v] of newVip) VIP.set(k, v)
+        for (const [k, v] of newVip) VIP.set(k, v)
         console.log(`Change in VIP config detected, VIP updated: ${beforeKeys} keys -> ${VIP.size} keys detected`)
     }
 })()
 
-let RESERVED_NAMES = new DoubleMap()
+const RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
-let reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
-for (let pair of reserved_lines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
-let BLACKLISTED = new Set(
+const reserved_lines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
+for (const pair of reserved_lines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
+const BLACKLISTED = new Set(
     (await Promise.all((
         (await fs.readFile("bansheets.txt")).toString()
             .trim()
@@ -219,12 +219,12 @@ let BLACKLISTED = new Set(
             .map(banListUrl => fetch(banListUrl).then(response => response.text())))))
     .flatMap(line => line.trim().split('\n').map(ip => ip.split(':')[0].trim())))
 
-for (let ban of (await fs.readFile("blacklist.txt")).toString().split('\n')) {
+for (const ban of (await fs.readFile("blacklist.txt")).toString().split('\n')) {
     BLACKLISTED.add(ban)
 }
 
-let toValidate = new Map()
-let captchaFailed = new Map()
+const toValidate = new Map()
+const captchaFailed = new Map()
 const encoderUTF8 = new util.TextEncoder()
 const decoderUTF8 = new util.TextDecoder()
 
@@ -238,8 +238,8 @@ const dbWorker = new Worker("./db-worker.js")
  * @param {object} args - Arguments that makeDbRequest will use.
  */
 async function makeDbRequest(messageCall, args = null) {
-    let handle = dbReqId++
-    let promise = new PublicPromise()
+    const handle = dbReqId++
+    const promise = new PublicPromise()
     
     if (typeof messageCall === "object" && messageCall?.call)
         messageCall.handle = handle
@@ -257,12 +257,13 @@ dbWorker.on("message", (message) => {
 })
 dbWorker.on("error", console.warn)
 
-let playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
-let playerChatNames = new Map() // intId<Number> : chatName<String>
+const playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
+const playerChatNames = new Map() // intId<Number> : chatName<String>
 let liveChatMessageId = (await makeDbRequest("getMaxLiveChatId")) || 0
 let placeChatMessageId = (await makeDbRequest("getMaxPlaceChatId")) || 0
-let mutes = new Map() // IP : finishDate (unix epoch offset ms)
-let bans = new Map() // IP : finishDate (unix epoch offset ms)
+const mutes = new Map() // IP : finishDate (unix epoch offset ms)
+const bans = new Map() // IP : finishDate (unix epoch offset ms)
+const activeVips = new Map() // String VIP key : client
 
 const PUNISHMENT_STATE = {
     mute: 0,
@@ -271,25 +272,25 @@ const PUNISHMENT_STATE = {
 }
 
 // Fetch all mutes, bans
-let muteIdFinishes = await makeDbRequest("exec", {
+const muteIdFinishes = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Mutes WHERE finishDate > ?",
     params: Date.now() })
-for (let idFinish of muteIdFinishes) {
-    let idIps = await makeDbRequest("exec", {
+for (const idFinish of muteIdFinishes) {
+    const idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
-    for (let ipObject of idIps) {
+    for (const ipObject of idIps) {
         mutes.set(ipObject.ip, idFinish.finishDate)
     }
 }
-let banIdFinishes = await makeDbRequest("exec", {
+const banIdFinishes = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Bans WHERE finishDate > ?",
     params: Date.now() })
-for (let idFinish of banIdFinishes) {
-    let idIps = await makeDbRequest("exec", {
+for (const idFinish of banIdFinishes) {
+    const idIps = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
-    for (let ipObject of idIps) {
+    for (const ipObject of idIps) {
         bans.set(ipObject.ip, idFinish.finishDate)
     }
 }
@@ -362,9 +363,9 @@ function createChatPacket(type, message, sendDate, messageId, intId, channel = n
  */
 function createNamesPacket(names) {
     let size = 1
-    let encodedNames = new Map()
-    for (let [intId, name] of names) {
-        let encName = encoderUTF8.encode(name)
+    const encodedNames = new Map()
+    for (const [intId, name] of names) {
+        const encName = encoderUTF8.encode(name)
         encodedNames.set(intId, encName)
         size += encName.length + 5
     }
@@ -372,7 +373,7 @@ function createNamesPacket(names) {
     const infoBuffer = Buffer.allocUnsafe(size)
     infoBuffer[0] = 12
     let i = 1
-    for (let [intId, encName] of encodedNames) {
+    for (const [intId, encName] of encodedNames) {
         infoBuffer.writeUInt32BE(intId, i); i += 4
         infoBuffer.writeUInt8(encName.length, i); i++
         infoBuffer.set(encName, i); i += encName.length
@@ -416,7 +417,7 @@ function createPunishPacket(type, startDate, finishDate, reason, userAppeal, app
  * @param {string} ip - IP address of client to have punishments applied and scanned for
  */
 async function applyPunishments(ws, intId, ip) {
-    let banFinish = bans.get(ip)
+    const banFinish = bans.get(ip)
     if (banFinish) {
         if (banFinish < NOW) {
             bans.delete(ip)
@@ -435,7 +436,7 @@ async function applyPunishments(ws, intId, ip) {
             }
         }
     }
-    let muteFinish = mutes.get(ip)
+    const muteFinish = mutes.get(ip)
     if (muteFinish) {
         if (muteFinish < NOW) {
             mutes.delete(ip)
@@ -463,8 +464,7 @@ const wss = Bun.serve({
         if (!cookies[uidToken]) {
             newToken = randomString(32)
         }
-
-        let url = new URL(req.url)
+        const url = new URL(req.url)
         server.upgrade(req, {
             data: {
                 url: url.pathname.slice(1).trim(),
@@ -505,11 +505,14 @@ const wss = Bun.serve({
             ws.subscribe("all") // receive all ws messages
             let CD = COOLDOWN
             if (URL) {
-                let codeHash = sha256(URL)
-                let vip = VIP.get(codeHash)
+                const codeHash = sha256(URL)
+                const vip = VIP.get(codeHash)
                 if (!vip) {
                     return ws.close(4000, "Invalid VIP code. Please do not try again.")
                 }
+                const existingVip = activeVips.get(codeHash)
+                existingVip?.close(4000, "You have connected with this VIP code on another session.")
+                activeVips.set(codeHash, ws)
                 ws.data.codeHash = codeHash
                 ws.data.perms = vip.perms
                 CD = vip.cooldownMs
@@ -520,7 +523,7 @@ const wss = Bun.serve({
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
 
-            let buf = Buffer.alloc(9)
+            const buf = Buffer.alloc(9)
             buf[0] = 1
             buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
             buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : ws.data.cd, 5)
@@ -530,7 +533,7 @@ const wss = Bun.serve({
         
             // If a custom palette is defined, then we send to client
             if (Array.isArray(PALETTE)) {
-                let paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
+                const paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
                 paletteBuffer[0] = 0
                 for (let i = 0; i < PALETTE.length; i++) {
                     paletteBuffer.writeUInt32BE(PALETTE[i], i + 1)
@@ -542,7 +545,7 @@ const wss = Bun.serve({
             const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
             ws.data.intId = pIntId
             playerIntIds.set(ws, pIntId)
-            let pIdBuf = Buffer.alloc(5)
+            const pIdBuf = Buffer.alloc(5)
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
             pIdBuf.writeUInt32BE(pIntId, 1)
             ws.send(pIdBuf)
@@ -570,11 +573,11 @@ const wss = Bun.serve({
             switch (data[0]) {
                 case 4: { // pixel place
                     if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP)) return
-                    let i = data.readUInt32BE(1), c = data[5]
+                    const i = data.readUInt32BE(1), c = data[5]
                     if (i >= BOARD.length || c >= PALETTE_SIZE) return
-                    let cd = cooldowns.get(IP)
+                    const cd = cooldowns.get(IP)
                     if (cd > NOW) {
-                        let data = Buffer.alloc(10)
+                        const data = Buffer.alloc(10)
                         data[0] = 7
                         data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
                         data.writeInt32BE(i, 5)
@@ -593,8 +596,8 @@ const wss = Bun.serve({
                 }
                 case 12: { // Submit name
                     let name = decoderUTF8.decode(data.subarray(1))
-                    let res_name = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
-                    name = res_name ? res_name + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
+                    const resName = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
+                    name = resName ? resName + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
                     if (!name || name.length > 16) return
     
                     // Update chatNames so new players joining will also see the name and pass to DB
@@ -613,9 +616,9 @@ const wss = Bun.serve({
                     break
                 }
                 case 13: { // Live chat history
-                    let messageId = data.readUint32BE(1)
-                    let count = data[5] & 127
-                    let before = data[5] >> 7
+                    const messageId = data.readUint32BE(1)
+                    const count = data[5] & 127
+                    const before = data[5] >> 7
                     const encChannel = data.subarray(6)
                     const channel = decoderUTF8.decode(encChannel)
                     const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel })
@@ -623,7 +626,7 @@ const wss = Bun.serve({
                     const messages = []
                     const usernames = new Map()
                     let size = 7 + encChannel.byteLength
-                    for (let row of messageHistory) {
+                    for (const row of messageHistory) {
                         usernames.set(row.senderIntId, row.chatName)
                         const messageData = createChatPacket(0, row.message, Math.floor(row.sendDate / 1000), row.messageId,
                             row.senderIntId, row.channel, row.repliesTo)
@@ -644,7 +647,7 @@ const wss = Bun.serve({
                     historyBuffer[i++] = data[5]
                     historyBuffer[i++] = encChannel.byteLength
                     historyBuffer.set(encChannel, i); i += encChannel.byteLength
-                    for (let message of messages) {
+                    for (const message of messages) {
                         message.copy(historyBuffer, i, 0, message.byteLength)
                         i += message.byteLength
                     }
@@ -664,11 +667,11 @@ const wss = Bun.serve({
                     let repliesTo = null
     
                     let offset = 1
-                    let type = data.readUInt8(offset++)
-                    let msgLength = data.readUInt16BE(offset); offset += 2
+                    const type = data.readUInt8(offset++)
+                    const msgLength = data.readUInt16BE(offset); offset += 2
                     let message = decoderUTF8.decode(data.subarray(offset, offset + msgLength)); offset += msgLength
                     if (type == 0) { // Live chat message
-                        let channelLength = data.readUInt8(offset); offset++
+                        const channelLength = data.readUInt8(offset); offset++
                         channel = decoderUTF8.decode(data.subarray(offset, offset + channelLength)); offset += channelLength
     
                         // If the packet included a message ID it replies to, we include it
@@ -711,31 +714,31 @@ const wss = Bun.serve({
                         const hookName = ws.data.chatName?.replaceAll("@", "@​")
                         const hookChannel = channel?.replaceAll("@", "@​")
                         const hookMessage = message.replaceAll("@", "@​")
-                        let msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
+                        const msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
                         fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                     }catch (err){ console.log("Could not post chat message to discord: " + err) }        
                     break
                 }
                 case 16: {
-                    let response = data.slice(1).toString()
-                    let info = toValidate.get(ws)
+                    const response = data.subarray(1).toString()
+                    const info = toValidate.get(ws)
                     if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
                         captchaFailed.delete(IP)
                         toValidate.delete(ws)
-                        let dv = new DataView(new ArrayBuffer(2))
+                        const dv = new DataView(new ArrayBuffer(2))
                         dv.setUint8(0, 16)
                         dv.setUint8(1, 255)
                         ws.send(dv)
                     }
                     else {
-                        let prev = captchaFailed.get(IP)
+                        const prev = captchaFailed.get(IP)
                         // Block bots attempting to bruteforce captcha quickly
                         if (prev && NOW - prev.last < CAPTCHA_MIN_MS) prev.fails += 3
-                        let info = { fails: (prev?.fails || 0) + 1, last: NOW }
+                        const info = { fails: (prev?.fails || 0) + 1, last: NOW }
                         captchaFailed.set(IP, info)
-                        let acceptableFails = Math.min(zcaptcha.config.dummiesCount / 2, 10)
+                        const acceptableFails = Math.min(zcaptcha.config.dummiesCount / 2, 10)
                         if (info.fails < acceptableFails) return ws.close()
-                        let banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
+                        const banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
                         ban(ws.data.intId, banLengthS)
                         modWebhookLog(`Client **${IP}** **banned** by server for **${banLengthS
                             }** seconds for failing captcha **${info.fails}** times`)
@@ -751,13 +754,13 @@ const wss = Bun.serve({
                 case 96: {// Set preban
                     let offset = 1
                     if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
-                    let violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
-                    let startI = data.readUint32BE(offset); offset += 4
-                    let endI = data.readUint32BE(offset); offset += 4
-                    let x1 = startI % WIDTH
-                    let y1 = Math.floor(startI / WIDTH)
-                    let x2 = endI % WIDTH
-                    let y2 = Math.floor(endI / WIDTH)
+                    const violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
+                    const startI = data.readUint32BE(offset); offset += 4
+                    const endI = data.readUint32BE(offset); offset += 4
+                    const x1 = startI % WIDTH
+                    const y1 = Math.floor(startI / WIDTH)
+                    const x2 = endI % WIDTH
+                    const y2 = Math.floor(endI / WIDTH)
 
                     modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **set preban area** from (${
                         x1}, ${y1}) to (${x2}, ${y2}), with violation action ${["kick", "ban", "none"][violation]}`)
@@ -766,16 +769,16 @@ const wss = Bun.serve({
                 case 98: { // User moderation
                     if (ws.data.perms !== "admin" && ws.data.perms !== "chatmod") return
                     let offset = 1
-                    let action = data[offset++]
+                    const action = data[offset++]
     
                     switch (action) {
                         case 0: { // Kick
-                            let actionIntId = data.readUInt32BE(offset); offset += 4
-                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            const actionIntId = data.readUInt32BE(offset); offset += 4
+                            const actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
 
                             let actionCli = null
-                            for(let [p, uid] of playerIntIds) {
+                            for(const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
                             if (actionCli === null) return
@@ -790,13 +793,13 @@ const wss = Bun.serve({
                         }
                         case 1: // Mute
                         case 2: { // Ban
-                            let actionIntId = data.readUInt32BE(offset); offset += 4
-                            let actionTimeS = data.readUInt32BE(offset); offset += 4
-                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            const actionIntId = data.readUInt32BE(offset); offset += 4
+                            const actionTimeS = data.readUInt32BE(offset); offset += 4
+                            const actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
 
                             let actionCli = null
-                            for(let [p, uid] of playerIntIds) {
+                            for(const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
                             if (actionCli == null) return
@@ -810,13 +813,13 @@ const wss = Bun.serve({
                             break
                         }
                         case 3: { // Force captcha revalidation
-                            let actionIntId = data.readUInt32BE(offset); offset += 4
-                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            const actionIntId = data.readUInt32BE(offset); offset += 4
+                            const actionReason = data.subarray(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
                             let actionCli = null
         
                             if (actionIntId !== 0) {
-                                for(let [p, uid] of playerIntIds) {
+                                for(const [p, uid] of playerIntIds) {
                                     if (uid === actionIntId) actionCli = p
                                 }
                                 if (actionCli == null) return
@@ -824,7 +827,7 @@ const wss = Bun.serve({
                                 await forceCaptchaSolve(actionCli)
                             }
                             else {
-                                for (let c of wss.clients) {
+                                for (const c of wss.clients) {
                                     forceCaptchaSolve(c)
                                 }
                             }
@@ -835,8 +838,8 @@ const wss = Bun.serve({
                             break
                         }
                         case 4: { // Delete chat message
-                            let actionMsgId = data.readUInt32BE(offset); offset += 4
-                            let actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
+                            const actionMsgId = data.readUInt32BE(offset); offset += 4
+                            const actionReason = data.subarray(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionMsgId === 0 || actionReason.length == 0) return
 
                             dbWorker.postMessage({ call: "deleteLiveChat", data: {
@@ -858,8 +861,9 @@ const wss = Bun.serve({
                 }
                 case 99: {
                     if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
-                    let w = data[1], i = data.readUInt32BE(2)
-                    let h = Math.floor((data.length - 6) / w)
+                    const w = data[1]
+                    let i = data.readUInt32BE(2)
+                    const h = Math.floor((data.length - 6) / w)
                     if (i % WIDTH + w >= WIDTH || i + h * HEIGHT >= WIDTH * HEIGHT) return
     
                     let hi = 6
@@ -881,6 +885,7 @@ const wss = Bun.serve({
             playerChatNames.delete(ws.data.intId)
             playerIntIds.delete(ws)
             toValidate.delete(ws)
+            activeVips.delete(ws.data.codeHash)
             dbWorker.postMessage({ call: "exec", data: {
                 stmt: "UPDATE Users SET playTimeSeconds = playTimeSeconds + ?1 WHERE intId = ?2",
                 params: [ Math.floor((NOW - ws.data.connDate) / 1000), ws.data.intId ] } })
@@ -904,7 +909,7 @@ async function modWebhookLog(message) {
     console.log(message)
     if (!MOD_WEBHOOK_URL) return
     message = message.replace("@", "@​")
-    let msgHook = { username: "RPLACE SERVER", content: message }
+    const msgHook = { username: "RPLACE SERVER", content: message }
     await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
 }
 
@@ -920,9 +925,9 @@ let currentCaptcha = zcaptcha.genEmojiCaptcha
  * @param {string|number|import('bun').ServerWebSocket} identifier - String client ip address, intId or client websocket instance
  */
 async function forceCaptchaSolve(identifier) {
-	let cli = identifier
+	const cli = identifier
     if (typeof identifier === "number") {
-        for (let cli of wss.clients) { 
+        for (const cli of wss.clients) { 
             if (cli.data.intId == identifier) {
                 cli.close()
             }
@@ -941,7 +946,7 @@ async function forceCaptchaSolve(identifier) {
         const encodedDummies = encoderUTF8.encode(result.dummies)
 
         toValidate.set(cli, { start: NOW, answer: result.answer })
-        let dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
+        const dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
         dv.setUint8(0, 16)
         dv.setUint8(1, 3)
         dv.setUint8(2, encodedDummies.byteLength)
@@ -1001,7 +1006,7 @@ setInterval(function () {
 
     // Captcha tick
     if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
-        for (let [c, info] of toValidate.entries()) {
+        for (const [c, info] of toValidate.entries()) {
             if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) {
                 c.close()
                 toValidate.delete(c.data.ip)
@@ -1009,7 +1014,7 @@ setInterval(function () {
         }
 
         // How long before the server will forget their captcha fails
-        for (let [ip, info] of captchaFailed.entries()) {
+        for (const [ip, info] of captchaFailed.entries()) {
             if (info.last + 2 ** info.fails < NOW) captchaFailed.delete(ip)
         }
     }
@@ -1017,7 +1022,7 @@ setInterval(function () {
 }, 1000)
 
 let pushTick = 0
-let infoBuffer = Buffer.alloc(131)
+const infoBuffer = Buffer.alloc(131)
 infoBuffer[0] = 3
 setInterval(async function () {
     pushTick++
@@ -1038,7 +1043,7 @@ setInterval(async function () {
         } catch (e) {
             console.log("[" + new Date().toISOString() + "] Error pushing image", e)
         }
-        for (let [k, t] of cooldowns) {
+        for (const [k, t] of cooldowns) {
             if (t > NOW) cooldowns.delete(k)
         }
     }
@@ -1046,8 +1051,9 @@ setInterval(async function () {
 
 // HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope, so we have to patch
 const replExports = {
-    BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES, VIP,
+    BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES,
     SECURE, CERT_PATH, PORT, KEY_PATH, PALETTE,
+    get VIP() { return VIP },
     get WIDTH() { return WIDTH }, set WIDTH(value) { WIDTH = value },
     get HEIGHT() { return HEIGHT }, set HEIGHT(value) { HEIGHT = value },
     get PALETTE_SIZE() { return PALETTE_SIZE }, set PALETTE_SIZE(value) { PALETTE_SIZE = value },
@@ -1148,7 +1154,7 @@ async function ban(intId, duration, reason = null, modIntId = null) {
     
     const ips = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
-    for (let ipObject of ips) {
+    for (const ipObject of ips) {
         bans.set(ipObject.ip, finish)
     }
 }
@@ -1170,7 +1176,7 @@ async function mute(intId, duration, reason = null, modIntId = null) {
     dbWorker.postMessage({ call: "exec", data: muteDbData })
 
     const ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
-    for (let ipObject of ips) {
+    for (const ipObject of ips) {
         mutes.set(ipObject.ip, finish)
     }
 }
@@ -1182,7 +1188,7 @@ async function mute(intId, duration, reason = null, modIntId = null) {
 function blacklist(identifier) {
     let ip = null
     if (typeof identifier === "number") {
-        for (let cli of wss.clients) { 
+        for (const cli of wss.clients) { 
             if (cli.data.intId == identifier) {
                 ip = cli.data.ip
                 cli.close()
@@ -1214,9 +1220,9 @@ function blacklist(identifier) {
  * @param {number?} repliesTo - Integer id message being replied to 
  */
 function announce(msg, channel, p = null, repliesTo = null) {
-    let packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
+    const packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
     if (p != null) p.send(packet)
-    else for (let c of wss.clients) c.send(packet)
+    else for (const c of wss.clients) c.send(packet)
 }
 
 let shutdown = false
