@@ -273,7 +273,7 @@ const VIP = readVip(vipTxt)
                 const activeClient = activeVips.get(k)
                 if (activeClient) {
                     removedClients++
-                    k.close()
+                    activeClient.close()
                 }
             }
             console.log(`Change in VIP config detected, VIP updated: ${beforeKeys} keys -> ${VIP.size} keys detected. ${
