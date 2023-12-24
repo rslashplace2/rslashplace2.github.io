@@ -1346,6 +1346,7 @@
         delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
     </script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
+    <script type="module" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1374,6 +1375,7 @@
             </div>
         </div>
         <div id="maincontent">
+            <div id="bgWrapper" style="z-index: -1; position: absolute; pointer-events: none; left: 0; top: 0; width: 100%; height: 100%;"></canvas>
             <div id="posel" noselect>(0,0) 2.5x</div>
             <div id="overlayMenu" noselect class="toast-menu">
                 <div style="display: flex;">
@@ -1581,9 +1583,17 @@
                         </svg>
                     </icon-close>
                 </div>
-                <div class="modal-content" translate="modalAboutContent">There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.</div>
+                <div class="modal-content" translate="modalAboutContent">
+                    There is an empty canvas.<br><br>
+                    You may place a tile upon it, but you must wait to place another.<br><br>
+                    Individually you can create something.<br><br>
+                    Together you can create something more.<br><br>
+                </div>
                 <div class="modal-install" noselect onclick="pwaPrompter?.prompt()">Install rplace.live web app</div>
-				<div class="modal-footer">
+                <p class="modal-content" style="text-align: center;opacity: 0.6;margin-top: 16px;margin-bottom: 0px;font-size: 14px;">
+                    © Zekiah-A, BlobKat
+                </p>
+                <div class="modal-footer">
                     <img noselect="" alt="Place Logo" height="40" width="40" src="images/rplace.png" style="position: absolute;left: 50%;transform: translateX(-50%);opacity: 0.2;">
                     <mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
                         muted = !muted
@@ -1701,7 +1711,7 @@
                         </postcopy>
                     </div>
                 </div>
-                <div onclick="switchGameServer('server.poemanthology.org/place server.poemanthology.org/ws')" class="post">
+                <!--<div onclick="switchGameServer('server.poemanthology.org/place server.poemanthology.org/ws')" class="post">
                     <img src="images/rplace2.png">
                     <div>
                         <div>2nd Canvas</div> 500x500 (cooldown: 800ms)
@@ -1766,6 +1776,9 @@
                             <span style="opacity: 0;">Copied to clipboard!</span>
                         </postcopy>
                     </div>
+                </div>-->
+                <div onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post">
+                    <img src="images/lamda.png"><div><div>Lamda</div><span>Chat anonymously with strangers online. Start random voice calls and meet others!</span></div>
                 </div>
                 <div onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;">
                     <img src="images/timelapse.png">
