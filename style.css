@@ -224,7 +224,7 @@ btn{
 	}
 }
 
-.close-button {
+icon-close {
 	width: 20px;
   	height: 20px;
   	font-size: 20px;
@@ -233,7 +233,9 @@ btn{
 	fill: currentcolor;
 	vertical-align: middle;
 	line-height: 1em;
+	user-select: none;
 }
+
 .modal-header {
 	display: flex;
 	justify-content: space-between;

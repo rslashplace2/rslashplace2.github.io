@@ -131,7 +131,7 @@ input[type="button"]:disabled, button:disabled {
 	line-height: 8px;
 }
 
-.close-button {
+icon-close {
     position: absolute;
     right: 0px;
     top: 0px;
