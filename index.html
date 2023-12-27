@@ -46,7 +46,8 @@
                 overlayMenuDesciption: "Visualise your build with a template image!",
                 messageCouldntBeLoaded: "Message could not be loaded",
                 placedBy: "Placed by:",
-                lockMessage: "This canvas is locked... You can't place pixels here anymore"
+                lockMessage: "This canvas is locked... You can't place pixels here anymore",
+                adHidden: "Ad hidden for 14 days!"
             },
             fa: {
                 connecting: "در حال وصل شدن",
@@ -1346,6 +1347,7 @@
         delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
     </script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
+    <script type="application/javascript" src="elements.js"></script>
     <script type="module" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
@@ -1382,11 +1384,7 @@
             <div id="overlayMenu" noselect class="toast-menu">
                 <div style="display: flex;">
                     <h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;flex-grow: 1;">Overlay:</h2>
-                    <icon-close noselect="" class="close-button" onclick="overlayMenu.removeAttribute('opened')" class="active">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                            <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                        </svg>
-                    </icon-close>
+                    <icon-close onclick="overlayMenu.removeAttribute('opened')" class="active"></icon-close>
                 </div>
                 <br><br>
                 <input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
@@ -1439,11 +1437,7 @@
             <div id="moderationMenu" noselect="" mode="delete" class="toast-menu">
                 <div style="display: flex;margin-bottom: 16px;">
                     <h2 style="display: inline;flex-grow: 1;">Moderation options:</h2>
-                    <icon-close noselect="" class="close-button" onclick="closeChatModerate()">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                            <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                        </svg>
-                    </icon-close>
+                    <icon-close onclick="closeChatModerate()"></icon-close>
                 </div>
                 <h4>Manage:</h4>
                 <div id="modMessageIdForm" class="mod-form">
@@ -1543,11 +1537,7 @@
                 <img src="svg/chat.svg" style="width:16px; height:21px">
             </div>
             <div id="popup" style="height:calc(65.2vmin + 36px);display:none">
-                <icon-close noselect="" class="close-button" onclick="popup.remove()" style="position: absolute;top: 9px;right: 12px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                        <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                    </svg>
-                </icon-close>
+                <icon-close onclick="popup.remove()" style="position: absolute;top: 9px;right: 12px;"></icon-close>
                 <img src="https://media.discordapp.net/attachments/823957581545734204/1131983578155188334/e10a2234-9213-453e-acce-be697a9f7b25.png" style="
                         width: 100%;position: absolute;bottom: 0;cursor: pointer;
                 " onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
@@ -1577,13 +1567,9 @@
             <div id="modal" style="display:none">
                 <div class="modal-header">
                     <h2>Place</h2>
-                    <icon-close noselect class="close-button" onclick="
+                    <icon-close onclick="
                         modal.style.display='none'
-                        bg.style.display='none'">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path>
-                        </svg>
-                    </icon-close>
+                        bg.style.display='none'"></icon-close>
                 </div>
                 <div class="modal-content" translate="modalAboutContent">
                     There is an empty canvas.<br><br>
@@ -1870,14 +1856,7 @@
                         <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
                     </svg>
                 </div>
-                <icon-close noselect="" class="close-button" onclick="
-                    messageInput.blur()
-                    chatPanel.removeAttribute('open')
-                " class="active">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                        <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                    </svg>
-                </icon-close>
+                <icon-close onclick="messageInput.blur(); chatPanel.removeAttribute('open')" class="active"></icon-close>
             </div>
             <div id="chatContext" class="context-menu" style="display:none">
                 <ul>
@@ -1914,8 +1893,19 @@
                 </ul>
             </div>
             <a id="ad" target="_blank">
-                <button class="ad-close" onclick="event.stopPropagation(); ad.style.display = 'none'; localStorage.noad = true">x</button>
+                <button class="ad-close" onclick="
+                    event.preventDefault()
+                    ad.style.display = 'none'
+                    localStorage.noad = Date.now()
+                    adLabel.style.display = 'block'
+                    adLabel.animate([
+                        { opacity: 1 },
+                        { scale: 1.1 }
+                    ], { duration: 1000, iterations: 1, })
+                    setTimeout(() => adLabel.style.display = 'none', 1000)
+                ">x</button>
             </a>
+            <span id="adLabel" style="display: none; opacity: 0; align-self: center;" translate="adHidden">Ad hidden for 14 days!</span>
             <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll="
                 let styleChange = new Map()
@@ -1961,11 +1951,7 @@
         </div>
         <div id="timelapsePanel" noselect style="display: none;">
             <h2>Timelapse Tool</h2>
-            <icon-close noselect="" class="close-button" onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                    <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                </svg>
-            </icon-close>
+            <icon-close onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"></icon-close>
             <div style="width: 100%; height: 40%; transform: translateX(-10px); margin: 10px; border: 1px solid gray; border-radius: 2px; overflow: scroll;">
                 <img id="tlImage" style="position: relative;">
                     <div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.setAttribute('dragging',  true);" onmouseup="this.setAttribute('dragging', false);" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
@@ -1986,11 +1972,7 @@
                 <h4 style="margin: 0px;">My account</h4>
             </div>
             <div class="body" style="overflow-y: scroll;" id="unauthedPage">
-                <icon-close noselect class="close-button" onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                        <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                    </svg>
-                </icon-close>	
+                <icon-close onclick="loginPanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"></icon-close>	
                 <div id="signinPage" class="body">
                     <h4>Sign in</h4>
                     <input type="text" placeholder="Username*" id="loginUsername" maxlength="32" minlength="4">
@@ -2034,11 +2016,7 @@
             </div>
             <div class="body" style="display: none;overflow-y: scroll;" id="profilePage">
                 <h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
-                <icon-close noselect="" class="close-button" onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                        <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-                    </svg>
-                </icon-close>
+                <icon-close onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;"></icon-close>
                 <div style="flex-grow: 1">
                     <h4>Profile</h4>
                     <div class="reddit-card">
@@ -3194,7 +3172,7 @@
             channelTooltip.style.display = "none"
         }, 0)
 
-        if (localStorage.noad) {
+        if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) {
             ad.style.display = "none"
         }
         else {
