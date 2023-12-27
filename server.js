@@ -759,7 +759,7 @@ const wss = Bun.serve({
                         if (prev && NOW - prev.last < CAPTCHA_MIN_MS) prev.fails += 3
                         const info = { fails: (prev?.fails || 0) + 1, last: NOW }
                         captchaFailed.set(IP, info)
-                        const acceptableFails = Math.min(zcaptcha.config.dummiesCount / 2, 10)
+                        const acceptableFails = 6 // TODO: Math.min(zcaptcha.config.dummiesCount / 2, 10)
                         if (info.fails < acceptableFails) return ws.close()
                         const banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
                         ban(ws.data.intId, banLengthS)
@@ -941,6 +941,7 @@ setInterval(() => {
     NOW = Date.now()
 }, 50)
 
+zcaptcha.init()
 let currentCaptcha = zcaptcha.genEmojiCaptcha
 
 /**
