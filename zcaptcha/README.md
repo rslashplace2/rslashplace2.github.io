@@ -1,12 +1,7 @@
 # zcaptcha
-The rplace.tk server software edition of a collection of a few small javascript captchas for rplace.tk
+Due to bun skia-canvas incompatibility, bun ffi + the C# native captcha generator is used, with results being marshalled between bun and the C# native lib.
 
-Requirements:
-- Latest version of Node.js
-- websocket node module (provided in repo)
-- imagemagick node module (provided in repo)
-- a functioning web browser to test the demo (index.html + node server.js)
-- ImageMagick and Pango (including anything related like libpango, etc) (not tested)
-- (Optional) Install the noto color emoji font systemwide as root and regular user, in order to generate good looking with emojicaptcha
+See https://github.com/Zekiah-A/RplaceServer/tree/main/ZCaptcha
 
-![example of the captcha in action](demo.png)
+Requuires:
+ - May requuire noto-fonts-emoji systemwide font if local font path is not working. Archlinux: https://archlinux.org/packages/extra/any/noto-fonts-emoji/
