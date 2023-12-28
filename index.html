@@ -911,46 +911,8 @@
                     }
                     break
                 }
-                case 16: {
-                    let type = data.getUint8(1)
-                    switch (type) {
-                            // Text capcha
-                        case 1:
-                            break
-                            // Math captcha
-                        case 2:
-                            break
-                            // Emoji captcha
-                        case 3:
-                            let emojisSize = data.getUint8(2)
-                            let emojis = decoder.decode(new Uint8Array(data.buffer).slice(3, emojisSize + 3)).split("\n")
-                            let imageData = new Uint8Array(data.buffer).slice(3 + emojisSize)
-                            captchaOptions.innerHTML = "" 
-
-                            for (let emoji of emojis) {
-                                let buttonParent = document.createElement("button")
-                                let emojiImg = document.createElement("img")
-                                emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
-                                emojiImg.alt = emoji
-                                emojiImg.title = emoji
-                                buttonParent.appendChild(emojiImg)
-                                captchaOptions.appendChild(buttonParent)
-                                
-                                buttonParent.addEventListener("click", (event) => {
-                                    call(send, ws, encoder.encode("\x10" + event.target.value))
-                                    captchaOptions.style.pointerEvents = "none"
-                                })
-                            }
-
-                            captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
-                            captchaPopup.style.display = "flex"
-                            captchaOptions.style.pointerEvents = "all"
-                            break
-                        case 255: // Server sends back sucess
-                            captchaPopup.style.display = "none"
-                            break
-                    }
-                    break
+                case 16: { // Captcha success
+                    captchaPopup.style.display = "none"
                 } 
                 case 17: {// Live chat delete
                     const messageId = data.getUint32(1)
@@ -961,6 +923,57 @@
                             messageEl.remove()
                         }
                     }
+                }
+                case 18: { // Text capcha
+                    let textsSize = data.getUint8(1)
+                    let texts = decoder.decode(new Uint8Array(data.buffer).slice(2, textsSize + 2)).split("\n")
+                    let imageData = new Uint8Array(data.buffer).slice(2 + textsSize)
+                    captchaOptions.innerHTML = "" 
+
+                    for (let text of texts) {
+                        let button = document.createElement("button")
+                        button.textContent = text
+                        captchaOptions.appendChild(button)
+                        
+                        button.addEventListener("click", (event) => {
+                            call(send, ws, encoder.encode("\x10" + event.target.textContent))
+                            captchaOptions.style.pointerEvents = "none"
+                        })
+                    }
+
+                    captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
+                    captchaPopup.style.display = "flex"
+                    captchaOptions.style.pointerEvents = "all"
+                    break
+                }
+                case 19: // Math captcha
+                    break
+                case 20: { // Emoji captcha
+                    let emojisSize = data.getUint8(1)
+                    let emojis = decoder.decode(new Uint8Array(data.buffer).slice(2, emojisSize + 2)).split("\n")
+                    let imageData = new Uint8Array(data.buffer).slice(2 + emojisSize)
+                    captchaOptions.innerHTML = "" 
+
+                    for (let emoji of emojis) {
+                        let buttonParent = document.createElement("button")
+                        let emojiImg = document.createElement("img")
+                        emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
+                        emojiImg.alt = emoji
+                        emojiImg.title = emoji
+                        buttonParent.appendChild(emojiImg)
+                        captchaOptions.appendChild(buttonParent)
+                        
+                        buttonParent.addEventListener("click", (event) => {
+                            if (!event.target.value) return
+                            call(send, ws, encoder.encode("\x10" + event.target.value))
+                            captchaOptions.style.pointerEvents = "none"
+                        })
+                    }
+
+                    captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
+                    captchaPopup.style.display = "flex"
+                    captchaOptions.style.pointerEvents = "all"
+                    break
                 }
                 }
             }
@@ -2203,7 +2216,9 @@
                 this.context = this.canvas.getContext("2d")
                 this.interval = setInterval(() => {
                     waitingGame.clear()
-                    physicsCubes.forEach(cube => cube.update())
+                    for (const cube of physicsCubes) {
+                        cube.update()
+                    }
                 }, 16)
                 this.started = true
             }
@@ -2252,17 +2267,16 @@
                 this.x = Math.floor(this.x / this.width) * this.width
 
                 //overlapping
-                physicsCubes.forEach(other => {
+                for (const other of physicsCubes) {
                     if (other != this) {
-                        let calcH = (this.height + other.height) / 2,
-                        calcW = (this.width + other.width) / 2
+                        let calcH = (this.height + other.height) / 2, calcW = (this.width + other.width) / 2
                         if (Math.abs(this.y - other.y) < calcH && Math.abs(other.x - this.x) < calcW) { //Colliding
-                        this.speedY = 0
-                        this.gravitySpeed = 0
-                        this.y = (other.y - other.height) - 0.01
+                            this.speedY = 0
+                            this.gravitySpeed = 0
+                            this.y = (other.y - other.height) - 0.01
                         }
                     }
-                })
+                }
 
                 //render update
                 this.waitingGame.ctx.fillStyle = this.colour
