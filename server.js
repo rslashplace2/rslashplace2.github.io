@@ -750,7 +750,6 @@ const wss = Bun.serve({
                         toValidate.delete(ws)
                         const dv = new DataView(new ArrayBuffer(2))
                         dv.setUint8(0, 16)
-                        dv.setUint8(1, 255)
                         ws.send(dv)
                     }
                     else {
@@ -942,7 +941,7 @@ setInterval(() => {
 }, 50)
 
 zcaptcha.init()
-let currentCaptcha = zcaptcha.genEmojiCaptcha
+let currentCaptcha = zcaptcha.genTextCaptcha // zcaptcha.genEmojiCaptcha
 
 /**
  * Force a client to redo the captcha
@@ -965,20 +964,26 @@ async function forceCaptchaSolve(identifier) {
     if (!cli || typeof cli != "object") return
 
     try {
-        const result = await currentCaptcha()
+        const result = currentCaptcha()
         if (!result) return cli.close()
         const encodedDummies = encoderUTF8.encode(result.dummies)
 
         toValidate.set(cli, { start: NOW, answer: result.answer })
         const dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
-        dv.setUint8(0, 16)
-        dv.setUint8(1, 3)
-        dv.setUint8(2, encodedDummies.byteLength)
+        if (currentCaptcha == zcaptcha.genTextCaptcha)
+            dv.setUint8(0, 18)
+        else if (currentCaptcha == zcaptcha.genMathCaptcha)
+            dv.setUint8(0, 19)
+        else if (currentCaptcha == zcaptcha.genEmojiCaptcha)
+            dv.setUint8(0, 20)
+        else
+            throw new Error("Could not run captcha func - Specified Captcha doesn't exist")
+        dv.setUint8(1, encodedDummies.byteLength)
 
         const dataArray = new Uint8Array(result.data)
         const dvArray = new Uint8Array(dv.buffer)
-        dvArray.set(encodedDummies, 3)
-        dvArray.set(dataArray, 3 + encodedDummies.byteLength)
+        dvArray.set(encodedDummies, 2)
+        dvArray.set(dataArray, 2 + encodedDummies.byteLength)
         cli.send(dv)
     }
     catch (e) {
