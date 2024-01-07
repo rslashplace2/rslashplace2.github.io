@@ -298,3 +298,20 @@ icon-close {
     transform: rotate(45deg) translate(-50%, -50%);
     border: var(--pixel-border);
 }
+
+#popup {
+
+    border: var(--pixel-border);
+    background: white;
+}
+
+#popup icon-close {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+#popup > div {
+	padding: 12px;
+    padding-top: 4px;
+}

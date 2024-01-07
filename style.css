@@ -1244,6 +1244,7 @@ kbd {
 	transition: .5s height;
 }
 
+/* Posts */
 #more #contents {
 	background: #dae0e6;
 	width: 100%;
@@ -1253,7 +1254,7 @@ kbd {
 	padding: 15px 30px 30px 30px;
 	overflow: visible;
 }
-#more #contents > div{
+#more #contents > div {
 	border: 1px #ccc solid;
 	border-radius: 4px;
 	background: #fff;
@@ -1270,7 +1271,7 @@ kbd {
 	position: relative;
 	overflow: hidden;
 }
-up{
+up {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -1278,7 +1279,7 @@ up{
 	width: 40px;
 	background: #f8f9fa;
 }
-up svg{
+up svg {
 	fill: #888a8c;
 	position: absolute;
 	left: 8px;
@@ -1286,28 +1287,35 @@ up svg{
 	border-radius: 2px;
 	padding: 3px;
 }
-up svg:hover{
+up svg:hover {
 	fill: #cc3700;
 	background: #1a1a1b1a;
 }
-
-up div{
+up div {
 	position: absolute;
 	left: 0; right: 0;
 	top: 30px;
 	text-align: center;
 	color: #888a8c;
 }
-#more #contents > .post > div {
+.post .body {
+	display: flex;
+	flex-direction: column;
 	flex: 1;
 	margin: 3px 0;
+	row-gap: 4px;
 }
-#more #contents > .post > div > div { color: #000; }
-#more #contents > .post > img {
+.post .header {
+	display: flex;
+	column-gap: 6px;
+}
+.post .header > div > div {
+	color: #000;
+}
+.post .header > img {
 	width: 40px;
 	height: 40px;
 }
-
 #postInput {
 	all: unset;
 	background-color: #F6F7F8;
@@ -1330,6 +1338,7 @@ up div{
 	background-color: #FFFFFF;
 	border: 1px solid #0079D3;
 }
+
 
 .virtselect {
 	max-width: 100% !important;
@@ -1537,15 +1546,16 @@ postcopy span {
 }
 
 #popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 20;
+	overflow: hidden;
+}
+#popup > div {
     width: 90vmin;
-    height: calc(60.4vmin + 36px);
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    z-index: 10;
-    box-shadow: 0 0 0 1000px #0004, 0 0 100px #000;
+	height: calc(60.4vmin + 36px);
+	display: flex;
+	flex-direction: column;
 }
