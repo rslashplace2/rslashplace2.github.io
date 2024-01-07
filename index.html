@@ -1567,7 +1567,7 @@
             </div>
             <dialog id="popup" open>
                 <div>
-                    <icon-close onclick="timelapseEmbed.remove(); localStorage.nopopup = new Date(Date.now()).getDay(); popup.close()"></icon-close>
+                    <icon-close onclick="timelapseEmbed.remove(); if (Math.random() < 0.3) {localStorage.nopopup = new Date(Date.now()).getDay();} popup.close()"></icon-close>
                     <span noselect style="font-size: 1.2em; margin-bottom: 16px;" translate="specialEventTitle">Special event - 2023-2024 full canvas timelapse released!</span>			
                     <!--<img src="images/discord-popup.png" style="width: 100%;position: absolute;bottom: 0;cursor: pointer;"
                             onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">-->
@@ -3286,7 +3286,7 @@
             channelTooltip.style.display = "none"
         }, 0)
 
-        if (localStorage.nopopup && new Date(Date.now()).getDay() != localStorage.nopopup) { // 1 day
+        if (localStorage.nopopup && new Date(Date.now()).getDay() == localStorage.nopopup) { // 1 day
             popup.close()
         }
         if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) {
