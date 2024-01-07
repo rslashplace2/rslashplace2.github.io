@@ -343,3 +343,20 @@ a {
 #onlineCounter {
     color: white;
 }
+
+#popup {
+    border: none;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 0 0 1000px #0004, 0 0 100px #000;
+}
+
+#popup icon-close {
+    position: absolute;
+    top: 9px;
+    right: 12px;
+}
+
+#popup > div {
+    padding: 12px;
+}
