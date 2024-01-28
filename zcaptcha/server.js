@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { dlopen, FFIType, suffix, ptr, CString, read, toArrayBuffer } from 'bun:ffi';
+import { dlopen, FFIType, suffix, CString, read, toArrayBuffer } from 'bun:ffi';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
