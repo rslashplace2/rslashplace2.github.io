@@ -438,8 +438,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.02", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.02", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.03", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.03", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -1385,7 +1385,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.22" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.23" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1567,7 +1567,7 @@
             </div>
             <dialog id="popup" open>
                 <div>
-                    <icon-close onclick="timelapseEmbed.remove(); if (Math.random() < 0.3) {localStorage.nopopup = new Date(Date.now()).getDay();} popup.close()"></icon-close>
+                    <icon-close onclick="timelapseEmbed.remove(); localStorage.nopopup = Date.now(); popup.close()"></icon-close>
                     <span noselect style="font-size: 1.2em; margin-bottom: 16px;" translate="specialEventTitle">Special event - 2023-2024 full canvas timelapse released!</span>			
                     <!--<img src="images/discord-popup.png" style="width: 100%;position: absolute;bottom: 0;cursor: pointer;"
                             onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">-->
@@ -3286,10 +3286,10 @@
             channelTooltip.style.display = "none"
         }, 0)
 
-        if (localStorage.nopopup && new Date(Date.now()).getDay() == localStorage.nopopup) { // 1 day
+        if (localStorage.nopopup && Date.now() - localStorage.nopopup < 3.456e8) { // 4 days
             popup.close()
         }
-        if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) {
+        if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) { // 14 days
             ad.style.display = "none"
         }
         else {
