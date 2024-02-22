@@ -15,9 +15,8 @@ import * as zcaptcha from './zcaptcha/server.js'
 import { isUser } from 'ipapi-sync'
 import { Worker } from 'worker_threads'
 import cookie from 'cookie'
-import { exec } from 'child_process'
 import repl from 'basic-repl'
-import { createContext, runInContext } from 'vm'
+import { $ } from "bun"
 
 let BOARD, CHANGES, VOTES
 
@@ -176,7 +175,15 @@ function randomString(length) {
 }
 
 let playersOffset = 0
-Object.defineProperty(globalThis, "realPlayers", { get: function() { return wss.clients.size } })
+Object.defineProperty(globalThis, "realPlayers", {
+    get: function() {
+        return wss.clients.size
+    }
+})
+Object.defineProperty(globalThis, 'players', {
+    get: function() { return realPlayers + playersOffset; },
+    set: function(value) { playersOffset = value - realPlayers; }
+});
 
 const RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
@@ -996,17 +1003,24 @@ async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--) { if (CHANGES[i] != 255) BOARD[i] = CHANGES[i] }
 
     await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
-	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock"), _ => { }).catch(_ => { })
-    await new Promise((resolve, reject) =>
-        exec(`cd ${PUSH_PLACE_PATH};git add -A;git commit -a -m 'Canvas backup';git push --force ${PUSH_LOCATION}`,
-            error => error ? reject(error) : resolve()))
-
-    // Serve old changes for 11 more mins just to be 100% safe of slow git sync or git provider caching
-    const curr = new Uint8Array(CHANGES)
-    setTimeout(() => {
-        // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove 
-        for (let i = curr.length - 1; i >= 0; i--) { if (curr[i] == CHANGES[i]) CHANGES[i] = 255 }
-    }, 200e3)
+	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock")).catch(_ => { })
+    const addResult = await $`git add -A`.cwd(PUSH_PLACE_PATH).quiet()
+    if (addResult.exitCode != 0 && addResult.stderr) {
+        console.error("Failed to push canvas backup image (failure during git add)\n", addResult.stderr.toString())
+    }
+    const pushResult = await $`git commit -a -m 'Canvas backup'; git push --force ${PUSH_LOCATION}`.cwd(PUSH_PLACE_PATH).quiet()
+    if (pushResult.exitCode != 0 && pushResult.stderr) {
+        console.error("Failed to push canvas backup image (fail during push)\n", pushResult.stderr.toString())
+    }
+    else {
+        // [If sucesssful push] Serve old changes for 11 more mins before wipe just to be 100% safe
+        // of slow git sync or http canvas file server caching...
+        const curr = new Uint8Array(CHANGES)
+        setTimeout(() => {
+            // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove
+            for (let i = curr.length - 1; i >= 0; i--) { if (curr[i] == CHANGES[i]) CHANGES[i] = 255 }
+        }, 200e3)
+    }
 }
 
 let captchaTick = 0
@@ -1078,46 +1092,17 @@ setInterval(async function () {
     }
 }, 5000)
 
-// HACK: Issue with Bun/JSCore causes eval to not operate in the correct scope, so we have to patch
-const replExports = {
-    BOARD, CHANGES, VOTES, BLACKLISTED, RESERVED_NAMES,
-    SECURE, CERT_PATH, PORT, KEY_PATH, PALETTE,
-    get VIP() { return VIP },
-    get WIDTH() { return WIDTH }, set WIDTH(value) { WIDTH = value },
-    get HEIGHT() { return HEIGHT }, set HEIGHT(value) { HEIGHT = value },
-    get PALETTE_SIZE() { return PALETTE_SIZE }, set PALETTE_SIZE(value) { PALETTE_SIZE = value },
-    get ORIGINS() { return ORIGINS }, set ORIGINS(value) { ORIGINS = value }, 
-    get COOLDOWN() { return COOLDOWN }, set COOLDOWN(value) { COOLDOWN = value },
-    get CAPTCHA() { return CAPTCHA }, set CAPTCHA(value) { CAPTCHA = value },
-    get USE_CLOUDFLARE() { return USE_CLOUDFLARE }, set USE_CLOUDFLARE(value) { USE_CLOUDFLARE = value },
-    get PUSH_LOCATION() { return PUSH_LOCATION }, set PUSH_LOCATION(value) { PUSH_LOCATION = value },
-    get PUSH_PLACE_PATH() { return PUSH_PLACE_PATH }, set PUSH_PLACE_PATH(value) { PUSH_PLACE_PATH = value },
-    get LOCKED() { return LOCKED }, set LOCKED(value) { LOCKED = value },
-    get CHAT_WEBHOOK_URL() { return CHAT_WEBHOOK_URL }, set CHAT_WEBHOOK_URL(value) { CHAT_WEBHOOK_URL = value },
-    get MOD_WEBHOOK_URL() { return MOD_WEBHOOK_URL }, set MOD_WEBHOOK_URL(value) { MOD_WEBHOOK_URL = value },
-    get CHAT_MAX_LENGTH() { return CHAT_MAX_LENGTH }, set CHAT_MAX_LENGTH(value) { CHAT_MAX_LENGTH = value },
-    get CHAT_COOLDOWN_MS() { return CHAT_COOLDOWN_MS }, set CHAT_COOLDOWN_MS(value) { CHAT_COOLDOWN_MS = value },
-    get PUSH_INTERVAL_MINS() { return PUSH_INTERVAL_MINS }, set PUSH_INTERVAL_MINS(value) { PUSH_INTERVAL_MINS = value },
-    get CAPTCHA_EXPIRY_SECS() { return CAPTCHA_EXPIRY_SECS }, set CAPTCHA_EXPIRY_SECS(value) { CAPTCHA_EXPIRY_SECS = value },
-    get CAPTCHA_MIN_MS() { return CAPTCHA_MIN_MS }, set CAPTCHA_MIN_MS(value) { CAPTCHA_MIN_MS = value },
-    get INCLUDE_PLACER() { return INCLUDE_PLACER }, set INCLUDE_PLACER(value) { INCLUDE_PLACER = value },
-    get SECURE_COOKIE() { return SECURE_COOKIE }, set SECURE_COOKIE(value) { SECURE_COOKIE = value },
-    get CORS_COOKIE() { return CORS_COOKIE }, set CORS_COOKIE(value) { CORS_COOKIE = value },
-    dbWorker, cooldowns, toValidate, captchaFailed, playerIntIds, playerChatNames,
-    liveChatMessageId, placeChatMessageId, mutes, bans, wss, zcaptcha,
-    get players() { return realPlayers + playersOffset }, set players(value) { playersOffset = value - realPlayers },
-    get realPlayers() { return realPlayers },
-    get NOW() { return NOW }, set NOW(value) { NOW = value },
-    get newPos() { return newPos }, set newPos(value) { newPos = value },
-    get newCols() { return newCols }, set newCols(value) { newCols = value },
-    get newIds() { return newIds }, set newIds(value) { newIds = value },
-    get currentCaptcha() { return currentCaptcha }, set currentCaptcha(value) { currentCaptcha = value },
-    console: console, // The context will have it's own console so prints in expressions would not appear
-    makeDbRequest, pushImage, forceCaptchaSolve, fill, isUser,
-    setPreban, clearPreban, checkPreban, ban, mute, blacklist, announce
-}
-const context = createContext(replExports)
-repl("|place$ ", input => console.log(runInContext(input, context)))
+repl("|place$ ", input => console.log(eval(input)))
+
+/**
+ * Fill given canvas area with certain colour
+ * @param {number} x - Start X of region
+ * @param {number} y - Start Y of region
+ * @param {number} x1 - End X of region
+ * @param {number} y1 - End Y of region
+ * @param {number} x - Int colour code index to be used
+ * @param {boolean} random - Fill with random colours instead
+ */
 function fill(x, y, x1, y1, c = 27, random = false) {
     let w = x1 - x, h = y1 - y
     for (; y < y1; y++) {

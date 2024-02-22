@@ -17,7 +17,7 @@ const {
     libPath,
     {
         initialise: {
-            args: [FFIType.cstring],
+            args: [ FFIType.cstring ],
             returns: FFIType.void,
         },
         gen_emoji_captcha: {

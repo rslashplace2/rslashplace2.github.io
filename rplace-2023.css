@@ -162,10 +162,11 @@ icon-close {
 
 #namePanel {
     border-top: var(--pixel-border);
+    background-color: white;
 }
 
 .name-input-container > button {
-    background: white;
+    background-color: white;
     border: var(--pixel-border);
     padding: 4px;
     transition: background-color .1s ease-in;

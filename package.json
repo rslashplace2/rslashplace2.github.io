@@ -1,6 +1,8 @@
 {
   "type": "module",
   "main": "server.js",
+  "license": "GPL-3.0-or-later",
+  "author": "rplace.live",
   "dependencies": {
     "@datastructures-js/queue": "^4.2.3",
     "basic-repl": "^2.2.1",
@@ -18,7 +20,8 @@
     "@typescript-eslint/parser": "^6.7.4",
     "eslint": "^8.46.0",
     "eslint-plugin-jsdoc": "^46.9.0",
-    "eslint-plugin-node": "^11.1.0"
+    "eslint-plugin-node": "^11.1.0",
+    "@types/bun": "latest"
   },
   "engines": {
     "node": ">=12.11.0"
