@@ -3276,6 +3276,17 @@
             e.preventDefault()
         })
 
+        // Cancel touchpad page zooming that interferes with canvas zooming
+        if (!mobile) {
+            function cancelZoomGesture(e) {
+                e.preventDefault()
+                document.body.style.zoom = 1
+            }
+            document.addEventListener("gesturestart", cancelZoomGesture)
+            document.addEventListener("gesturechange", cancelZoomGesture)
+            document.addEventListener("gestureend", cancelZoomGesture)
+        }
+
         setTimeout(() => {
             if (window.connproblems)
                 connproblems.style.opacity = 1
