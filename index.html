@@ -409,9 +409,11 @@
             transparent: '<img src="custom_emojis/transparent.png" height="24">',
             trollface: '<img src="custom_emojis/trollface.png" height="24">',
             // Special 'commands'
-            help: "<kbd>Chat commands: :vip, :name</kbd>",
+            help: "<kbd>Chat commands: :vip, :name, :getid</kbd>",
             name: "<kbd>Change your username</kbd>",
-            vip: "<kbd>Apply a VIP cooldown code</kbd>"
+            vip: "<kbd>Apply a VIP cooldown code</kbd>",
+            lookup: "<kbd>Get the IDs of all players with the given name</kbd>",
+            getid: "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>"
         }
 
         // Flag emojis all sourced from openmoji.org, https://www.langoly.com/most-spoken-languages/
@@ -536,7 +538,6 @@
                     }
                 })
 
-                newMessage.oncontextmenu = (e) => onChatContext(e, senderId, messageId)
                 let namePart = document.createElement("span")
                 if (messageId === 0) {
                     namePart.classList.add("special-glow")
@@ -545,7 +546,6 @@
                     namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
                 }
                 namePart.title = (new Date(sendDate * 1000)).toLocaleString()
-                namePart.onclick = (e) => chatMentionUser(senderId)
                 namePart.textContent = `[${name || ("#" + senderId)}] `
                 let txtPart = document.createElement("span")
                 txtPart.innerHTML = txt
@@ -589,7 +589,10 @@
 
                 newMessage.appendChild(namePart)
                 newMessage.appendChild(txtPart)
-                if (messageId !== 0) {
+                if (messageId > 0) { // Disable interactivity for system messages
+                    namePart.onclick = (e) => chatMentionUser(senderId)
+                    newMessage.oncontextmenu = (e) => onChatContext(e, senderId, messageId)
+
                     let actionsPart = document.createElement("div")
                     let replyBtn = document.createElement("img")
                     replyBtn.onclick = function(e) { chatReply(messageId, senderId) }
@@ -1065,6 +1068,23 @@
                     window.location.reload(true)
                     return
                 }
+                else if (message.startsWith(":getid")) {
+                    let targetName = message.slice(6).trim().toLowerCase()
+                    if (!targetName) {
+                        alert("Your User ID is: " + intId)
+                    }
+                    else {
+                        let foundUsers = `Found Users with name '${targetName}:'\n`
+                        for (let pair of intIdNames) {
+                            if (pair[1] === targetName) {
+                                foundUsers += `${pair[1]}, #${pair[0]}\n`
+                            }
+                        }
+
+                        alert(foundUsers)
+                    }
+                    return
+                }
                 else if (message.startsWith(":help")) {
                     return
                 }
@@ -1385,7 +1405,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.23" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.24" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>

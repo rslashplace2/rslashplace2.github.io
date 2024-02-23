@@ -890,6 +890,7 @@ body[eventphase="3"] .coverer-title {
 	padding-bottom: 48px;
 	overflow-clip-margin: content-box;
 	overflow-y: clip;
+	column-gap: 16px;
 }
 #messageEmojisPanel > div {
 	margin: 8px;
@@ -901,6 +902,7 @@ body[eventphase="3"] .coverer-title {
 }
 #messageEmojisPanel > div > span {
 	flex-grow: 1;
+	align-self: center;
 }
 #messageEmojisPanel > div:hover {
 	background: lightgrey;
