@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-check
@@ -11,12 +12,12 @@ import fsExists from 'fs.promises.exists'
 import fetch from 'node-fetch'
 import util from 'util'
 import path from 'path'
-import * as zcaptcha from './zcaptcha/server.js'
+//import * as zcaptcha from './zcaptcha/server.js' // HACK: Disabled until upstream bun issue resolved
 import { isUser } from 'ipapi-sync'
 import { Worker } from 'worker_threads'
 import cookie from 'cookie'
 import repl from 'basic-repl'
-import { $ } from "bun"
+import { $, Server, ServerWebSocket } from "bun"
 
 let BOARD, CHANGES, VOTES
 
@@ -122,20 +123,35 @@ function runLengthChanges() {
     return new Uint8Array(CHANGEPACKET.buffer, CHANGEPACKET.byteOffset, b)
 }
 
-class DoubleMap { // Bidirectional map
+class DoubleMap<T, K> {
+    foward: Map<T, K> // Bidirectional map
+    reverse: Map<K, T>
     constructor() {
         this.foward = new Map()
         this.reverse = new Map()
     }
 
+    /**
+     * @param {string} key
+     * @param {string} value
+     */
     set(key, value) {
         this.foward.set(key, value)
         this.reverse.set(value, key)
     }
 
+    /**
+     * @param {string} key
+     */
     getForward(key) { return this.foward.get(key) }
+    /**
+     * @param {string} value
+     */
     getReverse(value) { return this.reverse.get(value) }
 
+    /**
+     * @param {any} key
+     */
     delete(key) {
         const value = this.foward.get(key)
         this.foward.delete(key)
@@ -145,7 +161,10 @@ class DoubleMap { // Bidirectional map
     size() { return this.foward.size }
 }
 
-class PublicPromise {
+class PublicPromise<T> {
+    promise: Promise<T>
+    resolve: (value: T | PromiseLike<T>) => void
+    reject: (reason?: string) => void
     constructor() {
         this.promise = new Promise((resolve, reject) => {
             this.resolve = resolve
@@ -181,22 +200,31 @@ Object.defineProperty(globalThis, "realPlayers", {
     }
 })
 Object.defineProperty(globalThis, 'players', {
-    get: function() { return realPlayers + playersOffset; },
-    set: function(value) { playersOffset = value - realPlayers; }
-});
+    // @ts-ignore
+    get: function() { return realPlayers + playersOffset },
+    // @ts-ignore
+    set: function(value) { playersOffset = value - realPlayers }
+})
 
 const RESERVED_NAMES = new DoubleMap()
 // `reserved_name private_code\n`, for example "zekiah 124215253113\n"
 const reservedLines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
 for (const pair of reservedLines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
-const BLACKLISTED = new Set(
-    (await Promise.all((
-        (await fs.readFile("bansheets.txt")).toString()
-            .trim()
-            .split('\n')
-            .map(banListUrl => fetch(banListUrl).then(response => response.text())))))
-    .flatMap(line => line.trim().split('\n').map(ip => ip.split(':')[0].trim())))
 
+/**
+ * Retrieves blacklisted IP addresses from banlists.txt
+ * @returns {Promise<Set<string>>} A Promise that resolves to a Set of blacklisted IP addresses.
+ */
+async function getBansheetsIps() {
+    const bansheetsText = await fs.readFile("bansheets.txt")
+    const banListUrls = bansheetsText.toString().trim().split('\n')
+    const banLists = await Promise.all(
+        banListUrls.map(banListUrl => fetch(banListUrl).then(response => response.text()))
+    )
+    const blacklistedIps = banLists.flatMap(line => line.trim().split('\n').map(ip => ip.split(':')[0].trim()))
+    return new Set(blacklistedIps)
+}
+let BLACKLISTED = await getBansheetsIps()
 for (const ban of (await fs.readFile("blacklist.txt")).toString().split('\n')) {
     BLACKLISTED.add(ban)
 }
@@ -237,8 +265,8 @@ dbWorker.on("error", console.warn)
 
 const playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
 const playerChatNames = new Map() // intId<Number> : chatName<String>
-let liveChatMessageId = (await makeDbRequest("getMaxLiveChatId")) || 0
-let placeChatMessageId = (await makeDbRequest("getMaxPlaceChatId")) || 0
+let liveChatMessageId:number = (await makeDbRequest("getMaxLiveChatId")) as number || 0
+let placeChatMessageId:number = (await makeDbRequest("getMaxPlaceChatId")) as number || 0
 const mutes = new Map() // IP : finishDate (unix epoch offset ms)
 const bans = new Map() // IP : finishDate (unix epoch offset ms)
 const activeVips = new Map() // String VIP key : client
@@ -254,11 +282,16 @@ if (!vipTxt) {
         "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
         "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
 }
-function readVip(vipTxt) {
+
+type VipEntry = {
+    perms: "admin"|"chatmod"|"vip",
+    cooldownMs: number
+}
+function readVip(vipTxt: string):Map<string, VipEntry> {
     return new Map(vipTxt
         .split('\n')
-        .filter(line => line.trim() && !line.trim().startsWith('#'))
-        .map(pair => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
+        .filter((/** @type {string} */ line) => line.trim() && !line.trim().startsWith('#'))
+        .map((/** @type {string} */ pair) => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 }
 const VIP = readVip(vipTxt)
 ;(async function() {
@@ -302,22 +335,22 @@ const PUNISHMENT_STATE = {
 }
 
 // Fetch all mutes, bans
-const muteIdFinishes = await makeDbRequest("exec", {
+const muteIdFinishes:any = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Mutes WHERE finishDate > ?",
     params: Date.now() })
 for (const idFinish of muteIdFinishes) {
-    const idIps = await makeDbRequest("exec", {
+    const idIps:any = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
     for (const ipObject of idIps) {
         mutes.set(ipObject.ip, idFinish.finishDate)
     }
 }
-const banIdFinishes = await makeDbRequest("exec", {
+const banIdFinishes:any = await makeDbRequest("exec", {
     stmt: "SELECT userIntId AS intId, finishDate FROM Bans WHERE finishDate > ?",
     params: Date.now() })
 for (const idFinish of banIdFinishes) {
-    const idIps = await makeDbRequest("exec", {
+    const idIps:any = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?",
         params: idFinish.intId })
     for (const ipObject of idIps) {
@@ -328,7 +361,7 @@ for (const idFinish of banIdFinishes) {
 // Server is player ID 0, all server messages have message ID 0
 playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
 
-let allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
+const allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 /**
  * 
  * @param {string} text Input text to be sanitised 
@@ -453,7 +486,7 @@ async function applyPunishments(ws, intId, ip) {
             bans.delete(ip)
         }
         else {
-            let banInfo = await makeDbRequest("exec", {
+            let banInfo:any = await makeDbRequest("exec", {
                 stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Bans WHERE userIntId = ?",
                 params: intId })
             if (banInfo && banInfo[0]) {
@@ -472,7 +505,7 @@ async function applyPunishments(ws, intId, ip) {
             mutes.delete(ip)
         }
         else {
-            let muteInfo = await makeDbRequest("exec", {
+            let muteInfo:any = await makeDbRequest("exec", {
                 stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Mutes WHERE userIntId = ?1",
                 params: intId })
             if (muteInfo && muteInfo[0]) {
@@ -487,8 +520,25 @@ async function applyPunishments(ws, intId, ip) {
     }
 }
 
-const wss = Bun.serve({
-    fetch(req, server) {
+type ClientData = {
+    ip: string,
+    headers: Headers,
+    url: string,
+    codeHash: string,
+    perms: string,
+    lastChat: number,
+    connDate: number,
+    cd: number,
+    intId: number,
+    token: string,
+    chatName: string
+}
+const wss = Bun.serve<ClientData>({
+    /**
+     * @param {{ headers: { get: (arg0: string) => any; }; url: string | URL; }} req
+     * @param {{ upgrade: (arg0: any, arg1: { data: { url: string; headers: any; token: string; }; headers: { "Set-Cookie": string; }; }) => void; }} server
+     */
+    fetch(req: Request, server: Server) {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
         let newToken = null
         if (!cookies[uidToken]) {
@@ -518,7 +568,7 @@ const wss = Bun.serve({
         return undefined
     },
     websocket: {
-        async open(ws) {
+        async open(ws: ServerWebSocket<ClientData>) {
             wss.clients.add(ws)
             if (USE_CLOUDFLARE) ws.data.ip = ws.data.headers.get("cf-connecting-ip")?.split(":", 4).join(":")
             if (!ws.data.ip) ws.data.ip = ws.data.headers.get("x-forwarded-for")?.split(",")[0]?.split(":", 4).join(":")
@@ -572,7 +622,7 @@ const wss = Bun.serve({
             }
             
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
+            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP }) as number
             ws.data.intId = pIntId
             playerIntIds.set(ws, pIntId)
             const pIdBuf = Buffer.alloc(5)
@@ -586,7 +636,7 @@ const wss = Bun.serve({
             }
             await applyPunishments(ws, pIntId, IP)
 
-            const pName = await makeDbRequest("getUserChatName", pIntId)
+            const pName = await makeDbRequest("getUserChatName", pIntId) as string
             if (pName) {
                 ws.data.chatName = pName
                 playerChatNames.set(ws.data.intId, pName)
@@ -594,6 +644,10 @@ const wss = Bun.serve({
             const nmInfoBuf = createNamesPacket(playerChatNames)
             ws.send(nmInfoBuf)
         },
+        /**
+         * @param {{ data: { ip: any; cd: any; intId: number; chatName: string; lastChat: number; perms: string; voted: number; codeHash: any; }; send: (arg0: Buffer | DataView) => void; close: () => any; }} ws
+         * @param {any[]} data
+         */
         async message(ws, data) {
             if (typeof data === "string") return
             // Redefine as message handler is now separate from open
@@ -651,7 +705,7 @@ const wss = Bun.serve({
                     const before = data[5] >> 7
                     const encChannel = data.subarray(6)
                     const channel = decoderUTF8.decode(encChannel)
-                    const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel })
+                    const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel }) as any[]
 
                     const messages = []
                     const usernames = new Map()
@@ -910,6 +964,11 @@ const wss = Bun.serve({
                 }
             }    
         },
+        /**
+         * @param {{ data: { intId: any; codeHash: any; connDate: number; }; }} ws
+         * @param {any} code
+         * @param {any} message
+         */
         async close(ws, code, message) {
             playerChatNames.delete(ws.data.intId)
             playerIntIds.delete(ws)
@@ -934,6 +993,9 @@ const wss = Bun.serve({
 })
 wss.clients = new Set() // Hack for compatibility with old node code
 
+/**
+ * @param {string} message
+ */
 async function modWebhookLog(message) {
     console.log(message)
     if (!MOD_WEBHOOK_URL) return
@@ -947,14 +1009,17 @@ setInterval(() => {
     NOW = Date.now()
 }, 50)
 
-zcaptcha.init()
-let currentCaptcha = zcaptcha.genTextCaptcha // zcaptcha.genEmojiCaptcha
+//zcaptcha.init()
+//let currentCaptcha = zcaptcha.genTextCaptcha // zcaptcha.genEmojiCaptcha
 
 /**
  * Force a client to redo the captcha
  * @param {string|number|import('bun').ServerWebSocket<any>} identifier - String client ip address, intId or client websocket instance
  */
 async function forceCaptchaSolve(identifier) {
+    throw new Error("Force captcha solve is disabled")
+    // @ts-ignore
+    /*
 	const cli = identifier
     if (typeof identifier === "number") {
         for (const cli of wss.clients) { 
@@ -996,7 +1061,7 @@ async function forceCaptchaSolve(identifier) {
     catch (e) {
         console.error(e)
         cli.close()
-    }
+    }*/
 }
 
 async function pushImage() {
@@ -1069,13 +1134,16 @@ const infoBuffer = Buffer.alloc(131)
 infoBuffer[0] = 3
 setInterval(async function () {
     pushTick++
+    // @ts-ignore
     infoBuffer[1] = (realPlayers + playersOffset) >> 8
+    // @ts-ignore
     infoBuffer[2] = realPlayers + playersOffset
     for (let i = 0; i < VOTES.length; i++) {
         infoBuffer.writeUint32BE(VOTES[i], (i << 2) + 3)
     }
     wss.publish("all", infoBuffer)
 
+    // @ts-ignore
     fs.appendFile("./stats.txt", "\n" + realPlayers + "," + NOW)
     if (LOCKED === true) return
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
@@ -1092,7 +1160,7 @@ setInterval(async function () {
     }
 }, 5000)
 
-repl("|place$ ", input => console.log(eval(input)))
+repl("|place$ ", (/** @type {string} */ input) => console.log(eval(input)))
 
 /**
  * Fill given canvas area with certain colour
@@ -1115,17 +1183,16 @@ function fill(x, y, x1, y1, c = 27, random = false) {
     return `Filled an area of ${w}*${h} (${(w * h)} pixels), reload the game to see the effects`
 }
 
-/** @typedef {("kick"|"ban"|"blacklist"|"none"|(function(import('bun').ServerWebSocket, number, number): boolean))} PrebanAction */
-/**
- * @typedef {Object} PrebanArea
- * @property {number} x - The x-coordinate.
- * @property {number} y - The y-coordinate.
- * @property {number} x1 - The x-coordinate of the other corner.
- * @property {number} y1 - The y-coordinate of the other corner.
- * @property {PrebanAction} action - The action to be performed on catch
- */
-/** @type {PrebanArea} */
-const prebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" }
+type ActionFunc = (p: ServerWebSocket<any>, incomingX:number, incomingY) => boolean
+type PrebanAction = ("kick"|"ban"|"blacklist"|"none"|ActionFunc)
+interface PrebanArea {
+    x: number
+    y: number
+    x1: number
+    y1: number
+    action: PrebanAction
+}
+const prebanArea:PrebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" }
 /**
  * This function is intended to allow us to ban any contributors to a heavily botted area (most likely botters)
  * by banning them as soon as we notice them placing a pixel in such area.
@@ -1141,10 +1208,15 @@ function setPreban(_x, _y, _x1, _y1, _action = "kick") {
 function clearPreban() {
     prebanArea.x = 0; prebanArea.y = 0; prebanArea.x1 = 0; prebanArea.y1 = 0; prebanArea.action = "kick"
 }
-function checkPreban(incomingX, incomingY, p) {
+/**
+ * @param {number} incomingX
+ * @param {number} incomingY
+ * @param {import("bun").ServerWebSocket<any>} p
+ */
+function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<ClientData>) {
     if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
-        modWebhookLog(`Pixel placed in preban area at ${incomingX}, ${incomingY} by ${p.ip}`)
+        modWebhookLog(`Pixel placed in preban area at ${incomingX}, ${incomingY} by ${p.data.ip}`)
 
         if (typeof prebanArea.action === "function") {
             return prebanArea.action(p, incomingX, incomingY)
@@ -1183,7 +1255,7 @@ async function ban(intId, duration, reason = null, modIntId = null) {
         params: [ start, finish, intId, modIntId, reason, null, 0 ] }
     dbWorker.postMessage({ call: "exec", data: banDbData })
     
-    const ips = await makeDbRequest("exec", {
+    const ips:any = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
     for (const ipObject of ips) {
         bans.set(ipObject.ip, finish)
@@ -1206,7 +1278,7 @@ async function mute(intId, duration, reason = null, modIntId = null) {
         params: [ start, finish, intId, modIntId, reason, null, 0 ] }
     dbWorker.postMessage({ call: "exec", data: muteDbData })
 
-    const ips = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
+    const ips:any = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
     for (const ipObject of ips) {
         mutes.set(ipObject.ip, finish)
     }
