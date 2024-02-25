@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-param */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6,24 +7,52 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
-import { promises as fs } from 'fs'
-import sha256 from 'sha256'
-import fsExists from 'fs.promises.exists'
-import fetch from 'node-fetch'
-import util from 'util'
-import path from 'path'
+import { promises as fs } from "fs"
+import sha256 from "sha256"
+import fsExists from "fs.promises.exists"
+import fetch from "node-fetch"
+import util from "util"
+import path from "path"
 //import * as zcaptcha from './zcaptcha/server.js' // HACK: Disabled until upstream bun issue resolved
-import { isUser } from 'ipapi-sync'
-import { Worker } from 'worker_threads'
-import cookie from 'cookie'
-import repl from 'basic-repl'
+import { isUser } from "ipapi-sync"
+import { Worker } from "worker_threads"
+import cookie from "cookie"
+import repl from "basic-repl"
 import { $, Server, ServerWebSocket } from "bun"
+import { AuthenticateUser, DbInternals, DeletionMessageInfo, LiveChatMessage, PlaceChatMessage } from "./db-worker.ts"
 
 let BOARD, CHANGES, VOTES
 
-let config = null
-try { config = await fs.readFile("./server_config.json") }
-catch (e) {
+type ServerConfig = {
+    "SECURE": boolean,
+    "CERT_PATH": string,
+    "KEY_PATH": string,
+    "PORT": number,
+    "WIDTH": number,
+    "HEIGHT": number,
+    "COOLDOWN": number,
+    "CAPTCHA": boolean,
+    "PALETTE_SIZE": number,
+    "ORIGINS": string[],
+    "PALETTE": number[]|null,
+    "USE_CLOUDFLARE": boolean,
+    "PUSH_LOCATION": string,
+    "PUSH_PLACE_PATH": string,
+    "LOCKED": boolean,
+    "CHAT_WEBHOOK_URL": string,
+    "MOD_WEBHOOK_URL": string,
+    "CHAT_MAX_LENGTH": number,
+    "CHAT_COOLDOWN_MS": number,
+    "PUSH_INTERVAL_MINS": number,
+    "CAPTCHA_EXPIRY_SECS": number,
+    "CAPTCHA_MIN_MS": number, //min solvetime
+    "INCLUDE_PLACER": boolean, // pixel placer
+    "SECURE_COOKIE": boolean,
+    "CORS_COOKIE": boolean,
+}
+let configFailed = false
+let configFile = await fs.readFile("./server_config.json").catch(_ => configFailed = true)
+if (configFailed) {
     await fs.writeFile("server_config.json", JSON.stringify({
         "SECURE": true,
         "CERT_PATH": "/etc/letsencrypt/live/path/to/fullchain.pem",
@@ -51,14 +80,14 @@ catch (e) {
         "SECURE_COOKIE": true,
         "CORS_COOKIE": false,
     }, null, 4))
-
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
 }
+
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
     CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
-    CORS_COOKIE } = JSON.parse(config.toString())
+    CORS_COOKIE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -66,15 +95,22 @@ try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change
 catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
 try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
 catch(e) { VOTES = new Uint32Array(32) }
-let uidToken = null
-try { uidToken = (await fs.readFile("uidtoken.txt")).toString() }
-catch(e) { 
+let uidTokenFailed = false
+const uidTokenFile = await fs.readFile("uidtoken.txt").catch(_ => uidTokenFailed = true)
+let uidToken:string
+if (uidTokenFile == null || uidTokenFailed) {
     uidToken = "UidToken_" + Math.random().toString(36).slice(2)
     await fs.writeFile("uidtoken.txt", uidToken)
 }
+else {
+    uidToken = uidTokenFile.toString()
+}
 
-let newPos = [], newCols = [], newIds = []
-const cooldowns = new Map()
+// TODO: Maybe a  set for { pos, Col, Id } might be better
+const newPos: number[] = []
+const newCols: number[] = []
+const newIds: number[] = []
+const cooldowns = new Map<string, number>()
 
 const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
 CHANGEPACKET.setUint8(0, 2)
@@ -123,44 +159,33 @@ function runLengthChanges() {
     return new Uint8Array(CHANGEPACKET.buffer, CHANGEPACKET.byteOffset, b)
 }
 
+/** Bidirectional map */
 class DoubleMap<T, K> {
-    foward: Map<T, K> // Bidirectional map
+    foward: Map<T, K>
     reverse: Map<K, T>
     constructor() {
-        this.foward = new Map()
-        this.reverse = new Map()
+        this.foward = new Map<T, K>()
+        this.reverse = new Map<K, T>()
     }
-
-    /**
-     * @param {string} key
-     * @param {string} value
-     */
-    set(key, value) {
+    set(key: T, value: K) {
         this.foward.set(key, value)
         this.reverse.set(value, key)
     }
-
-    /**
-     * @param {string} key
-     */
-    getForward(key) { return this.foward.get(key) }
-    /**
-     * @param {string} value
-     */
-    getReverse(value) { return this.reverse.get(value) }
-
-    /**
-     * @param {any} key
-     */
-    delete(key) {
+    getForward(key: T) { return this.foward.get(key) }
+    getReverse(value: K) { return this.reverse.get(value) }
+    delete(key: T):boolean {
         const value = this.foward.get(key)
-        this.foward.delete(key)
-        this.reverse.delete(value)
+        if (value) {
+            this.foward.delete(key)
+            this.reverse.delete(value)
+            return true
+        }
+        return false
     }
     clear() { this.foward.clear(); this.reverse.clear() }
     size() { return this.foward.size }
 }
-
+/** Promise with resolve and reject exposed - Like C# TaskCompletionSource */
 class PublicPromise<T> {
     promise: Promise<T>
     resolve: (value: T | PromiseLike<T>) => void
@@ -199,7 +224,7 @@ Object.defineProperty(globalThis, "realPlayers", {
         return wss.clients.size
     }
 })
-Object.defineProperty(globalThis, 'players', {
+Object.defineProperty(globalThis, "players", {
     // @ts-ignore
     get: function() { return realPlayers + playersOffset },
     // @ts-ignore
@@ -236,40 +261,39 @@ const decoderUTF8 = new util.TextDecoder()
 
 let dbReqId = 0
 const dbReqs = new Map()
-const dbWorker = new Worker("./db-worker.js")
-/** 
+const dbWorker = new Worker("./db-worker.ts")
+
+/*
  * __Always await this__, and only use in cases where you __WANT the response__, if you want something that
- * you can just fire and forget then use dbWorker.postMessage instead.
- * @param {({call: string, data: any, handle?: number}|string)} messageCall - String method name | Method call + arguments to be executed on DB worker.
- * @param {object} args - Arguments that makeDbRequest will use.
+ * you can just fire and forget then use postDbMessage instead, which does not result in a dbReq allocation
  */
-async function makeDbRequest(messageCall, args = null) {
+//@ts-expect-error Chicanery (trust me bro)
+async function makeDbRequest<T extends DbInternals>(messageCall: keyof T, args?: Parameters<T[keyof T]>[0]): Promise<Awaited<ReturnType<T[keyof T]>>> {
     const handle = dbReqId++
     const promise = new PublicPromise()
     
-    if (typeof messageCall === "object" && messageCall?.call)
-        messageCall.handle = handle
-    else if (typeof messageCall === "string")
-        messageCall = { call: messageCall, data: args, handle: handle }
-    else
-        throw new Error("DB request fail. Invalid arguments (string name, any[] args)|({call: string name,data: any[] args})")
-    
+    const postCall = { call: messageCall, data: args, handle: handle }
     dbReqs.set(handle, promise)
-    dbWorker.postMessage(messageCall)
+    dbWorker.postMessage(postCall)
+    //@ts-expect-error Chicanery (trust me bro)
     return await promise.promise
 }
 dbWorker.on("message", (message) => {
     dbReqs.get(message.handle)?.resolve(message.data)
 })
 dbWorker.on("error", console.warn)
+//@ts-expect-error Chicanery (trust me bro)
+function postDbMessage<T extends DbInternals>(messageCall: keyof T, args?: Parameters<T[keyof T]>[0]):void {
+    dbWorker.postMessage({ call: messageCall, data: args })
+}
 
-const playerIntIds = new Map() // Player ws instance<Object> : intID<Number>
-const playerChatNames = new Map() // intId<Number> : chatName<String>
+const playerIntIds = new Map<ServerWebSocket<ClientData>, number>() // Player ws instance<Object> : intID<Number>
+const playerChatNames = new Map<number, string>() // intId<Number> : chatName<String>
 let liveChatMessageId:number = (await makeDbRequest("getMaxLiveChatId")) as number || 0
 let placeChatMessageId:number = (await makeDbRequest("getMaxPlaceChatId")) as number || 0
-const mutes = new Map() // IP : finishDate (unix epoch offset ms)
-const bans = new Map() // IP : finishDate (unix epoch offset ms)
-const activeVips = new Map() // String VIP key : client
+const mutes = new Map<string, number>() // IP : finishDate (unix epoch offset ms)
+const bans = new Map<string, number>() // IP : finishDate (unix epoch offset ms)
+const activeVips = new Map<string, ServerWebSocket<ClientData>>() // String VIP key : client
 
 // vip key, cooldown
 const vipTxt = (await fs.readFile("./vip.txt")).toString()
@@ -309,7 +333,7 @@ const VIP = readVip(vipTxt)
             for (const [k] of removedKeys) VIP.delete(k)
             for (const [k, v] of modifiedKeys) VIP.set(k, v)
             let removedClients = 0 
-            for (const k of removedKeys) {
+            for (const [k, _] of removedKeys) {
                 const activeClient = activeVips.get(k)
                 if (activeClient) {
                     removedClients++
@@ -377,21 +401,22 @@ function censorText(text) {
 }
 
 /**
- * @param {number} type (0|1) message type (0 - Live chat message, 1 - place chat message)
- * @param {string} message Message text content (maxlen(65534))
- * @param {number} sendDate Unix epoch offset __**seconds**__ of message send
- * @param {number} messageId Message integer id (u32)
- * @param {number} intId Sender integer id (u32)
- * @param {string?} channel String channel (maxlen(16))
- * @param {number?} repliesTo Integer message id replies to (u32)
- * @param {number?} positionIndex Index on canvas of place chat message (u32)
+ * @param {number} type - (0|1) message type (0 - Live chat message, 1 - place chat message)
+ * @param {string} message - Message text content (maxlen(65534))
+ * @param {number} sendDate - Unix epoch offset __**seconds**__ of message send
+ * @param {number} messageId - Message integer id (u32)
+ * @param {number} intId - Sender integer id (u32)
+ * @param {string?} channel - String channel (maxlen(16))
+ * @param {number?} repliesTo - Integer message id replies to (u32)
+ * @param {number?} positionIndex - Index on canvas of place chat message (u32)
  * @returns {Buffer} Message packet data prepended with packet code (15)
  */
-function createChatPacket(type, message, sendDate, messageId, intId, channel = null, repliesTo = null, positionIndex = null) {
-    const encodedChannel = channel && encoderUTF8.encode(channel)
+function createChatPacket(type: number, message: string, sendDate: number, messageId: number, intId: number, channel: string|null = null, repliesTo: number|null = null, positionIndex: number|null = null): Buffer {
+    let encodedChannel:Uint8Array|null = null
+    if (channel) encodedChannel = encoderUTF8.encode(channel)
     const encodedTxt = encoderUTF8.encode(message)
     const msgPacket = Buffer.allocUnsafe(encodedTxt.byteLength +
-        (type == 0 ? 18 + encodedChannel?.byteLength + (repliesTo == null ? 0 : 4) : 16))
+        (type == 0 ? 18 + (encodedChannel?.byteLength || 0) + (repliesTo == null ? 0 : 4) : 16))
 
     let i = 0
     msgPacket[i] = 15; i++
@@ -401,7 +426,7 @@ function createChatPacket(type, message, sendDate, messageId, intId, channel = n
     msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
     msgPacket.writeUInt32BE(intId, i); i +=  4
     
-    if (type == 0) { // Live chat message
+    if (type == 0 && encodedChannel != null) { // Live chat message
         msgPacket.writeUInt32BE(sendDate, i); i += 4
         // TODO: reactions
         msgPacket[i] = 0; i++
@@ -412,7 +437,7 @@ function createChatPacket(type, message, sendDate, messageId, intId, channel = n
             msgPacket.writeUInt32BE(repliesTo, i); i += 4
         }
     }
-    else { // Place (canvas chat message)
+    else if (positionIndex != null) { // Place (canvas chat message)
         msgPacket.writeUInt32BE(positionIndex, i); i += 4
     }
 
@@ -479,7 +504,7 @@ function createPunishPacket(type, startDate, finishDate, reason, userAppeal, app
  * @param {number} intId - Integer ID of player to have punishments scanned for
  * @param {string} ip - IP address of client to have punishments applied and scanned for
  */
-async function applyPunishments(ws, intId, ip) {
+async function applyPunishments(ws: ServerWebSocket<ClientData>, intId: number, ip: string) {
     const banFinish = bans.get(ip)
     if (banFinish) {
         if (banFinish < NOW) {
@@ -533,14 +558,17 @@ type ClientData = {
     token: string,
     chatName: string
 }
-const wss = Bun.serve<ClientData>({
+interface RplaceServer extends Server {
+    clients: Set<ServerWebSocket<ClientData>>
+}
+const bunServer = Bun.serve<ClientData>({
     /**
      * @param {{ headers: { get: (arg0: string) => any; }; url: string | URL; }} req
      * @param {{ upgrade: (arg0: any, arg1: { data: { url: string; headers: any; token: string; }; headers: { "Set-Cookie": string; }; }) => void; }} server
      */
     fetch(req: Request, server: Server) {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
-        let newToken = null
+        let newToken:string|null = null
         if (!cookies[uidToken]) {
             newToken = randomString(32)
         }
@@ -570,17 +598,19 @@ const wss = Bun.serve<ClientData>({
     websocket: {
         async open(ws: ServerWebSocket<ClientData>) {
             wss.clients.add(ws)
-            if (USE_CLOUDFLARE) ws.data.ip = ws.data.headers.get("cf-connecting-ip")?.split(":", 4).join(":")
-            if (!ws.data.ip) ws.data.ip = ws.data.headers.get("x-forwarded-for")?.split(",")[0]?.split(":", 4).join(":")
-            if (!ws.data.ip) ws.data.ip = ws.remoteAddress.split(":", 4).join(":")
-            if (!ws.data.ip || ws.data.ip.startsWith("%")) return ws.close(4000, "No IP")
-            const IP = ws.data.ip
+            let realIp:string|undefined = ws.data.ip
+            if (USE_CLOUDFLARE) realIp = ws.data.headers.get("cf-connecting-ip")?.split(":", 4).join(":")
+            if (!realIp) realIp = ws.data.headers.get("x-forwarded-for")?.split(",")[0]?.split(":", 4).join(":")
+            if (!realIp) realIp = ws.remoteAddress.split(":", 4).join(":")
+            if (!realIp || realIp.startsWith("%")) return ws.close(4000, "No IP")
+            const IP = ws.data.ip = realIp
             const URL = ws.data.url
             if (!isUser(IP)) {
                 ws.close(4000, "Not user")
                 return
             }
-            if (USE_CLOUDFLARE && !ORIGINS.includes(ws.data.headers.get("origin"))) return ws.close(4000, "No origin")
+            const ORIGIN  = ws.data.headers.get("origin")
+            if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
             let CD = COOLDOWN
@@ -605,7 +635,7 @@ const wss = Bun.serve<ClientData>({
 
             const buf = Buffer.alloc(9)
             buf[0] = 1
-            buf.writeUint32BE(Math.ceil(cooldowns.get(IP) / 1000) || 1, 1)
+            buf.writeUint32BE(Math.ceil((cooldowns.get(IP)||0) / 1000) || 1, 1)
             buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : ws.data.cd, 5)
             ws.send(buf)
             ws.send(infoBuffer)
@@ -631,8 +661,7 @@ const wss = Bun.serve<ClientData>({
             ws.send(pIdBuf)
 
             if (ws.data.codeHash) {
-                dbWorker.postMessage({ call: "updateUserVip",
-                    data: { intId: pIntId, codeHash: ws.data.codeHash } })
+                postDbMessage("updateUserVip", { intId: pIntId, codeHash: ws.data.codeHash })
             }
             await applyPunishments(ws, pIntId, IP)
 
@@ -659,7 +688,7 @@ const wss = Bun.serve<ClientData>({
                     if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP)) return
                     const i = data.readUInt32BE(1), c = data[5]
                     if (i >= BOARD.length || c >= PALETTE_SIZE) return
-                    const cd = cooldowns.get(IP)
+                    const cd = cooldowns.get(IP) || COOLDOWN
                     if (cd > NOW) {
                         const data = Buffer.alloc(10)
                         data[0] = 7
@@ -675,7 +704,7 @@ const wss = Bun.serve<ClientData>({
                     newPos.push(i)
                     newCols.push(c)
                     if (INCLUDE_PLACER) newIds.push(ws.data.intId)
-                    dbWorker.postMessage({ call: "updatePixelPlace", data: ws.data.intId })
+                    postDbMessage("updatePixelPlace", ws.data.intId)
                     break
                 }
                 case 12: { // Submit name
@@ -687,7 +716,7 @@ const wss = Bun.serve<ClientData>({
                     // Update chatNames so new players joining will also see the name and pass to DB
                     ws.data.chatName = name
                     playerChatNames.set(ws.data.intId, name)
-                    dbWorker.postMessage({ call: "setUserChatName", data: { intId: ws.data.intId, newName: name }})
+                    postDbMessage("setUserChatName", { intId: ws.data.intId, newName: name })
 
                     // Combine with player intId and alert all other clients of name change
                     const encName = encoderUTF8.encode(name)
@@ -707,7 +736,7 @@ const wss = Bun.serve<ClientData>({
                     const channel = decoderUTF8.decode(encChannel)
                     const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel }) as any[]
 
-                    const messages = []
+                    const messages:Buffer[] = []
                     const usernames = new Map()
                     let size = 7 + encChannel.byteLength
                     for (const row of messageHistory) {
@@ -746,7 +775,7 @@ const wss = Bun.serve<ClientData>({
                     ws.data.lastChat = NOW
     
                     // These may or may not be defined depending on message type
-                    let channel = null
+                    let channel:string|null = null
                     let positionIndex = null
                     let repliesTo = null
     
@@ -777,17 +806,17 @@ const wss = Bun.serve<ClientData>({
                         message = message.replaceAll("@everyone", "*********")
                     }
                     
-                    let messageId = null
-                    if (type === 0) {
+                    let messageId = 0
+                    if (type === 0 && channel != null) {
                         messageId = ++liveChatMessageId
-                        dbWorker.postMessage({ call: "insertLiveChat", data: [ messageId,
-                            message, NOW, channel, ws.data.intId, repliesTo ] })
+                        const liveChat:LiveChatMessage = { messageId, message, sendDate: NOW, channel, senderIntId: ws.data.intId, repliesTo: null, deletionId: null } 
+                        postDbMessage("insertLiveChat", liveChat)
                     }
-                    else {
+                    else if (positionIndex != null) {
                         messageId = ++placeChatMessageId
-                        dbWorker.postMessage({ call: "insertPlaceChat", data: [ messageId,
-                            message, NOW, ws.data.intId, Math.floor(positionIndex % WIDTH),
-                            Math.floor(positionIndex / HEIGHT) ] })
+                        postDbMessage("insertPlaceChat", { messageId,
+                            message, sendDate: NOW, senderIntId: ws.data.intId, x: Math.floor(positionIndex % WIDTH),
+                            y: Math.floor(positionIndex / HEIGHT) })
                     }
 
                     wss.publish("all", createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
@@ -795,11 +824,13 @@ const wss = Bun.serve<ClientData>({
 
                     if (!CHAT_WEBHOOK_URL) break
                     try {
-                        const hookName = ws.data.chatName?.replaceAll("@", "@​")
-                        const hookChannel = channel?.replaceAll("@", "@​")
-                        const hookMessage = message.replaceAll("@", "@​")
-                        const msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
-                        fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+                        if (channel != null) {
+                            const hookName = ws.data.chatName?.replaceAll("@", "@​")
+                            const hookChannel = channel.replaceAll("@", "@​")
+                            const hookMessage = message.replaceAll("@", "@​")
+                            const msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
+                            fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
+                        }
                     }catch (err){ console.log("Could not post chat message to discord: " + err) }        
                     break
                 }
@@ -860,7 +891,7 @@ const wss = Bun.serve<ClientData>({
                             const actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
 
-                            let actionCli = null
+                            let actionCli:ServerWebSocket<ClientData>|null = null
                             for(const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
@@ -881,7 +912,7 @@ const wss = Bun.serve<ClientData>({
                             const actionReason = data.slice(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
 
-                            let actionCli = null
+                            let actionCli:ServerWebSocket<ClientData>|null = null
                             for(const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
@@ -899,8 +930,8 @@ const wss = Bun.serve<ClientData>({
                             const actionIntId = data.readUInt32BE(offset); offset += 4
                             const actionReason = data.subarray(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionReason.length == 0) return
-                            let actionCli = null
-        
+
+                            let actionCli:ServerWebSocket<ClientData>|null = null
                             if (actionIntId !== 0) {
                                 for(const [p, uid] of playerIntIds) {
                                     if (uid === actionIntId) actionCli = p
@@ -916,7 +947,7 @@ const wss = Bun.serve<ClientData>({
                             }
                             
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
-                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli.data.ip + "**")}, with reason: '${
+                                actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli?.data.ip + "**")}, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)    
                             break
                         }
@@ -925,10 +956,10 @@ const wss = Bun.serve<ClientData>({
                             const actionReason = data.subarray(offset, Math.min(data.byteLength, 300 + offset)).toString()
                             if (actionMsgId === 0 || actionReason.length == 0) return
 
-                            dbWorker.postMessage({ call: "deleteLiveChat", data: {
+                            postDbMessage("deleteLiveChat", {
                                 messageId: actionMsgId,
                                 reason: actionReason,
-                                moderatorIntId: ws.data.intId }})
+                                moderatorIntId: ws.data.intId })
 
                             const deleteBuf = Buffer.allocUnsafe(9)
                             deleteBuf[0] = 17
@@ -991,7 +1022,11 @@ const wss = Bun.serve<ClientData>({
         }
     },
 })
-wss.clients = new Set() // Hack for compatibility with old node code
+// For compat with nodejs ws code
+const wss:RplaceServer = {
+    ...bunServer,
+    clients: new Set()
+}
 
 /**
  * @param {string} message
@@ -1202,17 +1237,12 @@ const prebanArea:PrebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" }
  * @param {number} _y1 - y end
  * @param {PrebanAction} _action - The action to be performed on catch
  */
-function setPreban(_x, _y, _x1, _y1, _action = "kick") {
+function setPreban(_x, _y, _x1, _y1, _action:"kick"|"ban"|"blacklist"|"none" = "kick") {
     prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action
 }
 function clearPreban() {
     prebanArea.x = 0; prebanArea.y = 0; prebanArea.x1 = 0; prebanArea.y1 = 0; prebanArea.action = "kick"
 }
-/**
- * @param {number} incomingX
- * @param {number} incomingY
- * @param {import("bun").ServerWebSocket<any>} p
- */
 function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<ClientData>) {
     if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
@@ -1246,7 +1276,7 @@ function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<Cl
  * @param {string?} reason - String reason for which client is being muted
  * @param {number?} modIntId - Responsible moderator integer ID 
 */
-async function ban(intId, duration, reason = null, modIntId = null) {
+async function ban(intId: number, duration: number, reason: string|null = null, modIntId: number|null = null) {
     const start = NOW
     const finish = start + duration * 1000
     const banDbData = {
@@ -1269,14 +1299,15 @@ async function ban(intId, duration, reason = null, modIntId = null) {
  * @param {string?} reason - String reason for which client is being muted
  * @param {number?} modIntId - Responsible moderator integer ID 
  */
-async function mute(intId, duration, reason = null, modIntId = null) {       
+async function mute(intId: number, duration: number, reason: string|null = null, modIntId: number|null = null) {       
     const start = NOW
     const finish = start + duration * 1000
     const muteDbData = {
-        stmt: "INSERT OR REPLACE INTO Mutes (startDate, finishDate, userIntId, moderatorIntId," +
-            "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        stmt: `INSERT OR REPLACE INTO Mutes
+                (startDate, finishDate, userIntId, moderatorIntId, "reason, userAppeal, appealRejected)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
         params: [ start, finish, intId, modIntId, reason, null, 0 ] }
-    dbWorker.postMessage({ call: "exec", data: muteDbData })
+    postDbMessage("exec", muteDbData)
 
     const ips:any = await makeDbRequest("exec", { stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?", params: intId })
     for (const ipObject of ips) {
@@ -1285,11 +1316,10 @@ async function mute(intId, duration, reason = null, modIntId = null) {
 }
 
 /**
- * Permanment IP block a player by IP, via WS instance or via intID
- * @param {string|import('bun').ServerWebSocket<any>|number} identifier IP/WS Instance/intID
+ * Permamently IP block a player by IP, via WS instance or via intID 
  */
-function blacklist(identifier) {
-    let ip = null
+function blacklist(identifier: ServerWebSocket<any>|number|string) {
+    let ip:string|null = null
     if (typeof identifier === "number") {
         for (const cli of wss.clients) { 
             if (cli.data.intId == identifier) {
@@ -1317,12 +1347,8 @@ function blacklist(identifier) {
 
 /**
  * Broadcast a message as the server to a specific client (p) or all players, in a channel
- * @param {string} msg - Message being sent
- * @param {string} channel - Channel message could be sent in
- * @param {import('bun').ServerWebSocket<any>?} p - WS instance message is being sent to
- * @param {number?} repliesTo - Integer id message being replied to 
  */
-function announce(msg, channel, p = null, repliesTo = null) {
+function announce(msg: string, channel: string, p:ServerWebSocket<any>|null = null, repliesTo:number|null = null) {
     const packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
     if (p != null) p.send(packet)
     else for (const c of wss.clients) c.send(packet)

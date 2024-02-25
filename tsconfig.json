@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "ESNext",
+        "checkJs":true,
+    	"types": [ "bun-types" ],
+        "moduleResolution": "nodenext",
+        "forceConsistentCasingInFileNames": true,
+        "strict": true
+    }
+}
