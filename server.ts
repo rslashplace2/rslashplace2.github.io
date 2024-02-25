@@ -652,7 +652,11 @@ const bunServer = Bun.serve<ClientData>({
             }
             
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP }) as number
+            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
+            if (pIntId == null || typeof pIntId != "number") {
+                console.error(`Could not authenticate user ${IP}, user ID was null, even after new creation`)
+                return ws.close()
+            }
             ws.data.intId = pIntId
             playerIntIds.set(ws, pIntId)
             const pIdBuf = Buffer.alloc(5)
