@@ -863,6 +863,7 @@
                         canvasLocked = true
                         chatPunishNote.innerText = "You have been banned from placing on the canvas or sending messages in live chat."
                     }
+                    break
                 }
                 case 15: {
                     let repliesTo = null
@@ -932,6 +933,7 @@
                 }
                 case 16: { // Captcha success
                     captchaPopup.style.display = "none"
+                    break
                 } 
                 case 17: {// Live chat delete
                     const messageId = data.getUint32(1)
@@ -942,6 +944,7 @@
                             messageEl.remove()
                         }
                     }
+                    break
                 }
                 case 18: { // Text capcha
                     let textsSize = data.getUint8(1)

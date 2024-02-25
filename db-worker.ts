@@ -211,7 +211,7 @@ function toQueryObject<T extends object>(object: T): T {
     // @ts-expect-error Chicanery to keep type inference whilst transforming
     const queryObject:T = {}
     for (const k of Object.keys(object)) {
-        queryObject["$" + k] = queryObject[k]
+        queryObject["$" + k] = object[k]
     }
     return queryObject
 }
@@ -370,7 +370,7 @@ const internal: DbInternals = {
     // Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
     deleteLiveChat: function(data) {
         const deletionQuery = db.query<LiveChatDeletion, DeletionMessageInfo>(
-            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $messageId) RETURNING *")
+            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $deletionDate) RETURNING *")
         const deletion = deletionQuery.get(toQueryObject(data))
         if (deletion == null) return
 
