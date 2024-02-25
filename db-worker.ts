@@ -1,3 +1,5 @@
+/* eslint-disable jsdoc/require-param */
+/* eslint-disable jsdoc/require-returns */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-inner-declarations */
 import { parentPort } from 'worker_threads'
@@ -81,8 +83,8 @@ export type AuthenticateUser = { token: string, ip: string }
 export type DbInternals = {
     setUserChatName: (data: { newName: string, intId: number }) => void,
     getUserChatName: (intId: number) => string|null,
-    authenticateUser: (data: AuthenticateUser) => void,
-    getLiveChatHistory: (data: { messageId: number, count: number, before: number, channel?: string, includeDeleted?: boolean }) => LiveChatMessage[],
+    authenticateUser: (data: AuthenticateUser) => number|null,
+    getLiveChatHistory: (data: { messageId: number, count: number, before: number, channel: string, includeDeleted?: boolean }) => LiveChatMessage[],
     updatePixelPlace: (intId: number) => void,
     getMaxLiveChatId: () => number,
     getMaxPlaceChatId: () => number,
@@ -202,14 +204,25 @@ const createLiveChatDeletions = `
 `
 db.exec(createLiveChatDeletions)
 
+/**
+ * Adds % to object keys in order to make it act as a valid bun SQLite query object
+ */
+function toQueryObject<T extends object>(object: T): T {
+    // @ts-expect-error Chicanery to keep type inference whilst transforming
+    const queryObject:T = {}
+    for (const k of Object.keys(object)) {
+        queryObject["$" + k] = queryObject[k]
+    }
+    return queryObject
+}
 
-const insertLiveChat = db.prepare<void, LiveChatMessage>(`
+const insertLiveChat = db.query<void, LiveChatMessage>(`
     INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo, deletionId)
     VALUES ($messageId, $message, $sendDate, $channel, $senderIntId, $repliesTo, $deletionId)`)
-const insertPlaceChat = db.prepare<void, PlaceChatMessage>(`
+const insertPlaceChat = db.query<void, PlaceChatMessage>(`
     INSERT INTO PlaceChatMessages (messageId, message, sendDate, senderIntId, x, y)
     VALUES ($messageId, $message, $sendDate, $senderIntId, $x, $y)`)
-const updatePixelPlaces = db.prepare<void, [number, number]>(`
+const updatePixelPlaces = db.query<void, [number, number]>(`
     UPDATE Users SET pixelsPlaced = pixelsPlaced + ?1 WHERE intId = ?2`)
 
 interface PublicQueue<T> extends Queue<T> {
@@ -235,11 +248,11 @@ function performBulkInsertions() {
     db.transaction(() => {
         while (!liveChatInserts.isEmpty()) {
             const data = liveChatInserts.dequeue()
-            insertLiveChat.run(data)
+            insertLiveChat.run(toQueryObject(data))
         }
         while (!placeChatInserts.isEmpty()) {
             const data = placeChatInserts.dequeue()
-            insertPlaceChat.run(data)
+            insertPlaceChat.run(toQueryObject(data))
         }
     })()
 }
@@ -264,11 +277,13 @@ const internal: DbInternals = {
             const insertUser = db.query<User, [string, number, number, number]>(
                 "INSERT INTO Users (token, lastJoined, pixelsPlaced, playTimeSeconds) VALUES (?1, ?2, ?3, ?4) RETURNING *")
             user = insertUser.get(data.token, epochMs, 0, 0)
+            if (user == null) return null
         }
         else { // Update last joined
             const updateUser = db.query("UPDATE Users SET lastJoined = ?1 WHERE intId = ?2")
             updateUser.run(epochMs, user.intId)
         }
+
         // Add known IP if not already there
         const getIpsQuery = db.query<KnownIp, [number, string]>("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2")
         const ipExists = getIpsQuery.get(user.intId, data.ip)
@@ -285,7 +300,7 @@ const internal: DbInternals = {
     },
     getLiveChatHistory: function(data) {
         const liveChatMessageId = internal.getMaxLiveChatId()
-        let params = []
+        let params:any[] = []
         let query = `
             SELECT LiveChatMessages.*, Users.chatName AS chatName
             FROM LiveChatMessages
@@ -334,12 +349,12 @@ const internal: DbInternals = {
     },
     getMaxLiveChatId: function() {
         const getMaxMessageId = db.query<{ maxMessageId: number }, any>("SELECT MAX(messageId) AS maxMessageId FROM LiveChatMessages")
-        const maxMessageId = getMaxMessageId.get().maxMessageId || 0
+        const maxMessageId = getMaxMessageId.get()?.maxMessageId || 0
         return maxMessageId      
     },
     getMaxPlaceChatId: function() {
         const getMaxMessageId = db.query<{ maxMessageId: number }, any>("SELECT MAX(messageId) AS maxMessageId FROM PlaceChatMessages")
-        const maxMessageId = getMaxMessageId.get().maxMessageId || 0
+        const maxMessageId = getMaxMessageId.get()?.maxMessageId || 0
         return maxMessageId
     },
     commitShutdown: function() {
@@ -356,7 +371,8 @@ const internal: DbInternals = {
     deleteLiveChat: function(data) {
         const deletionQuery = db.query<LiveChatDeletion, DeletionMessageInfo>(
             "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $messageId) RETURNING *")
-        const deletion = deletionQuery.get(data)
+        const deletion = deletionQuery.get(toQueryObject(data))
+        if (deletion == null) return
 
         // If pending to be inserted into DB we can update the record in preflight
         for (const messageData of liveChatInserts._elements) {
@@ -367,7 +383,7 @@ const internal: DbInternals = {
         }
 
         const query = db.query<void, LiveChatDeletion>("UPDATE LiveChatMessages SET deletionId = $deletionId WHERE messageId = $messageId")
-        query.run(deletion)
+        query.run(toQueryObject(deletion))
     },
     insertPlaceChat: function(data) {
         placeChatInserts.push(data)
