@@ -448,14 +448,6 @@
             { url: "https://t.me/rplacelive", banners: { en: "images/telegram-ad.png" } },
             { url: "https://discord.gg/4XnZ9WGux2", banners: { en: "images/discord-ad.png" } },
             { url: "https://arbitrum.life", banners: { en: "https://avatars.githubusercontent.com/u/131141781" } },
-            {
-                url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                banners: {
-                    de: "https://media.discordapp.net/attachments/1096547665875046591/1133066712783265883/german.png?width=620&height=310",
-                    tr: "https://media.discordapp.net/attachments/1096547665875046591/1133066713039114281/turkish.png?width=620&height=310",
-                    en: "https://media.discordapp.net/attachments/1096547665875046591/1133066712523231414/english.png?width=620&height=310"
-                }
-            }
         ]
 
         const PUNISHMENT_STATE = {
@@ -465,6 +457,8 @@
         }
 
         const MAX_CHANNEL_MESSAGES = 100
+
+        const SW_REVISION = 2
     </script>
     <script>
         if(!("subtle" in (window.crypto || {}))) location.protocol = "https:"
@@ -486,9 +480,17 @@
         }
 
         // Register PWA Service worker
-        if ("serviceWorker" in navigator)
+        if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("./sw.js")
-
+            .then((registration) => {
+                if (localStorage.sw != SW_REVISION) {
+                    console.log(`Updating service worker from ${localStorage.sw} to revision ${SW_REVISION}`);
+                    registration.update()
+                    localStorage.sw = SW_REVISION
+                }
+            })
+            .catch((error) => console.error(`Service worker failed with ${error}`))
+        }
         const intIdPositions = new Map() // position : intId
         const intIdNames = new Map() // intId : name
         let account = null
@@ -1683,7 +1685,7 @@
                         localStorage.placeChat = +placeChat
                         this.children[0].style.opacity = placeChat ? '1' : '0.6'
                     ">
-                        <img src="images/place-chat.svg" width="60">
+                        <img src="svg/place-chat.svg" width="60">
                     </place-chat-button>
                 </div>
             </div>

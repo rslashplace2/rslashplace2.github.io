@@ -71,8 +71,14 @@ export type UserVip = {
 }
 export type DeletionMessageInfo =  {
     messageId: number,
+
     reason: string,
     moderatorIntId: number
+}
+export type DeletionInsert = {
+    moderatorIntId: number,
+    reason: string,
+    deletionDate: number
 }
 export type LiveChatDeletion = {
     deletionId: number,
@@ -206,7 +212,7 @@ const createLiveChatDeletions = `
 db.exec(createLiveChatDeletions)
 
 /**
- * Adds % to object keys in order to make it act as a valid bun SQLite query object
+ * Adds $ to object keys in order to make it act as a valid bun SQLite query object
  */
 function toQueryObject<T extends object>(object: T): T {
     // @ts-expect-error Chicanery to keep type inference whilst transforming
@@ -373,9 +379,9 @@ const internal: DbInternals = {
     },
     // Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
     deleteLiveChat: function(data) {
-        const deletionQuery = db.query<LiveChatDeletion, DeletionMessageInfo>(
-            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $deletionDate) RETURNING *")
-        const deletion = deletionQuery.get(toQueryObject(data))
+        const deletionQuery = db.query<LiveChatDeletion, DeletionInsert>(
+            "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $deletionDate) RETURNING *")             
+        const deletion = deletionQuery.get(toQueryObject({ moderatorIntId: data.moderatorIntId, reason: data.reason, deletionDate: Date.now() }))
         if (deletion == null) return
 
         // If pending to be inserted into DB we can update the record in preflight
