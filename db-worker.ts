@@ -6,7 +6,8 @@ import { parentPort } from 'worker_threads'
 import { Database } from 'bun:sqlite'
 import { Queue } from '@datastructures-js/queue'
 
-const db = new Database("server.db")
+let db = new Database("server.db")
+let dbClosed = false
 
 export type LiveChatMessage = {
     messageId: number,
@@ -79,6 +80,7 @@ export type LiveChatDeletion = {
     reason: string,
     deletionDate: number
 }
+type LiveChatUpdateDeletion = { deletionId: number, messageId: number }
 export type AuthenticateUser = { token: string, ip: string }
 export type DbInternals = {
     setUserChatName: (data: { newName: string, intId: number }) => void,
@@ -96,7 +98,6 @@ export type DbInternals = {
     exec: (data: { stmt: string, params: any }) => any[]|null
 }
 
-try{
 const createLiveChatMessages = `
     CREATE TABLE IF NOT EXISTS LiveChatMessages (
         messageId INTEGER PRIMARY KEY,
@@ -358,8 +359,11 @@ const internal: DbInternals = {
         return maxMessageId
     },
     commitShutdown: function() {
-        performBulkInsertions()
-        db.close()
+        if (!dbClosed) {
+            performBulkInsertions()
+            db.close()
+            dbClosed = true    
+        }
     },
     /* Send date is seconds unix epoch offset */
     insertLiveChat: function(data) {
@@ -382,8 +386,9 @@ const internal: DbInternals = {
             }
         }
 
-        const query = db.query<void, LiveChatDeletion>("UPDATE LiveChatMessages SET deletionId = $deletionId WHERE messageId = $messageId")
-        query.run(toQueryObject(deletion))
+        const query = db.query<void, LiveChatUpdateDeletion>("UPDATE LiveChatMessages SET deletionId = $deletionId WHERE messageId = $messageId")
+        const deletionUpdate:LiveChatUpdateDeletion = { deletionId: deletion.deletionId, messageId: data.messageId }
+        query.run(toQueryObject(deletionUpdate))
     },
     insertPlaceChat: function(data) {
         placeChatInserts.push(data)
@@ -414,13 +419,13 @@ const internal: DbInternals = {
             return null
         }
     },
+    reInitialise: function() { //  Re-create the DB 
+        internal.commitShutdown()
+        db = new Database("server.db")
+    }
 }
 
 parentPort?.on("message", (message) => {
     const result = internal[message.call] && internal[message.call](message.data)
     parentPort?.postMessage({ handle: message.handle, data: result })
 })
-}
-catch(e){
-    console.error("Error from DB worker:", e)
-}
