@@ -1022,11 +1022,11 @@ const bunServer = Bun.serve<ClientData>({
         }
     },
 })
-// For compat with nodejs ws code
-const wss:RplaceServer = {
-    ...bunServer,
-    clients: new Set()
-}
+// For compat with methods that use node ws clients property
+// @ts-ignore
+bunServer.clients = new Set<ServerWebSocket<ClientData>>()
+// @ts-ignore
+const wss:RplaceServer = bunServer
 
 /**
  * @param {string} message
