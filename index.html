@@ -457,8 +457,6 @@
         }
 
         const MAX_CHANNEL_MESSAGES = 100
-
-        const SW_REVISION = 2
     </script>
     <script>
         if(!("subtle" in (window.crypto || {}))) location.protocol = "https:"
@@ -481,15 +479,7 @@
 
         // Register PWA Service worker
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./sw.js")
-            .then((registration) => {
-                if (localStorage.sw != SW_REVISION) {
-                    console.log(`Updating service worker from ${localStorage.sw} to revision ${SW_REVISION}`);
-                    registration.update()
-                    localStorage.sw = SW_REVISION
-                }
-            })
-            .catch((error) => console.error(`Service worker failed with ${error}`))
+            navigator.serviceWorker.register("./sw.js?v=2.0")
         }
         const intIdPositions = new Map() // position : intId
         const intIdNames = new Map() // intId : name
