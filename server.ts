@@ -1349,13 +1349,18 @@ function blacklist(identifier: ServerWebSocket<any>|number|string) {
     fs.appendFile("./blacklist.txt", "\n" + ip)
 }
 
+const defaultChannels = ["en", "zh", "hi", "es", "fr", "ar", "bn", "ru", "pt", "ur", "de", "jp", "tr", "vi", "ko", "it", "fa", "sr", "az"]
 /**
- * Broadcast a message as the server to a specific client (p) or all players, in a channel
+ * Broadcast a message as the server to all default channels, or a specific provided channel
  */
-function announce(msg: string, channel: string, p:ServerWebSocket<any>|null = null, repliesTo:number|null = null) {
-    const packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, channel, repliesTo)
-    if (p != null) p.send(packet)
-    else for (const c of wss.clients) c.send(packet)
+function announce(msg: string, channel: string|null = null, repliesTo:number|null = null) {
+    const targetChannels = channel ? [channel] : defaultChannels
+    for (const ch of targetChannels) {
+        const packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, ch, repliesTo)
+        for (const c of wss.clients) {
+            c.send(packet)
+        }
+    }
 }
 
 let shutdown = false
