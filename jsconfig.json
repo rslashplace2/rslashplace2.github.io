@@ -1,9 +1,0 @@
-{
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "nodenext",
-        "checkJs":true,
-    	"types": [ "bun-types" ],
-        "moduleResolution": "nodenext"
-    }
-}
