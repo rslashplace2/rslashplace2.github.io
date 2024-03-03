@@ -714,6 +714,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }
                     if (LOCKED === true || toValidate.has(ws) || bans.has(IP) || ws.data.challenge == "active" || cd > NOW) {
                         rejectPixel(ws, i, cd)
+                        return
                     }
                     // On first pixel place, give them a challenge
                     if (CHALLENGE && ws.data.challenge === "pending") {
@@ -721,6 +722,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         ws.data.challenge = "active"
                     }
                     if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) {
+                        rejectPixel(ws, i, cd)
                         return
                     }
                     CHANGES[i] = c
@@ -895,7 +897,9 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const result = await padlock.verifySolution(ws, data)
                     if (result === "badpacket" || result === "nosolution") return ws.close(4000, "Invalid solve packet")
                     if (result === false) {
+                        modWebhookLog(`Client ${IP}/${ws.data.intId} failed verification challenge, kicking`)
                         ws.close(4000, "No solution")
+                        return
                     }
                     else {
                         delete ws.data.challenge
