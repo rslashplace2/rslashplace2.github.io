@@ -7,5 +7,7 @@
         "moduleResolution": "nodenext",
         "forceConsistentCasingInFileNames": true,
         "strict": true
-    }
+    },
+    "strict": true,
+    "allowImportingTsExtensions": true
 }

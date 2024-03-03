@@ -35,9 +35,11 @@
         "no-process-exit": "off",
         "no-unused-vars": "off",
         "prefer-const": "warn",
-        "no-const-assign": "error"
+        "no-const-assign": "error",
+        "require-jsdoc": "off",
+        "no-explicit-any": "off"
     },
     "globals": {
-        "Bun": false
+        "Bun": true
     }
 }
