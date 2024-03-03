@@ -13,15 +13,17 @@ import fsExists from "fs.promises.exists"
 import fetch from "node-fetch"
 import util from "util"
 import path from "path"
-//import * as zcaptcha from './zcaptcha/server.js' // HACK: Disabled until upstream bun issue resolved
+// HACK: Disabled until upstream bun issue resolved
+//import * as zcaptcha from './zcaptcha/server.js'
 import { isUser } from "ipapi-sync"
 import { Worker } from "worker_threads"
 import cookie from "cookie"
 import repl from "basic-repl"
-import { $, Server, ServerWebSocket } from "bun"
-import { AuthenticateUser, DbInternals, DeletionMessageInfo, LiveChatMessage, PlaceChatMessage } from "./db-worker.ts"
+import { $, Serve, Server, ServerWebSocket, TLSWebSocketServeOptions } from "bun"
+import { DbInternals, LiveChatMessage } from "./db-worker.ts"
+import { PublicPromise } from "./server-types.ts"
 
-let BOARD, CHANGES, VOTES
+let BOARD:Uint8Array, CHANGES:Uint8Array, VOTES:Uint32Array
 
 type ServerConfig = {
     "SECURE": boolean,
@@ -49,6 +51,7 @@ type ServerConfig = {
     "INCLUDE_PLACER": boolean, // pixel placer
     "SECURE_COOKIE": boolean,
     "CORS_COOKIE": boolean,
+    "CHALLENGE": boolean
 }
 let configFailed = false
 let configFile = await fs.readFile("./server_config.json").catch(_ => configFailed = true)
@@ -79,6 +82,7 @@ if (configFailed) {
         "INCLUDE_PLACER": false, // pixel placer
         "SECURE_COOKIE": true,
         "CORS_COOKIE": false,
+        "CHALLENGE": false
     }, null, 4))
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
@@ -87,7 +91,7 @@ if (configFailed) {
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
     CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
-    CORS_COOKIE } = JSON.parse(configFile.toString()) as ServerConfig
+    CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -106,6 +110,18 @@ else {
     uidToken = uidTokenFile.toString()
 }
 
+let padlock:any = null
+if (CHALLENGE) {
+    const padlockPath = "./padlock/server.ts"
+    const padlockSource = Bun.file(padlockPath)
+    if (padlockSource.size !== 0) {
+        padlock = import(padlockPath)
+    }
+    else {
+        throw new Error("Could not enable challenge, challenge module not found")
+    }
+}
+
 // TODO: Maybe a  set for { pos, Col, Id } might be better
 const newPos: number[] = []
 const newCols: number[] = []
@@ -118,7 +134,7 @@ CHANGEPACKET.setUint32(1, WIDTH)
 CHANGEPACKET.setUint32(5, HEIGHT)
 const CHANGES32 = new Int32Array(CHANGES.buffer, CHANGES.byteOffset, CHANGES.byteLength >> 2)
 function runLengthChanges() {
-    //compress CHANGES with run-length encoding 
+    //compress CHANGES with run-length encoding
     let b = 9, i = 0
     while (true) {
         let c = i
@@ -140,11 +156,11 @@ function runLengthChanges() {
         if (i >= CHANGES.length) break
         c = i - c
         //c is # of blank cells
-        //we will borrow 2 bits to store the blank cell count 
+        //we will borrow 2 bits to store the blank cell count
         //00 = no gap
-        //01 = 1-byte (Gaps up to 255) 
-        //10 = 2-byte (Gaps up to 65535) 
-        //11 = 4-byte (idk probs never used) 
+        //01 = 1-byte (Gaps up to 255)
+        //10 = 2-byte (Gaps up to 65535)
+        //11 = 4-byte (idk probs never used)
         if (c < 256) {
             if (!c) CHANGEPACKET.setUint8(b++, CHANGES[i++])
             else CHANGEPACKET.setUint16(b, (CHANGES[i++] | 64) << 8 | c), b += 2
@@ -185,18 +201,6 @@ class DoubleMap<T, K> {
     clear() { this.foward.clear(); this.reverse.clear() }
     size() { return this.foward.size }
 }
-/** Promise with resolve and reject exposed - Like C# TaskCompletionSource */
-class PublicPromise<T> {
-    promise: Promise<T>
-    resolve: (value: T | PromiseLike<T>) => void
-    reject: (reason?: string) => void
-    constructor() {
-        this.promise = new Promise((resolve, reject) => {
-            this.resolve = resolve
-            this.reject = reject
-        })
-    }
-}
 
 const criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
@@ -207,7 +211,7 @@ for (let i = 0; i < criticalFiles.length; i++) {
  * @param {number} length Length of generated random string
  * @returns {string} random string
  */
-function randomString(length) {
+function randomString(length: number) {
     const buf = new Uint8Array(length)
     crypto.getRandomValues(buf)
     let str = ""
@@ -271,7 +275,7 @@ const dbWorker = new Worker("./db-worker.ts")
 async function makeDbRequest<T extends DbInternals>(messageCall: keyof T, args?: Parameters<T[keyof T]>[0]): Promise<Awaited<ReturnType<T[keyof T]>>> {
     const handle = dbReqId++
     const promise = new PublicPromise()
-    
+
     const postCall = { call: messageCall, data: args, handle: handle }
     dbReqs.set(handle, promise)
     dbWorker.postMessage(postCall)
@@ -332,7 +336,7 @@ const VIP = readVip(vipTxt)
             for (const [k, v] of addedKeys) VIP.set(k, v)
             for (const [k] of removedKeys) VIP.delete(k)
             for (const [k, v] of modifiedKeys) VIP.set(k, v)
-            let removedClients = 0 
+            let removedClients = 0
             for (const [k, _] of removedKeys) {
                 const activeClient = activeVips.get(k)
                 if (activeClient) {
@@ -387,11 +391,11 @@ playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
 
 const allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
 /**
- * 
- * @param {string} text Input text to be sanitised 
+ *
+ * @param {string} text Input text to be sanitised
  * @returns {string} sanitised string
  */
-function censorText(text) {
+function censorText(text:string) {
     return text
         .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|b[i1]tch|blowjob|clit|c[o0]ck|cunt|dick|(f[Aa4][g6](g?[oi]t)?)|jizz|lesbian|masturbat(e|ion)|nigga|卐|卍|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
             match => "*".repeat(match.length))
@@ -425,7 +429,7 @@ function createChatPacket(type: number, message: string, sendDate: number, messa
     msgPacket.writeUInt16BE(encodedTxt.byteLength, i); i += 2
     msgPacket.set(encodedTxt, i); i += encodedTxt.byteLength
     msgPacket.writeUInt32BE(intId, i); i +=  4
-    
+
     if (type == 0 && encodedChannel != null) { // Live chat message
         msgPacket.writeUInt32BE(sendDate, i); i += 4
         // TODO: reactions
@@ -445,11 +449,11 @@ function createChatPacket(type: number, message: string, sendDate: number, messa
 }
 
 /**
- * 
+ *
  * @param {Map<number, string>} names IntId : String names map to be encoded
  * @returns {Buffer} Name packet data prepended with packet code (12)
  */
-function createNamesPacket(names) {
+function createNamesPacket(names: Map<number, string>) {
     let size = 1
     const encodedNames = new Map()
     for (const [intId, name] of names) {
@@ -479,7 +483,7 @@ function createNamesPacket(names) {
  * @param {boolean} appealRejected Boolean indicating whether appeal is rejected and no logner editable
  * @returns {Buffer}
  */
-function createPunishPacket(type, startDate, finishDate, reason, userAppeal, appealRejected) {
+function createPunishPacket(type: typeof PUNISHMENT_STATE.mute | typeof PUNISHMENT_STATE.ban, startDate: number, finishDate: number, reason: string, userAppeal: string, appealRejected: boolean): Buffer {
     const encReason = encoderUTF8.encode(reason)
     const encAppeal = encoderUTF8.encode(userAppeal)
     const buf = Buffer.allocUnsafe(12 + encReason.byteLength + encAppeal.byteLength)
@@ -515,7 +519,7 @@ async function applyPunishments(ws: ServerWebSocket<ClientData>, intId: number, 
                 stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Bans WHERE userIntId = ?",
                 params: intId })
             if (banInfo && banInfo[0]) {
-                banInfo = banInfo[0] 
+                banInfo = banInfo[0]
                 ws.send(createPunishPacket(PUNISHMENT_STATE.ban, banInfo.startDate,
                     banInfo.finishDate, banInfo.reason, banInfo.userAppeal, banInfo.appealRejected))
             }
@@ -556,16 +560,14 @@ type ClientData = {
     cd: number,
     intId: number,
     token: string,
-    chatName: string
+    chatName: string,
+    voted: number,
+    challenge: "pending"|"active"|undefined
 }
 interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
 }
-const bunServer = Bun.serve<ClientData>({
-    /**
-     * @param {{ headers: { get: (arg0: string) => any; }; url: string | URL; }} req
-     * @param {{ upgrade: (arg0: any, arg1: { data: { url: string; headers: any; token: string; }; headers: { "Set-Cookie": string; }; }) => void; }} server
-     */
+const serverOptions:TLSWebSocketServeOptions<ClientData> = {
     fetch(req: Request, server: Server) {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
         let newToken:string|null = null
@@ -609,6 +611,10 @@ const bunServer = Bun.serve<ClientData>({
                 ws.close(4000, "Not user")
                 return
             }
+            if (!ws.data.headers.get("User-Agent")) {
+                ws.close(4000, "No agent")
+                return
+            }
             const ORIGIN  = ws.data.headers.get("origin")
             if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
@@ -629,7 +635,10 @@ const bunServer = Bun.serve<ClientData>({
             }
             ws.data.cd = CD
 
-            if (CAPTCHA && ws.data.perms !== "admin") await forceCaptchaSolve(ws)
+            if (CAPTCHA && ws.data.perms !== "admin") {
+                //await forceCaptchaSolve(ws)
+                if (CHALLENGE) ws.data.challenge = "pending"
+            }
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
 
@@ -640,7 +649,7 @@ const bunServer = Bun.serve<ClientData>({
             ws.send(buf)
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
-        
+
             // If a custom palette is defined, then we send to client
             if (Array.isArray(PALETTE)) {
                 const paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
@@ -650,7 +659,7 @@ const bunServer = Bun.serve<ClientData>({
                 }
                 ws.send(paletteBuffer)
             }
-            
+
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
             const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
             if (pIntId == null || typeof pIntId != "number") {
@@ -677,11 +686,7 @@ const bunServer = Bun.serve<ClientData>({
             const nmInfoBuf = createNamesPacket(playerChatNames)
             ws.send(nmInfoBuf)
         },
-        /**
-         * @param {{ data: { ip: any; cd: any; intId: number; chatName: string; lastChat: number; perms: string; voted: number; codeHash: any; }; send: (arg0: Buffer | DataView) => void; close: () => any; }} ws
-         * @param {any[]} data
-         */
-        async message(ws, data) {
+        async message(ws:ServerWebSocket<ClientData>, data:string|Buffer) {
             if (typeof data === "string") return
             // Redefine as message handler is now separate from open
             const IP = ws.data.ip
@@ -689,7 +694,14 @@ const bunServer = Bun.serve<ClientData>({
 
             switch (data[0]) {
                 case 4: { // pixel place
-                    if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP)) return
+                    if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP) || ws.data.challenge == "active") return
+                    if (CHALLENGE) {
+                        // On first pixel place, give them a challenge
+                        if (ws.data.challenge === "pending") {
+                            ws.send(padlock.requestChallenge(ws))
+                            ws.data.challenge = "active"
+                        }
+                    }
                     const i = data.readUInt32BE(1), c = data[5]
                     if (i >= BOARD.length || c >= PALETTE_SIZE) return
                     const cd = cooldowns.get(IP) || COOLDOWN
@@ -716,7 +728,7 @@ const bunServer = Bun.serve<ClientData>({
                     const resName = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
                     name = resName ? resName + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
                     if (!name || name.length > 16) return
-    
+
                     // Update chatNames so new players joining will also see the name and pass to DB
                     ws.data.chatName = name
                     playerChatNames.set(ws.data.intId, name)
@@ -756,7 +768,7 @@ const bunServer = Bun.serve<ClientData>({
                     // Client may race between applying intId:name bindings and inserting the new messages w/ usernames. Oof!
                     const nmInfoBuf = createNamesPacket(usernames)
                     ws.send(nmInfoBuf)
-                    
+
                     let i = 0
                     const historyBuffer = Buffer.allocUnsafe(size)
                     historyBuffer[i++] = 13
@@ -773,16 +785,17 @@ const bunServer = Bun.serve<ClientData>({
                 }
                 case 15: { // chat
                     if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW
-                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)) {
+                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)
+                        || ws.data.challenge !== undefined) {
                         return
                     }
                     ws.data.lastChat = NOW
-    
+
                     // These may or may not be defined depending on message type
                     let channel:string|null = null
                     let positionIndex = null
                     let repliesTo = null
-    
+
                     let offset = 1
                     const type = data.readUInt8(offset++)
                     const msgLength = data.readUInt16BE(offset); offset += 2
@@ -790,7 +803,7 @@ const bunServer = Bun.serve<ClientData>({
                     if (type == 0) { // Live chat message
                         const channelLength = data.readUInt8(offset); offset++
                         channel = decoderUTF8.decode(data.subarray(offset, offset + channelLength)); offset += channelLength
-    
+
                         // If the packet included a message ID it replies to, we include it
                         if (data.byteLength - offset >= 4) {
                             repliesTo = data.readUInt32BE(offset)
@@ -799,7 +812,7 @@ const bunServer = Bun.serve<ClientData>({
                     else {
                         positionIndex = data.readUint32BE(offset)
                     }
-    
+
                     if ((type == 0 && !channel) || !message) return
                     message = censorText(message)
                     if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
@@ -809,11 +822,11 @@ const bunServer = Bun.serve<ClientData>({
                     else if (ws.data.perms !== "admin") {
                         message = message.replaceAll("@everyone", "*********")
                     }
-                    
+
                     let messageId = 0
                     if (type === 0 && channel != null) {
                         messageId = ++liveChatMessageId
-                        const liveChat:LiveChatMessage = { messageId, message, sendDate: NOW, channel, senderIntId: ws.data.intId, repliesTo: null, deletionId: null } 
+                        const liveChat:LiveChatMessage = { messageId, message, sendDate: NOW, channel, senderIntId: ws.data.intId, repliesTo: null, deletionId: null }
                         postDbMessage("insertLiveChat", liveChat)
                     }
                     else if (positionIndex != null) {
@@ -833,9 +846,9 @@ const bunServer = Bun.serve<ClientData>({
                             const hookChannel = channel.replaceAll("@", "@​")
                             const hookMessage = message.replaceAll("@", "@​")
                             const msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
-                            fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
+                            fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                         }
-                    }catch (err){ console.log("Could not post chat message to discord: " + err) }        
+                    }catch (err){ console.log("Could not post chat message to discord: " + err) }
                     break
                 }
                 case 16: {
@@ -869,6 +882,17 @@ const bunServer = Bun.serve<ClientData>({
                     else VOTES[data[1] & 31]--
                     break
                 }
+                case 21: {
+                    const result = await padlock.verifySolution(ws, data)
+                    if (result === "badpacket" || result === "nosolution") return ws.close(4000, "Invalid solve packet")
+                    if (result === false) {
+                        ws.close(4000, "No solution")
+                    }
+                    else {
+                        delete ws.data.challenge
+                    }
+                    break
+                }
                 case 96: {// Set preban
                     let offset = 1
                     if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
@@ -888,7 +912,7 @@ const bunServer = Bun.serve<ClientData>({
                     if (ws.data.perms !== "admin" && ws.data.perms !== "chatmod") return
                     let offset = 1
                     const action = data[offset++]
-    
+
                     switch (action) {
                         case 0: { // Kick
                             const actionIntId = data.readUInt32BE(offset); offset += 4
@@ -896,11 +920,11 @@ const bunServer = Bun.serve<ClientData>({
                             if (actionReason.length == 0) return
 
                             let actionCli:ServerWebSocket<ClientData>|null = null
-                            for(const [p, uid] of playerIntIds) {
+                            for (const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
                             if (actionCli === null) return
-        
+
                             if (action == 0) { // kick
                                 modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **kick** user **${
                                     actionCli.data.ip}**, with reason: '${
@@ -917,15 +941,15 @@ const bunServer = Bun.serve<ClientData>({
                             if (actionReason.length == 0) return
 
                             let actionCli:ServerWebSocket<ClientData>|null = null
-                            for(const [p, uid] of playerIntIds) {
+                            for (const [p, uid] of playerIntIds) {
                                 if (uid === actionIntId) actionCli = p
                             }
                             if (actionCli == null) return
-        
+
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
                                 }** user **${actionCli.data.ip}**, for **${actionTimeS}** seconds, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)
-        
+
                             if (action == 1) mute(actionIntId, actionTimeS, actionReason, ws.data.intId)
                             else ban(actionIntId, actionTimeS, actionReason, ws.data.intId)
                             break
@@ -937,11 +961,11 @@ const bunServer = Bun.serve<ClientData>({
 
                             let actionCli:ServerWebSocket<ClientData>|null = null
                             if (actionIntId !== 0) {
-                                for(const [p, uid] of playerIntIds) {
+                                for (const [p, uid] of playerIntIds) {
                                     if (uid === actionIntId) actionCli = p
                                 }
                                 if (actionCli == null) return
-        
+
                                 await forceCaptchaSolve(actionCli)
                             }
                             else {
@@ -949,10 +973,10 @@ const bunServer = Bun.serve<ClientData>({
                                     forceCaptchaSolve(c)
                                 }
                             }
-                            
+
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **force captcha revalidation** for ${
                                 actionIntId === 0 ? "**__all clients__**" : ("user **" + actionCli?.data.ip + "**")}, with reason: '${
-                                actionReason.replaceAll("@", "@​")}'`)    
+                                actionReason.replaceAll("@", "@​")}'`)
                             break
                         }
                         case 4: { // Delete chat message
@@ -983,10 +1007,10 @@ const bunServer = Bun.serve<ClientData>({
                     let i = data.readUInt32BE(2)
                     const h = Math.floor((data.length - 6) / w)
                     if (i % WIDTH + w >= WIDTH || i + h * HEIGHT >= WIDTH * HEIGHT) return
-    
+
                     let hi = 6
                     const target = w * h + 6
-    
+
                     while (hi < target) {
                         CHANGES.set(data.subarray(hi, hi + w), i)
                         i += WIDTH
@@ -997,14 +1021,9 @@ const bunServer = Bun.serve<ClientData>({
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                     break
                 }
-            }    
+            }
         },
-        /**
-         * @param {{ data: { intId: any; codeHash: any; connDate: number; }; }} ws
-         * @param {any} code
-         * @param {any} message
-         */
-        async close(ws, code, message) {
+        async close(ws:ServerWebSocket<ClientData>, code: number, message: string) {
             playerChatNames.delete(ws.data.intId)
             playerIntIds.delete(ws)
             toValidate.delete(ws)
@@ -1016,16 +1035,22 @@ const bunServer = Bun.serve<ClientData>({
         },
         perMessageDeflate: false,
     },
-    port: PORT,
-    ...SECURE && {
-        tls: {
-            // Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem,
-            // Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
-            cert: Bun.file(CERT_PATH),
-            key: Bun.file(KEY_PATH)
-        }
-    },
-})
+    port: PORT
+}
+if (SECURE) {
+    // TODO: Report bun segfault when giving a TLS cert and key path that doesn't exist
+    // Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem,
+    // Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
+    const cert = Bun.file(CERT_PATH)
+    const key = Bun.file(KEY_PATH)
+    if (cert.size !== 0 && key.size !== 0) {
+        serverOptions.tls = { cert, key }
+    }
+    else {
+        throw new Error("Could not start server with SECURE, cert and key file could not be opened.")
+    }
+}
+const bunServer = Bun.serve<ClientData>(serverOptions)
 // For compat with methods that use node ws clients property
 // @ts-ignore
 bunServer.clients = new Set<ServerWebSocket<ClientData>>()
@@ -1035,7 +1060,7 @@ const wss:RplaceServer = bunServer
 /**
  * @param {string} message
  */
-async function modWebhookLog(message) {
+async function modWebhookLog(message:string) {
     console.log(message)
     if (!MOD_WEBHOOK_URL) return
     message = message.replace("@", "@​")
@@ -1055,13 +1080,12 @@ setInterval(() => {
  * Force a client to redo the captcha
  * @param {string|number|import('bun').ServerWebSocket<any>} identifier - String client ip address, intId or client websocket instance
  */
-async function forceCaptchaSolve(identifier) {
-    throw new Error("Force captcha solve is disabled")
+async function forceCaptchaSolve(identifier:string|number|ServerWebSocket<ClientData>) {
     // @ts-ignore
     /*
 	const cli = identifier
     if (typeof identifier === "number") {
-        for (const cli of wss.clients) { 
+        for (const cli of wss.clients) {
             if (cli.data.intId == identifier) {
                 cli.close()
             }
@@ -1199,7 +1223,7 @@ setInterval(async function () {
     }
 }, 5000)
 
-repl("|place$ ", (/** @type {string} */ input) => console.log(eval(input)))
+repl("|place$ ", (input:string) => console.log(eval(input)))
 
 /**
  * Fill given canvas area with certain colour
@@ -1210,7 +1234,7 @@ repl("|place$ ", (/** @type {string} */ input) => console.log(eval(input)))
  * @param {number} x - Int colour code index to be used
  * @param {boolean} random - Fill with random colours instead
  */
-function fill(x, y, x1, y1, c = 27, random = false) {
+function fill(x: number, y: number, x1: number, y1: number, c = 27, random: boolean = false) {
     let w = x1 - x, h = y1 - y
     for (; y < y1; y++) {
         for (; x < x1; x++) {
@@ -1222,7 +1246,7 @@ function fill(x, y, x1, y1, c = 27, random = false) {
     return `Filled an area of ${w}*${h} (${(w * h)} pixels), reload the game to see the effects`
 }
 
-type ActionFunc = (p: ServerWebSocket<any>, incomingX:number, incomingY) => boolean
+type ActionFunc = (p: ServerWebSocket<any>, incomingX:number, incomingY:number) => boolean
 type PrebanAction = ("kick"|"ban"|"blacklist"|"none"|ActionFunc)
 interface PrebanArea {
     x: number
@@ -1241,7 +1265,7 @@ const prebanArea:PrebanArea = { x: 0, y: 0, x1: 0, y1: 0, action: "kick" }
  * @param {number} _y1 - y end
  * @param {PrebanAction} _action - The action to be performed on catch
  */
-function setPreban(_x, _y, _x1, _y1, _action:"kick"|"ban"|"blacklist"|"none" = "kick") {
+function setPreban(_x: number, _y: number, _x1: number, _y1: number, _action:"kick"|"ban"|"blacklist"|"none" = "kick") {
     prebanArea.x = _x; prebanArea.y = _y; prebanArea.x1 = _x1; prebanArea.y1 = _y1; prebanArea.action = _action
 }
 function clearPreban() {
@@ -1278,7 +1302,7 @@ function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<Cl
  * @param {number} intId - Integer id of client that is to be banned
  * @param {number} duration - Integer duration (seconds) for however long this client will be muted for
  * @param {string?} reason - String reason for which client is being muted
- * @param {number?} modIntId - Responsible moderator integer ID 
+ * @param {number?} modIntId - Responsible moderator integer ID
 */
 async function ban(intId: number, duration: number, reason: string|null = null, modIntId: number|null = null) {
     const start = NOW
@@ -1288,7 +1312,7 @@ async function ban(intId: number, duration: number, reason: string|null = null, 
             "reason, userAppeal, appealRejected) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params: [ start, finish, intId, modIntId, reason, null, 0 ] }
     dbWorker.postMessage({ call: "exec", data: banDbData })
-    
+
     const ips:any = await makeDbRequest("exec", {
         stmt: "SELECT ip FROM KnownIps WHERE userIntId = ?1", params: intId })
     for (const ipObject of ips) {
@@ -1301,9 +1325,9 @@ async function ban(intId: number, duration: number, reason: string|null = null, 
  * @param {number} intId - Integer id of client that is to be muted
  * @param {number} duration - Integer duration (seconds) for however long this client will be muted for
  * @param {string?} reason - String reason for which client is being muted
- * @param {number?} modIntId - Responsible moderator integer ID 
+ * @param {number?} modIntId - Responsible moderator integer ID
  */
-async function mute(intId: number, duration: number, reason: string|null = null, modIntId: number|null = null) {       
+async function mute(intId: number, duration: number, reason: string|null = null, modIntId: number|null = null) {
     const start = NOW
     const finish = start + duration * 1000
     const muteDbData = {
@@ -1320,12 +1344,12 @@ async function mute(intId: number, duration: number, reason: string|null = null,
 }
 
 /**
- * Permamently IP block a player by IP, via WS instance or via intID 
+ * Permamently IP block a player by IP, via WS instance or via intID
  */
 function blacklist(identifier: ServerWebSocket<any>|number|string) {
     let ip:string|null = null
     if (typeof identifier === "number") {
-        for (const cli of wss.clients) { 
+        for (const cli of wss.clients) {
             if (cli.data.intId == identifier) {
                 ip = cli.data.ip
                 cli.close()
@@ -1380,4 +1404,8 @@ process.on("SIGINT", function () {
             process.exit(0)
         })()
     }
+})
+process.on("SIGSEGV", async function() {
+    console.trace("Segfault encountered. Quitting")
+    process.exit(1)
 })
