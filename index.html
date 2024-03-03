@@ -413,7 +413,8 @@
             name: "<kbd>Change your username</kbd>",
             vip: "<kbd>Apply a VIP cooldown code</kbd>",
             lookup: "<kbd>Get the IDs of all players with the given name</kbd>",
-            getid: "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>"
+            getid: "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>",
+            whoplaced: "<kbd>View details of who placed the current pixel being hoveredd</kbd>"
         }
 
         // Flag emojis all sourced from openmoji.org, https://www.langoly.com/most-spoken-languages/
@@ -1069,10 +1070,14 @@
                     window.location.reload(true)
                     return
                 }
+                else if (localStorage.vip && message.includes(localStorage.vip)) {
+                    alert("Can't send VIP key in chat. Use ':vip yourvipkeyhere' to apply a VIP key")
+                    return
+                }
                 else if (message.startsWith(":getid")) {
                     let targetName = message.slice(6).trim().toLowerCase()
                     if (!targetName) {
-                        alert("Your User ID is: " + intId)
+                        alert("Your User ID is: #" + intId)
                     }
                     else {
                         let foundUsers = `Found Users with name '${targetName}:'\n`
@@ -1084,6 +1089,17 @@
 
                         alert(foundUsers)
                     }
+                    return
+                }
+                else if (message.startsWith(":whoplaced")) {
+                    let id = intIdPositions.get(Math.floor(x) + Math.floor(y) * WIDTH)
+                    if (id === undefined) {
+                        alert("Could not find details of who placed pixel at current location...")
+                    }
+                    let name = intIdNames.get(id)
+                    alert(`Details of who placed at ${Math.floor(x)} ${Math.floor(y)
+                        }:\nName: ${name || 'none'
+                        }\nUser ID: #${id}`)
                     return
                 }
                 else if (message.startsWith(":help")) {
