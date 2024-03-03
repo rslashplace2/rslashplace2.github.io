@@ -115,7 +115,7 @@ if (CHALLENGE) {
     const padlockPath = "./padlock/server.ts"
     const padlockSource = Bun.file(padlockPath)
     if (padlockSource.size !== 0) {
-        padlock = import(padlockPath)
+        padlock = await import(padlockPath)
     }
     else {
         throw new Error("Could not enable challenge, challenge module not found")
