@@ -549,6 +549,15 @@ async function applyPunishments(ws: ServerWebSocket<ClientData>, intId: number, 
     }
 }
 
+function rejectPixel(ws:ServerWebSocket<any>, i:number, cd:number) {
+    const data = Buffer.alloc(10)
+    data[0] = 7
+    data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
+    data.writeInt32BE(i, 5)
+    data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
+    ws.send(data)
+}
+
 type ClientData = {
     ip: string,
     headers: Headers,
@@ -694,27 +703,26 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
             switch (data[0]) {
                 case 4: { // pixel place
-                    if (data.length < 6 || LOCKED === true || toValidate.has(ws) || bans.has(IP) || ws.data.challenge == "active") return
-                    if (CHALLENGE) {
-                        // On first pixel place, give them a challenge
-                        if (ws.data.challenge === "pending") {
-                            ws.send(padlock.requestChallenge(ws))
-                            ws.data.challenge = "active"
-                        }
-                    }
-                    const i = data.readUInt32BE(1), c = data[5]
-                    if (i >= BOARD.length || c >= PALETTE_SIZE) return
-                    const cd = cooldowns.get(IP) || COOLDOWN
-                    if (cd > NOW) {
-                        const data = Buffer.alloc(10)
-                        data[0] = 7
-                        data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
-                        data.writeInt32BE(i, 5)
-                        data[9] = CHANGES[i] == 255 ? BOARD[i] : CHANGES[i]
-                        ws.send(data)
+                    if (data.length < 6) {
                         return
                     }
-                    if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) return
+                    const i = data.readUInt32BE(1)
+                    const c = data[5]
+                    const cd = cooldowns.get(IP) || COOLDOWN
+                    if (i >= BOARD.length || c >= PALETTE_SIZE) {
+                        return
+                    }
+                    if (LOCKED === true || toValidate.has(ws) || bans.has(IP) || ws.data.challenge == "active" || cd > NOW) {
+                        rejectPixel(ws, i, cd)
+                    }
+                    // On first pixel place, give them a challenge
+                    if (CHALLENGE && ws.data.challenge === "pending") {
+                        ws.send(padlock.requestChallenge(ws))
+                        ws.data.challenge = "active"
+                    }
+                    if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) {
+                        return
+                    }
                     CHANGES[i] = c
                     cooldowns.set(IP, NOW + CD - 500)
                     newPos.push(i)
@@ -722,6 +730,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (INCLUDE_PLACER) newIds.push(ws.data.intId)
                     postDbMessage("updatePixelPlace", ws.data.intId)
                     break
+                    
                 }
                 case 12: { // Submit name
                     let name = decoderUTF8.decode(data.subarray(1))
