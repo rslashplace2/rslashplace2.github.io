@@ -644,8 +644,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
             ws.data.cd = CD
 
-            if (CAPTCHA && ws.data.perms !== "admin") {
-                //await forceCaptchaSolve(ws)
+            if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") {
+                if (CAPTCHA) await forceCaptchaSolve(ws)
                 if (CHALLENGE) ws.data.challenge = "pending"
             }
             ws.data.lastChat = 0 //last chat
