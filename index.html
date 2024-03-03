@@ -992,8 +992,8 @@
                 }
                 case 21: {
                     let a = data.getUint32(1), b = 5 + a, c = data.buffer.slice(5, 5 + a), f = new Uint8Array(9), u = new DataView(f.buffer)
-                    ;window.challengeData = new Uint8Array(data.buffer.slice(b));let d = await Object.getPrototypeOf(async function() {}).constructor(atob(decoder.decode(c)))();
-                    delete window.challengeData;u.setUint8(0, 21);u.setBigInt64(1, d);call(send, ws, u.buffer);
+                    ;window.challengeData = new Uint8Array(data.buffer.slice(b));let d = await Object.getPrototypeOf(async function() {}).constructor(atob(decoder.decode(c)))()
+                    ;delete window.challengeData;u.setUint8(0, 21);u.setBigInt64(1, d);call(send, ws, u.buffer);
                     break
                 }
                 }
@@ -1058,7 +1058,7 @@
             }
             call(addEventListener, pok, "click", oclick)
 
-            function sendLiveChatMsg(message){
+            function sendLiveChatMsg(message) {
                 if (message.startsWith(":name")) {
                     namePanel.style.visibility = "visible"
                     nameInput.value = message.slice(5).trim()
@@ -1095,10 +1095,11 @@
                     let id = intIdPositions.get(Math.floor(x) + Math.floor(y) * WIDTH)
                     if (id === undefined) {
                         alert("Could not find details of who placed pixel at current location...")
+			return
                     }
                     let name = intIdNames.get(id)
-                    alert(`Details of who placed at ${Math.floor(x)} ${Math.floor(y)
-                        }:\nName: ${name || 'none'
+                    alert(`Details of who placed at ${Math.floor(x)}, ${Math.floor(y)
+                        }:\nName: ${name || 'anon'
                         }\nUser ID: #${id}`)
                     return
                 }
