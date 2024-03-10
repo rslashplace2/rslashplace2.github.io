@@ -658,24 +658,26 @@ body[eventphase="3"] .coverer-title {
 	color: black;
 }
 
-#chatPreviousButton {
+.horizontal-labeled-separator {
 	background: none;
 	border: none;
 	color: gray;
 	font-weight: bold;
 	display: flex;
-	cursor: pointer;
 	column-gap: 4px;
-	transition: .2s transform, .2s height;
 }
-#chatPreviousButton > hr {
+.horizontal-labeled-separator > hr {
 	flex-grow: 1;
 	height: 1px;
 	margin-top: 8px;
 	opacity: 0.2;
 }
-#chatPreviousButton > span {
+.horizontal-labeled-separator > span {
 	font-size: 14px;
+}
+#chatPreviousButton {
+	cursor: pointer;
+	transition: .2s transform, .2s height;
 }
 
 #chatMessages {

@@ -2003,6 +2003,11 @@
                         </div>
                     </div>
                 </div>
+                <div class="horizontal-labeled-separator">
+                    <hr>
+                    <span>Community posts</span>
+                    <hr>
+                </div>
             </div>
         </div>
         <div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"
@@ -2113,7 +2118,7 @@
                 ">x</button>
             </a>
             <span id="adLabel" style="display: none; opacity: 0; align-self: center;" translate="adHidden">Ad hidden for 14 days!</span>
-            <div id="chatPreviousButton" noselect><hr><span>See previous messages</span><hr></div>
+            <div id="chatPreviousButton" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages" onscroll="
                 let styleChange = new Map()
                 if (this.scrollTop < 4) {
