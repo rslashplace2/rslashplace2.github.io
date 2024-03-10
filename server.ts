@@ -47,6 +47,7 @@ type ServerConfig = {
     "CHAT_COOLDOWN_MS": number,
     "PUSH_INTERVAL_MINS": number,
     "CAPTCHA_EXPIRY_SECS": number,
+    "LINK_EXPIRY_SECS": number,
     "CAPTCHA_MIN_MS": number, //min solvetime
     "INCLUDE_PLACER": boolean, // pixel placer
     "SECURE_COOKIE": boolean,
@@ -78,6 +79,7 @@ if (configFailed) {
         "CHAT_COOLDOWN_MS": 2500,
         "PUSH_INTERVAL_MINS": 30,
         "CAPTCHA_EXPIRY_SECS": 45,
+        "LINK_EXPIRY_SECS": 60,
         "CAPTCHA_MIN_MS": 100, //min solvetime
         "INCLUDE_PLACER": false, // pixel placer
         "SECURE_COOKIE": true,
@@ -88,9 +90,10 @@ if (configFailed) {
     process.exit(0)
 }
 
+// TODO: Maybe make config
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
     CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
@@ -127,6 +130,11 @@ const newPos: number[] = []
 const newCols: number[] = []
 const newIds: number[] = []
 const cooldowns = new Map<string, number>()
+type LinkKeyInfo = {
+    intId: number,
+    dateCreated: number
+}
+const linkKeyInfos = new Map<string, LinkKeyInfo>()
 
 const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
 CHANGEPACKET.setUint8(0, 2)
@@ -577,34 +585,96 @@ interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
 }
 const serverOptions:TLSWebSocketServeOptions<ClientData> = {
-    fetch(req: Request, server: Server) {
-        const cookies = cookie.parse(req.headers.get("Cookie") || "")
-        let newToken:string|null = null
-        if (!cookies[uidToken]) {
-            newToken = randomString(32)
-        }
+    async fetch(req: Request, server: Server) {
         const url = new URL(req.url)
-        server.upgrade(req, {
-            data: {
-                url: url.pathname.slice(1).trim(),
-                headers: req.headers,
-                token: cookies[uidToken] || newToken
-            },
-            headers: {
-                ...newToken && {
-                    "Set-Cookie": cookie.serialize(uidToken,
-                        newToken, {
-                            domain: url.hostname,
-                            expires: new Date(4e12),
-                            httpOnly: true, // Inaccessible from JS
-                            sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
-                            secure: SECURE_COOKIE // Only over HTTPS
-                        })
-                }
-            }
-        })
+        const cookies = cookie.parse(req.headers.get("Cookie") || "")
+        const userToken = cookies[uidToken]
 
-        return undefined
+        // User wants to link their canvas account to the global auth server, architecture outlined in
+        // https://github.com/rplacetk/architecture/blob/main/account_linkage.png
+        if (url.pathname.startsWith("/link/create")) {
+            if  (!userToken) {
+                return new Response("No user token or account could be located", { status: 404 })
+            }
+            // Generate link key
+            const linkKey = randomString(32)
+            const userIp = server.requestIP.toString()?.split(":", 4).join(":")
+            if (!userIp || BLACKLISTED.has(userIp) || typeof userIp !== "string") {
+                return new Response("Invalid IP address", { status: 403 })
+            }
+            const userIntId = await makeDbRequest("authenticateUser", { token: userToken, ip: userIp })
+            if (userIntId == null || typeof userIntId != "number") {
+                return new Response("No user token or account could be located", { status: 404 })
+            }
+            linkKeyInfos.set(linkKey, { intId: userIntId, dateCreated: Date.now() })
+            const linkKeyResponse = { key: linkKey }    
+            return new Response(JSON.stringify(linkKeyResponse), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            })
+        }
+        else if (url.pathname.startsWith("/users/")) {
+            const targetId = parseInt(url.pathname.slice(7))
+            if (Number.isNaN(targetId) || typeof targetId !== "number") {
+                return new Response("Invalid user ID format", { status: 400 })
+            }
+
+            const usersInfo = await makeDbRequest("exec", {
+                stmt: "SELECT intId, chatName, lastJoined, pixelsPlaced, playTimeSeconds FROM Users WHERE intId = ?1",
+                params: [ targetId ]
+            })
+            if (!usersInfo || !Array.isArray(usersInfo) || usersInfo.length != 1) {
+                return new Response("Could not find user with specified ID", { status: 404 })
+            }
+
+            return new Response(JSON.stringify(usersInfo[0]), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            })
+        }
+        else if (url.pathname.startsWith("/link/")) {
+            const targetLink = url.pathname.slice(6)
+            if (!targetLink) {
+                return new Response("No link key provided", { status: 400 })
+            }
+
+            const info = linkKeyInfos.get(targetLink)
+            if (info) {
+                return new Response(JSON.stringify(info), {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" }
+                })
+            }
+
+            return new Response("Provided link key info could not be found", { status: 404 })
+        }
+        else {
+            let newToken:string|null = null
+            if (!userToken) {
+                newToken = randomString(32)
+            }
+            server.upgrade(req, {
+                data: {
+                    url: url.pathname.slice(1).trim(),
+                    headers: req.headers,
+                    token: userToken || newToken
+                },
+                headers: {
+                    ...newToken && {
+                        "Set-Cookie": cookie.serialize(uidToken,
+                            newToken, {
+                                domain: url.hostname,
+                                expires: new Date(4e12),
+                                httpOnly: true, // Inaccessible from JS
+                                sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
+                                secure: SECURE_COOKIE // Only over HTTPS
+                            })
+                    }
+                }
+            })
+
+            return undefined
+        }
     },
     websocket: {
         async open(ws: ServerWebSocket<ClientData>) {
@@ -1164,7 +1234,7 @@ async function pushImage() {
     }
 }
 
-let captchaTick = 0
+let pixelTick = 0
 setInterval(function () {
     fs.appendFile("./pxps.txt", "\n" + newPos.length + "," + NOW)
     if (!newPos.length) return
@@ -1188,8 +1258,16 @@ setInterval(function () {
     }
     wss.publish("all", buf)
 
+    // Sweep up expired account linkages - 1 minute should be reasonable
+    if (pixelTick % LINK_EXPIRY_SECS == 0) {
+        for (const [key, info] of linkKeyInfos) {
+            if (info.dateCreated + LINK_EXPIRY_SECS * 1000 < NOW) {
+                linkKeyInfos.delete(key)
+            }
+        }
+    }
     // Captcha tick
-    if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
+    if (pixelTick % CAPTCHA_EXPIRY_SECS == 0) {
         for (const [c, info] of toValidate.entries()) {
             if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) {
                 c.close()
@@ -1202,7 +1280,7 @@ setInterval(function () {
             if (info.last + 2 ** info.fails < NOW) captchaFailed.delete(ip)
         }
     }
-    captchaTick++
+    pixelTick++
 }, 1000)
 
 let pushTick = 0
