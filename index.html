@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script>
+        const DEFAULT_AUTH = "https://server.rplace.tk/auth"
         const DEFAULT_SERVER = "wss://server.rplace.tk:443"
         const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
         const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
@@ -441,8 +442,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.03", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.03", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.04", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.04", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -1093,7 +1094,7 @@
                     let id = intIdPositions.get(Math.floor(x) + Math.floor(y) * WIDTH)
                     if (id === undefined) {
                         alert("Could not find details of who placed pixel at current location...")
-			return
+                        return
                     }
                     let name = intIdNames.get(id)
                     alert(`Details of who placed at ${Math.floor(x)}, ${Math.floor(y)
@@ -1744,19 +1745,66 @@
                 window.onresize()
             "></div>
             <div id="contents">
-                <div id="createPostPost" style="padding-left: 15px; cursor: default;">
-                    <div style="display: flex; flex-grow: 1;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="46" width="46"><path style="fill: #d7dfe2;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"/></svg>
-                        <textarea id="postInput" type="text" placeholder="Create post..."
-                            onkeypress="event.stopPropagation()"
-                            onfocus="createPostPost.classList.add('focused')"
-                            onblur="if (!this.value) createPostPost.classList.remove('focused')"
-                        ></textarea>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-top: 8px;" height="30" width="30"><path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/></svg>
+                <div id="createPostPost" style="padding-left: 15px; cursor: default;" ondragenter="
+                    event.stopPropagation()
+                    event.preventDefault()
+                " ondragover="
+                    event.stopPropagation()
+                    event.preventDefault()
+                    this.classList.add('image-drop')
+                " ondrop="
+                    event.stopPropagation()
+                    event.preventDefault()
+                    this.classList.remove('image-drop')
+                    const file = event.dataTransfer.files[0]
+                    if (file && file.type.startsWith('image/')) {
+                        appendPostContent(file)
+                    }
+                " ondragleave="
+                    event.stopPropagation()
+                    event.preventDefault()
+                    this.classList.remove('image-drop')
+                ">
+                    <div class="create-post-image-drop">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+                            <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h360v80H200v560h560v-360h80v360q0 33-23.5 56.5T760-120H200Zm480-480v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80ZM240-280h480L570-480 450-320l-90-120-120 160Zm-40-480v560-560Z"/>
+                        </svg>
+                        <span>Upload image</span>
                     </div>
-                    <div id="createPostOptions">
-                        <button class="post-button discard-post-button">Discard</button>
-                        <button class="post-button create-post-button">Post</button>
+                    <div style="display: flex; flex-grow: 1;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-right: 8px;margin-top: 4px;" height="36" width="36">
+                            <path style="fill: #939393;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"></path>
+                        </svg>
+                        <div style="flex-grow: 1; display: flex; flex-direction: column;">
+                            <input type="text" id="createPostTitle" maxlength="64" class="create-post-input create-post-extra" placeholder="Post title...">
+                            <textarea id="createPostInput" maxlength="360" class="create-post-input" placeholder="Create post..."
+                                onkeypress="event.stopPropagation()"
+                                onfocus="
+                                    createPostPost.classList.add('focused')
+                                    createPostInput.placeholder = 'Post content...'
+                                "></textarea>
+                        </div>
+                        <button style="box-shadow: none;padding: 0px;width: 36px;height: 36px;margin-top: 4px;" onclick="createPostContentInput.click()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="36" width="36">
+                                <path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/>
+                            </svg>
+                        </button>
+                        <input type="file" id="createPostContentInput" accept="image/*" onchange="
+                            if (this.files[0]) {
+                                appendPostContent(this.files[0])
+                            }
+                        " style="display: none;">
+                    </div>
+                    <div id="createPostOptions" class="create-post-extra">
+                        <div id="createPostContentPreview" style="flex-grow: 1;"></div>
+                        <button class="post-button discard-post-button" onclick="
+                            createPostTitle.value = ''
+                            createPostInput.value = ''
+                            clearPostContent()
+                            createPostInput.placeholder = 'Create post...'
+                            createPostPost.classList.remove('focused')
+                        ">Discard</button>
+                        <button class="post-button create-post-button" onclick="uploadPost(createPostTitle.value, createPostInput.value)">Post</button>
                     </div>
                 </div>
                 <div onclick="chatPanel.setAttribute('open', 'true')" class="post">
@@ -1939,7 +1987,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="post" onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin'">
+                <div class="post" onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin'" style="opacity: 0.6; pointer-events: none;">
                     <div class="body">
                         <div class="header">
                             <img src="images/account_profile.png">
@@ -2171,7 +2219,7 @@
                                 + '&state='+csrf+'&redirect_uri=https:\/\/rplace.live/&duration=permanent&scope=identity')
                             window.close()
                         ">
-                            <img src="images/reddit.png"><span style="align-self: center;">Sign in with reddit</span>
+                            <img src="images/reddit.png" style="height: 100%;"><span style="align-self: center;">Sign in with reddit</span>
                         </button>
                         <a href="#" ontouchend="event.preventDefault(); this.click()" onclick="{
                             event.preventDefault()
@@ -3050,6 +3098,51 @@
                     messageInput.style.color = "black"
                     handled = true
                 }
+            }
+        }
+
+        const createPostContent = []
+        function appendPostContent(file) {
+            createPostContentPreview.innerHTML = ""
+            const label = document.createElement("span")
+            label.textContent = "Content upload:"
+            createPostContentPreview.appendChild(label)
+            const img = document.createElement("img")
+            img.src = window.URL.createObjectURL(file)
+            createPostContentPreview.appendChild(img)
+            createPostContent.push(file)
+        }
+
+        function clearPostContent() {
+            createPostContentPreview.innerHTML = ""
+            while (createPostContent.length) {
+                createPostContent.pop()
+            }
+        }
+
+        async function uploadPost(title, content) {
+            const postData = {
+                username: intIdNames.get(intId),
+                accountId: null,
+                title: title,
+                description: content
+            }
+
+            const response = await fetch(`${DEFAULT_AUTH}/posts/upload`, {
+                method: "POST",
+                body: JSON.stringify(postData),
+                headers: { "Content-Type": "application/json" }
+            })
+
+            const data = null
+            if (!response.ok) {
+                const jsonError = await response.json().catch(_ => _)
+                alert("Could not upload post: " + jsonError.message)
+                console.error(response.status, response.statusText)
+            }
+            else {
+                data = await response.json()
+                console.log(data)
             }
         }
 

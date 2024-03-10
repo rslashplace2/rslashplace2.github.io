@@ -43,7 +43,7 @@ input[type="button"]:disabled, button:disabled {
     background-color: lightgray;
 }
 
-input:focus, button:focus {
+input:focus, button:focus, textarea:focus {
     outline: auto;
 }
 

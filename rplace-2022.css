@@ -75,7 +75,7 @@ input[type=range]::-webkit-slider-thumb {
 	cursor: pointer;
 }
 
-input:focus, button:focus {
+input:focus, button:focus, textarea:focus {
     outline: auto;
 }
 
