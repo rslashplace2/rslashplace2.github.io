@@ -486,8 +486,10 @@
         const intIdPositions = new Map() // position : intId
         const intIdNames = new Map() // intId : name
         let account = null
+        let uidToken = null
         let intId = null
         let chatName = null
+        let uploadPost = null // function injected by wscapsule
         let setName = null // function injected by wscapsule
         let canvasLocked = false // Server will tell us this
         let includesPlacer = false // Server will tell us this
@@ -744,6 +746,12 @@
                     online = data.getUint16(1)
                     onlineCounter.textContent = online
                     onlineCounter2.textContent = online + " online"
+                    break
+                }
+                case 4: {
+                    // For some annoying reason UidToken is not being sent in HTTP requests to ws server, so
+                    // server will manually send token to client as well for use in such requests
+                    uidToken = decoder.decode(data.buffer.slice(1))
                     break
                 }
                 case 5: { // Pixel with included placer
@@ -1009,6 +1017,58 @@
                 loadingScreen.children[0].src = "images/rplace-offline.png"
                 showLoadingScreen()
             }
+
+            async function _uploadPost(title, content) {
+                // TODO: Until global auth accounts are released, we will do all post authentications
+                // TODO: through the canvas account linkage API
+                const postData = {
+                    canvasUser: null,
+                    accountId: null,
+                    title: title,
+                    description: content
+                }
+                const serverUrl = new URL(localStorage.server || DEFAULT_SERVER)
+                const linkCreateUrl = (serverUrl.protocol == "ws:" ? "http://" : "https://") + serverUrl.host + "/link/create"
+                const linkResponse = await fetch(linkCreateUrl, { headers: { "Authorization": uidToken } })
+                if (!linkResponse.ok) {
+                    alert("Could not upload post: " + linkResponse.statusText)
+                    console.error(linkResponse.status, await linkResponse.text())
+                    return
+                }
+                // Link key to prove we own this account ID will be in linkdata.key
+                const linkData = await linkResponse.json()
+                postData.canvasUser = {
+                    linkKey: linkData.key,
+                    instanceId: 1 // Canvas 1 (for now)
+                }
+
+                const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
+                    method: "POST",
+                    body: JSON.stringify(postData),
+                    headers: { "Content-Type": "application/json", "Authorization": uidToken }
+                })
+                if (!uploadResponse.ok) {
+                    const jsonError = await uploadResponse.json().catch(_ => _)
+                    alert("Could not upload post: " + jsonError.message)
+                    console.error(uploadResponse.status, uploadResponse.statusText)
+                    return
+                }
+
+                // Upload file as form content
+                if (createPostContent.length != 0) {
+                    const data = await uploadResponse.json()
+                    const contentForm = new FormData() // new Blob([], { type: "text/plain" })
+                    contentForm.append("contentUploadKey", data.contentUploadKey)
+                    contentForm.append("file", createPostContent[0])
+
+                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/content/`, {
+                        method: "POST",
+                        body: contentForm,
+                        headers: { "Authorization": uidToken }
+                    })
+                }
+            }
+            uploadPost = _uploadPost
 
             function _setName(uname) {
                 if (uname.length > 16) return
@@ -1607,10 +1667,10 @@
                     <icon-close onclick="timelapseEmbed?.remove(); localStorage.nopopup = Date.now(); popup.close()"></icon-close>
                     <span noselect style="font-size: 1.2em; margin-bottom: 16px;" translate="specialEventTitle">Special event - 2023-2024 full canvas timelapse released!</span>
                     <!--<img src="images/discord-popup.png" style="width: 100%;position: absolute;bottom: 0;cursor: pointer;"
-                            onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">-->
+                            onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
                     <iframe id="timelapseEmbed" src="https://www.youtube-nocookie.com/embed/H67q2HfYl7s" title="YouTube video player"
                         frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen="true" width="100%" height="100%"></iframe>
+                        allowfullscreen="true" width="100%" height="100%"></iframe>-->
                 </div>
             </dialog>
             <div noselect id="helpbtn" class="layout" onclick="
@@ -3122,32 +3182,6 @@
             createPostContentPreview.innerHTML = ""
             while (createPostContent.length) {
                 createPostContent.pop()
-            }
-        }
-
-        async function uploadPost(title, content) {
-            const postData = {
-                username: intIdNames.get(intId),
-                accountId: null,
-                title: title,
-                description: content
-            }
-
-            const response = await fetch(`${DEFAULT_AUTH}/posts/upload`, {
-                method: "POST",
-                body: JSON.stringify(postData),
-                headers: { "Content-Type": "application/json" }
-            })
-
-            const data = null
-            if (!response.ok) {
-                const jsonError = await response.json().catch(_ => _)
-                alert("Could not upload post: " + jsonError.message)
-                console.error(response.status, response.statusText)
-            }
-            else {
-                data = await response.json()
-                console.log(data)
             }
         }
 

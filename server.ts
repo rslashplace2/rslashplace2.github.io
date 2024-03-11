@@ -590,19 +590,37 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
         const cookies = cookie.parse(req.headers.get("Cookie") || "")
         const userToken = cookies[uidToken]
 
+        // CORS BS
+        const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true" }
+        if (req.method === "OPTIONS") {
+            const headers = new Headers({
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*"
+            })
+            return new Response(null, { status: 204, headers: headers })
+        }
+
         // User wants to link their canvas account to the global auth server, architecture outlined in
         // https://github.com/rplacetk/architecture/blob/main/account_linkage.png
         if (url.pathname.startsWith("/link/create")) {
-            if  (!userToken) {
-                return new Response("No user token or account could be located", { status: 404 })
+            const token = userToken || req.headers.get("Authorization")
+            if (!token) {
+                return new Response("No user token or account could be located", {
+                    status: 404,
+                    headers: corsHeaders
+                })
             }
             // Generate link key
             const linkKey = randomString(32)
             const userIp = server.requestIP.toString()?.split(":", 4).join(":")
             if (!userIp || BLACKLISTED.has(userIp) || typeof userIp !== "string") {
-                return new Response("Invalid IP address", { status: 403 })
+                return new Response("Invalid IP address", {
+                    status: 403,
+                    headers: corsHeaders
+                })
             }
-            const userIntId = await makeDbRequest("authenticateUser", { token: userToken, ip: userIp })
+            const userIntId = await makeDbRequest("authenticateUser", { token: token, ip: userIp })
             if (userIntId == null || typeof userIntId != "number") {
                 return new Response("No user token or account could be located", { status: 404 })
             }
@@ -610,13 +628,16 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             const linkKeyResponse = { key: linkKey }    
             return new Response(JSON.stringify(linkKeyResponse), {
                 status: 200,
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json", ...corsHeaders }
             })
         }
         else if (url.pathname.startsWith("/users/")) {
             const targetId = parseInt(url.pathname.slice(7))
             if (Number.isNaN(targetId) || typeof targetId !== "number") {
-                return new Response("Invalid user ID format", { status: 400 })
+                return new Response("Invalid user ID format", {
+                    status: 400,
+                    headers: corsHeaders
+                })
             }
 
             const usersInfo = await makeDbRequest("exec", {
@@ -624,29 +645,39 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 params: [ targetId ]
             })
             if (!usersInfo || !Array.isArray(usersInfo) || usersInfo.length != 1) {
-                return new Response("Could not find user with specified ID", { status: 404 })
+                return new Response("Could not find user with specified ID", {
+                    status: 404,
+                    headers: corsHeaders
+                })
             }
 
             return new Response(JSON.stringify(usersInfo[0]), {
                 status: 200,
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json", ...corsHeaders }
             })
         }
         else if (url.pathname.startsWith("/link/")) {
             const targetLink = url.pathname.slice(6)
             if (!targetLink) {
-                return new Response("No link key provided", { status: 400 })
+                return new Response("No link key provided", {
+                    status: 400,
+                    headers: corsHeaders
+                })
             }
 
             const info = linkKeyInfos.get(targetLink)
             if (info) {
+                linkKeyInfos.delete(targetLink)
                 return new Response(JSON.stringify(info), {
                     status: 200,
-                    headers: { "Content-Type": "application/json" }
+                    headers: { "Content-Type": "application/json", ...corsHeaders }
                 })
             }
 
-            return new Response("Provided link key info could not be found", { status: 404 })
+            return new Response("Provided link key info could not be found", {
+                status: 404,
+                headers: corsHeaders
+            })
         }
         else {
             let newToken:string|null = null
@@ -660,16 +691,17 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     token: userToken || newToken
                 },
                 headers: {
-                    ...newToken && {
-                        "Set-Cookie": cookie.serialize(uidToken,
-                            newToken, {
-                                domain: url.hostname,
-                                expires: new Date(4e12),
-                                httpOnly: true, // Inaccessible from JS
-                                sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
-                                secure: SECURE_COOKIE // Only over HTTPS
-                            })
-                    }
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Set-Cookie": cookie.serialize(uidToken,
+                        newToken || userToken, {
+                            domain: url.hostname,
+                            expires: new Date(4e12),
+                            httpOnly: true, // Inaccessible from JS
+                            sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
+                            secure: SECURE_COOKIE, // Only over HTTPS
+                            path: "/"
+                        }),
                 }
             })
 
@@ -738,6 +770,10 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 }
                 ws.send(paletteBuffer)
             }
+
+            // Send user back UID token (for use in subsequent HTTP requests such as link in case it rejected by browser)
+            const tokenBuf = encoderUTF8.encode("\x04" + ws.data.token)
+            ws.send(tokenBuf)
 
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
             const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
