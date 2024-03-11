@@ -1805,7 +1805,7 @@
                 window.onresize()
             "></div>
             <div id="contents">
-                <div id="createPostPost" style="padding-left: 15px; cursor: default;" ondragenter="
+                <div id="createPostPost" class="post" style="padding-left: 15px; cursor: default;" ondragenter="
                     event.stopPropagation()
                     event.preventDefault()
                 " ondragover="
@@ -2063,10 +2063,23 @@
                         </div>
                     </div>
                 </div>
-                <div class="horizontal-labeled-separator">
-                    <hr>
-                    <span>Community posts</span>
-                    <hr>
+                <div class="post" novotes="true">
+                    <div class="body">
+                        <div class="horizontal-labeled-separator header">
+                            <hr>
+                            <span>Community posts</span>
+                            <hr>
+                        </div>
+                        <div style="display: flex; column-gap: 16px; align-items: center; justify-content: center;">
+                            <label for="postsSortSelect">Sort by:</label>
+                            <select id="postsSortSelect" style="box-shadow: none; border-radius: 64px;">
+                                <option value="date">Date</option>
+                                <option value="upvotes">Upvotes</option>
+                            </select>
+                            <label for="postsHideSensitive">Hide sensitive:</label>
+                            <input id="postsHideSensitive" type="checkbox" checked="false" disabled="true" style="box-shadow: none; border-radius: 64px;">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2395,7 +2408,11 @@
         let i = +localStorage.vote
 
         for (let el = 1; el < contents.children.length; el++) {
-            contents.children[el].insertAdjacentHTML('afterbegin', `<up onclick="event.stopPropagation()"><svg ${i & 1 ? 'style="fill:#ff4500" ' : ''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i & 1 ? VOTED_SVG : UNVOTED_SVG}" fill-rule="evenodd"></path></svg><div>...</div></up>`)
+            if (contents.children[el].getAttribute("novotes")) {
+                continue
+            }
+            contents.children[el].insertAdjacentHTML('afterbegin',
+                `<up onclick="event.stopPropagation()"><svg ${i & 1 ? 'style="fill:#ff4500" ' : ''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i & 1 ? VOTED_SVG : UNVOTED_SVG}" fill-rule="evenodd"></path></svg><div>...</div></up>`)
             i >>= 1
         }
 

@@ -1258,7 +1258,7 @@ kbd {
 	padding: 15px 30px 30px 30px;
 	overflow: visible;
 }
-#more #contents > div {
+.post {
 	border: 1px #ccc solid;
 	border-radius: 4px;
 	background: #fff;
@@ -1274,6 +1274,9 @@ kbd {
 	color: #aaa;
 	position: relative;
 	overflow: hidden;
+}
+.post[novotes] {
+	padding-left: 16px;
 }
 up {
 	position: absolute;
