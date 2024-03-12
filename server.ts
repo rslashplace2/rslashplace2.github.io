@@ -603,35 +603,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
         // User wants to link their canvas account to the global auth server, architecture outlined in
         // https://github.com/rplacetk/architecture/blob/main/account_linkage.png
-        if (url.pathname.startsWith("/link/create")) {
-            const token = userToken || req.headers.get("Authorization")
-            if (!token) {
-                return new Response("No user token or account could be located", {
-                    status: 404,
-                    headers: corsHeaders
-                })
-            }
-            // Generate link key
-            const linkKey = randomString(32)
-            const userIp = server.requestIP.toString()?.split(":", 4).join(":")
-            if (!userIp || BLACKLISTED.has(userIp) || typeof userIp !== "string") {
-                return new Response("Invalid IP address", {
-                    status: 403,
-                    headers: corsHeaders
-                })
-            }
-            const userIntId = await makeDbRequest("authenticateUser", { token: token, ip: userIp })
-            if (userIntId == null || typeof userIntId != "number") {
-                return new Response("No user token or account could be located", { status: 404 })
-            }
-            linkKeyInfos.set(linkKey, { intId: userIntId, dateCreated: Date.now() })
-            const linkKeyResponse = { key: linkKey }    
-            return new Response(JSON.stringify(linkKeyResponse), {
-                status: 200,
-                headers: { "Content-Type": "application/json", ...corsHeaders }
-            })
-        }
-        else if (url.pathname.startsWith("/users/")) {
+        if (url.pathname.startsWith("/users/")) {
             const targetId = parseInt(url.pathname.slice(7))
             if (Number.isNaN(targetId) || typeof targetId !== "number") {
                 return new Response("Invalid user ID format", {
@@ -770,10 +742,6 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 }
                 ws.send(paletteBuffer)
             }
-
-            // Send user back UID token (for use in subsequent HTTP requests such as link in case it rejected by browser)
-            const tokenBuf = encoderUTF8.encode("\x04" + ws.data.token)
-            ws.send(tokenBuf)
 
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
             const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
@@ -1138,6 +1106,13 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
                     modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **rollback area** at (${
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
+                    break
+                }
+                case 150: {        
+                    const linkKey = randomString(32)
+                    linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now() })
+                    const linkKeyBuf = encoderUTF8.encode("\x96" + linkKey) // code 150
+                    ws.send(linkKeyBuf)
                     break
                 }
             }

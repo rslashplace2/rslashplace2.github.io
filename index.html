@@ -486,7 +486,6 @@
         const intIdPositions = new Map() // position : intId
         const intIdNames = new Map() // intId : name
         let account = null
-        let uidToken = null
         let intId = null
         let chatName = null
         let uploadPost = null // function injected by wscapsule
@@ -748,12 +747,6 @@
                     onlineCounter2.textContent = online + " online"
                     break
                 }
-                case 4: {
-                    // For some annoying reason UidToken is not being sent in HTTP requests to ws server, so
-                    // server will manually send token to client as well for use in such requests
-                    uidToken = decoder.decode(data.buffer.slice(1))
-                    break
-                }
                 case 5: { // Pixel with included placer
                     let i = 1
                     while (i < data.byteLength) {
@@ -1003,6 +996,15 @@
                     ;delete window.challengeData;u.setUint8(0, 21);u.setBigInt64(1, d);call(send, ws, u.buffer);
                     break
                 }
+                case 150: {
+                    if (!linkKeyRequest) {
+                        console.error("Could not resolve link key, request object was null")
+                        break
+                    }
+                    const linkKey = decoder.decode(data.buffer.slice(1))
+                    linkKeyRequest.resolve(linkKey)
+                    break
+                }
                 }
             }
             ws.onclose = function(e) {
@@ -1018,6 +1020,16 @@
                 showLoadingScreen()
             }
 
+            class PublicPromise {
+                constructor() {
+                    this.promise = new Promise((resolve, reject) => {
+                        this.resolve = resolve
+                        this.reject = reject
+                    })
+                }
+            }
+
+            let linkKeyRequest = null
             async function _uploadPost(title, content) {
                 // TODO: Until global auth accounts are released, we will do all post authentications
                 // TODO: through the canvas account linkage API
@@ -1027,25 +1039,20 @@
                     title: title,
                     description: content
                 }
-                const serverUrl = new URL(localStorage.server || DEFAULT_SERVER)
-                const linkCreateUrl = (serverUrl.protocol == "ws:" ? "http://" : "https://") + serverUrl.host + "/link/create"
-                const linkResponse = await fetch(linkCreateUrl, { headers: { "Authorization": uidToken } })
-                if (!linkResponse.ok) {
-                    alert("Could not upload post: " + linkResponse.statusText)
-                    console.error(linkResponse.status, await linkResponse.text())
-                    return
-                }
-                // Link key to prove we own this account ID will be in linkdata.key
-                const linkData = await linkResponse.json()
+
+                // Link key to prove we own this account ID
+                linkKeyRequest = new PublicPromise()
+                call(send, ws, new Uint8Array([150]))
+                const linkKey = await linkKeyRequest.promise
                 postData.canvasUser = {
-                    linkKey: linkData.key,
+                    linkKey: linkKey,
                     instanceId: 1 // Canvas 1 (for now)
                 }
 
                 const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
                     method: "POST",
                     body: JSON.stringify(postData),
-                    headers: { "Content-Type": "application/json", "Authorization": uidToken }
+                    headers: { "Content-Type": "application/json" }
                 })
                 if (!uploadResponse.ok) {
                     const jsonError = await uploadResponse.json().catch(_ => _)
@@ -1064,7 +1071,6 @@
                     const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/content/`, {
                         method: "POST",
                         body: contentForm,
-                        headers: { "Authorization": uidToken }
                     })
                 }
             }
