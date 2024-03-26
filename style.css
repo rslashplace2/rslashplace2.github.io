@@ -823,7 +823,7 @@ body[eventphase="3"] .coverer-title {
 }
 
 /* We make it slightly more mobile usable by shrinking captcha buttons for really small phones */
-#captchaOptions > button {
+.captcha-options-button {
 	min-width: 0;
 	min-height: 0;
 	cursor: pointer;
@@ -831,7 +831,7 @@ body[eventphase="3"] .coverer-title {
 	padding: 4px;
 }
 
-#captchaOptions > button > img {
+.captcha-options-button > img {
 	height: 100%;
 }
 
