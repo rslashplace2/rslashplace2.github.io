@@ -46,7 +46,7 @@ type ServerConfig = {
     "CHAT_COOLDOWN_MS": number,
     "PUSH_INTERVAL_MINS": number,
     "CAPTCHA_EXPIRY_SECS": number,
-    "PERIODIC_CAPTCHA_INTERVAL": number,
+    "PERIODIC_CAPTCHA_INTERVAL_SECS": number,
     "LINK_EXPIRY_SECS": number,
     "CAPTCHA_MIN_MS": number, //min solvetime
     "INCLUDE_PLACER": boolean, // pixel placer
@@ -79,7 +79,7 @@ if (configFailed) {
         "CHAT_COOLDOWN_MS": 2500,
         "PUSH_INTERVAL_MINS": 30,
         "CAPTCHA_EXPIRY_SECS": 45,
-        "PERIODIC_CAPTCHA_INTERVAL": -1,
+        "PERIODIC_CAPTCHA_INTERVAL_SECS": -1,
         "LINK_EXPIRY_SECS": 60,
         "CAPTCHA_MIN_MS": 100, //min solvetime
         "INCLUDE_PLACER": false, // pixel placer
@@ -94,7 +94,7 @@ if (configFailed) {
 // TODO: Maybe make config
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL, LINK_EXPIRY_SECS,
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS, LINK_EXPIRY_SECS,
     CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
@@ -724,7 +724,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 if (CAPTCHA) {
                     await forceCaptchaSolve(ws)
                 }
-                if (PERIODIC_CAPTCHA_INTERVAL > 0) {
+                if (PERIODIC_CAPTCHA_INTERVAL_SECS > 0) {
                     ws.data.lastPeriodCaptcha = NOW
                 }
                 if (CHALLENGE) {
@@ -805,7 +805,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         ws.data.challenge = "active"
                     }
                     // If the time since last periodic captcha is above the interval, give them new captcha & reset period
-                    if (PERIODIC_CAPTCHA_INTERVAL > 0 && ws.data.lastPeriodCaptcha > PERIODIC_CAPTCHA_INTERVAL) {
+                    if (PERIODIC_CAPTCHA_INTERVAL_SECS > 0 && (NOW - ws.data.lastPeriodCaptcha) / 1000 > PERIODIC_CAPTCHA_INTERVAL_SECS) {
                         await forceCaptchaSolve(ws)
                         ws.data.lastPeriodCaptcha = NOW
                     }
