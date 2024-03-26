@@ -498,7 +498,7 @@
             call(addEventListener, window, "blur", () => focused = false)
             call(addEventListener, window, "focus", () => focused = true)
 
-            let authSocket = null //new WebSocket("wss://server.poemanthology.org/auth")
+            let authSocket = {} //new WebSocket("wss://server.poemanthology.org/auth")
             let svUri = localStorage.server || DEFAULT_SERVER
             if (localStorage.vip) {
                 if (!svUri.endsWith("/")) svUri += "/"
