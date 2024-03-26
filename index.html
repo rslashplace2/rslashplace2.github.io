@@ -442,8 +442,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.04", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.04", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.05", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.05", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -972,11 +972,15 @@
 
                     for (let emoji of emojis) {
                         let buttonParent = document.createElement("button")
+                        buttonParent.classList.add("captcha-options-button")
                         buttonParent.setAttribute("value", emoji)
                         let emojiImg = document.createElement("img")
                         emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
                         emojiImg.alt = emoji
                         emojiImg.title = emoji
+                        emojiImg.addEventListener("load", (event) => {
+                            buttonParent.classList.add("loaded")
+                        })
                         buttonParent.appendChild(emojiImg)
                         captchaOptions.appendChild(buttonParent)
 
@@ -1490,7 +1494,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.25" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.26" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>

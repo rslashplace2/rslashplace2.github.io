@@ -197,7 +197,7 @@ icon-close {
 }
 
 .channels-options {
-    border-bottom: var(--pixel-border);
+	border-bottom: var(--pixel-border);
 }
 
 #captchaPopup {
@@ -207,14 +207,18 @@ icon-close {
     box-shadow: var(--pixel-box-shadow);
 }
 
-#captchaOptions > button {
-	background: white;
-    border: var(--pixel-border);
-    cursor: default;
+.captcha-options-button {
+	background: url(svg/loading-spinner.svg) no-repeat 50%;
+	border: var(--pixel-border);
+	cursor: default;
 }
 
-#captchaOptions > button:hover {
-    background-color: lightgray;
+.captcha-options-button.loaded {
+	background: white;
+}
+
+.captcha-options-button:hover {
+	background-color: lightgray;
 }
 
 #captchaImg {

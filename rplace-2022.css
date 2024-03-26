@@ -310,15 +310,19 @@ a {
 	background-color: white;
 }
 
-#captchaOptions > button {
-	background: white;
-    border-radius: 8px;
-    border: none;
+.captcha-options-button {
+	background: url(svg/loading-spinner.svg) no-repeat 50%;
+	border-radius: 8px;
+	border: none;
 	box-shadow: 0px 0px 5px gray;
 	transition: transform cubic-bezier(0.215, 0.610, 0.355, 1) .1s;
 }
 
-#captchaOptions > button:hover {
+.captcha-options-button.loaded {
+	background: white;
+}
+
+.captcha-options-button:hover {
 	transform: scale(1.1);
 }
 
