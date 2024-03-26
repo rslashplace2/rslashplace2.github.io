@@ -978,6 +978,7 @@
                         emojiImg.src = `./tweemoji/${emoji.codePointAt(0).toString(16)}.png`
                         emojiImg.alt = emoji
                         emojiImg.title = emoji
+                        emojiImg.fetchPriority = "high"
                         emojiImg.addEventListener("load", (event) => {
                             buttonParent.classList.add("loaded")
                         })
