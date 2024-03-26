@@ -13,8 +13,7 @@ import fsExists from "fs.promises.exists"
 import fetch from "node-fetch"
 import util from "util"
 import path from "path"
-// HACK: Disabled until upstream bun issue resolved
-//import * as zcaptcha from './zcaptcha/server.js'
+import * as zcaptcha from './zcaptcha/server.ts'
 import { isUser } from "ipapi-sync"
 import { Worker } from "worker_threads"
 import cookie from "cookie"
@@ -47,6 +46,8 @@ type ServerConfig = {
     "CHAT_COOLDOWN_MS": number,
     "PUSH_INTERVAL_MINS": number,
     "CAPTCHA_EXPIRY_SECS": number,
+    "PERIODIC_CAPTCHA_INTERVAL": number,
+    "LINK_EXPIRY_SECS": number,
     "CAPTCHA_MIN_MS": number, //min solvetime
     "INCLUDE_PLACER": boolean, // pixel placer
     "SECURE_COOKIE": boolean,
@@ -78,6 +79,8 @@ if (configFailed) {
         "CHAT_COOLDOWN_MS": 2500,
         "PUSH_INTERVAL_MINS": 30,
         "CAPTCHA_EXPIRY_SECS": 45,
+        "PERIODIC_CAPTCHA_INTERVAL": -1,
+        "LINK_EXPIRY_SECS": 60,
         "CAPTCHA_MIN_MS": 100, //min solvetime
         "INCLUDE_PLACER": false, // pixel placer
         "SECURE_COOKIE": true,
@@ -88,10 +91,11 @@ if (configFailed) {
     process.exit(0)
 }
 
+// TODO: Maybe make config
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE,
-    CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
+    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL, LINK_EXPIRY_SECS,
+    CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -127,6 +131,11 @@ const newPos: number[] = []
 const newCols: number[] = []
 const newIds: number[] = []
 const cooldowns = new Map<string, number>()
+type LinkKeyInfo = {
+    intId: number,
+    dateCreated: number
+}
+const linkKeyInfos = new Map<string, LinkKeyInfo>()
 
 const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
 CHANGEPACKET.setUint8(0, 2)
@@ -571,40 +580,107 @@ type ClientData = {
     token: string,
     chatName: string,
     voted: number,
-    challenge: "pending"|"active"|undefined
+    challenge: "pending"|"active"|undefined,
+    lastPeriodCaptcha: number
 }
 interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
 }
 const serverOptions:TLSWebSocketServeOptions<ClientData> = {
-    fetch(req: Request, server: Server) {
-        const cookies = cookie.parse(req.headers.get("Cookie") || "")
-        let newToken:string|null = null
-        if (!cookies[uidToken]) {
-            newToken = randomString(32)
-        }
+    async fetch(req: Request, server: Server) {
         const url = new URL(req.url)
-        server.upgrade(req, {
-            data: {
-                url: url.pathname.slice(1).trim(),
-                headers: req.headers,
-                token: cookies[uidToken] || newToken
-            },
-            headers: {
-                ...newToken && {
+        const cookies = cookie.parse(req.headers.get("Cookie") || "")
+        const userToken = cookies[uidToken]
+
+        // CORS BS
+        const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Credentials": "true" }
+        if (req.method === "OPTIONS") {
+            const headers = new Headers({
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*"
+            })
+            return new Response(null, { status: 204, headers: headers })
+        }
+
+        // User wants to link their canvas account to the global auth server, architecture outlined in
+        // https://github.com/rplacetk/architecture/blob/main/account_linkage.png
+        if (url.pathname.startsWith("/users/")) {
+            const targetId = parseInt(url.pathname.slice(7))
+            if (Number.isNaN(targetId) || typeof targetId !== "number") {
+                return new Response("Invalid user ID format", {
+                    status: 400,
+                    headers: corsHeaders
+                })
+            }
+
+            const usersInfo = await makeDbRequest("exec", {
+                stmt: "SELECT intId, chatName, lastJoined, pixelsPlaced, playTimeSeconds FROM Users WHERE intId = ?1",
+                params: [ targetId ]
+            })
+            if (!usersInfo || !Array.isArray(usersInfo) || usersInfo.length != 1) {
+                return new Response("Could not find user with specified ID", {
+                    status: 404,
+                    headers: corsHeaders
+                })
+            }
+
+            return new Response(JSON.stringify(usersInfo[0]), {
+                status: 200,
+                headers: { "Content-Type": "application/json", ...corsHeaders }
+            })
+        }
+        else if (url.pathname.startsWith("/link/")) {
+            const targetLink = url.pathname.slice(6)
+            if (!targetLink) {
+                return new Response("No link key provided", {
+                    status: 400,
+                    headers: corsHeaders
+                })
+            }
+
+            const info = linkKeyInfos.get(targetLink)
+            if (info) {
+                linkKeyInfos.delete(targetLink)
+                return new Response(JSON.stringify(info), {
+                    status: 200,
+                    headers: { "Content-Type": "application/json", ...corsHeaders }
+                })
+            }
+
+            return new Response("Provided link key info could not be found", {
+                status: 404,
+                headers: corsHeaders
+            })
+        }
+        else {
+            let newToken:string|null = null
+            if (!userToken) {
+                newToken = randomString(32)
+            }
+            server.upgrade(req, {
+                data: {
+                    url: url.pathname.slice(1).trim(),
+                    headers: req.headers,
+                    token: userToken || newToken
+                },
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": "true",
                     "Set-Cookie": cookie.serialize(uidToken,
-                        newToken, {
+                        newToken || userToken, {
                             domain: url.hostname,
                             expires: new Date(4e12),
                             httpOnly: true, // Inaccessible from JS
                             sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
-                            secure: SECURE_COOKIE // Only over HTTPS
-                        })
+                            secure: SECURE_COOKIE, // Only over HTTPS
+                            path: "/"
+                        }),
                 }
-            }
-        })
+            })
 
-        return undefined
+            return undefined
+        }
     },
     websocket: {
         async open(ws: ServerWebSocket<ClientData>) {
@@ -645,8 +721,15 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             ws.data.cd = CD
 
             if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") {
-                if (CAPTCHA) await forceCaptchaSolve(ws)
-                if (CHALLENGE) ws.data.challenge = "pending"
+                if (CAPTCHA) {
+                    await forceCaptchaSolve(ws)
+                }
+                if (PERIODIC_CAPTCHA_INTERVAL > 0) {
+                    ws.data.lastPeriodCaptcha = NOW
+                }
+                if (CHALLENGE) {
+                    ws.data.challenge = "pending"
+                }
             }
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
@@ -720,6 +803,11 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (CHALLENGE && ws.data.challenge === "pending") {
                         ws.send(padlock.requestChallenge(ws))
                         ws.data.challenge = "active"
+                    }
+                    // If the time since last periodic captcha is above the interval, give them new captcha & reset period
+                    if (PERIODIC_CAPTCHA_INTERVAL > 0 && ws.data.lastPeriodCaptcha > PERIODIC_CAPTCHA_INTERVAL) {
+                        await forceCaptchaSolve(ws)
+                        ws.data.lastPeriodCaptcha = NOW
                     }
                     if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) {
                         rejectPixel(ws, i, cd)
@@ -881,7 +969,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         const acceptableFails = 6 // TODO: Math.min(zcaptcha.config.dummiesCount / 2, 10)
                         if (info.fails < acceptableFails) return ws.close()
                         const banLengthS = (info.fails - acceptableFails + 1) ** 2 * 60
-                        ban(ws.data.intId, banLengthS)
+                        ban(ws.data.intId, banLengthS, `${info.fails} captcha fails since ${
+                            new Date(ws.data.connDate).toLocaleString()}`)
                         modWebhookLog(`Client **${IP}** **banned** by server for **${banLengthS
                             }** seconds for failing captcha **${info.fails}** times`)
                     }
@@ -1034,6 +1123,13 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                     break
                 }
+                case 150: {        
+                    const linkKey = randomString(32)
+                    linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now() })
+                    const linkKeyBuf = encoderUTF8.encode("\x96" + linkKey) // code 150
+                    ws.send(linkKeyBuf)
+                    break
+                }
             }
         },
         async close(ws:ServerWebSocket<ClientData>, code: number, message: string) {
@@ -1086,8 +1182,13 @@ setInterval(() => {
     NOW = Date.now()
 }, 50)
 
-//zcaptcha.init()
-//let currentCaptcha = zcaptcha.genTextCaptcha // zcaptcha.genEmojiCaptcha
+let currentCaptcha:zcaptcha.GeneratedCaptcha|null = zcaptcha.genEmojiCaptcha
+try {
+    zcaptcha.init()
+}
+catch (e) {
+    currentCaptcha = null
+}
 
 /**
  * Force a client to redo the captcha
@@ -1095,37 +1196,45 @@ setInterval(() => {
  */
 async function forceCaptchaSolve(identifier:string|number|ServerWebSocket<ClientData>) {
     // @ts-ignore
-    /*
-	const cli = identifier
+	let cli = identifier
     if (typeof identifier === "number") {
-        for (const cli of wss.clients) {
-            if (cli.data.intId == identifier) {
-                cli.close()
+        for (const p of wss.clients) {
+            if (p.data.intId == identifier) {
+                p.close()
             }
         }
     }
     else if (typeof identifier === "string") {
-        for (let cli of wss.clients) {
-            if (cli.data.ip === identifier) cli = identifier
+        for (const p of wss.clients) {
+            if (p.data.ip === identifier) {
+                cli = p
+            }
         }
     }
-    if (!cli || typeof cli != "object") return
+    if (!cli || typeof cli !== "object") return
 
     try {
+        if (currentCaptcha === null) {
+            throw new Error("Could not generate captcha packet. Current captcha was null")
+        }
         const result = currentCaptcha()
         if (!result) return cli.close()
         const encodedDummies = encoderUTF8.encode(result.dummies)
 
         toValidate.set(cli, { start: NOW, answer: result.answer })
         const dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
-        if (currentCaptcha == zcaptcha.genTextCaptcha)
+        if (currentCaptcha == zcaptcha.genTextCaptcha) {
             dv.setUint8(0, 18)
-        else if (currentCaptcha == zcaptcha.genMathCaptcha)
+        }
+        else if (currentCaptcha == zcaptcha.genMathCaptcha) {
             dv.setUint8(0, 19)
-        else if (currentCaptcha == zcaptcha.genEmojiCaptcha)
+        }
+        else if (currentCaptcha == zcaptcha.genEmojiCaptcha) {
             dv.setUint8(0, 20)
-        else
-            throw new Error("Could not run captcha func - Specified Captcha doesn't exist")
+        }
+        else {
+            throw new Error("Could not generate captcha packet. Handler for packet code doesn't exist")
+        }
         dv.setUint8(1, encodedDummies.byteLength)
 
         const dataArray = new Uint8Array(result.data)
@@ -1137,7 +1246,7 @@ async function forceCaptchaSolve(identifier:string|number|ServerWebSocket<Client
     catch (e) {
         console.error(e)
         cli.close()
-    }*/
+    }
 }
 
 async function pushImage() {
@@ -1164,7 +1273,7 @@ async function pushImage() {
     }
 }
 
-let captchaTick = 0
+let pixelTick = 0
 setInterval(function () {
     fs.appendFile("./pxps.txt", "\n" + newPos.length + "," + NOW)
     if (!newPos.length) return
@@ -1188,8 +1297,16 @@ setInterval(function () {
     }
     wss.publish("all", buf)
 
+    // Sweep up expired account linkages - 1 minute should be reasonable
+    if (pixelTick % LINK_EXPIRY_SECS == 0) {
+        for (const [key, info] of linkKeyInfos) {
+            if (info.dateCreated + LINK_EXPIRY_SECS * 1000 < NOW) {
+                linkKeyInfos.delete(key)
+            }
+        }
+    }
     // Captcha tick
-    if (captchaTick % CAPTCHA_EXPIRY_SECS == 0) {
+    if (pixelTick % CAPTCHA_EXPIRY_SECS == 0) {
         for (const [c, info] of toValidate.entries()) {
             if (info.start + CAPTCHA_EXPIRY_SECS * 1000 < NOW) {
                 c.close()
@@ -1202,7 +1319,7 @@ setInterval(function () {
             if (info.last + 2 ** info.fails < NOW) captchaFailed.delete(ip)
         }
     }
-    captchaTick++
+    pixelTick++
 }, 1000)
 
 let pushTick = 0

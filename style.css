@@ -13,7 +13,7 @@ html {
 	-webkit-user-select: none;
 }
 
-body{
+body {
 	transition: background-color .3s;
 	width: 100%;
 	height: 100%;
@@ -658,24 +658,26 @@ body[eventphase="3"] .coverer-title {
 	color: black;
 }
 
-#chatPreviousButton {
+.horizontal-labeled-separator {
 	background: none;
 	border: none;
 	color: gray;
 	font-weight: bold;
 	display: flex;
-	cursor: pointer;
 	column-gap: 4px;
-	transition: .2s transform, .2s height;
 }
-#chatPreviousButton > hr {
+.horizontal-labeled-separator > hr {
 	flex-grow: 1;
 	height: 1px;
 	margin-top: 8px;
 	opacity: 0.2;
 }
-#chatPreviousButton > span {
+.horizontal-labeled-separator > span {
 	font-size: 14px;
+}
+#chatPreviousButton {
+	cursor: pointer;
+	transition: .2s transform, .2s height;
 }
 
 #chatMessages {
@@ -1256,7 +1258,7 @@ kbd {
 	padding: 15px 30px 30px 30px;
 	overflow: visible;
 }
-#more #contents > div {
+.post {
 	border: 1px #ccc solid;
 	border-radius: 4px;
 	background: #fff;
@@ -1272,6 +1274,9 @@ kbd {
 	color: #aaa;
 	position: relative;
 	overflow: hidden;
+}
+.post[novotes] {
+	padding-left: 16px;
 }
 up {
 	position: absolute;
@@ -1318,7 +1323,36 @@ up div {
 	width: 40px;
 	height: 40px;
 }
-#postInput {
+
+#createPostPost {
+	flex-direction: column;
+	row-gap: 0px !important;
+}
+#createPostPost.focused {
+	row-gap: 10px !important;
+}
+#createPostPost.image-drop {
+	outline: 4px solid #0cafff;
+}
+.create-post-image-drop {
+	display: none;
+}
+#createPostPost.image-drop > .create-post-image-drop {
+	display: flex;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #0cafff4d;
+	color: black;
+	justify-content: center;
+	align-items: center;
+	font-size: 16px;
+	pointer-events: none;
+	column-gap: 4px;
+}
+.create-post-input {
 	all: unset;
 	background-color: #F6F7F8;
 	border-radius: 4px;
@@ -1328,19 +1362,90 @@ up div {
 	color: #1c1c1c;
 	display: block;
 	flex-grow: 1;
-	height: 38px;
-	margin-right: 8px;
-	outline: none;
-	padding: 0 16px;
-	margin-top: 4px;
 	font-size: 16px;
-	min-width: 5px;
+	padding: 0 16px;
+	margin-right: 8px;
+	cursor: text;
 }
-#postInput:hover {
+.create-post-input:hover {
 	background-color: #FFFFFF;
 	border: 1px solid #0079D3;
 }
+#createPostInput {
+	min-height: 38px;
+	height: 38px;
+	min-width: 5px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	transition: .2s height;
+	word-break: break-all;
+	white-space: pre-wrap;
+}
+#createPostInput::placeholder {
+	line-height: 36px;
+}
+#createPostPost.focused #createPostInput, #createPostInput:focus,
+#createPostInput:focus-within, #createPostInput:active {
+	padding-top: 8px;
+	height: 256px;
+}
 
+#createPostPost.focused #createPostInput::placeholder,
+#createPostInput:focus::placeholder,
+#createPostInput:focus-within::placeholder,
+#createPostInput:active::placeholder {
+	line-height: 20px;
+}
+.create-post-extra {
+	opacity: 0;
+	height: 0px;
+	transition: .2s opacity, .2s height;
+}
+#createPostTitle {
+	display: flex;
+}
+#createPostOptions {
+	display: flex;
+	justify-content: end;
+	margin-right: 36px;
+	column-gap: 8px;
+	opacity: 0;
+	height: 0px;
+	transition: .2s opacity, .2s height;
+}
+#createPostPost.focused .create-post-extra {
+	opacity: 1;
+	height: 36px;
+}
+#createPostPost.focused #createPostTitle {
+	margin-bottom: 8px;
+}
+#createPostContentPreview {
+	display: flex;
+	column-gap: 8px;
+}
+#createPostContentPreview > span {
+	align-self: center;
+}
+#createPostContentPreview > img {
+	height: 36px;
+	border: 1px solid gray;
+	border-radius: 4px;
+}
+.post-button {
+	border-radius: 64px;
+	width: 72px;
+	box-shadow: none;
+}
+.discard-post-button {
+	border: 1px solid #676767;
+	color: gray;
+}
+
+.create-post-button {
+	color: white;
+	background-color: #ff4500;
+}
 
 .virtselect {
 	max-width: 100% !important;
@@ -1408,7 +1513,25 @@ postcopy span {
 }
 
 /* Reddit-themed styles ported from the instance manager*/
+#loginPanel[data-page] > div[page] {
+	display: none;
+}
+#loginPanel[data-page="unauthed"] > div[page="unauthed"],
+#loginPanel[data-page="profile"] > div[page="profile"] {
+	display: flex;
+}
+
+#unauthedPage[data-page] > div[page] {
+	display: none;
+}
+#unauthedPage[data-page="signin"] > div[page="signin"],
+#unauthedPage[data-page="signup"] > div[page="signup"],
+#unauthedPage[data-page="authcode"] > div[page="authcode"] {
+	display: flex;
+}
+
 .reddit-modal {
+	margin: auto;
 	border: 1px solid gray;
 	border-radius: 4px;
 	background-color: #f0f0f0;
@@ -1416,13 +1539,24 @@ postcopy span {
 	width: min(800px, 100% - 16px);
 	box-shadow: 0px 0px 12px black;
 	overflow: clip;
+	display: none;
+	flex-direction: column;
+}
+.reddit-modal[open] {
 	display: flex;
+}
+/* i.e loginPanel */
+.reddit-modal > div {
+	display: flex;
+	flex-grow: 1;
 }
 .reddit-modal {
 	font-family: 'IBM Plex Sans', sans-serif;
 	font-size: 20px;
 }
-.reddit-modal p, a, span { font-size: 16px; }
+.reddit-modal p, a, span {
+	font-size: 16px;
+}
 .reddit-modal p {
 	margin-top: 20px;
 	margin-bottom: 20px;
@@ -1444,7 +1578,7 @@ postcopy span {
 	touch-action: manipulation;
 }
 @media (orientation: portrait) {
-	.reddit-modal {
+	.reddit-modal > div {
 		flex-direction: column;
 		position: relative;
 	}
@@ -1462,7 +1596,7 @@ postcopy span {
 		height: fit-content !important;
 	}
 }
-.reddit-modal input {
+.reddit-modal-input {
 	all: unset;
 	border: 1px solid #ccc;
 	border-radius: 4px;
@@ -1473,8 +1607,9 @@ postcopy span {
 	margin-top: 4px;
 	margin-bottom: 4px;
 	background-color: white;
+
 }
-.reddit-modal input[type=file]::file-selector-button {
+.reddit-modal-input[type=file]::file-selector-button {
 	all: unset;
 	border-radius: 5px;
 	background-color: white;
@@ -1482,15 +1617,27 @@ postcopy span {
 	box-shadow: none;
 	height: 100%;
 }
-.reddit-modal input[type=file] {
+.reddit-modal-input[type=file] {
 	height: 48px;
 	background-color: transparent;
 }
-.reddit-modal input:focus {
+.reddit-modal-input:focus {
 	border-color: #369;
 	box-shadow: 0 0 5px #ccc;
 }
-.reddit-modal button {
+.reddit-signin-button {
+	border: 1px solid #dbdbdb;
+	border-radius: 4px;
+	background-color: white;
+	width: fit-content;
+	display: flex;
+	height: 46px;
+	column-gap: 8px;
+	cursor: pointer;
+	padding-right: 8px;
+	box-shadow: none;
+}
+.reddit-modal-button {
 	all: unset;
 	display: inline-block;
 	padding: 8px 16px;
@@ -1505,7 +1652,7 @@ postcopy span {
 	cursor: pointer;
 	transition: background-color 0.2s ease-in-out;
 }
-.reddit-modal button:hover {
+.reddit-modal-button:hover {
 	background-color: #b0c8e6;
 }
 .reddit-card {
