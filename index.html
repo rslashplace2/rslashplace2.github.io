@@ -985,12 +985,14 @@
                         buttonParent.appendChild(emojiImg)
                         captchaOptions.appendChild(buttonParent)
 
-                        buttonParent.addEventListener("click", (event) => {
+                        function submitCaptcha(event) {
                             const emojiValue = event.target.getAttribute("value")
                             if (!emojiValue) return console.error("Could not send captcha ressponse. No emoji value?")
                             call(send, ws, encoder.encode("\x10" + emojiValue))
                             captchaOptions.style.pointerEvents = "none"
-                        })
+                        }
+                        buttonParent.addEventListener("click", submitCaptcha)
+                        emojiImg.addEventListener("click", submitCaptcha)
                     }
                     captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
