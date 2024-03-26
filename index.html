@@ -970,6 +970,7 @@
                     let imageData = new Uint8Array(data.buffer).slice(2 + emojisSize)
                     captchaOptions.innerHTML = ""
 
+                    let captchaSubmitted = false
                     for (let emoji of emojis) {
                         let buttonParent = document.createElement("button")
                         buttonParent.classList.add("captcha-options-button")
@@ -986,6 +987,10 @@
                         captchaOptions.appendChild(buttonParent)
 
                         function submitCaptcha(event) {
+                            if (captchaSubmitted) {
+                                return
+                            }
+                            captchaSubmitted = true
                             const emojiValue = event.target.getAttribute("value")
                             if (!emojiValue) return console.error("Could not send captcha ressponse. No emoji value?")
                             call(send, ws, encoder.encode("\x10" + emojiValue))
@@ -993,6 +998,9 @@
                         }
                         buttonParent.addEventListener("click", submitCaptcha)
                         emojiImg.addEventListener("click", submitCaptcha)
+                        buttonParent.addEventListener("touchend", submitCaptcha)
+                        emojiImg.addEventListener("touchend", submitCaptcha)
+
                     }
                     captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
@@ -2001,7 +2009,7 @@
                                 <span>Game and server statistics from October 29th 2023 to 2024</span>
                             </div>
                         </div>
-                        <video src="video/2023-stats.mp4" type="video/mp4" style="width: 100%; aspect-ratio: 16/9;">Error: Video failed to load</video>
+                        <video src="video/2023-stats.webm" type="video/webm" style="width: 100%; aspect-ratio: 16/9;">Error: Video failed to load</video>
                     </div>
                 </div>
                 <!--<div onclick="" class="post">
