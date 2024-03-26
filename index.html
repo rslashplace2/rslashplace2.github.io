@@ -987,13 +987,11 @@
                         captchaOptions.appendChild(buttonParent)
 
                         function submitCaptcha(event) {
-                            if (captchaSubmitted) {
-                                return
+                            if (captchaSubmitted || !emoji) {
+                                return console.error("Could not send captcha ressponse. No emoji?")
                             }
                             captchaSubmitted = true
-                            const emojiValue = event.target.getAttribute("value")
-                            if (!emojiValue) return console.error("Could not send captcha ressponse. No emoji value?")
-                            call(send, ws, encoder.encode("\x10" + emojiValue))
+                            call(send, ws, encoder.encode("\x10" + emoji))
                             captchaOptions.style.pointerEvents = "none"
                         }
                         buttonParent.addEventListener("click", submitCaptcha)
