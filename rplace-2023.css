@@ -47,6 +47,10 @@ input:focus, button:focus, textarea:focus {
     outline: auto;
 }
 
+body {
+    background-color: #333;
+}
+
 #loadingScreen {
     background: white;
 }
@@ -164,6 +168,11 @@ icon-close {
     font-size: 14px;
 }
 
+#palette {
+	background: white;
+	box-shadow: 0 0 10px black;
+}
+
 #namePanel {
     border-top: var(--pixel-border);
     background-color: white;
@@ -264,6 +273,9 @@ icon-close {
 }
 .chat-header {
     margin-right: 24px;
+}
+.ad-close {
+    color: black;
 }
 
 .toast-menu {

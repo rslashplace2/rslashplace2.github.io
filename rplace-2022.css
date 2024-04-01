@@ -1,5 +1,26 @@
+:root {
+	--ui-background: #333;
+	--ui-panel-bg: white;
+	--ui-text: black;
+}
+
+:root.dark {
+	--ui-background: black;
+	--ui-panel-bg: #141414;
+	--ui-text: white;
+}
+
+:root.dark .icon-image {
+	filter: invert(1);
+}
+
+html, body {
+	color: var(--ui-text);
+	background: var(--ui-background);
+}
+
 select {
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 	border-radius: 10px;
 	font-size: 16px;
 	border: 1px solid gray;
@@ -13,7 +34,7 @@ select {
 input, button {
 	color: unset;
 	font: unset;
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 	border-radius: 10px;
 	font-size: 16px;
 	border: none;
@@ -45,7 +66,7 @@ input[type="checkbox"] {
 
 input[type=file]::file-selector-button {
 	border-radius: 5px;
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 	border: 0px solid black;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 	height: 100%;
@@ -59,7 +80,7 @@ input[type=range]::-moz-range-thumb {
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 	border: 1px solid darkgray;
 	border-radius: 5px;
-	background: white;
+	background: var(--ui-panel-bg);
 	cursor: pointer;
 }
 
@@ -71,7 +92,7 @@ input[type=range]::-webkit-slider-thumb {
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 	border: 1px solid darkgray;
 	border-radius: 5px;
-	background: white;
+	background: var(--ui-panel-bg);
 	cursor: pointer;
 }
 
@@ -88,8 +109,7 @@ a {
 }
 
 #modal {
-    background: rgb(255, 255, 255);
-    color: rgb(0, 0, 0);
+    background: var(--ui-panel-bg);
     border-radius: 8px;
     width: min(325px, calc(100% - 64px));
     padding: 24px;
@@ -126,7 +146,8 @@ a {
 	margin-bottom: 24px;
 }
 
-.modal-content{
+.modal-content {
+	color: var(--ui-text);
 	font-family: reddit;
 	font-size: 18px;
 	line-height: 20px;
@@ -135,7 +156,7 @@ a {
 
 .modal-install {
 	height: 40px;
-	background: white;
+	background: var(--ui-panel-bg);
 	align-self: center;
 	width: 60%;
 	border: 1px solid lightgray;
@@ -144,6 +165,7 @@ a {
 	line-height: 40px;
 	cursor: pointer;
 	transition: .1s border;
+	color: var(--ui-text);
 }
 
 .modal-install:hover {
@@ -152,12 +174,13 @@ a {
 }
 
 .modal-footer-button {
+	color: var(--ui-text);
 	box-shadow: 0 3px 10px rgba(0,0,0,.3);
 	border-radius: 18px;
 }
 
 .context-menu {
-	background: white;
+	background: var(--ui-panel-bg);
 	border-radius: 5px;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
 }
@@ -176,7 +199,7 @@ a {
 	border-radius: 18px;
 	position: absolute;
 	cursor: pointer;
-	background: white;
+	background: var(--ui-panel-bg);
 	fill: currentcolor;
 	z-index: 5;
 }
@@ -190,7 +213,7 @@ a {
 	bottom: 20px;
 	right: 20px;
 	line-height: 15px;
-	background: white;
+	background: var(--ui-panel-bg);
 	border-radius: 100px;
 	text-align: center;
 	z-index: 5;
@@ -215,24 +238,27 @@ a {
 	height: 24px;
 	padding: 5px;
 	line-height: 15px;
-	background: white;
+	background: var(--ui-panel-bg);
 	border-radius: 100px;
 	cursor: pointer;
 }
 
 #chatPanel {
 	border-radius: 10px;
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 	padding: 10px;
 }
 #chatPanel[open] {
 	box-shadow: 0 0 30px black;
 }
+.ad-close {
+    color: var(--ui-text);
+}
 
 .toast-menu {
     padding: 10px;
 	line-height: 17px;
-	background: white;
+	background: var(--ui-panel-bg);
 	border-radius: 15px;
 }
 
@@ -254,7 +280,7 @@ a {
 	height: 24px;
 	padding: 5px;
 	line-height: 17px;
-	background: white;
+	background: var(--ui-panel-bg);
 	border-radius: 100px;
 	text-align: center;
 	z-index: 5;
@@ -262,13 +288,18 @@ a {
 	transition: .2s border-radius;
 }
 
+#palette {
+	background: var(--ui-panel-bg);
+	box-shadow: 0 0 10px black;
+}
+
 #namePanel {
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 	border-radius: 15px;
 }
 
 .name-input-container > button {
-	background: white;
+	background: var(--ui-panel-bg);
 	box-shadow: 0 3px 10px rgba(0,0,0,.3);
 	border: none;
 	border-radius: 10px;
@@ -294,7 +325,7 @@ a {
 
 .chat-input-panel {
 	padding: 5px;
-	background: white;
+	background: var(--ui-panel-bg);
 	border: 1px solid lightgray;
 	border-radius: 5px 5px 10px 10px;
 }
@@ -307,7 +338,7 @@ a {
 #captchaPopup {
 	padding: 24px;
 	border-radius: 8px;
-	background-color: white;
+	background-color: var(--ui-panel-bg);
 }
 
 .captcha-options-button {
@@ -319,7 +350,7 @@ a {
 }
 
 .captcha-options-button.loaded {
-	background: white;
+	background: var(--ui-panel-bg);
 }
 
 .captcha-options-button:hover {
