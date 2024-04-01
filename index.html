@@ -442,8 +442,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { css: "rplace-2022.css", cssVersion: "0.06", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { css: "rplace-2023.css", cssVersion: "0.06", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.06", pixelselect: "svg/pixel-select-2022.svg", variants: ["light", "dark"] }],
+            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.06", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -1584,7 +1584,7 @@
                         }
                     })(this);
                 " title="copy canvas link">
-                    <img src="svg/clipboard.svg">
+                    <img class="icon-image" src="svg/clipboard.svg">
                     <span style="align-self: center; margin-right: 8px;cursor: pointer;">Copy overlay URL</span>
                     <span style="opacity: 0; align-self: center;">Copied to clipboard!</span>
                 </div>
@@ -1747,7 +1747,7 @@
                         localStorage.muted =+ muted
                         mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
                     ">
-                        <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" viewBox="0 0 20 20"></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" class="icon-image" viewBox="0 0 20 20"></svg>
                     </mute-button>
 					<div id="themeDropParent" noselect class="modal-footer-button" style="width: auto; align-items: center;justify-content: center;"
                         onclick="event.stopPropagation(); themeDropParent.toggleAttribute('open')">
@@ -1764,20 +1764,26 @@
                                             target = target.parentElement
                                             continue
                                         }
+                                        let targetVariant = target.getAttribute('variant')
                                         let targetTheme = target.getAttribute('theme')
                                         themeDropParent.removeAttribute('open')
                                         event.stopPropagation()
 
-                                        if (!targetTheme || currentTheme === DEFAULT_THEMES.get(targetTheme)) return
-                                        themeDropName.textContent = '🖌️ ' + targetTheme
-                                        theme(DEFAULT_THEMES.get(targetTheme))
-                                        localStorage.theme = targetTheme
+                                        if (targetTheme) {
+                                            themeDropName.textContent = '🖌️ ' + targetTheme
+                                            theme(DEFAULT_THEMES.get(targetTheme), targetVariant)
+                                            localStorage.theme = targetTheme
+                                            localStorage.variant = targetVariant
+                                        }
                                         break
                                     }
                                 }
                             ">
-								<li theme="r/place 2022"><span>r/place 2022</span></li>
-								<li theme="r/place 2023"><span>r/place 2023</span></li>
+								<li theme="r/place 2022" variant="" onclick="disableDarkplace()"><span>r/place 2022 (Classic)</span></li>
+								<li theme="r/place 2022" variant="dark" onclick="disableDarkplace()"><span>r/place 2022 (Dark)</span></li>
+								<li theme="r/place 2023" variant="" onclick="disableDarkplace()"><span>r/place 2023 (Classic)</span></li>
+								<hr style="opacity: 0.2">
+								<li theme="r/place 2022" variant="dark" onclick="enableDarkplace()"><span>darkplace.live (April fools)</span></li>
 							</ul>
 						</div>
 					</div>
@@ -3178,23 +3184,42 @@
             if (count % 2 == 0) comp = ""
 
             if (comp) {
-                messageInput.style.color = "#00FA9A"
+                messageInput.setAttribute("state", "command")
             }
             else {
                 messageEmojisPanel.setAttribute("closed", "true")
-                messageInput.style.color = "black"
+                messageInput.setAttribute("state", "default")
+            }
+
+            function addEmojiEntry(emojiCode, value) {
+                const entryElement = document.createElement("div")
+                entryElement.title = `Send this emoji in chat with :${emojiCode}:`
+                const entryLabel = document.createElement("span")
+                entryLabel.textContent = `:${emojiCode}:`
+                entryElement.appendChild(entryLabel)
+                const entryValueText = document.createTextNode(value)
+                entryElement.appendChild(entryValueText)
+                entryElement.addEventListener("click", function() {
+                    for (let i = messageInput.value.length - 1; i >= 0; i--) {
+                        if (messageInput.value[i] == ":") {
+                            messageInput.value = messageInput.value.slice(0, i) + value
+                            break
+                        }
+                    }
+                })
+                messageEmojisPanel.appendChild(entryElement)
             }
 
             let handled = false
             for (const [emojiCode, value] of Object.entries(EMOJIS)) {
                 if (comp && emojiCode.startsWith(comp)) {
-                    messageEmojisPanel.innerHTML += `<div title="Send this emoji in chat with :${emojiCode}:"><span>:${emojiCode}:</span>${value}</div>`
+                    addEmojiEntry(emojiCode, value)
                     messageEmojisPanel.removeAttribute("closed")
                 }
 
                 if (messageInput.value.includes(":" + emojiCode + ":")) {
                     messageInput.value = messageInput.value.replace(":" + emojiCode + ":", value)
-                    messageInput.style.color = "black"
+                    messageInput.setAttribute("state", "default")
                     handled = true
                 }
             }
@@ -3205,7 +3230,7 @@
                 }
 
                 if (messageInput.value.includes(":" + emojiCode + ":")) {
-                    messageInput.style.color = "black"
+                    messageInput.setAttribute("state", "default")
                     handled = true
                 }
             }
@@ -3265,35 +3290,50 @@
         }
 
         let currentTheme = null
-        let styleElement = null
-        async function theme(set) {
-            // Intermediate stylesheet handles giving a nice transition animation during theme change
-            let intermediate = document.createElement("link")
-            intermediate.rel = "stylesheet"
-            intermediate.type = "text/css"
-            intermediate.href = "theme-switch.css"
-            document.head.appendChild(intermediate)
-            await (new Promise(resolve => intermediate.onload = resolve))
-            // Load in new CSS
-            let link = document.createElement("link")
-            link.rel = "stylesheet"
-            link.type = "text/css"
-            link.href = set.css + "?v=" + set.cssVersion
-            link.onload = function(e) { setTimeout(() => document.head.removeChild(intermediate), 200) }
-            document.head.appendChild(link)
-            // Swap out stylesheets
-            if (styleElement) document.head.removeChild(styleElement)
-            styleElement = link
-            currentTheme = set
+        async function theme(themeSet, variant = null) {
+            variant ??= ""
+            if (currentTheme !== themeSet) {
+                // Intermediate stylesheet handles giving a nice transition animation during theme change
+                const intermediate = document.createElement("link")
+                intermediate.rel = "stylesheet"
+                intermediate.type = "text/css"
+                intermediate.href = "theme-switch.css"
+                intermediate.setAttribute("intermediate-temp", "true")
+                await (new Promise(resolve => {
+                    intermediate.onload = resolve
+                    document.head.appendChild(intermediate)
+                }))
+                // Load in new CSS
+                const link = document.createElement("link")
+                link.rel = "stylesheet"
+                link.type = "text/css"
+                link.href = themeSet.css + "?v=" + themeSet.cssVersion
+                await (new Promise(async (resolve) => {
+                    link.onload = resolve
+                    document.head.appendChild(link)
+                }))
+                // Swap out intermediate and old stylesheet (scuffed thanks to browser BS)
+                setTimeout(() => document.querySelectorAll("link[intermediate-temp]").forEach(oldLink => {
+                    oldLink.remove()
+                }), 200)
+                document.querySelectorAll("link[theme-temp]").forEach(oldLink => {
+                    oldLink.remove()
+                })
+                link.setAttribute("theme-temp", "true")
+                currentTheme = themeSet
 
-            document.querySelectorAll("[theme]").forEach((element) => {
-                if (element.tagName == "IMG")
-                    element.src = set[element.getAttribute("theme")] || element.src
-                else
-                    element.innerHTML = set[element.getAttribute("theme")] || element.innerHTML
-            })
+                document.querySelectorAll("[theme]").forEach((element) => {
+                    if (element.tagName == "IMG")
+                        element.src = themeSet[element.getAttribute("theme")] || element.src
+                    else
+                        element.innerHTML = themeSet[element.getAttribute("theme")] || element.innerHTML
+                })
+                document.documentElement.setAttribute("theme", themeSet.id)
+            }
+            document.documentElement.setAttribute("variant", variant)
         }
-        theme(DEFAULT_THEMES.get(localStorage.theme) || DEFAULT_THEMES.get("r/place 2022"))
+        const startupThemeSet = DEFAULT_THEMES.get(localStorage.theme || "r/place 2022")
+        theme(startupThemeSet, localStorage.variant)
         themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.

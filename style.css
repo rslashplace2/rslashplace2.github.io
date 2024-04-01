@@ -595,7 +595,7 @@ body[eventphase="3"] .coverer-title {
 	height: 25px;
 	padding: 3px;
 	display: flex;
-	gap: 3px;
+	column-gap: 8px;
 }
 
 #connproblems {
@@ -917,9 +917,6 @@ body[eventphase="3"] .coverer-title {
 	flex-grow: 1;
 	align-self: center;
 }
-#messageEmojisPanel > div:hover {
-	background: lightgrey;
-}
 #messageReplyPanel {
 	height: 84px;
 	display: flex;
@@ -1116,7 +1113,11 @@ kbd {
 	padding: 0px;
 	margin: 0px;
 	min-width: 150px;
+	width: max-content;
 	list-style: none;
+	row-gap: 2px;
+	display: flex;
+	flex-direction: column;
 }
 .context-menu > ul > li {
 	padding: 5px;

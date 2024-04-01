@@ -1,22 +1,20 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Special features for april fools darkplace event
-(function() {
-    // Mon Apr 01 2024 18:33:20 GMT+0100
-    const eventStart = 1711993900000
-    if (Date.now() > eventStart + 60_000) {
-        return console.warn("Darkplace event is complete (> 1 minute ago)")
-    }
-
+let fallingMessages = null
+let fallingMessageInterval = -1
+let backgroundCanvas = null
+async function enableDarkplace() {
+    const forceVariant = "dark"
     const forceTheme = "r/place 2022"
-    if (localStorage.theme !== forceTheme) {
-        localStorage.theme = forceTheme
-        console.warn("Forcing site theme to", forceTheme)
-        window.location.reload(true) // Hacky but will avoid the theme race
+    const currentThemeSet = document.documentElement.getAttribute("theme")
+    const currentVariant = document.documentElement.getAttribute("variant")
+    if (currentThemeSet != forceTheme || currentVariant != forceVariant) {
+        console.warn("Forcing site theme to", forceTheme, forceVariant)
+        await theme(DEFAULT_THEMES.get(forceTheme), forceVariant)
     }
-    document.documentElement.classList.add("dark")
-    document.body.style.backgroundSize = "contain"
     const bgWrapper = document.getElementById("bgWrapper")
-    const backgroundCanvas = document.createElement("canvas")
+    backgroundCanvas = document.getElementById("backgroundCanvas") || document.createElement("canvas")
+    backgroundCanvas.id = "backgroundCanvas"
     backgroundCanvas.style.position = "absolute"
     backgroundCanvas.style.top = "0"
     backgroundCanvas.style.left = "0"
@@ -68,9 +66,9 @@
         "Zubigri write this text",
         "Geometry Dash",
         "TK",
-        "Bushi Catgirls Slayers https://discord.com/invite/hk7r6Kye7x",
+        "BCS",
         "rplace.live",
-        "rplace.tk",
+        "not rplace.tk",
         "darkplace.live",
         "susplace.live",
         "is am are what???",
@@ -97,7 +95,6 @@
         "42",
         "666",
         "777",
-        "(Numbers 1-10)",
         "13",
         "284654548244662065667669143349975505484487365510612937903489695250411210311237163400731822443778191321442634040459295815516156858468105775285314299961880757005305548204686781529063932731323704485670912",
         "Ñ",
@@ -110,11 +107,22 @@
         "The End.",
         "爱国无罪",
         "富狗",
-        "我是好黑"
+        "我是好黑",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "❤️ ataturk"
     ]
 
     let wind = 1
-    let gravity = 0.001
+    const gravity = 0.001
     const messageColours = ["#fff", "#aaa", "#db7c7c", "#4a4949"]
 
     class FallingMessage {
@@ -145,10 +153,11 @@
     if (backgroundContext == null) {
         return
     }
-    const fallingMessages = new Set()
+    fallingMessages = new Set()
     let lastWindChange = Date.now()
     let lastSpawn = Date.now()
-    setInterval(() => {
+    clearInterval(fallingMessageInterval)
+    fallingMessageInterval = setInterval(() => {
         backgroundContext.clearRect(0, 0, window.innerWidth, window.innerHeight)
         if (Date.now() - lastSpawn > 400 && Math.random() < 0.1) {
             const chosenMessage = messages[Math.floor(Math.random() * messages.length)]
@@ -166,8 +175,10 @@
             }
         }
     }, 17)
+}
 
-    setTimeout(async () => {
-        await startCountDown(eventStart)
-    }, 500)
-})()
+function disableDarkplace() {
+    fallingMessages?.clear()
+    clearInterval(fallingMessageInterval)
+    backgroundCanvas?.remove()
+}
