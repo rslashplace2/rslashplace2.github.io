@@ -1,6 +1,10 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Special features for april fools darkplace event
 (function() {
+    if (Date.now() > 1711990801000) {
+        return console.warn("Darkplace event is complete")
+    }
+
     const forceTheme = "r/place 2022"
     if (localStorage.theme !== forceTheme) {
         localStorage.theme = forceTheme
