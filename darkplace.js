@@ -1,6 +1,12 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Special features for april fools darkplace event
 (function() {
+    const forceTheme = "r/place 2022"
+    if (localStorage.theme !== forceTheme) {
+        localStorage.theme = forceTheme
+        console.warn("Forcing site theme to", forceTheme)
+        window.location.reload(true) // Hacky but will avoid the theme race
+    }
     document.documentElement.classList.add("dark")
     document.body.style.backgroundSize = "contain"
     const bgWrapper = document.getElementById("bgWrapper")
