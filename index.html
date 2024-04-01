@@ -1811,12 +1811,12 @@
                         canvselect.style.boxShadow = ''
                         hideIndicators()
                     ">
-                        <svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
+                        <svg class="icon-image" xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
                             <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z"></path>
                         </svg>
                     </div>
                     <div id="pok" class="pok">
-                        <svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
+                        <svg class="icon-image" xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20">
                             <path d="M7.5 15.583a.72.72 0 01-.513-.212L1.558 9.942l.884-.884L7.5 14.116 18.058 3.558l.884.884L8.013 15.371a.72.72 0 01-.513.212z"></path>
                         </svg>
                     </div>
@@ -2996,17 +2996,17 @@
             if (preexisting != -1) binds[preexisting] = "​"
             binds[i] = e.key.charAt(0)
             localStorage.paletteKeys = binds.join("")
-            generateIndicators(binds.join(""))
+            /*generateIndicators(binds.join(""))*/
         }
 
-        function generateIndicators(keybinds) {
+        /*function generateIndicators(keybinds) {
             for (let c = 0; c < colours.children.length; c++) {
                 let indicator = colours.children[c].firstChild
-                indicator.textContent = keybinds.charAt(c)
+                indicator.textContent = keybinds?.charAt(c)
             }
         }
         generateIndicators(localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
-
+        */
         if (chatName) {
             namePanel.style.visibility = "hidden"
         }
