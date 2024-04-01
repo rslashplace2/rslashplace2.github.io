@@ -720,7 +720,7 @@
                 switch (data.getUint8(0)) {
                 case 0: {
                     PALETTE = [...new Uint32Array(data.buffer.slice(1))]
-                    let binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS).split("")
+                    let binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
                     generateIndicators(binds)
                     generatePalette()
                     break
