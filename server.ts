@@ -743,6 +743,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             ws.send(runLengthChanges())
 
             // If a custom palette is defined, then we send to client
+            // http://www.shodor.org/~efarrow/trunk/html/rgbint.html
             if (Array.isArray(PALETTE)) {
                 const paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
                 paletteBuffer[0] = 0
