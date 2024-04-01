@@ -2,7 +2,7 @@
 // Special features for april fools darkplace event
 (function() {
     // Mon Apr 01 2024 18:33:20 GMT+0100
-    const eventStart = 1711992800000
+    const eventStart = 1711993900000
     if (Date.now() > eventStart + 60_000) {
         return console.warn("Darkplace event is complete (> 1 minute ago)")
     }

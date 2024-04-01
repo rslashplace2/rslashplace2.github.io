@@ -499,6 +499,11 @@
             call(addEventListener, window, "focus", () => focused = true)
 
             let authSocket = {} //new WebSocket("wss://server.poemanthology.org/auth")
+            // HACK: Until enough clients are using the new server 
+            if (localStorage.server.startsWith == "wss://server.rplace.tk") {
+                delete localStorage.server
+            }
+
             let svUri = localStorage.server || DEFAULT_SERVER
             if (localStorage.vip) {
                 if (!svUri.endsWith("/")) svUri += "/"
