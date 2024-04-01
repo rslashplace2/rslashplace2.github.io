@@ -1,6 +1,16 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Special features for april fools darkplace event
 (function() {
+    if (Date.now() > 1711990801000) {
+        return console.warn("Darkplace event is complete")
+    }
+
+    const forceTheme = "r/place 2022"
+    if (localStorage.theme !== forceTheme) {
+        localStorage.theme = forceTheme
+        console.warn("Forcing site theme to", forceTheme)
+        window.location.reload(true) // Hacky but will avoid the theme race
+    }
     document.documentElement.classList.add("dark")
     document.body.style.backgroundSize = "contain"
     const bgWrapper = document.getElementById("bgWrapper")
@@ -154,4 +164,9 @@
             }
         }
     }, 17)
+
+    setTimeout(async () => {
+        // Mon Apr 01 2024 17:05:26 GMT+0100
+        await startCountDown(1711990800000)
+    }, 500)
 })()

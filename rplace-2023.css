@@ -336,3 +336,7 @@ icon-close {
 	padding: 12px;
     padding-top: 4px;
 }
+
+#eventCountdown {
+	background: var(--ui-panel-bg);
+}
