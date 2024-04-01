@@ -720,7 +720,8 @@
                 switch (data.getUint8(0)) {
                 case 0: {
                     PALETTE = [...new Uint32Array(data.buffer.slice(1))]
-                    //generateIndicators()
+                    let binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS).split("")
+                    generateIndicators(binds)
                     generatePalette()
                     break
                 }
@@ -2996,17 +2997,16 @@
             if (preexisting != -1) binds[preexisting] = "​"
             binds[i] = e.key.charAt(0)
             localStorage.paletteKeys = binds.join("")
-            /*generateIndicators(binds.join(""))*/
+            generateIndicators(binds.join(""))
         }
-
-        /*function generateIndicators(keybinds) {
+        function generateIndicators(keybinds) {
             for (let c = 0; c < colours.children.length; c++) {
                 let indicator = colours.children[c].firstChild
                 indicator.textContent = keybinds?.charAt(c)
             }
         }
         generateIndicators(localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
-        */
+
         if (chatName) {
             namePanel.style.visibility = "hidden"
         }
