@@ -747,7 +747,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 const paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
                 paletteBuffer[0] = 0
                 for (let i = 0; i < PALETTE.length; i++) {
-                    paletteBuffer.writeUInt32BE(PALETTE[i], i + 1)
+                    paletteBuffer.writeUInt32BE(PALETTE[i], i * 4 + 1)
                 }
                 ws.send(paletteBuffer)
             }
