@@ -605,6 +605,7 @@ body[eventphase="3"] .coverer-title {
 	opacity: 0;
 	bottom: 80px;
 	z-index: 22;
+	color: black;
 	font-family: 'mono';
 }
 
