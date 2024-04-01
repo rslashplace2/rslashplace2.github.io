@@ -500,7 +500,7 @@
 
             let authSocket = {} //new WebSocket("wss://server.poemanthology.org/auth")
             // HACK: Until enough clients are using the new server 
-            if (localStorage.server.startsWith == "wss://server.rplace.tk") {
+            if (localStorage.server?.startsWith("wss://server.rplace.tk")) {
                 delete localStorage.server
             }
 
