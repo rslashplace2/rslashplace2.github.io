@@ -271,6 +271,15 @@ icon-close {
     background: white;
     padding: 8px;
 }
+#messageInput {
+	color: var(--ui-text);
+}
+#messageInput[state="command"] {
+	color: #00FA9A;
+}
+#messageEmojisPanel > div:hover {
+	background: lightgrey;
+}
 .chat-header {
     margin-right: 24px;
 }
