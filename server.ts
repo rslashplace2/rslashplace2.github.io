@@ -60,7 +60,7 @@ if (configFailed) {
     await fs.writeFile("server_config.json", JSON.stringify({
         "SECURE": true,
         "CERT_PATH": "/etc/letsencrypt/live/path/to/fullchain.pem",
-        "KEY_PATH": "/etc/letsencrypt/live/server.rplace.tk/fullchain.pem",
+        "KEY_PATH": "/etc/letsencrypt/live/server.rplace.live/fullchain.pem",
         "PORT": 443,
         "WIDTH": 2000,
         "HEIGHT": 2000,
@@ -1148,8 +1148,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 }
 if (SECURE) {
     // TODO: Report bun segfault when giving a TLS cert and key path that doesn't exist
-    // Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.tk/fullchain.pem,
-    // Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.tk/privkey.pem
+    // Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.live/fullchain.pem,
+    // Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.live/privkey.pem
     const cert = Bun.file(CERT_PATH)
     const key = Bun.file(KEY_PATH)
     if (cert.size !== 0 && key.size !== 0) {

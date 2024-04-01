@@ -17,7 +17,7 @@ To set up your own custom canvas to be played on rplace.tk, we have made a guide
 # Development
 
 Forks of this project should either:
-- Connect to the same server, that is, wss://server.rplace.tk:443
+- Connect to the same server, that is, wss://server.rplace.live:443
 - Or use the same app, that is, https://rplace.live
 
 This project is licensed under the GNU LGPL v3, out of goodwill we request forks are
@@ -25,7 +25,7 @@ not run commercially (That is, they should not generate more than the cost of se
 
 ### For example,
 
-- My app (`fork-of-a-place.tk`) connecting to `wss://server.rplace.tk:443` [✅ Cool, non-commercially]
+- My app (`fork-of-a-place.tk`) connecting to `wss://server.rplace.live:443` [✅ Cool, non-commercially]
 - Making `https://rplace.live` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Cool, non-commercially]
 - My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not cool: Uses both different app and different server]
 
