@@ -1,8 +1,10 @@
 /* eslint-disable jsdoc/require-jsdoc */
 // Special features for april fools darkplace event
 (function() {
-    if (Date.now() > 1711990801000) {
-        return console.warn("Darkplace event is complete")
+    // Mon Apr 01 2024 18:33:20 GMT+0100
+    const eventStart = 1711992800000
+    if (Date.now() > eventStart + 60_000) {
+        return console.warn("Darkplace event is complete (> 1 minute ago)")
     }
 
     const forceTheme = "r/place 2022"
@@ -166,7 +168,6 @@
     }, 17)
 
     setTimeout(async () => {
-        // Mon Apr 01 2024 17:05:26 GMT+0100
-        await startCountDown(1711990800000)
+        await startCountDown(eventStart)
     }, 500)
 })()
