@@ -22,7 +22,6 @@ body {
 	transition: left .3s ease-out, top .3s ease-out;
 	left: 0;
 	top: 0;
-	background: #333;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -287,8 +286,6 @@ place-chat-button > img {
 
 #palette {
 	transition: transform .3s ease-out;
-	background: white;
-	box-shadow: 0 0 10px black;
 	position: absolute;
 	bottom: 0;
 	left: 0;
@@ -655,7 +652,6 @@ body[eventphase="3"] .coverer-title {
 	top: -8px;
 	height: 32px;
 	width: 32px;
-	color: black;
 }
 
 .horizontal-labeled-separator {
