@@ -395,7 +395,6 @@ place-chat-button > img {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: white;
 	overflow: hidden;
 }
 
@@ -418,7 +417,6 @@ body[eventphase="1"] #eventCountdown {
 	top: 64px;
 	border-radius: 16px;
 	box-shadow: 0 0 30px black;
-
 	transition: 2s all;
 }
 
@@ -433,6 +431,12 @@ body[eventphase="1"] #eventCountdown {
 
 .countdown {
 	visibility: hidden;
+}
+
+.countdown-header {
+	font-size: 22px;
+	text-shadow: 1px 1px 0px #ff4500;
+	font-weight: bold;
 }
 
 .coverer {
@@ -450,12 +454,22 @@ body[eventphase="1"] #eventCountdown {
 	transition: .2s all;
 }
 
+.coverer-description {
+	position: absolute;
+	left: 50%;
+	bottom: -48px;
+	font-size: 32px;
+	transform: translateX(-50%);
+	white-space: nowrap;
+}
+
 .progressbar {
 	position: absolute;
 	left: 0px;
 	top: 0px;
 	height: 100%;
-	background-color: #add8e63d;transition: .5s width;
+	background-color: #add8e63d;
+	transition: .5s width;
 	z-index: -1;
 }
 

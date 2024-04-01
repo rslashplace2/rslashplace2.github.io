@@ -154,4 +154,9 @@
             }
         }
     }, 17)
+
+    setTimeout(async () => {
+        // Mon Apr 01 2024 17:05:26 GMT+0100
+        await startCountDown(1711990800000)
+    }, 500)
 })()

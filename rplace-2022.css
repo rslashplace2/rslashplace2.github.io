@@ -2,6 +2,7 @@
 	--ui-background: #333;
 	--ui-panel-bg: white;
 	--ui-text: black;
+	--ui-announcer-progressbar-bg: 
 }
 
 :root.dark {
@@ -398,4 +399,8 @@ a {
 
 #popup > div {
     padding: 12px;
+}
+
+#eventCountdown {
+	background: var(--ui-panel-bg);
 }
