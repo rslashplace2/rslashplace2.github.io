@@ -5,13 +5,13 @@
 	--ui-text: black;
 }
 
-:root[variant="dark"] {
+:root[data-variant="dark"] {
 	--ui-background: black;
 	--ui-panel-hover: #313131;
 	--ui-panel-bg: #141414;
 	--ui-text: white;
 }
-:root[variant="dark"] .icon-image {
+:root[data-variant="dark"] .icon-image {
 	filter: invert(1);
 }
 
