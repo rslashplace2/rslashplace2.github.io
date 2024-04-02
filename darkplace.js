@@ -6,8 +6,8 @@ let backgroundCanvas = null
 async function enableDarkplace() {
     const forceVariant = "dark"
     const forceTheme = "r/place 2022"
-    const currentThemeSet = document.documentElement.getAttribute("theme")
-    const currentVariant = document.documentElement.getAttribute("variant")
+    const currentThemeSet = document.documentElement.dataset.theme
+    const currentVariant = document.documentElement.dataset.variant
     if (currentThemeSet != forceTheme || currentVariant != forceVariant) {
         console.warn("Forcing site theme to", forceTheme, forceVariant)
         await theme(DEFAULT_THEMES.get(forceTheme), forceVariant)
