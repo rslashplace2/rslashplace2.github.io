@@ -1253,6 +1253,8 @@ async function forceCaptchaSolve(identifier:string|number|ServerWebSocket<Client
 async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--) { if (CHANGES[i] != 255) BOARD[i] = CHANGES[i] }
 
+    const metadata = {  palette: PALETTE, width: WIDTH, height: HEIGHT }
+    await Bun.write(path.join(PUSH_PLACE_PATH, "metadata.json"), JSON.stringify(metadata))
     await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
 	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock")).catch(_ => { })
     const addResult = await $`git add -A`.cwd(PUSH_PLACE_PATH).quiet()
