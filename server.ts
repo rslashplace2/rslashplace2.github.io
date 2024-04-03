@@ -33,6 +33,7 @@ type ServerConfig = {
     "HEIGHT": number,
     "COOLDOWN": number,
     "CAPTCHA": boolean,
+    "PXPS_SECURITY": boolean,
     "PALETTE_SIZE": number,
     "ORIGINS": string[],
     "PALETTE": number[]|null,
@@ -66,6 +67,7 @@ if (configFailed) {
         "HEIGHT": 2000,
         "COOLDOWN": 1000,
         "CAPTCHA": false,
+        "PXPS_SECURITY": false,
         "PALETTE_SIZE": 32,
         "ORIGINS": [ "https://rplace.live", "https://rplace.tk" ],
         "PALETTE": null,
@@ -93,9 +95,9 @@ if (configFailed) {
 
 // TODO: Maybe make config
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
-    USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL, CHAT_MAX_LENGTH,
-    CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS, LINK_EXPIRY_SECS,
-    CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
+    PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
+    CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
+    LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -734,13 +736,21 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
 
-            const buf = Buffer.alloc(9)
-            buf[0] = 1
-            buf.writeUint32BE(Math.ceil((cooldowns.get(IP)||0) / 1000) || 1, 1)
-            buf.writeUint32BE(LOCKED ? 0xFFFFFFFF : ws.data.cd, 5)
-            ws.send(buf)
+            const cooldownBuffer = Buffer.alloc(9)
+            cooldownBuffer[0] = 1
+            cooldownBuffer.writeUint32BE(Math.ceil((cooldowns.get(IP)||0) / 1000) || 1, 1)
+            cooldownBuffer.writeUint32BE(ws.data.cd, 5)
+            ws.send(cooldownBuffer)
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
+
+            // Notify the client about any active canvas restrictions
+            if (LOCKED) {
+                const restrictionsBuffer = Buffer.alloc(2)
+                restrictionsBuffer[0] = 8
+                restrictionsBuffer[1] = 1
+                ws.send(restrictionsBuffer)
+            }
 
             // If a custom palette is defined, then we send to client
             // http://www.shodor.org/~efarrow/trunk/html/rgbint.html
@@ -1276,10 +1286,85 @@ async function pushImage() {
     }
 }
 
+// Rolling array of window size
+let pastPxps:number[] = []
+let pastPxpsMin = 10 // below = unchecked
+let pastPxpsWindowSize = 60 // secs = n elements in pastPxps
+let pastPxpsThresholdLow = 1.2 // 120% increase
+let pastPxpsThresholdHigh = 3.5 // 350% increase
+let pastPxpsActionDate = 0
+
 let pixelTick = 0
 setInterval(function () {
-    fs.appendFile("./pxps.txt", "\n" + newPos.length + "," + NOW)
-    if (!newPos.length) return
+    const pxps = newPos.length
+    // Above min check threshold, has been window size secs since last corrective action, captcha enabled
+    if (pxps > pastPxpsMin && NOW - pastPxpsActionDate > pastPxpsWindowSize && PXPS_SECURITY) {
+        const pastSum = pastPxps.reduce((acc, val) => acc + val, 0)
+        const pastAverage = pastSum / pastPxps.length
+        const pastIncrease = ((pxps - pastAverage) / pastAverage)
+
+        if (pastIncrease > pastPxpsThresholdLow) {
+            let mitigation = ""
+            if (CAPTCHA) {
+                mitigation = "Issuing captcha to **all non admin** clients."
+                for (const p of wss.clients) {
+                    if (p.data.perms !== "admin") {
+                        forceCaptchaSolve(p)
+                    }
+                }
+            }
+            if (pastIncrease > pastPxpsThresholdHigh) {
+                const pxpsLogName = `${NOW}.pxpslog.txt`
+                mitigation = `Forcing captcha for **all** non admin clients, ` +
+                    `dumping a list of **all** clients to ${pxpsLogName
+                    } and locking canvas for **${pastPxpsWindowSize}** seconds.`
+
+                const reason = `Server anticheat - Locking canvas for **${pastPxpsWindowSize
+                    }** seconds. Sorry for the inconvenience!`
+                const reasonBuffer = encoderUTF8.encode(reason)
+                const restrictionsBuffer = Buffer.alloc(2 + reasonBuffer.byteLength)
+                restrictionsBuffer[0] = 8
+                restrictionsBuffer[1] = 1
+                restrictionsBuffer.set(reasonBuffer, 2)
+
+                LOCKED = true
+                setTimeout(() => {
+                    LOCKED = false
+                    const unrestrictionsBuffer = Buffer.alloc(2)
+                    unrestrictionsBuffer[0] = 8
+                    unrestrictionsBuffer[1] = 0
+                    for (const p of wss.clients) {
+                        p.send(unrestrictionsBuffer)
+                    }
+                }, pastPxpsWindowSize * 1000)
+
+                const pxpsLogPath = `./${pxpsLogName}`
+                fs.appendFile(pxpsLogPath, "ip,intId,connDate,lastPeriodCaptcha,perms")
+                for (const p of wss.clients) {
+                    fs.appendFile(pxpsLogPath, `\n${p.data.ip},${p.data.intId},${p.data.connDate
+                        },${p.data.lastPeriodCaptcha},${p.data.perms}`)
+                    p.send(restrictionsBuffer)
+                }
+            }
+
+            modWebhookLog(`Detected unusual increase in pixels per second (average ${
+                pastAverage / pastPxpsWindowSize}px/s over last ${pastPxpsWindowSize
+                } seconds -> ${pxps}px/s (${pastIncrease
+                }% increase)). ${mitigation}`)
+
+            pastPxpsActionDate = NOW
+        }
+    }
+    pastPxps.push(pxps)
+    if (pastPxps.length > pastPxpsWindowSize) {
+        pastPxps.shift()
+    }
+    fs.appendFile("./pxps.txt", `\n${pxps},${NOW}`)
+
+    // No new pixels
+    if (newPos.length === 0) {
+        return
+    }
     let pos, buf
     if (INCLUDE_PLACER) {
         buf = Buffer.alloc(1 + newPos.length * 9)

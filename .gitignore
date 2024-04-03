@@ -23,4 +23,6 @@ place
 change
 change2
 
+*.pxpslog.txt
+
 node_modules/
