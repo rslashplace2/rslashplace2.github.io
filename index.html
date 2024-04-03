@@ -728,10 +728,6 @@
                 case 1: {
                     CD = data.getUint32(1) * 1000 // Current cooldown
                     COOLDOWN = data.getUint32(5)
-                    if (COOLDOWN == 0xFFFFFFFF) { // TODO: Official server packet for this
-                        canvasLock.style.display = "flex"
-                        canvasLocked = true
-                    }
 
                     // New server packs canvas width and height in code 1, making it 17
                     if (data.byteLength == 17) {
@@ -772,6 +768,14 @@
                 case 7: { // Rejected pixel
                     CD = data.getUint32(1) * 1000
                     seti(data.getUint32(5), data.getUint8(9))
+                    break
+                }
+                case 8: { // Canvas restriction
+                    canvasLocked = !!data.getUint8(1)
+                    canvasLock.style.display = canvasLocked ? "flex" : "none"
+                    const reason = decoder.decoded(data.buffer.slice(2))
+                    // TODO: Maybe find a more pretty elegant solution
+                    alert(reason)
                     break
                 }
                 case 11: { // Player int ID // TODO: Integrate into packet 1
