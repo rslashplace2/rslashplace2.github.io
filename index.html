@@ -773,9 +773,10 @@
                 case 8: { // Canvas restriction
                     canvasLocked = !!data.getUint8(1)
                     canvasLock.style.display = canvasLocked ? "flex" : "none"
-                    const reason = decoder.decoded(data.buffer.slice(2))
-                    // TODO: Maybe find a more pretty elegant solution
-                    alert(reason)
+                    const reason = decoder.decode(data.buffer.slice(2))
+		    if (reason) { // TODO: Maybe find a more pretty elegant solution
+                        alert(reason)
+		    }
                     break
                 }
                 case 11: { // Player int ID // TODO: Integrate into packet 1

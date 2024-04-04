@@ -767,7 +767,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
-            let CD = COOLDOWN
+            ws.data.cd = COOLDOWN
             if (URL) {
                 const codeHash = sha256(URL)
                 const vip = VIP.get(codeHash)
@@ -779,9 +779,9 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 activeVips.set(codeHash, ws)
                 ws.data.codeHash = codeHash
                 ws.data.perms = vip.perms
-                CD = vip.cooldownMs
+                ws.data.cd = vip.cooldownMs
             }
-            ws.data.cd = CD
+            const CD = ws.data.cd
 
             if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") {
                 if (CAPTCHA) {
@@ -800,7 +800,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             const cooldownBuffer = Buffer.alloc(9)
             cooldownBuffer[0] = 1
             cooldownBuffer.writeUint32BE(Math.ceil((cooldowns.get(IP)||0) / 1000) || 1, 1)
-            cooldownBuffer.writeUint32BE(ws.data.cd, 5)
+            cooldownBuffer.writeUint32BE(CD + 0.01 * CD, 5)
             ws.send(cooldownBuffer)
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
@@ -886,7 +886,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         return
                     }
                     CHANGES[i] = c
-                    cooldowns.set(IP, NOW + CD - 500)
+                    // Damn you, blob!
+                    cooldowns.set(IP, NOW + CD)
                     newPos.push(i)
                     newCols.push(c)
                     if (INCLUDE_PLACER) newIds.push(ws.data.intId)
@@ -1410,7 +1411,7 @@ setInterval(function () {
 
             modWebhookLog(`Detected unusual increase in pixels per second (average ${
                 pastAverage / pastPxpsWindowSize}px/s over last ${pastPxpsWindowSize
-                } seconds -> ${pxps}px/s (${pastIncrease
+                } seconds -> ${pxps}px/s (${pastIncrease * 100
                 }% increase)). ${mitigation}`)
 
             pastPxpsActionDate = NOW

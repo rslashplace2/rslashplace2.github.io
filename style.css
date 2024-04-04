@@ -1499,6 +1499,7 @@ placechat::after {
 }
 
 placechat span {
+	color: black;
 	font-size: 2px;
 	align-self: center;
 }
