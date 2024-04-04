@@ -753,7 +753,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             const cooldownBuffer = Buffer.alloc(9)
             cooldownBuffer[0] = 1
             cooldownBuffer.writeUint32BE(Math.ceil((cooldowns.get(IP)||0) / 1000) || 1, 1)
-            cooldownBuffer.writeUint32BE(CD + 0.01 * CD, 5)
+            cooldownBuffer.writeUint32BE(CD + Math.min(500, 0.1 * CD), 5)
             ws.send(cooldownBuffer)
             ws.send(infoBuffer)
             ws.send(runLengthChanges())
