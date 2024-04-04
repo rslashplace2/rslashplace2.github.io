@@ -52,7 +52,10 @@ type ServerConfig = {
     "INCLUDE_PLACER": boolean, // pixel placer
     "SECURE_COOKIE": boolean,
     "CORS_COOKIE": boolean,
-    "CHALLENGE": boolean
+    "CHALLENGE": boolean,
+    "TURNSTILE": boolean,
+    "TURNSTILE_SITE_KEY": string,
+    "TURNSTILE_PRIVATE_KEY": string
 }
 let configFailed = false
 let configFile = await fs.readFile("./server_config.json").catch(_ => configFailed = true)
@@ -85,7 +88,10 @@ if (configFailed) {
         "INCLUDE_PLACER": false, // pixel placer
         "SECURE_COOKIE": true,
         "CORS_COOKIE": false,
-        "CHALLENGE": false
+        "CHALLENGE": false,
+        "TURNSTILE": false,
+        "TURNSTILE_SITE_KEY": "",
+        "TURNSTILE_PRIVATE_KEY": ""    
     }, null, 4))
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
@@ -95,7 +101,8 @@ if (configFailed) {
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
     CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
-    LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
+    LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE,
+    TURNSTILE, TURNSTILE_SITE_KEY, TURNSTILE_PRIVATE_KEY } = JSON.parse(configFile.toString()) as ServerConfig
 
 try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
 catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
@@ -151,7 +158,7 @@ function runLengthChanges() {
     bufferPointer += 8
 
     function addToBuffer(value:number) {
-        buffers[bufferIndex][bufferPointer++] = value;
+        buffers[bufferIndex][bufferPointer++] = value
         if (bufferPointer === 256) {
             bufferPointer = 0
             buffers.push(Buffer.alloc(256))
@@ -595,6 +602,7 @@ type ClientData = {
     chatName: string,
     voted: number,
     challenge: "pending"|"active"|undefined,
+    turnstile: "active"|undefined,
     lastPeriodCaptcha: number
 }
 interface RplaceServer extends Server {
@@ -744,6 +752,11 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 if (CHALLENGE) {
                     ws.data.challenge = "pending"
                 }
+                if (TURNSTILE) {
+                    const turnstileBuffer = encoderUTF8.encode("\x17" + TURNSTILE_SITE_KEY)
+                    ws.send(turnstileBuffer)
+                    ws.data.turnstile = "active"
+                }
             }
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
@@ -819,7 +832,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (i >= BOARD.length || c >= PALETTE_SIZE) {
                         return
                     }
-                    if (LOCKED === true || toValidate.has(ws) || bans.has(IP) || ws.data.challenge == "active" || cd > NOW) {
+                    if (LOCKED === true || toValidate.has(ws) || bans.has(IP) || cd > NOW
+                        || ws.data.challenge === "active" || ws.data.turnstile === "active") {
                         rejectPixel(ws, i, cd)
                         return
                     }
@@ -909,8 +923,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 }
                 case 15: { // chat
                     if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW
-                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)
-                        || ws.data.challenge !== undefined) {
+                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)) {
                         return
                     }
                     ws.data.lastChat = NOW
@@ -981,9 +994,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
                         captchaFailed.delete(IP)
                         toValidate.delete(ws)
-                        const dv = new DataView(new ArrayBuffer(2))
-                        dv.setUint8(0, 16)
-                        ws.send(dv)
+                        const captchaSuccessBuf = Buffer.from([16])
+                        ws.send(captchaSuccessBuf)
                     }
                     else {
                         const prev = captchaFailed.get(IP)
@@ -1018,6 +1030,31 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     else {
                         delete ws.data.challenge
                     }
+                    break
+                }
+                case 23: {
+                    const turnstileToken = decoderUTF8.decode(data.buffer.slice(1))
+                    if (!turnstileToken) return ws.close(4000, "Invalid turnstile packet")
+                    const formData = new FormData()
+                    formData.append("secret", TURNSTILE_PRIVATE_KEY)
+                    formData.append("response", turnstileToken)
+                    formData.append("remoteip", ws.data.ip)
+                    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+                        body: formData,
+                        method: "POST"
+                    })
+                    if (!response.ok) {
+                        modWebhookLog(`Couldn't verify turnstile for client ${IP}/${ws.data.intId} bad cloudflare HTTP response, kicking`)
+                        return ws.close(4000, "Internal turnstile fail")
+                    }
+                    const outcome:any = await response.json()
+                    if (!outcome?.success) {
+                        modWebhookLog(`Client ${IP}/${ws.data.intId} gave an incorrect turnstile token, kicking`)
+                        return ws.close(4000, "No turnstile")
+                    }
+                    const turnstileSuccessBuf = Buffer.from([24])
+                    ws.send(turnstileSuccessBuf)
+                    delete ws.data.turnstile
                     break
                 }
                 case 96: {// Set preban
