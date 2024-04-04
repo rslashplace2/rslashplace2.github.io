@@ -34,7 +34,6 @@ type ServerConfig = {
     "COOLDOWN": number,
     "CAPTCHA": boolean,
     "PXPS_SECURITY": boolean,
-    "PALETTE_SIZE": number,
     "ORIGINS": string[],
     "PALETTE": number[]|null,
     "USE_CLOUDFLARE": boolean,
@@ -68,7 +67,6 @@ if (configFailed) {
         "COOLDOWN": 1000,
         "CAPTCHA": false,
         "PXPS_SECURITY": false,
-        "PALETTE_SIZE": 32,
         "ORIGINS": [ "https://rplace.live", "https://rplace.tk" ],
         "PALETTE": null,
         "USE_CLOUDFLARE": true,
@@ -94,7 +92,7 @@ if (configFailed) {
 }
 
 // TODO: Maybe make config
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE_SIZE, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
     CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
     LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE } = JSON.parse(configFile.toString()) as ServerConfig
@@ -817,6 +815,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const i = data.readUInt32BE(1)
                     const c = data[5]
                     const cd = cooldowns.get(IP) || COOLDOWN
+		    const PALETTE_SIZE = PALETTE?.length || 32
                     if (i >= BOARD.length || c >= PALETTE_SIZE) {
                         return
                     }
