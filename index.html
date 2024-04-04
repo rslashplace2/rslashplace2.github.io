@@ -1017,9 +1017,31 @@
                     break
                 }
                 case 21: {
-                    let a = data.getUint32(1), b = 5 + a, c = data.buffer.slice(5, 5 + a), f = new Uint8Array(9), u = new DataView(f.buffer)
-                    ;window.challengeData = new Uint8Array(data.buffer.slice(b));let d = await Object.getPrototypeOf(async function() {}).constructor(atob(decoder.decode(c)))()
-                    ;delete window.challengeData;u.setUint8(0, 21);u.setBigInt64(1, d);call(send, ws, u.buffer);
+                    let a=data.getUint32(1),b=5+a,c=data.buffer.slice(5,5+a),f=new Uint8Array(9),u=new DataView(f.buffer)
+                    ;window.challengeData=new Uint8Array(data.buffer.slice(b));let d=await Object.getPrototypeOf(async function(){}).constructor(atob(decoder.decode(c)))()
+                    ;delete window.challengeData;u.setUint8(0,21);u.setBigInt64(1,d);call(send,ws,u.buffer);
+                    break
+                }
+                case 23: { // Turnstile
+                    const siteKey = decoder.decode(data.buffer.slice(1))
+                    const siteVariant = document.documentElement.dataset.variant
+                    const turnstileTheme = siteVariant === "dark" ? "dark" : "light"
+
+                    turnstileMenu.setAttribute("opened", true)
+                    turnstile.ready(function () {
+                        turnstile.render("#turnstileContainer", {
+                            sitekey: siteKey,
+                            theme: turnstileTheme,
+                            language: lang,
+                            callback: function(token) {
+                                call(send, ws, encoder.encode("\x17" + token))
+                            },
+                        })
+                    })
+                    break
+                }
+                case 24: { // Turnstile success
+                    turnstileMenu.removeAttribute("opened")
                     break
                 }
                 case 150: {
@@ -1501,9 +1523,11 @@
                 alert(statusMsg)
             })
         }).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
-        WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)}; const I=HTMLIFrameElement.prototype;
-        delete I.contentWindow;delete I.contentDocument;delete I.getSVGDocument; delete eval; delete Function.prototype.constructor; delete Function; delete Worker;
+        WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
+        // /*disabled due to turnstile*/ const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;
+        // delete I.getSVGDocument; delete eval;  delete Function.prototype.constructor; delete Function; delete Worker;
     </script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
     <script type="application/javascript" src="elements.js"></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
@@ -1593,6 +1617,15 @@
                     <span style="align-self: center; margin-right: 8px;cursor: pointer;">Copy overlay URL</span>
                     <span style="opacity: 0; align-self: center;">Copied to clipboard!</span>
                 </div>
+            </div>
+            <div noselect="" class="toast-menu" id="turnstileMenu">
+                <div style="display: flex;">
+                    <h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels"
+                        style="display: inline;flex-grow: 1;">Verifying session...</h2>
+                        <icon-close style="opacity: 0.6; pointer-events: none;" class="active"></icon-close>
+                </div>
+                <p>Don't worry, this process should be automatic!</p><br>
+                <div id="turnstileContainer"></div>
             </div>
             <div id="moderationMenu" noselect="" mode="delete" class="toast-menu">
                 <div style="display: flex;margin-bottom: 16px;">

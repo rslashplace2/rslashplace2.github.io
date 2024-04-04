@@ -598,6 +598,11 @@ body[eventphase="3"] .coverer-title {
 	column-gap: 8px;
 }
 
+#turnstileContainer {
+	display: flex;
+	justify-content: center;
+}
+
 #connproblems {
 	text-align:center;
 	transition: opacity .5s;
