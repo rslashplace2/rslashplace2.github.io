@@ -1349,7 +1349,7 @@ setInterval(function () {
 
             modWebhookLog(`Detected unusual increase in pixels per second (average ${
                 pastAverage / pastPxpsWindowSize}px/s over last ${pastPxpsWindowSize
-                } seconds -> ${pxps}px/s (${pastIncrease
+                } seconds -> ${pxps}px/s (${pastIncrease * 100
                 }% increase)). ${mitigation}`)
 
             pastPxpsActionDate = NOW
