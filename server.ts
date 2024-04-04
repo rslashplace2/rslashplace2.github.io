@@ -139,7 +139,8 @@ type LinkKeyInfo = {
 }
 const linkKeyInfos = new Map<string, LinkKeyInfo>()
 
-const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
+// TODO: @BlobTheKat FIX THIS ALGORITHM ALREADY!
+/*const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
 CHANGEPACKET.setUint8(0, 2)
 CHANGEPACKET.setUint32(1, WIDTH)
 CHANGEPACKET.setUint32(5, HEIGHT)
@@ -184,6 +185,66 @@ function runLengthChanges() {
         else CHANGEPACKET.setUint16(b, (CHANGES[i++] | 192) << 24 | c), b += 4
     }
     return new Uint8Array(CHANGEPACKET.buffer, CHANGEPACKET.byteOffset, b)
+}*/
+/*
+ * Compress CHANGES with variable run length encoding
+ */
+function runLengthChanges() {
+    let changesIndex = 0
+    let buffers = [Buffer.alloc(256)]
+    let bufferIndex = 0
+    let bufferPointer = 0
+    buffers[0][bufferPointer++] = 2
+    buffers[0].writeUint32BE(WIDTH, 1)
+    buffers[0].writeUint32BE(HEIGHT, 5)
+    bufferPointer += 8
+
+    function addToBuffer(value:number) {
+        buffers[bufferIndex][bufferPointer++] = value;
+        if (bufferPointer === 256) {
+            bufferPointer = 0
+            buffers.push(Buffer.alloc(256))
+            bufferIndex++
+        }
+    }
+    while (true) {
+        let blankCells = 0
+        while (CHANGES[changesIndex] == 255) {
+            blankCells++
+            changesIndex++
+        }
+        if (changesIndex == CHANGES.length) {
+            break
+        }
+        // Two bits are used to store blank cell count
+        // 00 = no gap
+        // 01 = 1-byte (Gaps up to 255)
+        // 10 = 2-byte (Gaps up to 65535)
+        // 11 = 4-byte (Likely unused)
+        if (blankCells < 256) {
+            if(!blankCells){
+                addToBuffer(CHANGES[changesIndex++])
+            }
+            else{
+                addToBuffer(CHANGES[changesIndex++] + 64)
+                addToBuffer(blankCells)
+            }
+        }
+        else if (blankCells < 65536) {
+            addToBuffer(CHANGES[changesIndex++] + 128)
+            addToBuffer(blankCells >> 8)
+            addToBuffer(blankCells)
+        }
+        else {
+            addToBuffer(CHANGES[changesIndex++] + 192)
+            addToBuffer(blankCells >> 24)
+            addToBuffer(blankCells >> 16)
+            addToBuffer(blankCells >> 8)
+            addToBuffer(blankCells)
+        }
+    }
+    buffers[bufferIndex] = buffers[bufferIndex].subarray(0, bufferPointer)
+    return Buffer.concat(buffers)
 }
 
 /** Bidirectional map */
