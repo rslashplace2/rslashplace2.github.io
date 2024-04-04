@@ -139,51 +139,65 @@ type LinkKeyInfo = {
 }
 const linkKeyInfos = new Map<string, LinkKeyInfo>()
 
-const CHANGEPACKET = new DataView(new ArrayBuffer(CHANGES.length + 9))
-CHANGEPACKET.setUint8(0, 2)
-CHANGEPACKET.setUint32(1, WIDTH)
-CHANGEPACKET.setUint32(5, HEIGHT)
-const CHANGES32 = new Int32Array(CHANGES.buffer, CHANGES.byteOffset, CHANGES.byteLength >> 2)
+/*
+ * Compress CHANGES with variable run length encoding
+ */
 function runLengthChanges() {
-    //compress CHANGES with run-length encoding
-    let b = 9, i = 0
-    while (true) {
-        let c = i
-        a: {
-            if (i & 3) {
-                if (CHANGES[i] !== 255) break a
-                if (++i & 3) {
-                    if (CHANGES[i] !== 255) break a
-                    if (++i & 3) {
-                        if (CHANGES[i] !== 255) break a
-                        ++i
-                    }
-                }
-            }
-            i >>= 2; let a
-            while ((a = CHANGES32[i]) === -1) i++
-            i = i << 2 | (31 - Math.clz32(~a & -~a) >> 3)
+    let changesIndex = 0
+    let buffers = [Buffer.alloc(256)]
+    let bufferIndex = 0
+    let bufferPointer = 0
+    buffers[0][bufferPointer++] = 2
+    buffers[0].writeUint32BE(WIDTH, 1)
+    buffers[0].writeUint32BE(HEIGHT, 5)
+    bufferPointer += 8
+
+    function addToBuffer(value:number) {
+        buffers[bufferIndex][bufferPointer++] = value;
+        if (bufferPointer === 256) {
+            bufferPointer = 0
+            buffers.push(Buffer.alloc(256))
+            bufferIndex++
         }
-        if (i >= CHANGES.length) break
-        c = i - c
-        //c is # of blank cells
-        //we will borrow 2 bits to store the blank cell count
-        //00 = no gap
-        //01 = 1-byte (Gaps up to 255)
-        //10 = 2-byte (Gaps up to 65535)
-        //11 = 4-byte (idk probs never used)
-        if (c < 256) {
-            if (!c) CHANGEPACKET.setUint8(b++, CHANGES[i++])
-            else CHANGEPACKET.setUint16(b, (CHANGES[i++] | 64) << 8 | c), b += 2
-        }
-        else if (c < 65536) {
-            CHANGEPACKET.setUint8(b, CHANGES[i++] | 128)
-            CHANGEPACKET.setUint16(b + 1, c)
-            b += 3
-        }
-        else CHANGEPACKET.setUint16(b, (CHANGES[i++] | 192) << 24 | c), b += 4
     }
-    return new Uint8Array(CHANGEPACKET.buffer, CHANGEPACKET.byteOffset, b)
+    while (true) {
+        let blankCells = 0
+        while (CHANGES[changesIndex] == 255) {
+            blankCells++
+            changesIndex++
+        }
+        if (changesIndex == CHANGES.length) {
+            break
+        }
+        // Two bits are used to store blank cell count
+        // 00 = no gap
+        // 01 = 1-byte (Gaps up to 255)
+        // 10 = 2-byte (Gaps up to 65535)
+        // 11 = 4-byte (Likely unused)
+        if (blankCells < 256) {
+            if(!blankCells){
+                addToBuffer(CHANGES[changesIndex++])
+            }
+            else{
+                addToBuffer(CHANGES[changesIndex++] + 64)
+                addToBuffer(blankCells)
+            }
+        }
+        else if (blankCells < 65536) {
+            addToBuffer(CHANGES[changesIndex++] + 128)
+            addToBuffer(blankCells >> 8)
+            addToBuffer(blankCells)
+        }
+        else {
+            addToBuffer(CHANGES[changesIndex++] + 192)
+            addToBuffer(blankCells >> 24)
+            addToBuffer(blankCells >> 16)
+            addToBuffer(blankCells >> 8)
+            addToBuffer(blankCells)
+        }
+    }
+    buffers[bufferIndex] = buffers[bufferIndex].subarray(0, bufferPointer)
+    return Buffer.concat(buffers)
 }
 
 /** Bidirectional map */
