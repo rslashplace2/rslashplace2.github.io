@@ -1010,6 +1010,7 @@
                             captchaSubmitted = true
                             call(send, ws, encoder.encode("\x10" + emoji))
                             captchaOptions.style.pointerEvents = "none"
+                            clearCaptchaCanvas()
                         }
                         buttonParent.addEventListener("click", submitCaptcha)
                         emojiImg.addEventListener("click", submitCaptcha)
@@ -1017,9 +1018,9 @@
                         emojiImg.addEventListener("touchend", submitCaptcha)
 
                     }
-                    captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
+                    updateCaptchaCanvas(new Blob([imageData], { type: "image/png" }))
                     break
                 }
                 case 21: {
@@ -1535,8 +1536,10 @@
     </script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
+    <script type="application/javascript" src="uv.min.js"></script>
     <script type="application/javascript" src="elements.js"></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
+    <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
     <script type="module" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
@@ -1724,11 +1727,12 @@
                 </placechat>
             </div>
             <div noselect id="captchaPopup" style="display: none;">
+                <canvas id="captchaCanvas" width="500" height="800"></canvas>
                 <h1 noselect style="color: grey;">🤔 Sorry for interrupting, but</h1>
                 <p noselect translate="captchaPrompt"><em>Solve this small captcha to help keep rplace.live fun for all...</em></p>
                 <hr>
                 <h2 id="captchaLabel">Please click the button containing the emoji you see below</h2>
-                <img id="captchaImg" style="image-rendering: pixelated;">
+                <div id="captchaImagePositon"><!--captcha canvas image space--></div>
                 <a style="text-align: center;" href=".">(generate new captcha)</a>
                 <div id="captchaOptions"><!--clickable captcha answers--></div>
             </div>
