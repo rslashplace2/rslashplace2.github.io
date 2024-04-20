@@ -812,21 +812,6 @@ body[eventphase="3"] .coverer-title {
 	row-gap: 16px;
 }
 
-#captchaPopup::before {
-	background: url(svg/pattern.svg);
-	background-size: auto;
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0px;
-	left: 0px;
-	content: " ";
-	animation: pattern-scroll 2s infinite;
-	background-size: 50px;
-	opacity: 0.1;
-	z-index: -1;
-}
-
 /* Captcha buttons container on captcha popup */
 #captchaOptions {
 	display: grid;
@@ -851,13 +836,22 @@ body[eventphase="3"] .coverer-title {
 	height: 100%;
 }
 
-#captchaImg {
+#captchaImagePositon {
 	display: block;
 	position: relative;
 	width: 196px;
 	height: 196px;
-	image-rendering: pixelated;
 	align-self: center;
+}
+
+#captchaCanvas {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+	z-index: -1;
+	pointer-events: none;
 }
 
 @media screen and (max-width:700px) {
