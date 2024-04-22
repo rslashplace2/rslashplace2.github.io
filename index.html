@@ -973,12 +973,14 @@
                         })
                     }
 
+                    placeNeedsClick = true
                     captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
                     break
                 }
                 case 19: { // Math captcha
+                    placeNeedsClick = true
                     break
                 }
                 case 20: { // Emoji captcha
@@ -1016,8 +1018,9 @@
                         emojiImg.addEventListener("click", submitCaptcha)
                         buttonParent.addEventListener("touchend", submitCaptcha)
                         emojiImg.addEventListener("touchend", submitCaptcha)
-
                     }
+
+                    placeNeedsClick = true
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
                     updateCaptchaCanvas(new Blob([imageData], { type: "image/png" }))
@@ -1346,7 +1349,7 @@
                 }, 16)
 
                 //Begin palette commands
-                if (onCooldown || canvasLocked) return
+                if (onCooldown || canvasLocked || placeNeedsClick) return
                 //"Enter" key to place selected block without using mouse
                 if (e.keyCode == 13 && !("value" in document.activeElement)) call(oclick, pok, e)
                 //Keyboard shortcuts for selecting palette colours
@@ -1699,6 +1702,8 @@
                 if (initialConnect && CD < Date.now()) {
                     zoomIn()
                     showPalette()
+                    placeNeedsClick = false
+
                     // Persistent colours on mobile platforms
                     if (PEN != -1) {
                         pok.classList.add('enabled')
@@ -2500,6 +2505,7 @@
             i >>= 1
         }
 
+        let placeNeedsClick = true
         let touch1 = null
         let touch2 = null
         let touchmoved = 15
