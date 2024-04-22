@@ -870,7 +870,7 @@ body[eventphase="3"] .coverer-title {
 		padding: 16px;
 	}
 
-	#captchaPopup > div {
+	#captchaOptions {
 		row-gap: 4px;
 		column-gap: 4px;
 		width: 100%;

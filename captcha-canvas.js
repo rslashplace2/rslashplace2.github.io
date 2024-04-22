@@ -1,10 +1,7 @@
 //@ts-nocheck
 let captchaCanvasHandle = null
 
-function updateCaptchaCanvas(imageData) {
-    if (captchaCanvasHandle !== null) {
-        clearCaptchaCanvas()
-    }
+function updateImgCaptchaCanvas(imageData) {
     const ctx = setTargetCanvas(captchaCanvas)
     const patternImg = Texture().fromSrc("./images/pattern.png", _, REPEAT | MIPMAPS | UPSCALE_PIXELATED)
     const img = Texture()
@@ -101,6 +98,52 @@ function updateCaptchaCanvas(imageData) {
         captchaCanvasHandle = requestAnimationFrame(drawCaptcha)
     }
     captchaCanvasHandle = requestAnimationFrame(drawCaptcha)
+}
+
+function updateImgCaptchaCanvasFallback(imageData) {
+    const ctx = captchaCanvas.getContext("2d")
+    captchaCanvas.width = captchaPopup.offsetWidth
+    captchaCanvas.height = captchaPopup.offsetHeight
+    const captchaImg = new Image()
+    const url = URL.createObjectURL(imageData)
+    captchaImg.src = url
+    const captchaImgRadius = 8
+
+    captchaImg.onload = function() {
+        function drawCaptcha() {
+            if (captchaCanvasHandle === null) {
+                return
+            }
+            captchaCanvas.width = captchaPopup.offsetWidth
+            captchaCanvas.height = captchaPopup.offsetHeight
+            const canvasImageSize = 196
+            const x = captchaImagePositon.offsetLeft
+            const y = captchaImagePositon.offsetTop
+            ctx.clearRect(0, 0, captchaCanvas.width, captchaCanvas.height)
+            ctx.save()
+            ctx.beginPath()
+            ctx.moveTo(x + captchaImgRadius, y)
+            ctx.arcTo(x + canvasImageSize, y, x + canvasImageSize, y + canvasImageSize, captchaImgRadius)
+            ctx.arcTo(x + canvasImageSize, y + canvasImageSize, x, y + canvasImageSize, captchaImgRadius)
+            ctx.arcTo(x, y + canvasImageSize, x, y, captchaImgRadius)
+            ctx.arcTo(x, y, x + canvasImageSize, y, captchaImgRadius)
+            ctx.closePath()
+            ctx.clip()
+            ctx.drawImage(captchaImg, x, y, canvasImageSize, canvasImageSize)
+            ctx.restore()
+            const captchaImageBottom = captchaImagePositon.offsetTop + canvasImageSize
+            const captchaImageCentreX = captchaCanvas.width / 2
+            ctx.fillStyle = "#ff0000a3"
+            ctx.font = "16px reddit"
+            ctx.textAlign = "center"
+            ctx.fillText("Warning: Your browser doesn't support WebGL 2,",
+                captchaImageCentreX, captchaImageBottom + 16)
+            ctx.fillText("this can cause some site features to break!",
+                captchaImageCentreX, captchaImageBottom + 52)
+            captchaCanvasHandle = requestAnimationFrame(drawCaptcha)
+        }
+        captchaCanvasHandle = requestAnimationFrame(drawCaptcha)
+    }
 }
 
 function clearCaptchaCanvas() {

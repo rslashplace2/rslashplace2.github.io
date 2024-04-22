@@ -975,13 +975,19 @@
                             captchaOptions.style.pointerEvents = "none"
                         })
                     }
-
-                    captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
+                    const imageBlob = new Blob([imageData], { type: "image/png" })
+                    if (webGLSupported) {
+                        updateImgCaptchaCanvas(imageBlob)
+                    }
+                    else {
+                        updateImgCaptchaCanvasFallback(imageBlob)
+                    }
                     break
                 }
                 case 19: { // Math captcha
+                    console.error("Math captcha not yet supported. Ignoring.")
                     break
                 }
                 case 20: { // Emoji captcha
@@ -1023,7 +1029,13 @@
 
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
-                    updateCaptchaCanvas(new Blob([imageData], { type: "image/png" }))
+                    const imageBlob = new Blob([imageData], { type: "image/png" })
+                    if (webGLSupported) {
+                        updateImgCaptchaCanvas(imageBlob)
+                    }
+                    else {
+                        updateImgCaptchaCanvasFallback(imageBlob)
+                    }
                     break
                 }
                 case 21: {
@@ -2547,7 +2559,6 @@
         let selX = 0
         let selY = 0
         const canvasCtx = canvas.getContext('2d')
-
         function transform() {
             const scale = z * 50;
             const translateX = x * z * -50;
@@ -3001,6 +3012,16 @@
         const decoder = new TextDecoder()
         const lang = navigator.language.split('-')[0]
         const allowed = ["rplace.tk", "rplace.live", "google.com", "wikipedia.org", "pxls.space"]
+        const webGLSupported = (() => {
+            let supported = true
+            const glTestCanvas = document.createElement("canvas")
+            try { supported = glTestCanvas.getContext("webgl2") !== null }
+            catch(e) { supported = false }
+            return supported
+        })();
+        if (!webGLSupported) {
+            console.error("Client doesn't support WebGL! Some site features may break!")
+        }
         const mobile = window.matchMedia("(orientation: portrait)").matches
         const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
         let online = 1
