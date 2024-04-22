@@ -691,9 +691,18 @@ body[eventphase="3"] .coverer-title {
 .horizontal-labeled-separator > span {
 	font-size: 14px;
 }
+
 #chatPreviousButton {
 	cursor: pointer;
+	transform: scaleY(1);
+	height: auto;
 	transition: .2s transform, .2s height;
+}
+
+#chatPreviousButton[data-hidden="true"] {
+	transform: scaleY(0);
+	height: 0;
+	pointer-events: none;
 }
 
 #chatMessages {

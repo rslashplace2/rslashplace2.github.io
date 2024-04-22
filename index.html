@@ -780,9 +780,9 @@
                     canvasLocked = !!data.getUint8(1)
                     canvasLock.style.display = canvasLocked ? "flex" : "none"
                     const reason = decoder.decode(data.buffer.slice(2))
-		    if (reason) { // TODO: Maybe find a more pretty elegant solution
+                    if (reason) { // TODO: Maybe find a more pretty elegant solution
                         alert(reason)
-		    }
+                    }
                     break
                 }
                 case 11: { // Player int ID // TODO: Integrate into packet 1
@@ -805,7 +805,7 @@
                     }
                     break
                 }
-                case 13: {
+                case 13: { // Live chat history
                     let i = 1
                     let fromMessageId = data.getUint32(i); i += 4
                     let count = data.getUint8(i) & 127
@@ -845,6 +845,9 @@
                     // chatPrevious button height (looks more seamless if the last of the
                     // loaded previous messages can be seen in place of the previous button
                     chatMessages.scrollTop -= 18
+                    // Prevent site from spam loading chat messages when already at scroll top until it
+                    // received the last lot
+                    chatPreviousLoadDebounce = false
                     break
                 }
                 case 14: { // Moderation
@@ -875,7 +878,7 @@
                     }
                     break
                 }
-                case 15: {
+                case 15: { // Chat
                     let repliesTo = null
 
                     let offset = 1
@@ -973,14 +976,12 @@
                         })
                     }
 
-                    placeNeedsClick = true
                     captchaImg.src = URL.createObjectURL(new Blob([imageData], { type: "image/webp" }))
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
                     break
                 }
                 case 19: { // Math captcha
-                    placeNeedsClick = true
                     break
                 }
                 case 20: { // Emoji captcha
@@ -1020,7 +1021,6 @@
                         emojiImg.addEventListener("touchend", submitCaptcha)
                     }
 
-                    placeNeedsClick = true
                     captchaPopup.style.display = "flex"
                     captchaOptions.style.pointerEvents = "all"
                     updateCaptchaCanvas(new Blob([imageData], { type: "image/png" }))
@@ -1349,7 +1349,7 @@
                 }, 16)
 
                 //Begin palette commands
-                if (onCooldown || canvasLocked || placeNeedsClick) return
+                if (onCooldown || canvasLocked) return
                 //"Enter" key to place selected block without using mouse
                 if (e.keyCode == 13 && !("value" in document.activeElement)) call(oclick, pok, e)
                 //Keyboard shortcuts for selecting palette colours
@@ -1464,16 +1464,33 @@
                 call(send, authSocket, buffer)
                 call(send, authSocket, new Uint8Array([4]))
             })
-            call(addEventListener, chatPreviousButton, "click", function() {
+            function requestLoadChannelPrevious(msgCount=64) {
                 const encChannel = encoder.encode(currentChannel)
                 let view = new DataView(new Uint8Array(6 + encChannel.byteLength).buffer)
                 view.setUint8(0, 13)
                 view.setUint32(1, chatMessages.children[0]?.messageId || 0)
-                view.setUint8(5, 192) // TODO: Current - 64 messages, before
+                view.setUint8(5, msgCount|128) // 128 = before (most significant bit)
                 for (let i = 0; i < encChannel.byteLength; i++) {
                     view.setUint8(6 + i, encChannel[i])
                 }
                 call(send, ws, view.buffer)
+            }
+            call(addEventListener, chatMessages, "scroll", () => {
+                if (this.scrollTop < 4) {
+                    if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
+                        chatPreviousLoadDebounce = true
+                        requestLoadChannelPrevious()
+                    }
+                    chatPreviousButton.dataset.hidden = false
+                }
+                else {
+                    chatPreviousButton.dataset.hidden = true
+                }
+            })
+            call(addEventListener, chatPreviousButton, "click", () => {
+                requestLoadChannelPrevious()
+                // Keep loading previous for this channel as they scroll up
+                chatPreviousAutoLoad = true
             })
             call(addEventListener, modOptionsButton, "click", function() {
                 const reason = modReason.value.slice(0, 300)
@@ -1702,7 +1719,6 @@
                 if (initialConnect && CD < Date.now()) {
                     zoomIn()
                     showPalette()
-                    placeNeedsClick = false
 
                     // Persistent colours on mobile platforms
                     if (PEN != -1) {
@@ -2281,22 +2297,7 @@
             </a>
             <span id="adLabel" style="display: none; opacity: 0; align-self: center;" translate="adHidden">Ad hidden for 14 days!</span>
             <div id="chatPreviousButton" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></div>
-            <div id="chatMessages" onscroll="
-                let styleChange = new Map()
-                if (this.scrollTop < 4) {
-                    styleChange.set('transform', 'scaleY(1)')
-                    styleChange.set('height', 'auto')
-                }
-                else {
-                    styleChange.set('transform', 'scaleY(0)')
-                    styleChange.set('height', '0px')
-                }
-                for (let [key, value] of styleChange) {
-                    if (chatPreviousButton.style[key] != value) {
-                        chatPreviousButton.style[key] = value
-                    }
-                }
-            "></div>
+            <div id="chatMessages"><!--Live chat messages--></div>
             <div id="messageTypePanel" class="chat-input-panel" closed>
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">
@@ -2505,7 +2506,6 @@
             i >>= 1
         }
 
-        let placeNeedsClick = true
         let touch1 = null
         let touch2 = null
         let touchmoved = 15
@@ -3006,6 +3006,8 @@
         let online = 1
         let extraLanguage = (lang == "en" ? "tr" : lang)
         let cMessages = { [extraLanguage]: [], en: [] }
+        let chatPreviousLoadDebounce = false
+        let chatPreviousAutoLoad = false
         let currentChannel = lang
         let fetchCooldown = 500, fetchFailTimeout = -1
         extraChannel(extraLanguage)
@@ -3115,6 +3117,9 @@
                 channelMine.style.opacity = "1"
 
             chatMessages.innerHTML = ""
+            // User must ask to load previous at least once for each channel before site
+            // will start auto loading previous chat messages
+            chatPreviousAutoLoad = false
 
             for (const el of cMessages[selected]) {
                 chatMessages.appendChild(el)
