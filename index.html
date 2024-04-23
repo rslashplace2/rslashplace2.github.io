@@ -490,6 +490,7 @@
         let chatName = null
         let uploadPost = null // function injected by wscapsule
         let setName = null // function injected by wscapsule
+	let requestLoadChannelPrevious = null // function injected by wscapsule
         let canvasLocked = false // Server will tell us this
         let includesPlacer = false // Server will tell us this
 
@@ -1476,7 +1477,7 @@
                 call(send, authSocket, buffer)
                 call(send, authSocket, new Uint8Array([4]))
             })
-            function requestLoadChannelPrevious(msgCount=64) {
+            function _requestLoadChannelPrevious(msgCount=64) {
                 chatPreviousLoadDebounce = true
                 const encChannel = encoder.encode(currentChannel)
                 let view = new DataView(new Uint8Array(6 + encChannel.byteLength).buffer)
@@ -1488,10 +1489,11 @@
                 }
                 call(send, ws, view.buffer)
             }
+	    requestLoadChannelPrevious = _requestLoadChannelPrevious
             call(addEventListener, chatMessages, "scroll", () => {
                 if (chatMessages.scrollTop < 4) {
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
-                        requestLoadChannelPrevious()
+                        _requestLoadChannelPrevious()
                     }
                     else {
                         chatPreviousButton.dataset.hidden = "false"
@@ -1502,7 +1504,7 @@
                 }
             })
             call(addEventListener, chatPreviousButton, "click", () => {
-                requestLoadChannelPrevious()
+                _requestLoadChannelPrevious()
                 // Keep loading previous for this channel as they scroll up
                 chatPreviousAutoLoad = true
             })
