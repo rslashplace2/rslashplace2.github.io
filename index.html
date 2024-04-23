@@ -1493,7 +1493,9 @@
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
                         requestLoadChannelPrevious()
                     }
-                    chatPreviousButton.dataset.hidden = "false"
+                    else {
+                        chatPreviousButton.dataset.hidden = "false"
+                    }
                 }
                 else {
                     chatPreviousButton.dataset.hidden = "true"
@@ -3141,9 +3143,14 @@
             // User must ask to load previous at least once for each channel before site
             // will start auto loading previous chat messages
             chatPreviousAutoLoad = false
-
-            for (const el of cMessages[selected]) {
-                chatMessages.appendChild(el)
+            if (cMessages[selected]?.length) {
+                for (const el of cMessages[selected]) {
+                    chatMessages.appendChild(el)
+                }
+            }
+            else {
+                // If we don't have any cached messages for this channel, pre-populate with a few
+                requestLoadChannelPrevious(32)
             }
         }
 
