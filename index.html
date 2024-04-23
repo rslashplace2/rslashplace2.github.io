@@ -3150,8 +3150,8 @@
                     chatMessages.appendChild(el)
                 }
             }
-            else {
-                // If we don't have any cached messages for this channel, pre-populate with a few
+            else if (typeof requestLoadChannelPrevious === "function") {
+                // If we don't have any cached messages for this channel, try pre-populate with a few
                 requestLoadChannelPrevious(32)
             }
         }
