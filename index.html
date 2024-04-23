@@ -1477,6 +1477,7 @@
                 call(send, authSocket, new Uint8Array([4]))
             })
             function requestLoadChannelPrevious(msgCount=64) {
+                chatPreviousLoadDebounce = true
                 const encChannel = encoder.encode(currentChannel)
                 let view = new DataView(new Uint8Array(6 + encChannel.byteLength).buffer)
                 view.setUint8(0, 13)
@@ -1490,13 +1491,12 @@
             call(addEventListener, chatMessages, "scroll", () => {
                 if (this.scrollTop < 4) {
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
-                        chatPreviousLoadDebounce = true
                         requestLoadChannelPrevious()
                     }
-                    chatPreviousButton.dataset.hidden = false
+                    chatPreviousButton.dataset.hidden = "false"
                 }
                 else {
-                    chatPreviousButton.dataset.hidden = true
+                    chatPreviousButton.dataset.hidden = "true"
                 }
             })
             call(addEventListener, chatPreviousButton, "click", () => {
