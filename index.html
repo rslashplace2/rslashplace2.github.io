@@ -1489,7 +1489,7 @@
                 call(send, ws, view.buffer)
             }
             call(addEventListener, chatMessages, "scroll", () => {
-                if (this.scrollTop < 4) {
+                if (chatMessages.scrollTop < 4) {
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
                         requestLoadChannelPrevious()
                     }
