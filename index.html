@@ -521,7 +521,7 @@
 
                 // Custom emoji + sanitise regex
                 txt = txt.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
-                txt = txt.replace(/:(.+):/, (full, source) => {
+                txt = txt.replace(/(:([a-z-_]{0,16}):)/, (full, source) => {
                     // If this emoji is the only thing in the message we can make it big!
                     if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
                         return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
