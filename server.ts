@@ -938,14 +938,14 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         return
                     }
                     const messageSenderName = await makeDbRequest("getUserChatName", message.senderIntId)
-                    // Sus - Live chat message may not be in DB by time report is received, could cause a missing foreign key reference
+                    // TODO: Sus - Live chat message may not be in DB by time report is received, could cause a missing foreign key reference
                     postDbMessage("insertLiveChatReport", { reporterId: ws.data.intId, messageId: messageId, reason: reason })
                     const wrappedMessage = AsciiTable3.wordWrap(message.message, 48)
                     const table = new AsciiTable3()
-                        .setHeading("Channel", "Message", "Sender", "Send date")
-                        .addRow(message.channel, wrappedMessage,
+                        .setHeading("Id", "Channel", "Message", "Sender", "Send date")
+                        .addRow(message.messageId, message.channel, wrappedMessage,
                             `#${message.senderIntId} (${messageSenderName})`, new Date(message.sendDate).toISOString())
-                    modWebhookLog(`User #${ws.data.intId} (${ws.data.chatName}) reported live chat message:\n\`\`\`${table.toString()}\n\`\`\``)
+                    modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n\`\`\`${table.toString()}\n\`\`\``)
                     break
                 }
                 case 15: { // chat
