@@ -513,6 +513,23 @@
             let ws = new WebSocket(svUri)
             delete WebSocket
 
+            function chatReport(messageId, senderId) {
+                const reason = prompt("Enter the reason for why you are reporting this message (max 280 chars)\n\n" +
+                    `Additional info:\nMessage ID: ${messageId}\nSender ID: ${senderId}\n`)
+                if (!reason || !reason.trim()) {
+                    return
+                }
+                const reportBuffer = encoder.encode("XXXXX" + reason)
+                reportBuffer[0] = 14
+                reportBuffer[1] = messageId >> 24
+                reportBuffer[2] = messageId >> 16
+                reportBuffer[3] = messageId >> 8
+                reportBuffer[4] = messageId & 255
+                call(send, ws, reportBuffer)
+                alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
+            }
+
+
             function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
                 let newMessage = document.createElement("div")
                 newMessage.messageId = messageId
@@ -3198,15 +3215,6 @@
             messageTypePanel.style.height = "100px"
 
             messageReplyPanel.setAttribute('closed', 'true')
-        }
-
-        // TODO: Implement
-        function chatReport(messageId, senderId) {
-            let reason = prompt("Enter the reason for why you are reporting this message (max 280 chars)\n\n" +
-                `Additional info:\nMessage ID: ${messageId}\nSender ID: ${senderId}\n`)
-            if (!reason) return
-
-            alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
         }
 
         function clearChatModerate() {

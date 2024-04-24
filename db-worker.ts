@@ -100,7 +100,8 @@ export type DbInternals = {
     insertLiveChat: (data: LiveChatMessage) => void,
     deleteLiveChat: (data: DeletionMessageInfo) => void,
     insertPlaceChat: (data: PlaceChatMessage) => void,
-    updateUserVip:  (data: { intId: number, codeHash: string}) => void,
+    updateUserVip: (data: { intId: number, codeHash: string}) => void,
+    insertLiveChatReport: (data: { reporterId: number, messageId: number, reason: string }) => void,
     exec: (data: { stmt: string, params: any }) => any[]|null
 }
 
@@ -209,7 +210,18 @@ const createLiveChatDeletions = `
         FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
     )
 `
-db.exec(createLiveChatDeletions)
+const createLiveChatReports = `
+    CREATE TABLE IF NOT EXISTS LiveChatReports (
+        reportId INTEGER PRIMARY KEY,
+        reporterId INTEGER NOT NULL,
+        messageId INTEGER NOT NULL,
+        reason TEXT,
+        reportDate INTEGER,
+        FOREIGN KEY (reporterId) REFERENCECS Users(intId),
+        FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId)
+    )
+`
+db.exec(createLiveChatReports)
 
 /**
  * Adds $ to object keys in order to make it act as a valid bun SQLite query object
@@ -413,6 +425,10 @@ const internal: DbInternals = {
             createVipQuery.run(data.intId, data.codeHash, epochMs)
         }
     },
+    insertLiveChatReport: function(data) {
+        const insertReportQuery = db.query("INSERT INTO LiveChatReports (reporterId, messageId, reason, reportDate) VALUES (?1, ?2, ?3)")
+        insertReportQuery.run(data.reporterId, data.messageId, data.reason, Date.now())
+    },
     exec: function(data) {
         try {
             const query = db.query(data.stmt)
@@ -421,7 +437,7 @@ const internal: DbInternals = {
                 : query.all(data.params))
         }
         catch(err) {
-            console.log(err)
+            console.log("Could not exec DB query: ", err)
             return null
         }
     },
