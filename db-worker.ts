@@ -210,6 +210,7 @@ const createLiveChatDeletions = `
         FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
     )
 `
+db.exec(createLiveChatDeletions)
 const createLiveChatReports = `
     CREATE TABLE IF NOT EXISTS LiveChatReports (
         reportId INTEGER PRIMARY KEY,
@@ -217,7 +218,7 @@ const createLiveChatReports = `
         messageId INTEGER NOT NULL,
         reason TEXT,
         reportDate INTEGER,
-        FOREIGN KEY (reporterId) REFERENCECS Users(intId),
+        FOREIGN KEY (reporterId) REFERENCES Users(intId),
         FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId)
     )
 `
