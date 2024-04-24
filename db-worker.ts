@@ -427,7 +427,7 @@ const internal: DbInternals = {
         }
     },
     insertLiveChatReport: function(data) {
-        const insertReportQuery = db.query("INSERT INTO LiveChatReports (reporterId, messageId, reason, reportDate) VALUES (?1, ?2, ?3)")
+        const insertReportQuery = db.query("INSERT INTO LiveChatReports (reporterId, messageId, reason, reportDate) VALUES (?1, ?2, ?3, ?4)")
         insertReportQuery.run(data.reporterId, data.messageId, data.reason, Date.now())
     },
     exec: function(data) {
