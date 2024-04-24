@@ -934,7 +934,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const messageId = data.readUInt32BE(1)
                     const reason = data.subarray(5, Math.min(data.byteLength, 280)).toString()
                     const messagesObject = await makeDbRequest("exec", {
-                        stmt: "SELECT (channel, message, senderIntId, sendDate) FROM LiveChatMessages WHERE messageId = ?1",
+                        stmt: "SELECT channel, message, senderIntId, sendDate FROM LiveChatMessages WHERE messageId = ?1",
                         params: [ messageId ] })
                     if (!Array.isArray(messagesObject) || messagesObject.length != 1) {
                         return
