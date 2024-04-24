@@ -942,11 +942,13 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const message = messagesObject[0]
                     const messageSenderName = await makeDbRequest("getUserChatName", message.senderIntId)
                     postDbMessage("insertLiveChatReport", { reporterId: ws.data.intId, messageId: messageId, reason: reason })
+                    const wrappedMessage = AsciiTable3.wordWrap(message.message, 48)
                     const table = new AsciiTable3()
                         .setHeading("Channel", "Message", "Sender", "Send date")
-                        .addRow([message.channel, message.message,
-                            `#${message.senderIntId} (${messageSenderName})`, new Date(message.sendDate).toString()])
-                    modWebhookLog(`User #${ws.data.intId} (${ws.data.chatName}) reported live chat message:\n` + table.toString())
+                        .addRow(message.channel, wrappedMessage,
+                            `#${message.senderIntId} (${messageSenderName})`, new Date(message.sendDate).toISOString())
+                        
+                    modWebhookLog(`User #${ws.data.intId} (${ws.data.chatName}) reported live chat message:\n\`\`\`${table.toString()}\n\`\`\``)
                     break
                 }
                 case 15: { // chat
