@@ -626,9 +626,16 @@ body[eventphase="3"] .coverer-title {
 	z-index: 99;
 	transform: translateX(calc(100% + 20px));
 	transition: transform .2s;
+	/* Used by panels such as messageTypePanel to determine height based on messageInput scaling */
+	--message-input-height: 0px;
 }
 #chatPanel[open] {
 	transform: translateX(0);
+}
+
+#messageInput {
+	resize: none;
+	flex-grow: 1;
 }
 
 .chat-header {
@@ -895,7 +902,6 @@ body[eventphase="3"] .coverer-title {
 	position: absolute;
 	bottom: 0px;
 	left: 0px;
-	height: 100px;
 	width: 100%;
 	overflow: clip;
 	transition: .3s height, .0s visibility, .2s opacity;
@@ -906,27 +912,34 @@ body[eventphase="3"] .coverer-title {
 	visibility: hidden;
 	opacity: 0;
 }
+#messageTypePanel {
+	height: calc(var(--message-input-height) + 64px);
+}
 #messageEmojisPanel {
+	display: flex;
+	flex-direction: column;
 	height: auto;
-	padding-bottom: 48px;
+	padding-bottom: calc(var(--message-input-height) + 16px);
 	overflow-clip-margin: content-box;
 	overflow-y: clip;
 	column-gap: 16px;
 }
-#messageEmojisPanel > div {
+.message-emojis-suggestion {
 	margin: 8px;
 	margin-bottom: 4px;
-	border-radius: 4px;
 	padding: 8px;
 	display: flex;
+	align-items: center;
 	user-select: none;
 }
-#messageEmojisPanel > div > span {
+.message-emojis-suggestion > span {
 	flex-grow: 1;
 	align-self: center;
+	text-align: left;
+	text-align: left;
 }
 #messageReplyPanel {
-	height: 84px;
+	height: calc(var(--message-input-height) + 44px);
 	display: flex;
 }
 #messageReplyPanel > div:nth-child(1) {

@@ -9,7 +9,7 @@
     --pixel-shadow-color: rgba(0, 0, 0, 0.75);
     --gray-color: #576f76
 }
-:root, button, html, input, select {
+:root, button, html, input, select, textarea {
     font-family: var(--font-pixel);
 }
 
@@ -26,7 +26,7 @@ input[type="radio"] {
     width: 16px;
 }
 
-button, input[type="button"] {
+button, input[type="button"], textarea {
     border: var(--pixel-border);
     background-color: white;
     height: 36px;
@@ -273,11 +273,13 @@ icon-close {
 }
 #messageInput {
 	color: var(--ui-text);
+    padding: 4px;
+    height: max(38px, var(--message-input-height));
 }
 #messageInput[state="command"] {
 	color: #00FA9A;
 }
-#messageEmojisPanel > div:hover {
+.message-emojis-suggestion:hover {
 	background: lightgrey;
 }
 .chat-header {
