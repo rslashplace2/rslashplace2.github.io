@@ -2184,7 +2184,7 @@
                 <div class="post" onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin'" style="opacity: 0.6; pointer-events: none;">
                     <div class="body">
                         <div class="header">
-                            <img src="images/account_profile.png">
+                            <img src="images/account-profile.png">
                             <div><div translate="myAccount">My Account</div>Login or signup to an rplace.live account, access special features and host your own custom canvases.</div>
                         </div>
                     </div>
@@ -3570,7 +3570,7 @@
                 chatContext.style.display = "none"
             }
             else {
-                const msgName = intIdNames.get(senderId)
+                let msgName = intIdNames.get(senderId)
                 const identifier = msgName || ("#" + senderId)
                 if (msgName) {
                     if (msgName[msgName.length - 1] === "~") {
