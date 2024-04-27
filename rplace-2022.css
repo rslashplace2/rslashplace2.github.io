@@ -32,7 +32,7 @@ select {
 	color: #747474;
 }
 
-input, button {
+input, button, textarea {
 	color: unset;
 	font: unset;
 	background-color: var(--ui-panel-bg);
@@ -256,12 +256,18 @@ a {
 
 #messageInput {
 	color: var(--ui-text);
+    padding-top: 8px;
+	height: max(35px, var(--message-input-height));
 }
 #messageInput[state="command"] {
 	color: #00FA9A;
 }
-#messageEmojisPanel > div:hover {
+.message-emojis-suggestion {
+	box-shadow: none;
+}
+.message-emojis-suggestion:hover {
 	background: var(--ui-panel-hover);
+	border-radius: 4px;
 }
 .ad-close {
     color: var(--ui-text);
@@ -332,7 +338,7 @@ a {
 	cursor: pointer;
 	font-weight: bolder;
 	border-radius: 10px;
-	box-shadow: 0px 0px 5px gray;
+	box-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
 
 .chat-input-panel {

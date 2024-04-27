@@ -13,7 +13,7 @@ self.addEventListener("install", (event) => {
 
                 // Images
                 "images/1984.png",
-                "images/account_profile.png",
+                "images/account-profile.png",
                 "images/canv.png",
                 "images/discord-ad.png",
                 "images/discord.png",
@@ -53,21 +53,21 @@ self.addEventListener("install", (event) => {
                 "svg/pixel-select-2023.svg",
                 
                 //Badges
-                "badges/1000000_pixels_placed.svg",
-                "badges/100000_pixels_placed.svg",
-                "badges/1000_pixels_placed.svg",
-                "badges/100_pixels_placed.svg",
-                "badges/20000_pixels_placed.svg",
-                "badges/5000_pixels_placed.svg",
+                "badges/1000000-pixels-placed.svg",
+                "badges/100000-pixels-placed.svg",
+                "badges/1000-pixels-placed.svg",
+                "badges/100-pixels-placed.svg",
+                "badges/20000-pixels-placed.svg",
+                "badges/5000-pixels-placed.svg",
                 "badges/admin.svg",
                 "badges/based.svg",
-                "badges/discord_member.svg",
-                "badges/ethical_botter.svg",
+                "badges/discord-member.svg",
+                "badges/ethical-botter.svg",
                 "badges/gay.svg",
                 "badges/moderator.svg",
                 "badges/noob.svg",
-                "badges/script_kiddie.svg",
-                "badges/trouble_maker.svg",
+                "badges/script-kiddie.svg",
+                "badges/trouble-maker.svg",
                 "badges/veteran.svg",
 
                 // Custom emojis

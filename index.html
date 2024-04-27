@@ -344,6 +344,7 @@
         }
 
         const EMOJIS = {
+            rofl: "🤣",
             joy: "😂",
             cool: "😎",
             sunglasses: "😎",
@@ -352,7 +353,6 @@
             bruh: "🗿",
             turkey: "🇹🇷",
             skull: "💀",
-            amongus: "ඞ",
             sus: "ඞ",
             iran: "🇮🇷",
             uk: "🇬🇧",
@@ -390,6 +390,10 @@
             ghost: "👻",
             skullcrossbones: "☠️",
             explosion: "💥",
+            shush: "🤫",
+            deaf: "🧏",
+            mew:"🤫🧏",
+            pray: "🙏"
         }
 
         const EMOJIS_CUSTOM = {
@@ -490,7 +494,7 @@
         let chatName = null
         let uploadPost = null // function injected by wscapsule
         let setName = null // function injected by wscapsule
-	let requestLoadChannelPrevious = null // function injected by wscapsule
+        let requestLoadChannelPrevious = null // function injected by wscapsule
         let canvasLocked = false // Server will tell us this
         let includesPlacer = false // Server will tell us this
 
@@ -529,6 +533,28 @@
                 alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
             }
 
+            function markdownParse(text) {
+                text = text.replace(/(#{3}\s)(.*)/g, (match) => {
+                    return `<h3 style="display:inline;">${match.slice(4)}</h3>`
+                })
+                text = text.replace(/(#{2}\s)(.*)/g, (match) => {
+                    return `<h2 style="display:inline;">${match.slice(3)}</h2>`
+                })
+                text = text.replace(/(#{1}\s)(.*)/g, (match) => {
+                    return `<h1 style="display:inline;">${match.slice(2)}</h1>`
+                })
+                function matchBold(match) {
+                    return `<b>${match.slice(2, -2)}</b>`
+                }
+                text = text.replace(/\*\*([^*]+)\*\*/g, matchBold)
+                text = text.replace(/\_\_([^*]+)\_\_/g, matchBold)
+                function matchItalic(match) {
+                    return `<i>${match.slice(1, -1)}</i>`
+                }
+                text = text.replace(/\*([^*]+)\*/g, matchItalic)
+                text = text.replace(/\_(.*)\_/g, matchItalic)
+                return text
+            }
 
             function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
                 let newMessage = document.createElement("div")
@@ -536,9 +562,12 @@
                 newMessage.name = name
                 newMessage.originalContent = txt
 
-                // Custom emoji + sanitise regex
-                txt = txt.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
-                txt = txt.replace(/(:([a-z-_]{0,16}):)/, (full, source) => {
+                // Sanitise regex
+                txt = txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
+                // Simple markdown parse regexes
+                txt = markdownParse(txt)
+                // Custom emoji regex
+                txt = txt.replaceAll(/:([a-z-_]{0,16}):/g, (full, source) => {
                     // If this emoji is the only thing in the message we can make it big!
                     if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
                         return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
@@ -548,7 +577,7 @@
                     return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`
                 })
                 // Coordinate to clickable link regex
-                txt = txt.replace(/([0-9]+),\s*([0-9]+)/g, (element) => {
+                txt = txt.replaceAll(/([0-9]+),\s*([0-9]+)/g, (element) => {
                     let px = parseInt(element.split(",")[0].trim())
                     let py = parseInt(element.split(",")[1].trim())
                     if (px != NaN && py != NaN) {
@@ -1313,11 +1342,16 @@
                 messageInput.value = ""
             }
 
-            messageInput.onkeypress = e => {
-                if (e.keyCode == 13) {
-                    //shift + enter send as place chat, enter send as normal live chat
-                    if (e.shiftKey) sendPlaceMsg(messageInput.value)
+            messageInput.onkeydown = e => {
+                messageInput.style.height = "0px"
+                chatPanel.style.setProperty("--message-input-height",
+                    Math.min(messageInput.scrollHeight, 256) + "px")
+                messageInput.style.height = "" // unset
+                if (e.key == "Enter" && !e.shiftKey) {
+                    // ctrl + enter send as place chat, enter send as normal live chat
+                    if (e.ctrlKey) sendPlaceMsg(messageInput.value)
                     else sendLiveChatMsg(messageInput.value)
+                    e.preventDefault()
                     messageInput.value = ""
                 }
             }
@@ -1748,7 +1782,7 @@
                     <button style="flex-grow: 1;" onclick="closeChatModerate()">Cancel</button>
                 </div>
             </div>
-            <div id="place" noselect onclick="
+            <div noselect id="place" tabindex="0" onclick="
                 if (initialConnect && CD < Date.now()) {
                     zoomIn()
                     showPalette()
@@ -1790,7 +1824,7 @@
                 <a style="text-align: center;" href=".">(generate new captcha)</a>
                 <div id="captchaOptions"><!--clickable captcha answers--></div>
             </div>
-            <div id="chatbtn" class="layout" noselect onclick="chatPanel.setAttribute('open', 'true')">
+            <div id="chatbtn" tabindex="0" class="layout" noselect onclick="chatPanel.setAttribute('open', 'true')">
                 <img class="icon-image" src="svg/chat.svg" style="width:16px; height:21px">
             </div>
             <dialog id="popup">
@@ -1804,7 +1838,7 @@
                         allowfullscreen="true" width="100%" height="100%"></iframe>-->
                 </div>
             </dialog>
-            <div noselect id="helpbtn" class="layout" onclick="
+            <div noselect id="helpbtn" tabindex="0" class="layout" onclick="
                 if (modal.style.display == 'flex') {
                     modal.style.display = 'none'
                     bg.style.display = 'none'
@@ -1816,7 +1850,7 @@
             ">
                 <img class="icon-image" src="svg/help.svg">
             </div>
-            <div noselect id="closebtn" class="layout" onclick="
+            <div noselect id="closebtn" tabindex="0" class="layout" onclick="
                 bg.style.opacity = '0.5'
                 bg.style.display = 'block'
                 messageInput.blur()
@@ -2188,7 +2222,7 @@
                 <div class="post" onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin'" style="opacity: 0.6; pointer-events: none;">
                     <div class="body">
                         <div class="header">
-                            <img src="images/account_profile.png">
+                            <img src="images/account-profile.png">
                             <div><div translate="myAccount">My Account</div>Login or signup to an rplace.live account, access special features and host your own custom canvases.</div>
                         </div>
                     </div>
@@ -2332,7 +2366,7 @@
             <div id="chatPreviousButton" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></div>
             <div id="chatMessages"><!--Live chat messages--></div>
             <div id="messageTypePanel" class="chat-input-panel" closed>
-                <input type="button" class="messageTypeBtn" title="Use the shortcut 'shift+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
+                <input type="button" class="messageTypeBtn" title="Use the shortcut 'ctrl+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
                 <input type="button" class="messageTypeBtn" title="Use the shortcut 'enter' to send quickly" style="right: 5px;" translate="sendInLiveChat" value="📨 Send in live chat">
             </div>
             <div id="messageEmojisPanel" class="chat-input-panel" closed><!--Message emoji suggestions--></div>
@@ -2353,7 +2387,7 @@
                 <pre id="chatPunishInfo" style="display: none;"></pre>
             </div>
             <div style="display: flex; column-gap: 8px; z-index: 1;">
-                <input id="messageInput" onclick="chatPanel.setAttribute('open', 'true')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
+                <textarea id="messageInput" onclick="chatPanel.setAttribute('open', 'true')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200"></textarea>
                 <button class="message-options" onclick="messageTypePanel.toggleAttribute('closed')">...</button>
             </div>
         </div>
@@ -3173,6 +3207,14 @@
             }
         }
 
+        /* @return {Element | HTMLCollection} */ 
+        function stringToHtml(html, trim = true) {
+            const template = document.createElement("template")
+            template.innerHTML = html
+            const result = template.content.children
+            return result.length === 1 ? result[0] : result
+        }
+
         function chatMentionUser(senderId) {
             let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
             let mentionText = "@"
@@ -3194,7 +3236,7 @@
             currentReply = messageId
 
             // HACK: Ensure no overlap between reply and send features
-            messageTypePanel.style.height = "132px"
+            messageTypePanel.style.height = "calc(var(--message-input-height) + 92px)"
             messageInput.focus()
             messageReplyPanel.removeAttribute("closed")
             messageReplyLabel.innerText = translate("replyTo") + ": " + (intIdNames.get(senderId) || ("#" + senderId))
@@ -3212,8 +3254,7 @@
             }
             currentReply = null
             // HACK: Ensure no overlap between reply and send features
-            messageTypePanel.style.height = "100px"
-
+            messageTypePanel.style.height = "calc(var(--message-input-height) + 62px)"
             messageReplyPanel.setAttribute('closed', 'true')
         }
 
@@ -3257,6 +3298,11 @@
             }
         }
 
+        function closeMessageEmojisPanel() {
+            messageEmojisPanel.setAttribute("closed", "true")
+            messageInput.setAttribute("state", "default")
+        }
+
         messageInput.oninput = function() {
             messageEmojisPanel.innerHTML = ""
             let comp = ""
@@ -3284,33 +3330,35 @@
                 messageInput.setAttribute("state", "command")
             }
             else {
-                messageEmojisPanel.setAttribute("closed", "true")
-                messageInput.setAttribute("state", "default")
+                closeMessageEmojisPanel()
             }
 
-            function addEmojiEntry(emojiCode, value) {
-                const entryElement = document.createElement("div")
+            function createEmojiEntry(emojiCode) {
+                const entryElement = document.createElement("button")
+                entryElement.classList.add("message-emojis-suggestion")
                 entryElement.title = `Send this emoji in chat with :${emojiCode}:`
                 const entryLabel = document.createElement("span")
                 entryLabel.textContent = `:${emojiCode}:`
                 entryElement.appendChild(entryLabel)
-                const entryValueText = document.createTextNode(value)
-                entryElement.appendChild(entryValueText)
-                entryElement.addEventListener("click", function() {
-                    for (let i = messageInput.value.length - 1; i >= 0; i--) {
-                        if (messageInput.value[i] == ":") {
-                            messageInput.value = messageInput.value.slice(0, i) + value
-                            break
-                        }
-                    }
-                })
-                messageEmojisPanel.appendChild(entryElement)
+                return entryElement
             }
 
             let handled = false
             for (const [emojiCode, value] of Object.entries(EMOJIS)) {
                 if (comp && emojiCode.startsWith(comp)) {
-                    addEmojiEntry(emojiCode, value)
+                    const entryElement = createEmojiEntry(emojiCode)
+                    const entryValueText = document.createTextNode(value)
+                    entryElement.appendChild(entryValueText)
+                    entryElement.addEventListener("click", function() {
+                        for (let i = messageInput.value.length - 1; i >= 0; i--) {
+                            if (messageInput.value[i] == ":") {
+                                messageInput.value = messageInput.value.slice(0, i) + value
+                                closeMessageEmojisPanel()
+                                break
+                            }
+                        }
+                    })
+                    messageEmojisPanel.appendChild(entryElement)
                     messageEmojisPanel.removeAttribute("closed")
                 }
 
@@ -3322,7 +3370,18 @@
             }
             if (!handled) for (const [emojiCode, value] of Object.entries(EMOJIS_CUSTOM)) {
                 if (comp && emojiCode.startsWith(comp)) {
-                    messageEmojisPanel.innerHTML += `<div title="Send this emoji in chat with :${emojiCode}:"><span>:${emojiCode}:</span>${value}</div>`
+                    const entryElement = createEmojiEntry(emojiCode)
+                    entryElement.appendChild(stringToHtml(value))
+                    entryElement.addEventListener("click", function() {
+                        for (let i = messageInput.value.length - 1; i >= 0; i--) {
+                            if (messageInput.value[i] == ":") {
+                                messageInput.value = messageInput.value.slice(0, i) + ":" + emojiCode + ":"
+                                closeMessageEmojisPanel()
+                                break
+                            }
+                        }
+                    })
+                    messageEmojisPanel.appendChild(entryElement)
                     messageEmojisPanel.removeAttribute("closed")
                 }
 
@@ -3454,7 +3513,7 @@
             document.querySelectorAll("[translate]").forEach((element) => {
                 let key = element.getAttribute("translate")
                 if (TRANSLATIONS[lang] == null) return
-                if (element.nodeName == "INPUT") {
+                if (element.nodeName === "INPUT" || element.nodeName === "TEXTAREA") {
                     if (element.getAttribute("type") == "text")
                         element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
                     else
@@ -3579,7 +3638,7 @@
                 chatContext.style.display = "none"
             }
             else {
-                const msgName = intIdNames.get(senderId)
+                let msgName = intIdNames.get(senderId)
                 const identifier = msgName || ("#" + senderId)
                 if (msgName) {
                     if (msgName[msgName.length - 1] === "~") {
