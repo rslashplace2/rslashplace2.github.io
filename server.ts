@@ -945,7 +945,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         .setHeading("Id", "Channel", "Message", "Sender", "Send date")
                         .addRow(message.messageId, message.channel, wrappedMessage,
                             `#${message.senderIntId} (${messageSenderName})`, new Date(message.sendDate).toISOString())
-                    modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n\`\`\`${table.toString()}\n\`\`\``)
+                    modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n\`\`\`\n${table.toString()}\n\`\`\``)
                     break
                 }
                 case 15: { // chat

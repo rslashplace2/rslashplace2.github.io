@@ -490,6 +490,7 @@
         let chatName = null
         let uploadPost = null // function injected by wscapsule
         let setName = null // function injected by wscapsule
+	let requestLoadChannelPrevious = null // function injected by wscapsule
         let canvasLocked = false // Server will tell us this
         let includesPlacer = false // Server will tell us this
 
@@ -537,7 +538,7 @@
 
                 // Custom emoji + sanitise regex
                 txt = txt.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")
-                txt = txt.replace(/:(.+):/, (full, source) => {
+                txt = txt.replace(/(:([a-z-_]{0,16}):)/, (full, source) => {
                     // If this emoji is the only thing in the message we can make it big!
                     if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
                         return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
@@ -1493,7 +1494,8 @@
                 call(send, authSocket, buffer)
                 call(send, authSocket, new Uint8Array([4]))
             })
-            function requestLoadChannelPrevious(msgCount=64) {
+            function _requestLoadChannelPrevious(msgCount=64) {
+                chatPreviousLoadDebounce = true
                 const encChannel = encoder.encode(currentChannel)
                 let view = new DataView(new Uint8Array(6 + encChannel.byteLength).buffer)
                 view.setUint8(0, 13)
@@ -1504,20 +1506,22 @@
                 }
                 call(send, ws, view.buffer)
             }
+	    requestLoadChannelPrevious = _requestLoadChannelPrevious
             call(addEventListener, chatMessages, "scroll", () => {
-                if (this.scrollTop < 4) {
+                if (chatMessages.scrollTop < 4) {
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
-                        chatPreviousLoadDebounce = true
-                        requestLoadChannelPrevious()
+                        _requestLoadChannelPrevious()
                     }
-                    chatPreviousButton.dataset.hidden = false
+                    else {
+                        chatPreviousButton.dataset.hidden = "false"
+                    }
                 }
                 else {
-                    chatPreviousButton.dataset.hidden = true
+                    chatPreviousButton.dataset.hidden = "true"
                 }
             })
             call(addEventListener, chatPreviousButton, "click", () => {
-                requestLoadChannelPrevious()
+                _requestLoadChannelPrevious()
                 // Keep loading previous for this channel as they scroll up
                 chatPreviousAutoLoad = true
             })
@@ -1598,7 +1602,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.33" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.34" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -2350,7 +2354,7 @@
             </div>
             <div style="display: flex; column-gap: 8px; z-index: 1;">
                 <input id="messageInput" onclick="chatPanel.setAttribute('open', 'true')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200" style="flex-grow: 1;">
-                <div class="messageOptions" onclick="messageTypePanel.toggleAttribute('closed')">...</div>
+                <button class="message-options" onclick="messageTypePanel.toggleAttribute('closed')">...</button>
             </div>
         </div>
         <div id="timelapsePanel" noselect style="display: none;">
@@ -3158,9 +3162,14 @@
             // User must ask to load previous at least once for each channel before site
             // will start auto loading previous chat messages
             chatPreviousAutoLoad = false
-
-            for (const el of cMessages[selected]) {
-                chatMessages.appendChild(el)
+            if (cMessages[selected]?.length) {
+                for (const el of cMessages[selected]) {
+                    chatMessages.appendChild(el)
+                }
+            }
+            else if (typeof requestLoadChannelPrevious === "function") {
+                // If we don't have any cached messages for this channel, try pre-populate with a few
+                requestLoadChannelPrevious(32)
             }
         }
 
