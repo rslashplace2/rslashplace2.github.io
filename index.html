@@ -553,6 +553,10 @@
                 }
                 text = text.replace(/\*([^*]+)\*/g, matchItalic)
                 text = text.replace(/\_(.*)\_/g, matchItalic)
+
+                text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
+                    return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
+                })
                 return text
             }
 
@@ -1343,10 +1347,7 @@
             }
 
             messageInput.onkeydown = e => {
-                messageInput.style.height = "0px"
-                chatPanel.style.setProperty("--message-input-height",
-                    Math.min(messageInput.scrollHeight, 256) + "px")
-                messageInput.style.height = "" // unset
+                if (!e.isTrusted) return
                 if (e.key == "Enter" && !e.shiftKey) {
                     // ctrl + enter send as place chat, enter send as normal live chat
                     if (e.ctrlKey) sendPlaceMsg(messageInput.value)
@@ -1628,6 +1629,7 @@
     <script type="application/javascript" src="event-timer.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
+    <script type="application/javascript" src="spoiler-template.js"></script>
     <script type="module" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
@@ -3303,7 +3305,13 @@
             messageInput.setAttribute("state", "default")
         }
 
-        messageInput.oninput = function() {
+        messageInput.oninput = e => {
+            if (!e.isTrusted) return
+            messageInput.style.height = "0px"
+            chatPanel.style.setProperty("--message-input-height",
+                Math.min(messageInput.scrollHeight, 256) + "px")
+            messageInput.style.height = "" // unset
+
             messageEmojisPanel.innerHTML = ""
             let comp = ""
             let search = true
