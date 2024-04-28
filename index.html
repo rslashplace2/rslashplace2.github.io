@@ -1630,7 +1630,8 @@
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
     <script type="application/javascript" src="spoiler-template.js"></script>
-    <script type="module" src="holiday-features.js"></script>
+    <script type="application/javascript" src="canvas-snow.min.js"></script>
+    <script type="application/javascript" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1913,6 +1914,7 @@
                                             theme(DEFAULT_THEMES.get(targetTheme), targetVariant, targetEffects)
                                             localStorage.theme = targetTheme
                                             localStorage.variant = targetVariant
+                                            localStorage.effects = targetEffects
                                         }
                                         break
                                     }
@@ -1923,6 +1925,7 @@
 								<li theme="r/place 2023" variant=""><span>r/place 2023 (Classic)</span></li>
 								<hr style="opacity: 0.2">
 								<li theme="r/place 2022" variant="dark" effects="darkplace"><span>darkplace.live (April fools)</span></li>
+								<li theme="r/place 2022" variant="" effects="winter"><span>snowplace.live (December 2023)</span></li>
 							</ul>
 						</div>
 					</div>
@@ -3458,12 +3461,15 @@
         async function theme(themeSet, variant = null, effects=null) {
             variant ??= ""
 
+            // Effects
+            disableDarkplace()
+            disableWinter()
             switch (effects) {
                 case "darkplace":
                     enableDarkplace()
                     break
-                default:
-                    disableDarkplace()
+                case "winter":
+                    enableWinter()
                     break
             }
 
@@ -3506,7 +3512,7 @@
             document.documentElement.dataset.variant = variant
         }
         const startupThemeSet = DEFAULT_THEMES.get(localStorage.theme || "r/place 2022")
-        theme(startupThemeSet, localStorage.variant)
+        theme(startupThemeSet, localStorage.variant, localStorage.effects)
         themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
         //Thanks to (Discord) @carkan988"<%#1409, @anonimbiri#4089 for providing turkish translations, and @sorenaxmee#4191 and @rplacetk telegram contributors for persian translations, a big thanks (ig) to Cyart#9657 for romanian, greek and spanish translations, thanks to embed#2752 for french translation.
