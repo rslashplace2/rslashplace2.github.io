@@ -446,8 +446,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.08", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.08", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.09", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.09", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -553,6 +553,10 @@
                 }
                 text = text.replace(/\*([^*]+)\*/g, matchItalic)
                 text = text.replace(/\_(.*)\_/g, matchItalic)
+
+                text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
+                    return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
+                })
                 return text
             }
 
@@ -1343,10 +1347,7 @@
             }
 
             messageInput.onkeydown = e => {
-                messageInput.style.height = "0px"
-                chatPanel.style.setProperty("--message-input-height",
-                    Math.min(messageInput.scrollHeight, 256) + "px")
-                messageInput.style.height = "" // unset
+                if (!e.isTrusted) return
                 if (e.key == "Enter" && !e.shiftKey) {
                     // ctrl + enter send as place chat, enter send as normal live chat
                     if (e.ctrlKey) sendPlaceMsg(messageInput.value)
@@ -1628,6 +1629,7 @@
     <script type="application/javascript" src="event-timer.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
+    <script type="application/javascript" src="spoiler-template.js"></script>
     <script type="module" src="holiday-features.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
@@ -1636,7 +1638,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.35" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.36" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -3303,7 +3305,13 @@
             messageInput.setAttribute("state", "default")
         }
 
-        messageInput.oninput = function() {
+        messageInput.oninput = e => {
+            if (!e.isTrusted) return
+            messageInput.style.height = "0px"
+            chatPanel.style.setProperty("--message-input-height",
+                Math.min(messageInput.scrollHeight, 256) + "px")
+            messageInput.style.height = "" // unset
+
             messageEmojisPanel.innerHTML = ""
             let comp = ""
             let search = true

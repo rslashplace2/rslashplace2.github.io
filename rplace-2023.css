@@ -351,3 +351,27 @@ icon-close {
 #eventCountdown {
 	background: var(--ui-panel-bg);
 }
+r-spoiler {
+	display: inline-block;
+    color: inherit;
+	transition: .2s text-shadow;
+}
+r-spoiler[hidden] {
+	color: transparent;
+	position: relative;
+	cursor: pointer;
+	text-shadow: 0px 0px 4px var(--ui-text);
+}
+r-spoiler[hidden]::after {
+	content: " ";
+	position: absolute;
+	top: -4px;
+	left: -4px;
+	width: calc(100% + 8px);
+	height: calc(100% + 8px);
+    border: var(--pixel-border);
+	background-color: white;
+}
+r-spoiler[hidden]:hover::after {
+    background-color: lightgray;
+}
