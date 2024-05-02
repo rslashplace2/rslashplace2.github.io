@@ -50,7 +50,8 @@
                 placedBy: "Placed by:",
                 lockMessage: "This canvas is locked... You can't place pixels here anymore",
                 adHidden: "Ad hidden for 14 days!",
-                specialEventTitle: "Special event - 2023-2024 full canvas timelapse released!"
+                specialEventTitle: "Special event - 2023-2024 full canvas timelapse released!",
+                copiedToClipboard: "Copied to clipboard!"
             },
             fa: {
                 connecting: "در حال وصل شدن",
@@ -446,8 +447,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.09", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.09", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.10", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.10", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -1625,11 +1626,10 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
     <script type="application/javascript" src="uv.min.js"></script>
-    <script type="application/javascript" src="elements.js"></script>
+    <script type="application/javascript" src="elements.js?v=2"></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
-    <script type="application/javascript" src="spoiler-template.js"></script>
     <script type="application/javascript" src="canvas-snow.min.js"></script>
     <script type="application/javascript" src="snowplace.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
@@ -1639,7 +1639,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.36" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.37" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1667,7 +1667,7 @@
             <div id="overlayMenu" noselect class="toast-menu">
                 <div style="display: flex;">
                     <h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels" style="display: inline;flex-grow: 1;">Overlay:</h2>
-                    <icon-close onclick="overlayMenu.removeAttribute('opened')" class="active"></icon-close>
+                    <r-close-icon onclick="overlayMenu.removeAttribute('opened')" class="active"></r-close-icon>
                 </div>
                 <br><br>
                 <input id="overlayInput" type="file" style="width: 100%;"/> <br><br>
@@ -1721,7 +1721,7 @@
                 <div style="display: flex;">
                     <h2 title="Make use of a canvas overlay image in order to help yourself better position your pixels"
                         style="display: inline;flex-grow: 1;">Verifying session...</h2>
-                        <icon-close style="opacity: 0.6; pointer-events: none;" class="active"></icon-close>
+                        <r-close-icon style="opacity: 0.6; pointer-events: none;" class="active"></r-close-icon>
                 </div>
                 <p>Don't worry, this process should be automatic!</p><br>
                 <div id="turnstileContainer"></div>
@@ -1729,7 +1729,7 @@
             <div id="moderationMenu" noselect="" mode="delete" class="toast-menu">
                 <div style="display: flex;margin-bottom: 16px;">
                     <h2 style="display: inline;flex-grow: 1;">Moderation options:</h2>
-                    <icon-close onclick="closeChatModerate()"></icon-close>
+                    <r-close-icon onclick="closeChatModerate()"></r-close-icon>
                 </div>
                 <h4>Manage:</h4>
                 <div id="modMessageIdForm" class="mod-form">
@@ -1832,7 +1832,7 @@
             </div>
             <dialog id="popup">
                 <div>
-                    <icon-close onclick="timelapseEmbed?.remove(); localStorage.nopopup = Date.now(); popup.close()"></icon-close>
+                    <r-close-icon onclick="timelapseEmbed?.remove(); localStorage.nopopup = Date.now(); popup.close()"></r-close-icon>
                     <span noselect style="font-size: 1.2em; margin-bottom: 16px;" translate="specialEventTitle">Special event - 2023-2024 full canvas timelapse released!</span>
                     <!--<img src="images/discord-popup.png" style="width: 100%;position: absolute;bottom: 0;cursor: pointer;"
                             onclick="window.open('https:\/\/www.reddit.com/r/place/?screenmode=fullscreen&amp;cx=585&amp;cy=362&amp;px=20')">
@@ -1865,9 +1865,9 @@
             <div id="modal" style="display:none">
                 <div class="modal-header">
                     <h2>Place</h2>
-                    <icon-close onclick="
+                    <r-close-icon onclick="
                         modal.style.display='none'
-                        bg.style.display='none'"></icon-close>
+                        bg.style.display='none'"></r-close-icon>
                 </div>
                 <div class="modal-content" translate="modalAboutContent">
                     There is an empty canvas.<br><br>
@@ -2318,7 +2318,7 @@
                         <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
                     </svg>
                 </div>
-                <icon-close onclick="messageInput.blur(); chatPanel.removeAttribute('open')" class="active"></icon-close>
+                <r-close-icon onclick="messageInput.blur(); chatPanel.removeAttribute('open')" class="active"></r-close-icon>
             </div>
             <div id="chatContext" class="context-menu" style="display:none">
                 <ul>
@@ -2398,7 +2398,7 @@
         </div>
         <div id="timelapsePanel" noselect style="display: none;">
             <h2>Timelapse Tool</h2>
-            <icon-close onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"></icon-close>
+            <r-close-icon onclick="timelapsePanel.style.display = 'none'" class="active" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
             <div style="width: 100%; height: 40%; transform: translateX(-10px); margin: 10px; border: 1px solid gray; border-radius: 2px; overflow: scroll;">
                 <img id="tlImage" style="position: relative;">
                     <div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.setAttribute('dragging',  true);" onmouseup="this.setAttribute('dragging', false);" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
@@ -2421,7 +2421,7 @@
                 <div class="header">
                     <h4 style="margin: 0px;">My account</h4>
                 </div>
-                <icon-close onclick="loginPopup.close()" class="active" style="position: absolute; top: 10px; right: 10px;"></icon-close>
+                <r-close-icon onclick="loginPopup.close()" class="active" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
                 <div id="unauthedPage" class="body" page="unauthed" data-page="signin">
                     <div id="signinPage" class="body" page="signin">
                         <h4>Sign in</h4>
@@ -2471,7 +2471,7 @@
                 </div>
                 <div class="body" style="display: none;overflow-y: scroll;" data-page="profile">
                     <h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <val id="profileName2"></val></h4>
-                    <icon-close onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;"></icon-close>
+                    <r-close-icon onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
                     <div style="flex-grow: 1">
                         <h4>Profile</h4>
                         <div class="reddit-card">
@@ -3264,10 +3264,13 @@
         }
 
         function clearChatModerate() {
-            modAffectsAll.checked = false
+            modMessageId.value = ""
+            modMessagePreview.innerHTML = ""
             modDurationH.value = null
             modDurationM.value = null
             modDurationS.value = null
+            modAffectsAll.checked = false
+            modReason.value = ""
         }
 
         function closeChatModerate() {
