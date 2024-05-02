@@ -1511,7 +1511,9 @@ setInterval(async function () {
 
     // @ts-ignore
     fs.appendFile("./stats.txt", "\n" + realPlayers + "," + NOW)
-    if (LOCKED === true) return
+    if (LOCKED === true) {
+        return
+    }
     await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
     if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
         try {
@@ -1688,6 +1690,28 @@ function announce(msg: string, channel: string|null = null, repliesTo:number|nul
             c.send(packet)
         }
     }
+}
+
+async function resize(newWidth:number, newHeight:number) {
+    const newBoard = new Uint8Array(newWidth * newHeight)
+    const newChanges = new Uint8Array(WIDTH * HEIGHT).fill(255)
+    for (let y = 0; y < HEIGHT; y++) {
+        newBoard.set(BOARD.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
+        newChanges.set(CHANGES.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
+    }
+    await pushImage()
+    BOARD = newBoard
+    CHANGES = newChanges
+    WIDTH = newWidth
+    HEIGHT = newHeight
+
+    const newChangesPacket = runLengthChanges()
+    for (const c of wss.clients) {
+        c.send(newChangesPacket)
+    }
+    console.log(`Successfully resized canvas to (${WIDTH}, ${HEIGHT}) and alerted all clients`)
+    console.log("\x1b[33;4;1mREMEMBER TO UPDATE server_config.json with the new board dimensions" +
+        "to avoid potential canvas corruption.")
 }
 
 let shutdown = false
