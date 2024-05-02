@@ -1694,7 +1694,7 @@ function announce(msg: string, channel: string|null = null, repliesTo:number|nul
 /**
  * Expands canvas, along with updating changes and alerting all clients to a given size
  */
-async function expand(newWidth:number, newHeight:number) {
+function expand(newWidth:number, newHeight:number) {
     if (newHeight < HEIGHT || newWidth < WIDTH) {
         console.error(`Can not expand board. ${newWidth}, ${newHeight
             } is smaller than current dimensions (${WIDTH}, ${HEIGHT}))`)
