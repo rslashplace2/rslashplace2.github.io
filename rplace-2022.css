@@ -408,7 +408,7 @@ a {
     box-shadow: 0 0 0 1000px #0004, 0 0 100px #000;
 }
 
-#popup icon-close {
+#popup r-close-icon {
     position: absolute;
     top: 9px;
     right: 12px;

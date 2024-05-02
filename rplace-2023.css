@@ -139,7 +139,7 @@ body {
 	line-height: 8px;
 }
 
-icon-close {
+r-close-icon {
     position: absolute;
     right: 0px;
     top: 0px;
@@ -337,7 +337,7 @@ icon-close {
     background: white;
 }
 
-#popup icon-close {
+#popup r-close-icon {
     position: absolute;
     right: 0px;
     top: 0px;
