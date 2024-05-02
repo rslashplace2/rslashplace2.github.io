@@ -1691,15 +1691,21 @@ function announce(msg: string, channel: string|null = null, repliesTo:number|nul
         }
     }
 }
-
-async function resize(newWidth:number, newHeight:number) {
+/**
+ * Expands canvas, along with updating changes and alerting all clients to a given size
+ */
+function expand(newWidth:number, newHeight:number) {
+    if (newHeight < HEIGHT || newWidth < WIDTH) {
+        console.error(`Can not expand board. ${newWidth}, ${newHeight
+            } is smaller than current dimensions (${WIDTH}, ${HEIGHT}))`)
+        return
+    }
     const newBoard = new Uint8Array(newWidth * newHeight)
     const newChanges = new Uint8Array(WIDTH * HEIGHT).fill(255)
     for (let y = 0; y < HEIGHT; y++) {
         newBoard.set(BOARD.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
         newChanges.set(CHANGES.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
     }
-    await pushImage()
     BOARD = newBoard
     CHANGES = newChanges
     WIDTH = newWidth
@@ -1709,9 +1715,11 @@ async function resize(newWidth:number, newHeight:number) {
     for (const c of wss.clients) {
         c.send(newChangesPacket)
     }
-    console.log(`Successfully resized canvas to (${WIDTH}, ${HEIGHT}) and alerted all clients`)
+    console.log(`Successfully resized canvas to (${WIDTH}, ${HEIGHT}) and messaged all clients`)
     console.log("\x1b[33;4;1mREMEMBER TO UPDATE server_config.json with the new board dimensions" +
-        "to avoid potential canvas corruption.")
+        "to avoid potential canvas corruption.\x1b[0m")
+    console.log("\x1b[33;4;1mREMEMBER TO CALL pushImage() to push commit new canvas dimensions" +
+        "to git\x1b[0m")
 }
 
 let shutdown = false
