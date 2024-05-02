@@ -1701,7 +1701,7 @@ function expand(newWidth:number, newHeight:number) {
         return
     }
     const newBoard = new Uint8Array(newWidth * newHeight)
-    const newChanges = new Uint8Array(WIDTH * HEIGHT).fill(255)
+    const newChanges = new Uint8Array(newWidth * newHeight).fill(255)
     for (let y = 0; y < HEIGHT; y++) {
         newBoard.set(BOARD.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
         newChanges.set(CHANGES.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
