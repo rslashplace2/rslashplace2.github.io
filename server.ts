@@ -21,7 +21,6 @@ import repl from "basic-repl"
 import { $, Server, ServerWebSocket, TLSWebSocketServeOptions } from "bun"
 import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise } from "./server-types.ts"
-import { AsciiTable3, AlignmentEnum } from "ascii-table3"
 
 let BOARD:Uint8Array, CHANGES:Uint8Array, VOTES:Uint32Array
 
@@ -139,6 +138,8 @@ const newPixels:PixelInfo[] = []
 // Reports must persist between client sessions and be rate limited
 let reportCooldownMs = 60_000
 const reportCooldowns = new Map<string, number>()
+let activityCooldownMs = 10_000 
+const activityCooldowns = new Map<string, number>()
 // Cooldowns must persist between client sessions
 const cooldowns = new Map<string, number>()
 type LinkKeyInfo = {
@@ -609,7 +610,8 @@ type ClientData = {
     voted: number,
     challenge: "pending"|"active"|undefined,
     turnstile: "active"|undefined,
-    lastPeriodCaptcha: number
+    lastPeriodCaptcha: number,
+    shadowBanned: boolean
 }
 interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
@@ -828,7 +830,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
             switch (data[0]) {
                 case 4: { // pixel place
-                    if (data.length < 6) {
+                    if (data.length < 6 || ws.data.shadowBanned === true) {
                         return
                     }
                     const i = data.readUInt32BE(1)
@@ -863,7 +865,6 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     newPixels.push({ index: i, colour: c, placer: ws })
                     postDbMessage("updatePixelPlace", ws.data.intId)
                     break
-                    
                 }
                 case 12: { // Submit name
                     let name = decoderUTF8.decode(data.subarray(1))
@@ -940,17 +941,19 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const messageSenderName = await makeDbRequest("getUserChatName", message.senderIntId)
                     // TODO: Sus - Live chat message may not be in DB by time report is received, could cause a missing foreign key reference
                     postDbMessage("insertLiveChatReport", { reporterId: ws.data.intId, messageId: messageId, reason: reason })
-                    const wrappedMessage = AsciiTable3.wordWrap(message.message, 48)
-                    const table = new AsciiTable3()
-                        .setHeading("Id", "Channel", "Message", "Sender", "Send date")
-                        .addRow(message.messageId, message.channel, wrappedMessage,
-                            `#${message.senderIntId} (${messageSenderName})`, new Date(message.sendDate).toISOString())
-                    modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n\`\`\`\n${table.toString()}\n\`\`\``)
+    
+                    const sanitisedChannel = message.channel.replaceAll("```", "`​`​`​")
+                    const sanitisedMessage = message.channel.replaceAll("```", "`​`​`​")
+                    modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n` +
+                        `Id: **${message.messageId}**\nChannel: **${sanitisedChannel}**\nSender: **#${message.senderIntId} (${messageSenderName})**` +
+                        `Send date: **${new Date(message.sendDate).toISOString()}**\n` +
+                        `Message:\n\`\`\`\n${sanitisedMessage}\n\`\`\`\n`)
                     break
                 }
                 case 15: { // chat
                     if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW
-                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)) {
+                        || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)
+                        || ws.data.shadowBanned === true) {
                         return
                     }
                     ws.data.lastChat = NOW
@@ -1084,7 +1087,25 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     delete ws.data.turnstile
                     break
                 }
-                case 96: {// Set preban
+                case 30: { // Client activity webdriver
+                    const activityCooldown = activityCooldowns.get(ws.data.ip) ||  0
+                    if (activityCooldown > NOW) {
+                        return
+                    }
+                    activityCooldowns.set(ws.data.ip, NOW + activityCooldownMs)
+                    if (data.byteLength > 1025) {
+                        return
+                    }
+                    const detail = decoderUTF8.decode(data.buffer.slice(1))
+                    ws.data.shadowBanned = true
+                    const sanitisedDetail = detail.replaceAll("```", "`​`​`​")
+                    modWebhookLog("Client activity reported webdriver usage:\nClient data:\n```\n" +
+                        `Ip: ${ws.data.ip}\nChat name: ${ws.data.chatName}\nUser id: ${ws.data.intId}\nPerms: ${ws.data.perms}\nHeaders: ${JSON.stringify(ws.data.headers, null, 4)}\n` +
+                        `Connect date: ${new Date(ws.data.connDate).toLocaleString()}\nLast period captcha: ${new Date(ws.data.lastPeriodCaptcha).toLocaleString()}\n` +
+                        `\`\`\`\nClient details (untrusted):\n\`\`\`\n${sanitisedDetail}\n\`\`\`\nServer has temporarily shadowbanned this connection.`)
+                    break
+                }
+                case 96: { // Set preban
                     let offset = 1
                     if (ws.data.perms !== "admin" && ws.data.perms !== "canvasmod") return
                     const violation = data[offset++] // 0 - kick, 1 - ban, 2 - nothing (log)
@@ -1256,14 +1277,19 @@ bunServer.clients = new Set<ServerWebSocket<ClientData>>()
 const wss:RplaceServer = bunServer
 
 /**
- * @param {string} message
+ * Log a moderation-only message to console, the mod webhook, and the mod log text file
+ * @param {string} message Raw composite string message to be logged
  */
 async function modWebhookLog(message:string) {
-    console.log(message)
-    if (!MOD_WEBHOOK_URL) return
-    message = message.replace("@", "@​")
-    const msgHook = { username: "RPLACE SERVER", content: message }
-    await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
+    const messageString = `[${new Date().toLocaleString()}] ${message}`
+    console.log(messageString)
+    fs.appendFile("./modlog.txt", messageString+"\n\n---\n\n")
+
+    if (MOD_WEBHOOK_URL) {
+        message = message.replace("@", "@​")
+        const msgHook = { username: "RPLACE SERVER", content: message }
+        await fetch(MOD_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })    
+    }
 }
 
 let NOW = Date.now()
@@ -1423,7 +1449,9 @@ setInterval(function () {
                 }, pastPxpsWindowSize * 1000)
 
                 const pxpsLogPath = `./${pxpsLogName}`
-                fs.appendFile(pxpsLogPath, "ip,intId,connDate,lastPeriodCaptcha,perms")
+                if (!fs.exists(pxpsLogPath)) {
+                    fs.appendFile(pxpsLogPath, "ip,intId,connDate,lastPeriodCaptcha,perms")
+                }
                 for (const p of wss.clients) {
                     fs.appendFile(pxpsLogPath, `\n${p.data.ip},${p.data.intId},${p.data.connDate
                         },${p.data.lastPeriodCaptcha},${p.data.perms}`)
@@ -1448,8 +1476,8 @@ setInterval(function () {
     // No new pixels
     if (newPixels.length !== 0) {
         let i = 1
-        let newPixelsBuffer;
-        let newPixel;
+        let newPixelsBuffer = null
+        let newPixel = null
         if (INCLUDE_PLACER) {
             newPixelsBuffer = Buffer.alloc(1 + newPixels.length * 9)
             newPixelsBuffer[0] = 5

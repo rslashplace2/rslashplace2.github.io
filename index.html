@@ -467,7 +467,7 @@
     </script>
     <script>
         if(!("subtle" in (window.crypto || {}))) location.protocol = "https:"
-
+        const automated = navigator.webdriver
         // csrfstate not used at the moment, may be later to encode some extra info for client
         let params = new URLSearchParams(location.search)
         let csrfState = params.get("state"),
@@ -764,6 +764,15 @@
             authSocket.onclose = console.error
             ws.onopen = function(e) {
                 initialConnect = true
+                if (automated) {
+                    const activityBuffer = encoder.encode(`\x1eWindow outer width: ${window.outerWidth}\nWindow inner width: ${window.innerWidth}\n` +
+                        `Window outer height: ${window.outerHeight}\nWindow inner height: ${window.innerHeight}\nLast mouse move${new Date(lastMouseMove).toISOString()}\n` +
+                        `Mouse X (mx): ${mx}\nMouse Y: ${my}\nLocal storage: ${JSON.stringify(localStorage, null, 4)}`)
+                    call(send, ws, activityBuffer)
+                    ws.close()
+                    console.error("Client is running in an unsupported environment")
+                    location = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                }
             }
             ws.onmessage = async function({data}) {
                 delete sessionStorage.err
@@ -2594,19 +2603,20 @@
 
         document.body.onmousedown = function(e) {
             moved = 3
-            click = e.button + 1
+            mouseDown = e.button + 1
         }
 
         document.onmouseup = function(e) {
-            if (e.target != maincontent && !canvparent2.contains(e.target))
-                return (moved = 3, click = 0)
+            if (e.target != maincontent && !canvparent2.contains(e.target)) {
+                return (moved = 3, mouseDown = 0)
+            }
 
             if (moved > 0 && canvparent2.contains(e.target)) {
                 clicked(e.clientX, e.clientY)
             }
 
             moved = 3
-            click = 0
+            mouseDown = 0
         }
 
         let arrowkeyDown = {
@@ -2786,17 +2796,23 @@
             waitingGame.canvas.height = maincontent.offsetHeight
         }
 
-        let click = false
+        let lastMouseMove = 0
+        let mouseDown = false
         let mx = 0
         let my = 0
 
         document.body.onmousemove = function(e) {
-            if (e.target != maincontent && !canvparent2.contains(e.target)) return
+            lastMouseMove = Date.now()
+            if (e.target != maincontent && !canvparent2.contains(e.target)) {
+                return
+            }
             moved--
             let dx = -(mx - (mx = e.clientX - innerWidth / 2))
             let dy = -(my - (my = e.clientY - maincontent.offsetHeight / 2))
-            if (dx != dx || dy != dy) return
-            if (click) {
+            if (dx != dx || dy != dy) {
+                return
+            }
+            if (mouseDown) {
                 x -= dx / (z * 50)
                 y -= dy / (z * 50)
                 pos()
@@ -2804,7 +2820,9 @@
             }
         }
         document.body.onwheel = function(e) {
-            if (e.target != maincontent && !canvparent2.contains(e.target)) return
+            if (e.target != maincontent && !canvparent2.contains(e.target)) {
+                return
+            }
             let d = Math.max(minZoom / z, Math.min(3 ** Math.max(-0.5, Math.min(0.5, e.deltaY * -0.01)), 1 / z))
             z *= d
             x += mx * (d - 1) / z / 50
@@ -3699,7 +3717,8 @@
             "?discord": "https://discord.com/invite/xbRrVSXJdZ",
             "?twitter": "https://twitter.com/rplacetk",
             "?reddit": "https://www.reddit.com/r/placetk",
-            "?github": "https://github.com/rslashplace2",
+            "?github": "https://github.com/rplacetk",
+            "?telegram": "https://t.me/rplacelive",
             "?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         })[location.search]
         if (redirectLocation) location.replace(redirectLocation)
