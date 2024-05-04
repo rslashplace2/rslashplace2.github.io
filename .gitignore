@@ -1,9 +1,12 @@
 .vscode/
 .hintrc
 
+# Project files
 *.pem
 *.key
+node_modules/
 
+# Config files
 server_config.json
 vip.txt
 reserved_names.txt
@@ -19,10 +22,11 @@ server.db
 server.db-shm
 server.db-wal
 
+# Backup files
 place
 change
 change2
 
+# Logs
 *.pxpslog.txt
-
-node_modules/
+modlog.txt
