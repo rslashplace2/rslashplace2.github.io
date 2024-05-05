@@ -943,9 +943,9 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     postDbMessage("insertLiveChatReport", { reporterId: ws.data.intId, messageId: messageId, reason: reason })
     
                     const sanitisedChannel = message.channel.replaceAll("```", "`​`​`​")
-                    const sanitisedMessage = message.channel.replaceAll("```", "`​`​`​")
+                    const sanitisedMessage = message.message.replaceAll("```", "`​`​`​")
                     modWebhookLog(`User **#${ws.data.intId}** (**${ws.data.chatName}**) reported live chat message:\n` +
-                        `Id: **${message.messageId}**\nChannel: **${sanitisedChannel}**\nSender: **#${message.senderIntId} (${messageSenderName})**` +
+                        `Id: **${message.messageId}**\nChannel: **${sanitisedChannel}**\nSender: **#${message.senderIntId} (${messageSenderName})**\n` +
                         `Send date: **${new Date(message.sendDate).toISOString()}**\n` +
                         `Message:\n\`\`\`\n${sanitisedMessage}\n\`\`\`\n`)
                     break
