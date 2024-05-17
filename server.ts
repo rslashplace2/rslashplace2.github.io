@@ -34,7 +34,6 @@ type ServerConfig = {
     "COOLDOWN": number,
     "CAPTCHA": boolean,
     "PXPS_SECURITY": boolean,
-    "ORIGINS": string[],
     "PALETTE": number[]|null,
     "USE_CLOUDFLARE": boolean,
     "PUSH_LOCATION": string,
@@ -70,7 +69,6 @@ if (configFailed) {
         "COOLDOWN": 1000,
         "CAPTCHA": false,
         "PXPS_SECURITY": false,
-        "ORIGINS": [ "https://rplace.live", "https://rplace.tk" ],
         "PALETTE": null,
         "USE_CLOUDFLARE": true,
         "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH",
@@ -98,7 +96,7 @@ if (configFailed) {
 }
 
 // TODO: Maybe make config
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, PALETTE, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
     CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
     LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE,
@@ -730,8 +728,6 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 ws.close(4000, "No agent")
                 return
             }
-            const ORIGIN  = ws.data.headers.get("origin")
-            if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
             ws.data.cd = COOLDOWN
