@@ -1254,10 +1254,10 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         i % WIDTH}, ${Math.floor(i / WIDTH)}), ${w}x${h}px (${w * h} pixels changed)`)
                     break
                 }
-                case 150: {
+                case 110: {
                     const linkKey = randomString(32)
                     linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now() })
-                    const linkKeyBuf = encoderUTF8.encode("\x96" + linkKey) // code 150
+                    const linkKeyBuf = encoderUTF8.encode("\x6E" + linkKey) // code 110
                     ws.send(linkKeyBuf)
                     break
                 }

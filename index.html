@@ -1127,7 +1127,7 @@
                     turnstileMenu.removeAttribute("opened")
                     break
                 }
-                case 150: {
+                case 110: {
                     if (!linkKeyRequest) {
                         console.error("Could not resolve link key, request object was null")
                         break
@@ -1173,7 +1173,7 @@
 
                 // Link key to prove we own this account ID
                 linkKeyRequest = new PublicPromise()
-                call(send, ws, new Uint8Array([150]))
+                call(send, ws, new Uint8Array([110]))
                 const linkKey = await linkKeyRequest.promise
                 postData.canvasUser = {
                     linkKey: linkKey,
