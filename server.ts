@@ -770,6 +770,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
+            ws.data.previousLiveChats = [] // previous chat messages
 
             const cooldownBuffer = Buffer.alloc(9)
             cooldownBuffer[0] = 1
@@ -1798,7 +1799,8 @@ function expand(newWidth:number, newHeight:number) {
 }
 
 let shutdown = false
-process.on("uncaughtException", console.warn)
+process.on("unhandledRejection", console.error)
+process.on("uncaughtException", console.error)
 process.on("SIGINT", function () {
     if (shutdown) {
         console.log("Bruh impatient")
