@@ -8,6 +8,7 @@
     "basic-repl": "^2.2.1",
     "bun-types": "^1.0.11",
     "cookie": "^0.6.0",
+    "fastest-levenshtein": "^1.0.16",
     "fs.promises.exists": "^1.1.3",
     "ipapi-sync": "^1.0.0",
     "node-fetch": "^3.2.3",
