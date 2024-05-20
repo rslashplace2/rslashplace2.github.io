@@ -765,13 +765,15 @@
             ws.onopen = function(e) {
                 initialConnect = true
                 if (automated) {
-                    const activityBuffer = encoder.encode(`\x1eWindow outer width: ${window.outerWidth}\nWindow inner width: ${window.innerWidth}\n` +
-                        `Window outer height: ${window.outerHeight}\nWindow inner height: ${window.innerHeight}\nLast mouse move${new Date(lastMouseMove).toISOString()}\n` +
-                        `Mouse X (mx): ${mx}\nMouse Y: ${my}\nLocal storage: ${JSON.stringify(localStorage, null, 4)}`)
-                    call(send, ws, activityBuffer)
-                    ws.close()
-                    console.error("Client is running in an unsupported environment")
-                    location = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    console.error("Unsupported environment. Connection can not be guarenteed")
+                    function reportUsage() {
+                        const activityBuffer = encoder.encode(`\x1eWindow outer width: ${window.outerWidth}\nWindow inner width: ${window.innerWidth}\n` +
+                            `Window outer height: ${window.outerHeight}\nWindow inner height: ${window.innerHeight}\nLast mouse move: ${new Date(lastMouseMove).toISOString()}\n` +
+                            `Mouse X (mx): ${mx}\nMouse Y (my): ${my}\nLocal storage: ${JSON.stringify(localStorage, null, 4)}`)
+                        call(send, ws, activityBuffer)
+                    }
+                    setInterval(reportUsage, 3e5) // 5 mins
+                    reportUsage()
                 }
             }
             ws.onmessage = async function({data}) {
@@ -1075,7 +1077,7 @@
 
                         function submitCaptcha(event) {
                             if (captchaSubmitted || !emoji) {
-                                return console.error("Could not send captcha ressponse. No emoji?")
+                                return console.error("Could not send captcha response. No emoji?")
                             }
                             captchaSubmitted = true
                             call(send, ws, encoder.encode("\x10" + emoji))
