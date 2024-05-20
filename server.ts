@@ -21,6 +21,7 @@ import repl from "basic-repl"
 import { $, Server, ServerWebSocket, TLSWebSocketServeOptions } from "bun"
 import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise } from "./server-types.ts"
+import { distance } from "fastest-levenshtein"
 
 let BOARD:Uint8Array, CHANGES:Uint8Array, VOTES:Uint32Array
 
@@ -611,7 +612,8 @@ type ClientData = {
     challenge: "pending"|"active"|undefined,
     turnstile: "active"|undefined,
     lastPeriodCaptcha: number,
-    shadowBanned: boolean
+    shadowBanned: boolean,
+    previousLiveChats: string[]
 }
 interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
@@ -980,7 +982,25 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         positionIndex = data.readUint32BE(offset)
                     }
 
-                    if ((type == 0 && !channel) || !message) return
+                    // Sending similar messages spam
+                    if (!message) {
+                        return
+                    }
+                    if (type === 0) {
+                        if (!channel) {
+                            return
+                        }
+
+                        while (ws.data.previousLiveChats.length > 4) {
+                            ws.data.previousLiveChats.shift()
+                        }
+                        const msgSimilar = isSimilarToPrevious(message, ws.data.previousLiveChats)
+                        ws.data.previousLiveChats.push(message)
+                        if (msgSimilar && message.length > 5) {
+                            ws.send(createChatPacket(0, "Your message was filtered for spam", Math.floor(NOW / 1000), 0, 0, channel))
+                            return
+                        }
+                    }
                     message = censorText(message)
                     if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
                         message = message.replaceAll("@everyone", "*********")
@@ -990,6 +1010,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         message = message.replaceAll("@everyone", "*********")
                     }
 
+                    // Accept
                     let messageId = 0
                     if (type === 0 && channel != null) {
                         messageId = ++liveChatMessageId
@@ -1303,6 +1324,36 @@ try {
 }
 catch (e) {
     currentCaptcha = null
+}
+
+// < 50 chars, < 150 chars, >= 150 chars
+let similarThresholdShort = 5 
+let similarThresholdMedium = 10
+let similarThresholdLong = 20 
+
+/**
+ * Uses levenstein distance & fuzzy heuristics to determine message
+ * similarity to previous messages, weighing the oldest previous message lower in
+ * the mean distance than the most recent previous message, etc
+ * @param {string} message Current message being compared
+ * @param {string} previous Array of previous messages (first - oldest, last - most recent)
+ */
+function isSimilarToPrevious(message: string, previous: string[]): boolean {
+    const threshold = message.length < 50 ? similarThresholdShort
+        : message.length < 150 ? similarThresholdMedium : similarThresholdLong 
+   
+    let totalWeight = 0
+    let weightedSum = 0
+    previous.forEach((prevMessage, index) => {
+        const dist = distance(message, prevMessage)
+        // Weight increases for more recent messages
+        const weight = (index + 1) / previous.length
+        totalWeight += weight
+        weightedSum += dist * weight
+    })
+
+    // Average dist
+    return weightedSum / totalWeight <= threshold
 }
 
 /**
@@ -1714,9 +1765,7 @@ function announce(msg: string, channel: string|null = null, repliesTo:number|nul
     const targetChannels = channel ? [channel] : defaultChannels
     for (const ch of targetChannels) {
         const packet = createChatPacket(0, msg, Math.floor(NOW / 1000), 0, 0, ch, repliesTo)
-        for (const c of wss.clients) {
-            c.send(packet)
-        }
+        wss.publish("all", packet)
     }
 }
 /**
@@ -1740,9 +1789,7 @@ function expand(newWidth:number, newHeight:number) {
     HEIGHT = newHeight
 
     const newChangesPacket = runLengthChanges()
-    for (const c of wss.clients) {
-        c.send(newChangesPacket)
-    }
+    wss.publish("all", newChangesPacket)
     console.log(`Successfully resized canvas to (${WIDTH}, ${HEIGHT}) and messaged all clients`)
     console.log("\x1b[33;4;1mREMEMBER TO UPDATE server_config.json with the new board dimensions" +
         "to avoid potential canvas corruption.\x1b[0m")
