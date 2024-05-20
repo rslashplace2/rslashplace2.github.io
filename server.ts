@@ -613,7 +613,8 @@ type ClientData = {
     turnstile: "active"|undefined,
     lastPeriodCaptcha: number,
     shadowBanned: boolean,
-    previousLiveChats: string[]
+    previousLiveChats: string[],
+    previousPlaceChats: string[]
 }
 interface RplaceServer extends Server {
     clients: Set<ServerWebSocket<ClientData>>
@@ -770,7 +771,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
             ws.data.lastChat = 0 //last chat
             ws.data.connDate = NOW //connection date
-            ws.data.previousLiveChats = [] // previous chat messages
+            ws.data.previousLiveChats = [] // previous live chat messages
+            ws.data.previousPlaceChats = [] // previous place chat messages
 
             const cooldownBuffer = Buffer.alloc(9)
             cooldownBuffer[0] = 1
@@ -982,26 +984,23 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     else {
                         positionIndex = data.readUint32BE(offset)
                     }
-
-                    // Sending similar messages spam
-                    if (!message) {
+                    if ((type === 0 && !channel) || !message) {
                         return
                     }
-                    if (type === 0) {
-                        if (!channel) {
-                            return
-                        }
 
-                        while (ws.data.previousLiveChats.length > 4) {
-                            ws.data.previousLiveChats.shift()
-                        }
-                        const msgSimilar = isSimilarToPrevious(message, ws.data.previousLiveChats)
-                        ws.data.previousLiveChats.push(message)
-                        if (msgSimilar && message.length > 5) {
-                            ws.send(createChatPacket(0, "Your message was filtered for spam", Math.floor(NOW / 1000), 0, 0, channel))
-                            return
-                        }
+                    // Similar messages spam
+                    const previousBucket = type == 0 ? ws.data.previousLiveChats : ws.data.previousPlaceChats
+                    while (previousBucket.length > previousBucketMax) {
+                        previousBucket.shift()
                     }
+                    const msgSimilar = isSimilarToPrevious(message, previousBucket)
+                    previousBucket.push(message)
+                    if (msgSimilar) {
+                        ws.send(createChatPacket(type, "Your message was filtered for spam", Math.floor(NOW / 1000), 0, 0, channel, null, positionIndex))
+                        return
+                    }
+
+                    // Profanity filters
                     message = censorText(message)
                     if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
                         message = message.replaceAll("@everyone", "*********")
@@ -1327,7 +1326,10 @@ catch (e) {
     currentCaptcha = null
 }
 
-// < 50 chars, < 150 chars, >= 150 chars
+// Max prev live chat messages to compare
+let previousBucketMax = 5
+// <5 chars, < 50 chars, < 150 chars, >= 150 chars
+let similarThresholdWord = 0.6 // word must be an exact match to 60% of prev
 let similarThresholdShort = 5 
 let similarThresholdMedium = 10
 let similarThresholdLong = 20 
@@ -1340,21 +1342,32 @@ let similarThresholdLong = 20
  * @param {string} previous Array of previous messages (first - oldest, last - most recent)
  */
 function isSimilarToPrevious(message: string, previous: string[]): boolean {
-    const threshold = message.length < 50 ? similarThresholdShort
+    if (message.length < 5) {
+        let totalSame = 0
+        for (const prevMessage of previous) {
+            if (prevMessage === message) {
+                totalSame++
+            }
+        }
+        return totalSame / previous.length >= similarThresholdWord
+    }
+    else {
+        const threshold = message.length < 50 ? similarThresholdShort
         : message.length < 150 ? similarThresholdMedium : similarThresholdLong 
    
-    let totalWeight = 0
-    let weightedSum = 0
-    previous.forEach((prevMessage, index) => {
-        const dist = distance(message, prevMessage)
-        // Weight increases for more recent messages
-        const weight = (index + 1) / previous.length
-        totalWeight += weight
-        weightedSum += dist * weight
-    })
+        let totalWeight = 0
+        let weightedSum = 0
+        previous.forEach((prevMessage, index) => {
+            const dist = distance(message, prevMessage)
+            // Weight increases for more recent messages
+            const weight = (index + 1) / previous.length
+            totalWeight += weight
+            weightedSum += dist * weight
+        })
 
-    // Average dist
-    return weightedSum / totalWeight <= threshold
+        // Average dist
+        return weightedSum / totalWeight <= threshold
+    }
 }
 
 /**
