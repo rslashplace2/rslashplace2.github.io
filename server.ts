@@ -820,8 +820,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
             // If a custom palette is defined, then we send to client
             // http://www.shodor.org/~efarrow/trunk/html/rgbint.html
-            if (PALETTE || PALETTE_USABLE_REGION) {
-                const usingPalette = PALETTE || DEFAULT_PALETTE
+            if (Array.isArray(PALETTE) || PALETTE_USABLE_REGION) {
+                const usingPalette = Array.isArray(PALETTE) ? PALETTE : DEFAULT_PALETTE
                 let pi = 0
                 const paletteBuffer = Buffer.alloc(4 + usingPalette.length * 4)
                 paletteBuffer[pi++] = 0
