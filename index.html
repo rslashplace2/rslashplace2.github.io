@@ -3123,7 +3123,9 @@
         wscapsule()
 
         async function fetchBoard() {
-            const response = await fetch(localStorage.board || DEFAULT_BOARD)
+            // Override browser cache with ?v= param, may incurr longer loading times
+            // TODO: investigate optimisations to onl;y do a hard realod when necessary
+            const response = await fetch((localStorage.board || DEFAULT_BOARD) + "?v=" + Date.now())
             if (!response.ok) {
                 showLoadingScreen()
                 fetchFailTimeout = setTimeout(fetchBoard, fetchCooldown *= 2)
