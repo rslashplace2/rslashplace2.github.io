@@ -784,7 +784,7 @@
                 case 0: {
                     let pi = 1
                     const paletteLength = data.getUint8(pi++)
-                    PALETTE = [...new Uint32Array(data.buffer.slice(pi))]; pi += paletteLength * 4
+                    PALETTE = [...new Uint32Array(data.buffer.slice(pi, pi += paletteLength * 4))]
                     PALETTE_USABLE_REGION.start = data.getUint8(pi++)
                     PALETTE_USABLE_REGION.end = data.getUint8(pi++)
                     const usablePalette = PALETTE.slice(PALETTE_USABLE_REGION.start, PALETTE_USABLE_REGION.end)
