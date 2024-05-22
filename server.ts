@@ -1831,8 +1831,8 @@ function expand(newWidth:number, newHeight:number) {
     const newBoard = new Uint8Array(newWidth * newHeight)
     const newChanges = new Uint8Array(newWidth * newHeight).fill(255)
     for (let y = 0; y < HEIGHT; y++) {
-        newBoard.set(BOARD.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
-        newChanges.set(CHANGES.subarray(y * WIDTH, (y + 1) * WIDTH), y * WIDTH)
+        newBoard.set(BOARD.subarray(y * WIDTH, (y + 1) * WIDTH), y * newWidth)
+        newChanges.set(CHANGES.subarray(y * WIDTH, (y + 1) * WIDTH), y * newWidth)
     }
     BOARD = newBoard
     CHANGES = newChanges
