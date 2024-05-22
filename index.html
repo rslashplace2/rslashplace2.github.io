@@ -780,9 +780,14 @@
 
                 switch (data.getUint8(0)) {
                 case 0: {
-                    PALETTE = [...new Uint32Array(data.buffer.slice(1))]
-                    generatePalette()
-                    let binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
+                    let pi = 1
+                    const paletteLength = data.getUint8(pi++)
+                    PALETTE = [...new Uint32Array(data.buffer.slice(pi))]; pi += paletteLength * 4
+                    PALETTE_USABLE_REGION.start = data.getUint8(pi++)
+                    PALETTE_USABLE_REGION.end = data.getUint8(pi++)
+                    const usablePalette = PALETTE.slice(PALETTE_USABLE_REGION.start, PALETTE_USABLE_REGION.end)
+                    generatePalette(usablePalette)
+                    const binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
                     generateIndicators(binds)
                     // Board might have already been drawn with old palette so we need to draw it again
                     if (boardAlreadyRendered === true) {
@@ -2570,6 +2575,7 @@
         </div>
     </body>
     <script>
+        let PALETTE_USABLE_REGION = { start: 0, end: 32 }
         let PALETTE = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff]
         let WIDTH = 2000
         let HEIGHT = 2000
@@ -3019,13 +3025,13 @@
             AUDIOS.highlight.run()
         }
 
-        function generatePalette() {
-            colours.innerHTML = PALETTE.map((colour, i) =>
+        function generatePalette(palette) {
+            colours.innerHTML = palette.map((colour, i) =>
                 `<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span contenteditable onkeydown="rebindIndicator(event, ${i})"></span></div>`
             ).join("")
         }
 
-        generatePalette()
+        generatePalette(PALETTE)
 
         colours.onclick = (e) => {
             let i = [...colours.children].indexOf(e.target)

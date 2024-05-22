@@ -23,7 +23,7 @@ import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise } from "./server-types.ts"
 import { distance } from "fastest-levenshtein"
 
-let BOARD:Uint8Array, CHANGES:Uint8Array, VOTES:Uint32Array
+let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Uint32Array, VOTES:Uint32Array
 
 type ServerConfig = {
     "SECURE": boolean,
@@ -37,6 +37,7 @@ type ServerConfig = {
     "PXPS_SECURITY": boolean,
     "ORIGINS": string[],
     "PALETTE": number[]|null,
+    "PALETTE_USABLE_REGION": { start: number, end: number }|null
     "USE_CLOUDFLARE": boolean,
     "PUSH_LOCATION": string,
     "PUSH_PLACE_PATH": string,
@@ -73,6 +74,7 @@ if (configFailed) {
         "PXPS_SECURITY": false,
         "ORIGINS": [ "https://rplace.live", "https://rplace.tk" ],
         "PALETTE": null,
+        "PALETTE_USABLE_REGION": null,
         "USE_CLOUDFLARE": true,
         "PUSH_LOCATION": "https://PUSH_USERNAME:MY_PERSONAL_ACCESS_TOKEN@github.com/MY_REPO_PATH",
         "PUSH_PLACE_PATH": "/path/to/local/git/repo",
@@ -98,19 +100,45 @@ if (configFailed) {
     process.exit(0)
 }
 
-// TODO: Maybe make config
-let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, COOLDOWN, CAPTCHA,
+const DEFAULT_PALETTE = [ 0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff ]
+let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, PALETTE_USABLE_REGION, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
     CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
     LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE,
     TURNSTILE, TURNSTILE_SITE_KEY, TURNSTILE_PRIVATE_KEY } = JSON.parse(configFile.toString()) as ServerConfig
-
-try { BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer()) }
-catch(e) { BOARD = new Uint8Array(WIDTH * HEIGHT) }
-try { CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change")).arrayBuffer()) }
-catch(e) { CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255) }
-try { VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer()) }
-catch(e) { VOTES = new Uint32Array(32) }
+try {
+    BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer())
+}
+catch(e) {
+    console.log(e, "regenerating")
+    BOARD = new Uint8Array(WIDTH * HEIGHT)
+}
+try {
+    CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change")).arrayBuffer())
+    // Probably corrupted, try changes 2
+    if (CHANGES.byteLength < WIDTH * HEIGHT)
+        CHANGES = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "change2")).arrayBuffer())
+    if (CHANGES.byteLength < WIDTH * HEIGHT)
+        throw new Error("Changes was smaller than expected")
+}
+catch(e) {
+    console.log(e, "regenerating")
+    CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
+}
+try {
+    PLACERS = new Uint32Array(await Bun.file(path.join(PUSH_PLACE_PATH, "placers")).arrayBuffer())
+}
+catch(e) {
+    console.log(e, "regenerating")
+    PLACERS = new Uint32Array(WIDTH * HEIGHT).fill(0xFFFFFFFF)
+}
+try {
+    VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer())
+}
+catch(e) {
+    console.log(e, "regenerating")
+    VOTES = new Uint32Array(32)
+}
 let uidTokenFailed = false
 const uidTokenFile = await fs.readFile("uidtoken.txt").catch(_ => uidTokenFailed = true)
 let uidToken:string
@@ -792,12 +820,18 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 
             // If a custom palette is defined, then we send to client
             // http://www.shodor.org/~efarrow/trunk/html/rgbint.html
-            if (Array.isArray(PALETTE)) {
-                const paletteBuffer = Buffer.alloc(1 + PALETTE.length * 4)
-                paletteBuffer[0] = 0
-                for (let i = 0; i < PALETTE.length; i++) {
-                    paletteBuffer.writeUInt32BE(PALETTE[i], i * 4 + 1)
+            if (PALETTE || PALETTE_USABLE_REGION) {
+                const usingPalette = PALETTE || DEFAULT_PALETTE
+                let pi = 0
+                const paletteBuffer = Buffer.alloc(4 + usingPalette.length * 4)
+                paletteBuffer[pi++] = 0
+                paletteBuffer[pi++] = usingPalette.length
+                for (let i = 0; i < usingPalette.length; i++) {
+                    paletteBuffer.writeUInt32BE(usingPalette[i], pi); pi += 4
                 }
+                const usableRegion = PALETTE_USABLE_REGION || { start: 0, end: usingPalette.length }
+                paletteBuffer[pi++] = usableRegion.start
+                paletteBuffer[pi++] = usableRegion.end
                 ws.send(paletteBuffer)
             }
 
@@ -842,7 +876,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const c = data[5]
                     const cd = cooldowns.get(IP) || COOLDOWN
                     const PALETTE_SIZE = PALETTE?.length || 32
-                    if (i >= BOARD.length || c >= PALETTE_SIZE) {
+                    const usablePalette = PALETTE_USABLE_REGION || { start: 0, end: PALETTE_SIZE }
+                    if (i >= BOARD.length || c < usablePalette.start || c >= usablePalette.end) {
                         return
                     }
                     if (LOCKED === true || toValidate.has(ws) || bans.has(IP) || cd > NOW
@@ -865,6 +900,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         return
                     }
                     CHANGES[i] = c
+                    PLACERS[i] = ws.data.intId
                     // Damn you, blob!
                     cooldowns.set(IP, NOW + CD)
                     newPixels.push({ index: i, colour: c, placer: ws })
@@ -1278,7 +1314,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
     port: PORT
 }
 if (SECURE) {
-    // TODO: Report bun segfault when giving a TLS cert and key path that doesn't exist
+    // NOTE: Bun may segfault when giving a TLS cert and key path that doesn't exist
     // Path to certbot certificate, i.e: etc/letsencrypt/live/server.rplace.live/fullchain.pem,
     // Path to certbot key, i.e: etc/letsencrypt/live/server.rplace.live/privkey.pem
     const cert = Bun.file(CERT_PATH)
@@ -1607,11 +1643,12 @@ setInterval(async function () {
     if (LOCKED === true) {
         return
     }
-    await fs.writeFile(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
+    await Bun.write(path.join(PUSH_PLACE_PATH, "change" + (pushTick & 1 ? "2" : "")), CHANGES)
+    await Bun.write(path.join(PUSH_PLACE_PATH, "placers"), PLACERS)
     if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
         try {
             await pushImage()
-            await fs.writeFile("./votes", VOTES)
+            await Bun.write("./votes", VOTES)
         } catch (e) {
             console.log("[" + new Date().toISOString() + "] Error pushing image", e)
         }
