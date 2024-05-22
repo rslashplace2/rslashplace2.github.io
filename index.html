@@ -785,8 +785,7 @@
                     PALETTE = [...new Uint32Array(data.buffer.slice(pi, pi += paletteLength * 4))]
                     PALETTE_USABLE_REGION.start = data.getUint8(pi++)
                     PALETTE_USABLE_REGION.end = data.getUint8(pi++)
-                    const usablePalette = PALETTE.slice(PALETTE_USABLE_REGION.start, PALETTE_USABLE_REGION.end)
-                    generatePalette(usablePalette)
+                    generatePalette()
                     const binds = (localStorage.paletteKeys || DEFAULT_PALETTE_KEYS)
                     generateIndicators(binds)
                     // Board might have already been drawn with old palette so we need to draw it again
@@ -2070,7 +2069,7 @@
                     <div class="body">
                         <div class="header">
                             <img src="images/rplace.png">
-                            <div><div>Main Canvas</div>1000x1000 (cooldown: 3.5s)
+                            <div><div>Main Canvas</div>750x750 (cooldown: 800ms)
                                 <postcopy onclick="
                                     event.stopPropagation()
                                     navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
@@ -3025,28 +3024,47 @@
             AUDIOS.highlight.run()
         }
 
-        function generatePalette(palette) {
-            colours.innerHTML = palette.map((colour, i) =>
-                `<div style='background:rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)${colour == 0xffffffff ? "; outline: 1px #ddd solid; outline-offset: -1px" : ""}'><span contenteditable onkeydown="rebindIndicator(event, ${i})"></span></div>`
-            ).join("")
+        function generatePalette() {
+            colours.innerHTML = ""
+            for (let i = PALETTE_USABLE_REGION.start; i < PALETTE_USABLE_REGION.end; i++) {
+                const colour = PALETTE[i]
+                const colourEl = document.createElement("div")
+                colourEl.dataset.index = i
+                colourEl.style.background = `rgba(${colour & 255},${(colour >> 8) & 255},${(colour >> 16) & 255}, 1)`
+                if (colour == 0xffffffff) {
+                    colourEl.style.outline = "1px #ddd solid"
+                    colourEl.style.outlineOffset = "-1px"
+                }
+                const indicatorSpan = document.createElement("span")
+                indicatorSpan.contentEditable = true
+                indicatorSpan.onkeydown = function(event) {
+                    rebindIndicator(event, i)
+                }
+                colourEl.appendChild(indicatorSpan)
+                colours.appendChild(colourEl)
+            }
         }
-
-        generatePalette(PALETTE)
+        generatePalette()
 
         colours.onclick = (e) => {
-            let i = [...colours.children].indexOf(e.target)
-            if (i < 0) return
-            let el = colours.children[PEN]
-            if (el) {
-                el.classList.remove('sel')
+            const clickedColour = e.target
+            if (!clickedColour || !clickedColour.dataset.index) {
+                return
             }
+            const i = parseInt(clickedColour.dataset.index)
+            if (Number.isNaN(i) || i < PALETTE_USABLE_REGION.start || i >= PALETTE_USABLE_REGION.end) {
+                return
+            }
+            for (const colour of colours.children) {
+                colour.classList.remove("sel")
+            } 
             PEN = i
             canvselect.style.background = e.target.style.background
-            e.target.classList.add('sel')
-            pok.classList.add('enabled')
-            canvselect.children[0].style.display = 'none';
-            canvselect.style.outline = '8px white solid';
-            canvselect.style.boxShadow = '0px 2px 4px 0px rgb(0 0 0 / 50%)'
+            e.target.classList.add("sel")
+            pok.classList.add("enabled")
+            canvselect.children[0].style.display = "none"
+            canvselect.style.outline = "8px white solid"
+            canvselect.style.boxShadow = "0px 2px 4px 0px rgb(0 0 0 / 50%)"
             hideIndicators()
             AUDIOS.selectColour.run()
         }
