@@ -1178,11 +1178,8 @@
                 // Link key to prove we own this account ID
                 linkKeyRequest = new PublicPromise()
                 call(send, ws, new Uint8Array([110]))
-                const linkKey = await linkKeyRequest.promise
-                postData.canvasUser = {
-                    linkKey: linkKey,
-                    instanceId: 1 // Canvas 1 (for now)
-                }
+                const linkInfo = await linkKeyRequest.promise
+                postData.canvasUser = linkInfo
 
                 const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
                     method: "POST",
@@ -1197,11 +1194,11 @@
                 }
 
                 // Upload file as form content
-                if (createPostContent.length != 0) {
+                for (const file of createPostContent.contents) {
                     const data = await uploadResponse.json()
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
                     contentForm.append("contentUploadKey", data.contentUploadKey)
-                    contentForm.append("file", createPostContent[0])
+                    contentForm.append("file", file)
 
                     const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/content/`, {
                         method: "POST",
@@ -2006,9 +2003,10 @@
                     event.stopPropagation()
                     event.preventDefault()
                     this.classList.remove('image-drop')
-                    const file = event.dataTransfer.files[0]
-                    if (file && file.type.startsWith('image/')) {
-                        appendPostContent(file)
+                    for (const file of event.dataTransfer.files) {
+                        if (file.type.startsWith('image/')) {
+                            createPostContent.addContent(file)
+                        }
                     }
                 " ondragleave="
                     event.stopPropagation()
@@ -2040,17 +2038,17 @@
                             </svg>
                         </button>
                         <input type="file" id="createPostContentInput" accept="image/*" onchange="
-                            if (this.files[0]) {
-                                appendPostContent(this.files[0])
+                            for (const file of this.files) {
+                                createPostContent.addContent(file)
                             }
                         " style="display: none;">
                     </div>
                     <div id="createPostOptions" class="create-post-extra">
-                        <div id="createPostContentPreview" style="flex-grow: 1;"></div>
+                        <r-post-contents-preview id="createPostContent"></r-post-contents-preview>
                         <button class="post-button discard-post-button" onclick="
                             createPostTitle.value = ''
                             createPostInput.value = ''
-                            clearPostContent()
+                            createPostContent.clearContents()
                             createPostInput.placeholder = 'Create post...'
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
@@ -3447,25 +3445,6 @@
                     messageInput.setAttribute("state", "default")
                     handled = true
                 }
-            }
-        }
-
-        const createPostContent = []
-        function appendPostContent(file) {
-            createPostContentPreview.innerHTML = ""
-            const label = document.createElement("span")
-            label.textContent = "Content upload:"
-            createPostContentPreview.appendChild(label)
-            const img = document.createElement("img")
-            img.src = window.URL.createObjectURL(file)
-            createPostContentPreview.appendChild(img)
-            createPostContent.push(file)
-        }
-
-        function clearPostContent() {
-            createPostContentPreview.innerHTML = ""
-            while (createPostContent.length) {
-                createPostContent.pop()
             }
         }
 

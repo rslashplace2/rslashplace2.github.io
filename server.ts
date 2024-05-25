@@ -57,7 +57,8 @@ type ServerConfig = {
     "CHALLENGE": boolean,
     "TURNSTILE": boolean,
     "TURNSTILE_SITE_KEY": string,
-    "TURNSTILE_PRIVATE_KEY": string
+    "TURNSTILE_PRIVATE_KEY": string,
+    "CANVAS_ID": number
 }
 let configFailed = false
 let configFile = await fs.readFile("./server_config.json").catch(_ => configFailed = true)
@@ -94,7 +95,8 @@ if (configFailed) {
         "CHALLENGE": false,
         "TURNSTILE": false,
         "TURNSTILE_SITE_KEY": "",
-        "TURNSTILE_PRIVATE_KEY": ""    
+        "TURNSTILE_PRIVATE_KEY": "",
+        "CANVAS_ID": -1
     }, null, 4))
     console.log("Config file created, please update it before restarting the server")
     process.exit(0)
@@ -104,8 +106,8 @@ const DEFAULT_PALETTE = [ 0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, PALETTE_USABLE_REGION, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
     CHAT_MAX_LENGTH, CHAT_COOLDOWN_MS, PUSH_INTERVAL_MINS, CAPTCHA_EXPIRY_SECS, PERIODIC_CAPTCHA_INTERVAL_SECS,
-    LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE,
-    TURNSTILE, TURNSTILE_SITE_KEY, TURNSTILE_PRIVATE_KEY } = JSON.parse(configFile.toString()) as ServerConfig
+    LINK_EXPIRY_SECS, CAPTCHA_MIN_MS, INCLUDE_PLACER, SECURE_COOKIE, CORS_COOKIE, CHALLENGE, TURNSTILE, TURNSTILE_SITE_KEY,
+    TURNSTILE_PRIVATE_KEY, CANVAS_ID } = JSON.parse(configFile.toString()) as ServerConfig
 try {
     BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer())
 }
@@ -173,7 +175,8 @@ const activityCooldowns = new Map<string, number>()
 const cooldowns = new Map<string, number>()
 type LinkKeyInfo = {
     intId: number,
-    dateCreated: number
+    dateCreated: number,
+    canvasId: number
 }
 const linkKeyInfos = new Map<string, LinkKeyInfo>()
 
@@ -1292,7 +1295,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 }
                 case 110: {
                     const linkKey = randomString(32)
-                    linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now() })
+                    linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now(), canvasId: CANVAS_ID })
                     const linkKeyBuf = encoderUTF8.encode("\x6E" + linkKey) // code 110
                     ws.send(linkKeyBuf)
                     break

@@ -172,3 +172,116 @@ class RplaceCloseIcon extends HTMLElement {
     }
 }
 customElements.define("r-close-icon", RplaceCloseIcon)
+
+class CreatePostContent extends HTMLElement {
+    #fileThumbnail
+    #deleteButton
+    #deleteEvent
+    #ondelete
+
+    constructor() {
+        super()
+        this.file = null
+        this.#deleteEvent = new Event("delete")
+        this.ondelete = null
+        const _this = this
+        this.#fileThumbnail = document.createElement("img")
+        this.#deleteButton = document.createElement("button")
+        this.#deleteButton.onclick = function() {
+            _this.dispatchEvent(_this.#deleteEvent)
+        }
+        this.#deleteButton.innerHTML = html`
+            <svg viewBox="0 0 20 20" style="fill: white;" xmlns="http://www.w3.org/2000/svg" height="16">
+                <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+            </svg>`
+    }
+
+    get ondelete() {
+        return this.#ondelete
+    }
+
+    set ondelete(value) {
+        if (this.#ondelete) {
+            this.removeEventListener("delete", this.#ondelete)
+        }
+        this.addEventListener("delete", value)
+        this.#ondelete = value
+    }
+
+    connectedCallback() {
+        this.appendChild(this.#fileThumbnail)
+        this.appendChild(this.#deleteButton)
+    }
+
+    setFile(fileObject) {
+        this.file = fileObject
+        this.#fileThumbnail.src = window.URL.createObjectURL(this.file)
+    }
+}
+customElements.define("r-create-post-content", CreatePostContent)
+
+class CreatePostContentsPreview extends HTMLElement {
+    contents
+    maxContents
+    #uploadLabel
+    #elementItems
+    #contentsContainer
+
+    constructor() {
+        super()
+        this.maxContents = 4
+        this.#elementItems = new Map()
+        this.contents = new Set()
+        this.#uploadLabel = document.createElement("span")
+        this.#uploadLabel.textContent = "Content upload:"
+        this.#contentsContainer = document.createElement("div")
+    }
+
+    addContent(file) {
+        if (this.contents.size >= this.maxContents) {
+            return
+        }
+        this.contents.add(file)
+        if (this.#elementItems.size == 0) {
+            this.insertBefore(this.#uploadLabel, this.#contentsContainer)
+            this.style.height = "72px"
+        }
+        const itemEl = document.createElement("r-create-post-content")
+        this.#contentsContainer.appendChild(itemEl)
+        itemEl.setFile(file)
+        const _this = this
+        itemEl.ondelete = function(e) {
+            _this.deleteContent(e.target.file)
+        }
+        this.#elementItems.set(file, itemEl)
+    }
+
+    deleteContent(file) {
+        if (!this.contents.delete(file)) {
+            return
+        }
+
+        if (this.#elementItems.size == 1) {
+            this.style.height = "36px"
+            this.removeChild(this.#uploadLabel)
+        }
+        const itemEl = this.#elementItems.get(file)
+        if (itemEl) {
+            this.#contentsContainer.removeChild(itemEl)
+            this.#elementItems.delete(file)
+        }
+    }
+
+    clearContents() {
+        this.contents.clear()
+        this.#elementItems.clear()
+        for (const item of this.#contentsContainer.children) {
+            this.#contentsContainer.removeChild(item)    
+        }
+    }
+
+    connectedCallback() {
+        this.appendChild(this.#contentsContainer)
+    }
+}
+customElements.define("r-post-contents-preview", CreatePostContentsPreview)
