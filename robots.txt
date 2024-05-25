@@ -1,3 +1,4 @@
+User-agent: YandexAccessibilityBot
+User-agent: YandexBot
 User-agent: Yandex
-Disallow: /
 Disallow: /
