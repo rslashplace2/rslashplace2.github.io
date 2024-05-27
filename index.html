@@ -495,6 +495,7 @@
         let chatName = null
         let uploadPost = null // function injected by wscapsule
         let setName = null // function injected by wscapsule
+        let requestPixelPlacers = null // function injected by wscapsule
         let requestLoadChannelPrevious = null // function injected by wscapsule
         let canvasLocked = false // Server will tell us this
         let includesPlacer = false // Server will tell us this
@@ -852,6 +853,23 @@
                     }
                     break
                 }
+                case 9: { // Placer info region
+                    let i = data.getUint32(1)
+                    const regionWidth = data.getUint8(5)
+                    const regionHeight = data.getUint8(6)
+                     
+                    let dataI = 7
+                    while (dataI < data.byteLength) {
+                        for (let xi = i; xi < i + regionWidth; xi++) {
+                            if (dataI != 0xFFFFFFFF) {
+                                intIdPositions.set(xi, data.getUint32(dataI))
+                            }
+                            dataI += 4
+                        }
+                        i += WIDTH
+                    }
+                    break
+                }
                 case 11: { // Player int ID // TODO: Integrate into packet 1
                     intId = data.getUint32(1)
                     break
@@ -1138,8 +1156,9 @@
                         console.error("Could not resolve link key, request object was null")
                         break
                     }
-                    const linkKey = decoder.decode(data.buffer.slice(1))
-                    linkKeyRequest.resolve(linkKey)
+                    const instanceId = data.getUint32(1)
+                    const linkKey = decoder.decode(data.buffer.slice(5))
+                    linkKeyRequest.resolve({ linkKey, instanceId: 1 })
                     break
                 }
                 }
@@ -1180,11 +1199,8 @@
                 // Link key to prove we own this account ID
                 linkKeyRequest = new PublicPromise()
                 call(send, ws, new Uint8Array([110]))
-                const linkKey = await linkKeyRequest.promise
-                postData.canvasUser = {
-                    linkKey: linkKey,
-                    instanceId: 1 // Canvas 1 (for now)
-                }
+                const linkInfo = await linkKeyRequest.promise
+                postData.canvasUser = linkInfo // { linkKey: number, instanceId: number }
 
                 const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
                     method: "POST",
@@ -1199,11 +1215,11 @@
                 }
 
                 // Upload file as form content
-                if (createPostContent.length != 0) {
+                for (const file of createPostContent.contents) {
                     const data = await uploadResponse.json()
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
                     contentForm.append("contentUploadKey", data.contentUploadKey)
-                    contentForm.append("file", createPostContent[0])
+                    contentForm.append("file", file)
 
                     const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/content/`, {
                         method: "POST",
@@ -1217,10 +1233,21 @@
                 if (uname.length > 16) return
                 uname ||= "anon"
 
-                let nameBuf = encoder.encode("\x0C" + uname)
+                const nameBuf = encoder.encode("\x0C" + uname)
                 call(send, ws, nameBuf)
             }
             setName = _setName
+
+            // Requests all the pixel placers for a given region from the server to be loaded into 
+            function _requestPixelPlacers(x, y, width, height) {
+                const placerInfoBuf = new DataView(new Uint8Array(7).buffer)
+                placerInfoBuf.setUint8(0, 9)
+                placerInfoBuf.setUint32(1, x + y * WIDTH)
+                placerInfoBuf.setUint8(5, width)
+                placerInfoBuf.setUint8(6, height)
+                call(send, ws, placerInfoBuf)
+            }
+            requestPixelPlacers = _requestPixelPlacers
 
             function put() {
                 // If CD is null but we have already made that initial connection, we have likely ghost disconnected from the WS
@@ -1654,7 +1681,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.37" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=3.38" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -2008,9 +2035,10 @@
                     event.stopPropagation()
                     event.preventDefault()
                     this.classList.remove('image-drop')
-                    const file = event.dataTransfer.files[0]
-                    if (file && file.type.startsWith('image/')) {
-                        appendPostContent(file)
+                    for (const file of event.dataTransfer.files) {
+                        if (file.type.startsWith('image/')) {
+                            createPostContent.addContent(file)
+                        }
                     }
                 " ondragleave="
                     event.stopPropagation()
@@ -2042,17 +2070,17 @@
                             </svg>
                         </button>
                         <input type="file" id="createPostContentInput" accept="image/*" onchange="
-                            if (this.files[0]) {
-                                appendPostContent(this.files[0])
+                            for (const file of this.files) {
+                                createPostContent.addContent(file)
                             }
                         " style="display: none;">
                     </div>
                     <div id="createPostOptions" class="create-post-extra">
-                        <div id="createPostContentPreview" style="flex-grow: 1;"></div>
+                        <r-post-contents-preview id="createPostContent"></r-post-contents-preview>
                         <button class="post-button discard-post-button" onclick="
                             createPostTitle.value = ''
                             createPostInput.value = ''
-                            clearPostContent()
+                            createPostContent.clearContents()
                             createPostInput.placeholder = 'Create post...'
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
@@ -2877,8 +2905,13 @@
                 idPositionTimeout = setTimeout(() => {
                     idPositionDebounce = false
                     let id = intIdPositions.get(intX + intY * WIDTH)
-                    if (id === undefined) return
-
+                    if (id === undefined) {
+                        // Request 16x16 region of pixel placers from server (fine tune if necessary)
+                        const placersRadius = 16
+                        requestPixelPlacers(Math.max(intX - placersRadius / 2, 0), Math.max(intY - placersRadius / 2),
+                            Math.min(placersRadius, WIDTH - intX), Math.min(placersRadius, HEIGHT - intY))
+                        return
+                    }
                     idPosition.style.display = "flex"
                     idPosition.style.left = intX + "px"
                     idPosition.style.top = intY + "px"
@@ -3449,25 +3482,6 @@
                     messageInput.setAttribute("state", "default")
                     handled = true
                 }
-            }
-        }
-
-        const createPostContent = []
-        function appendPostContent(file) {
-            createPostContentPreview.innerHTML = ""
-            const label = document.createElement("span")
-            label.textContent = "Content upload:"
-            createPostContentPreview.appendChild(label)
-            const img = document.createElement("img")
-            img.src = window.URL.createObjectURL(file)
-            createPostContentPreview.appendChild(img)
-            createPostContent.push(file)
-        }
-
-        function clearPostContent() {
-            createPostContentPreview.innerHTML = ""
-            while (createPostContent.length) {
-                createPostContent.pop()
             }
         }
 
