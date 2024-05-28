@@ -23,7 +23,7 @@ import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise } from "./server-types.ts"
 import { distance } from "fastest-levenshtein"
 
-let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Uint32Array, VOTES:Uint32Array
+let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Uint32Array
 
 type ServerConfig = {
     "SECURE": boolean,
@@ -133,13 +133,6 @@ try {
 catch(e) {
     console.log(e, ", regenerating")
     PLACERS = new Uint32Array(WIDTH * HEIGHT).fill(0xFFFFFFFF)
-}
-try {
-    VOTES = new Uint32Array(await Bun.file("./votes").arrayBuffer())
-}
-catch(e) {
-    console.log(e, ", regenerating")
-    VOTES = new Uint32Array(32)
 }
 let uidTokenFailed = false
 const uidTokenFile = await fs.readFile("uidtoken.txt").catch(_ => uidTokenFailed = true)
@@ -1128,12 +1121,6 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }
                     break
                 }
-                case 20: { // TODO: Deprecated - votes
-                    ws.data.voted ^= 1 << data[1]
-                    if (ws.data.voted & (1 << data[1])) VOTES[data[1] & 31]++
-                    else VOTES[data[1] & 31]--
-                    break
-                }
                 case 21: {
                     const result = await padlock.verifySolution(ws, data)
                     if (result === "badpacket" || result === "nosolution") return ws.close(4000, "Invalid solve packet")
@@ -1653,21 +1640,15 @@ setInterval(function () {
 }, 1000)
 
 let pushTick = 0
-const infoBuffer = Buffer.alloc(131)
-infoBuffer[0] = 3
+const infoBuffer = Buffer.alloc(3)
 setInterval(async function () {
     pushTick++
-    // @ts-ignore
-    infoBuffer[1] = (realPlayers + playersOffset) >> 8
-    // @ts-ignore
-    infoBuffer[2] = realPlayers + playersOffset
-    for (let i = 0; i < VOTES.length; i++) {
-        infoBuffer.writeUint32BE(VOTES[i], (i << 2) + 3)
-    }
-    wss.publish("all", infoBuffer)
-
-    // @ts-ignore
+    // Send periodic online players info
+    infoBuffer[0] = 3 // @ts-ignore
+    infoBuffer.writeUInt16BE(realPlayers + playersOffset, 1)
+    wss.publish("all", infoBuffer) // @ts-ignore
     fs.appendFile("./stats.txt", "\n" + realPlayers + "," + NOW)
+
     if (LOCKED === true) {
         return
     }
@@ -1678,7 +1659,6 @@ setInterval(async function () {
     if (pushTick % (PUSH_INTERVAL_MINS / 5 * 60) == 0) {
         try {
             await pushImage()
-            await Bun.write("./votes", VOTES)
         } catch (e) {
             console.log("[" + new Date().toISOString() + "] Error pushing image", e)
         }

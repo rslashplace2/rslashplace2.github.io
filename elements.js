@@ -47,7 +47,7 @@ class RplacePostCopy extends HTMLElement {
         this.appendChild(clipbardSvg)
         const copyStatusSpan = document.createElement("span")
         copyStatusSpan.style.opacity = 0
-        copyStatusSpan.textContent = translate("copiedToClipboard")
+        copyStatusSpan.textContent = "translate(\"copiedToClipboard\")" // TODO: Fix
         this.appendChild(copyStatusSpan)
 
         this.addEventListener("click", (event) => {
@@ -64,90 +64,336 @@ class RplacePostCopy extends HTMLElement {
 customElements.define("r-clipboard-copy", RplacePostCopy)
 
 class RplaceVotes extends HTMLElement {
-    static votedSvg = html`
-        <svg height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg" style="fill: #ff4500;">
-            <path clip-rule="evenodd" d="M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z" fill-rule="evenodd"></path>
-        </svg>
-        `
-    static unvotedSvg = html`
-        <svg height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg">
-            <path clip-rule="evenodd" d="m8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063" fill-rule="evenodd"></path>
-        </svg>
-        `
+    static votedPath = "<path clip-rule=\"evenodd\" d=\"M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z\" fill-rule=\"evenodd\"></path>"
+    static unvotedPath = "<path clip-rule=\"evenodd\" d=\"m8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063\" fill-rule=\"evenodd\"></path>"
+    #upSvg
+    #voteCountEl
+    #downSvg
     #voted = "none"
-    #votes = 0
+    #upvotes = null
+    #downvotes = null
 
     constructor() {
         super()
+        this.#upSvg = this.#createArrowSvg()
+        this.#voteCountEl = document.createElement("div")
+        this.#voteCountEl.textContent = this.votes
+        this.#downSvg = this.#createArrowSvg()
+        this.#downSvg.style.transform = "rotate(180deg)"
+    }
+
+    get votes() {
+        return (this.#upvotes !== null && this.#downvotes !== null) ? this.#upvotes - this.#downvotes : "..."
     }
     set voted(value) {
         this.#voted = value
         this.#refresh()
     }
-    set votes(value) {
-        this.#votes = value
+    get voted() {
+        return this.#voted
+    }
+    set upvotes(value) {
+        this.#upvotes = value
         this.#refresh()
     }
-
+    get upvotes() {
+        return this.#upvotes
+    }
+    set downvotes(value) {
+        this.#downvotes = value
+        this.#refresh()
+    }
+    get downvotes() {
+        return this.#downvotes
+    }
     static get observedAttributes() {
-        return [ "votes", "voted" ]
+        return [ "upvotes", "downvotes", "voted" ]
     }
 
-    attributeChangedCallback() {
-        this.#refresh()
+    #createArrowSvg() {
+        const arrowSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        arrowSvg.innerHTML = RplaceVotes.unvotedPath
+        arrowSvg.setAttribute("height", "24")
+        arrowSvg.setAttribute("width", "24")
+        arrowSvg.setAttribute("viewBox", "0 0 16 16")
+        return arrowSvg
     }
     
     #refresh() {
-        this.upSvg.innerHTML = RplaceVotes.unvotedSvg
-        this.downSvg.innerHTML = RplaceVotes.unvotedSvg
-        if (this.#voted == "up") {
-            this.upSvg.innerHTML = RplaceVotes.votedSvg
-        }
-        else if (this.#voted == "down") {
-            this.downSvg.innerHTML = RplaceVotes.votedSvg
-        }
-        this.voteCount.textContent = this.#votes ?? "..."
+        const upSelected = this.#voted === "up"
+        const downSelected = this.#voted === "down"
+    
+        this.#upSvg.innerHTML = upSelected ? RplaceVotes.votedPath : RplaceVotes.unvotedPath
+        this.#downSvg.innerHTML = downSelected ? RplaceVotes.votedPath : RplaceVotes.unvotedPath
+    
+        this.#upSvg.classList.toggle("voted", upSelected)
+        this.#downSvg.classList.toggle("voted", downSelected)
+    
+        this.#voteCountEl.textContent = this.votes
     }
 
     connectedCallback() {
-        this.upSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        this.upSvg.innerHTML = RplaceVotes.unvotedSvg
-        this.appendChild(this.upSvg)
-        this.voteCount = document.createElement("div")
-        this.voteCount.textContent = this.#votes || "..."
-        this.appendChild(this.voteCount)
-        this.downSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        this.downSvg.style.transform = "rotate(180deg);"
-        this.downSvg.innerHTML = RplaceVotes.unvotedSvg
-        this.appendChild(this.downSvg)
+        this.appendChild(this.#upSvg)
+        this.appendChild(this.#voteCountEl)
+        this.appendChild(this.#downSvg)
         this.#refresh()
     }
 }
 customElements.define("r-votes", RplaceVotes)
 
 class RplacePost extends HTMLElement {
+    account
+    canvasUser
+    post
+    #coverImageUrl
+    #title
+    #description
+    #connectionSource
+    #hidden
+    #showAuthor
+    #authorName
+    #authorImageUrl
+    #creationDate
+    
+    #authorImageEl
+    #votesEl
+    #coverImageEl
+    #hiddenEl
+    #showVotes
+    #authorNameEl
+    #creationDateEl
+    #authorContainerEl
+
     constructor() {
         super()
+        this.#votesEl = document.createElement("r-votes")
+        this.#coverImageEl = document.createElement("img")
+        this.#hiddenEl = document.createElement("button")
+        this.#hiddenEl.className = "hider"
+        this.#hiddenEl.textContent = "Post contains sensitive content. Click to show"
+        const _this = this
+        this.#hiddenEl.onclick = function() {
+            _this.hidden = false
+        }
+
+        this.#authorContainerEl = document.createElement("div")
+        this.#authorContainerEl.className = "author-container"
+        this.#authorImageEl = document.createElement("img")
+        this.#authorImageEl.src = "images/rplace.png"
+        this.#authorImageEl.className = "author-image"
+        this.#authorImageEl.width = "28"
+        this.#authorImageEl.height = "28"
+        this.#authorContainerEl.appendChild(this.#authorImageEl)
+        this.#authorNameEl = document.createElement("a")
+        this.#authorNameEl.className = "author-name"
+        this.#authorNameEl.href = "#"
+        this.#authorContainerEl.appendChild(this.#authorNameEl)
+        const authorSeparator = document.createElement("span")
+        authorSeparator.textContent = "·"
+        this.#authorContainerEl.appendChild(authorSeparator)
+        this.#creationDateEl = document.createElement("span")
+        this.#creationDateEl.className = "creation-date"
+        this.#authorContainerEl.appendChild(this.#creationDateEl)
+        this.#connectionSource = new PublicPromise()
     }
+
+    set creationDate(value) {
+        this.#creationDate = value
+        this.#onCreationDateChanged()
+    }
+    get creationDate() {
+        return this.#creationDate
+    }
+    async #onCreationDateChanged() {
+        await this.#connectionSource.promise
+        this.#creationDateEl.textContent = this.#creationDate.toLocaleString()
+    }
+
+    set authorName(value) {
+        this.#authorName = value
+        this.#onAuthorNameChanged()
+    }
+    get authorName() {
+        return this.#authorName
+    }
+    async #onAuthorNameChanged() {
+        await this.#connectionSource.promise
+        this.#authorNameEl.textContent = "Posted by " + this.#authorName
+    }
+
+    set authorImageUrl(value) {
+        this.#authorImageUrl = value
+        this.#onAuthorImageUrlChanged()
+    }
+    get authorImageUrl() {
+        return this.#authorImageUrl
+    }
+    async #onAuthorImageUrlChanged() {
+        await this.#connectionSource.promise
+        this.#authorImageEl.src = this.#authorImageUrl || "images/rplace.png"
+    }
+
+    set showAuthor(value) {
+        this.#showAuthor = value
+        this.#onShowAuthorChanged()
+    }
+    get showAuthor() {
+        return this.#showAuthor
+    }
+    async #onShowAuthorChanged() {
+        await this.#connectionSource.promise
+        const main = this.querySelector("#main")
+        if (this.#showAuthor && !main.contains(this.#authorContainerEl)) {
+            main.prepend(this.#authorContainerEl)
+        }
+        else if (main.contains(this.#authorContainerEl)) {
+            main.removeChild(this.#authorContainerEl)
+        }
+    }
+
+    set hidden(value) {
+        this.#hidden = value
+        this.#onHiddenChanged()
+    }
+    get hidden() {
+        return this.#hidden
+    }
+    async #onHiddenChanged() {
+        await this.#connectionSource.promise
+        if (this.#hidden && !this.contains(this.#hiddenEl)) {
+            this.appendChild(this.#hiddenEl)
+        }
+        else if (this.contains(this.#hiddenEl)) {
+            this.removeChild(this.#hiddenEl)
+        }
+    }
+
+    set coverImageUrl(value) {
+        this.#coverImageUrl = value
+        this.#onCoverImageUrlChanged()
+    }
+    get coverImageUrl() {
+        return this.#coverImageUrl
+    }
+    async #onCoverImageUrlChanged() {
+        await this.#connectionSource.promise
+        const header = this.querySelector("#header")
+        if (this.#coverImageUrl) {
+            if (!header.contains(this.#coverImageEl)) {
+                header.prepend(this.#coverImageEl)
+            }
+            this.#coverImageEl.src = this.#coverImageUrl
+        }
+        else if (header.contains(this.#coverImageEl)) {
+            header.removeChild(this.#coverImageEl)
+        }
+    }
+
+    set showVotes(value) {
+        this.#showVotes = value
+        this.#onShowVotesChanged()
+    }
+    get showVotes() {
+        return this.#showVotes
+    }
+    async #onShowVotesChanged() {
+        await this.#connectionSource.promise
+        if (this.#showVotes && !this.contains(this.#votesEl)) {
+            this.prepend(this.#votesEl)
+        }
+        else if (this.contains(this.#votesEl)) {
+            this.removeChild(this.#votesEl)
+        }
+    }
+
+    set title(value) {
+        this.#title = value
+        this.#onTitleChanged()
+    }
+    get title() {
+        return this.#title
+    }
+    async #onTitleChanged() {
+        await this.#connectionSource.promise
+        this.querySelector("#title").textContent = this.#title
+    }
+
+    set description(value) {
+        this.#description = value
+        this.#onDescriptionChanged()
+    }
+    get description() {
+        return this.#description
+    }
+    async #onDescriptionChanged() {
+        await this.#connectionSource.promise
+        this.querySelector("#description").textContent = this.#description
+    }
+
     static get observedAttributes() {
-        return [ "title", "description" ]
+        return [ "title", "description", "novotes", "coverimageurl", "hidden" ]
     }
+
+    async attributeChangedCallback(name, oldValue, newValue) {
+        await this.#connectionSource.promise
+        if (newValue == oldValue) {
+            return
+        }
+        if (name == "title") {
+            this.title = newValue
+        }
+        else if (name == "description") {
+            this.description = newValue
+        }
+        else if (name == "novotes") {
+            this.showVotes = newValue === "false"
+        }
+        else if (name == "coverimageurl") {
+            this.coverImageUrl = newValue
+        }
+        else if (name == "hidden") {
+            this.hidden = true
+        }
+    }
+
     connectedCallback() {
         this.innerHTML = html`
-            <div class="post">
-                <r-votes onclick="event.stopPropagation()"></r-votes>
-                <div class="body">
-                    <div class="header">
-                        <img src="images/rplace.png">
-                        <div>
-                            <div>Main Canvas</div>
-                            <span>1000x1000 (cooldown: 3.5s)</span>
-                            <r-clipboard-copy src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&amp;board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place" title="Copy canvas link"></r-clipboard-copy>
-                        </div>
+            <div class="body">
+                <div class="header" id="header">
+                    <div id="main">
+                        <div id="title" class="title"></div>
+                        <span id="description"></span>
                     </div>
                 </div>
-            </div>
-        `
+            </div>`
+        this.#connectionSource.resolve()
+        this.showVotes = true
+        this.coverImageUrl = null
+    }
+
+    async fromPost(fromPost) {
+        this.post = fromPost
+        this.title = fromPost.title
+        this.description = fromPost.description
+        this.#votesEl.upvotes = fromPost.upvotes
+        this.#votesEl.downvotes = fromPost.downvotes
+        if (fromPost.accountId) {
+            const res = await fetch(`${DEFAULT_AUTH}/profiles/${fromPost.accountId}`)
+            if (!res.ok) {
+                console.error(`Could not load account profile ${res.status} ${res.statusText}:`, await res.json())
+                return
+            }
+            const profileObject = await res.json()
+            this.account = profileObject
+            this.authorName = profileObject.username
+            this.authorImageUrl = "images/rplace.png"
+            this.showAuthor = true
+        }
+        else if (fromPost.canvasUserId) {
+            // TODO: Make an endpoint to pull canvas user info from the auth server
+            console.error("Not implemented!")
+        }
+        this.creationDate = new Date(fromPost.creationDate)
     }
 }
 customElements.define("r-post", RplacePost)
