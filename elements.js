@@ -186,8 +186,12 @@ class RplacePost extends HTMLElement {
         this.#authorContainerEl.appendChild(this.#authorImageEl)
         this.#authorNameEl = document.createElement("a")
         this.#authorNameEl.className = "author-name"
-        this.#authorNameEl.href = "#"
+        this.#authorNameEl.href = ""
         this.#authorContainerEl.appendChild(this.#authorNameEl)
+        this.#authorNameEl.onclick = function(e) {
+            e.stopPropagation()
+            e.preventDefault()
+        }
         const authorSeparator = document.createElement("span")
         authorSeparator.textContent = "·"
         this.#authorContainerEl.appendChild(authorSeparator)
