@@ -47,7 +47,7 @@ class RplacePostCopy extends HTMLElement {
         this.appendChild(clipbardSvg)
         const copyStatusSpan = document.createElement("span")
         copyStatusSpan.style.opacity = 0
-        copyStatusSpan.textContent = "translate(\"copiedToClipboard\")" // TODO: Fix
+        copyStatusSpan.textContent = translate("copiedToClipboard")
         this.appendChild(copyStatusSpan)
 
         this.addEventListener("click", (event) => {
