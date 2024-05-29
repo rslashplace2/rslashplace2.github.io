@@ -67,9 +67,10 @@ class PostElArray {
 }
 
 let postEls = new PostElArray()
-let bottomUpvotes = null
+let bottomUpvotes = 0xFFFFFFFF
 let bottomDate = new Date()
 
+const postLimit = 16
 const postLoadCooldown = 1000
 let postFinishedLastLoad = null
 let filter = postsSortSelect.value // "upvotes" | "date" 
@@ -82,7 +83,7 @@ function clearPosts() {
         }
     }
     postEls.clear()
-    bottomUpvotes = null
+    bottomUpvotes = 0xFFFFFFF
     bottomDate = new Date()
 }
 async function finishPostLoadWithCd() {
@@ -104,11 +105,12 @@ async function tryLoadPosts() {
 
         let postsUrl = null
         if (filter == "date") {
-            postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/before/${bottomDate.toISOString()}`
+            postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?beforeDate=${
+                bottomDate.toISOString()}&limit=${postLimit}`
         }
         else if (filter == "upvotes") {
-            // TODO: Implement upvotes endpoint
-            postsUrl = null
+            postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?beforeUpvotes=${
+                bottomUpvotes}&limit=${postLimit}`
         }
         if (postsUrl == null) {
             await finishPostLoadWithCd()
@@ -121,8 +123,8 @@ async function tryLoadPosts() {
             await finishPostLoadWithCd()
             return
         }
-        const posts = await res.json()
-        for (const post of posts) {
+        const postsObject = await res.json()
+        for (const post of postsObject.posts) {
             if (postEls.includes(post)) {
                 // Update the post with new data
                 const postEl = postEls.getById(post.id)
@@ -160,7 +162,15 @@ postsSortSelect.addEventListener("change", function() {
 })
 postsHideSensitive.addEventListener("change", function() {
     hideSensitive = !!postsHideSensitive.checked
-    clearPosts()
-    tryLoadPosts()
+    if (hideSensitive) {
+        for (const postEl of postEls.posts) {
+            postEl.hidden = postEl.post.hasSensitiveContent
+        }
+    }
+    else {
+        for (const postEl of postEls.posts) {
+            postEl.hidden = false
+        }    
+    }
 })
 more.addEventListener("scroll", tryLoadPosts)

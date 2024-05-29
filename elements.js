@@ -1,13 +1,8 @@
+/* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 function html(strings, ...values) {
-    return strings.reduce((result, string, i) => {
-        const value = values[i] !== undefined ? values[i] : ""
-        return result + string + value
-    }, "")
-}
-function css(strings, ...values) {
     return strings.reduce((result, string, i) => {
         const value = values[i] !== undefined ? values[i] : ""
         return result + string + value
@@ -39,19 +34,22 @@ class RplacePostCopy extends HTMLElement {
     }
     connectedCallback() {
         const clipbardSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        clipbardSvg.innerHTML = html`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" opacity="0.6">
-                <path d="M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z"/>
-            </svg>
-        `
+        clipbardSvg.setAttribute("viewBox", "0 0 48 48")
+        clipbardSvg.setAttribute("width", "30")
+        clipbardSvg.setAttribute("height", "30")
+        clipbardSvg.setAttribute("opacity", "0.6")
+        clipbardSvg.innerHTML = "<path d=\"M9 43.95q-1.2 0-2.1-.9-.9-.9-.9-2.1V10.8h3v30.15h23.7v3Zm6-6q-1.2 0-2.1-.9-.9-.9-.9-2.1v-28q0-1.2.9-2.1.9-.9 2.1-.9h22q1.2 0 2.1.9.9.9.9 2.1v28q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h22v-28H15v28Zm0 0v-28 28Z\"/>"
         this.appendChild(clipbardSvg)
         const copyStatusSpan = document.createElement("span")
+        copyStatusSpan.className = "copy-status"
+        // TODO: Use CSS
         copyStatusSpan.style.opacity = 0
+        copyStatusSpan.style.position = "absolute"
         copyStatusSpan.textContent = translate("copiedToClipboard")
         this.appendChild(copyStatusSpan)
 
         this.addEventListener("click", (event) => {
-            const source = this.getAnimations("src")
+            const source = this.getAttribute("src")
             event.stopPropagation()
             navigator.clipboard.writeText(source)
             copyStatusSpan.animate([
@@ -80,6 +78,14 @@ class RplaceVotes extends HTMLElement {
         this.#voteCountEl.textContent = this.votes
         this.#downSvg = this.#createArrowSvg()
         this.#downSvg.style.transform = "rotate(180deg)"
+        
+        // TODO: Implement
+        this.#upSvg.onclick = function() {
+            alert("You must be logged in to upvote a post!")
+        }
+        this.#downSvg.onclick = function() {
+            alert("You must be logged in to downvote a post!")
+        }
     }
 
     get votes() {
@@ -118,7 +124,7 @@ class RplaceVotes extends HTMLElement {
         arrowSvg.setAttribute("viewBox", "0 0 16 16")
         return arrowSvg
     }
-    
+
     #refresh() {
         const upSelected = this.#voted === "up"
         const downSelected = this.#voted === "down"
@@ -141,6 +147,93 @@ class RplaceVotes extends HTMLElement {
 }
 customElements.define("r-votes", RplaceVotes)
 
+const fuzzyNumberFormat = new Intl.NumberFormat(navigator.language, { notation: "compact" })
+// TODO: Implement this in complex components like RplacePost to this to avoid getter/setter hell
+function reactify(object) {
+    const listeners = new Map()
+
+    function notifyListeners(property, newValue, oldValue) {
+        if (listeners.has(property)) {
+            listeners.get(property).forEach(listener => listener(newValue, oldValue))
+        }
+    }
+
+    const proxy = new Proxy(object, {
+        set(target, property, value) {
+            const oldValue = target[property]
+            target[property] = value
+            notifyListeners(property, value, oldValue)
+            return true
+        }
+    })
+    proxy.subscribe = function(property, listener) {
+        if (!listeners.has(property)) {
+            listeners.set(property, new Set())
+        }
+        listeners.get(property).add(listener)
+    }
+    proxy.unsubscribe = function(property, listener) {
+        if (listeners.has(property)) {
+            listeners.get(property).delete(listener)
+        }
+    }
+    return proxy
+}
+
+class UserTooltip extends HTMLElement {
+    #connectionSource
+    #connected
+
+    constructor() {
+        super()
+        this.#connected = false
+        this.#connectionSource = new PublicPromise()
+    }
+
+    connectedCallback() {
+        if (this.#connected) {
+            return
+        }
+        this.innerHTML = html`
+            <div class="user-tooltip-header">
+                <img src="images/rplace.png" width="32">
+                <h2 id="userName">...</h2>
+            </div>
+            <span id="userDate">...</span>
+            <hr>
+            <div class="user-tooltip-grid">
+                <h1 id="userInfo1">?</h1>
+                <h1 id="userInfo2">?</h1>
+                <span id="userInfo1Description">...</span>
+                <span id="userInfo2Description">...</span>
+            </div>`
+        this.#connectionSource.resolve()
+        this.#connected = true
+    }
+
+    async fromAccount(profile) {
+        await this.#connectionSource.promise
+        this.querySelector("#userName").textContent = profile.chatName
+        this.querySelector("#userDate").textContent = "Joined on " + new Date(profile.creationDate).toLocaleString()
+        this.querySelector("#userInfo1").textContent = fuzzyNumberFormat.format(profile.pixelsPlaced)
+        this.querySelector("#userInfo1Description").textContent = "Pixels placed"
+        this.querySelector("#userInfo2").textContent = profile.badges.length
+        this.querySelector("#userInfo2Description").textContent = "User badges"
+    }
+
+    async fromCanvasUser(canvasUser) {
+        await this.#connectionSource.promise
+        this.querySelector("#userName").textContent = canvasUser.chatName || "#" + canvasUser.userIntId
+        this.querySelector("#userDate").textContent = "Last joined " + new Date(canvasUser.lastJoined).toLocaleString()
+        this.querySelector("#userInfo1").textContent = fuzzyNumberFormat.format(canvasUser.pixelsPlaced)
+        this.querySelector("#userInfo1Description").textContent = "Pixels placed"
+        this.querySelector("#userInfo2").textContent = fuzzyNumberFormat.format(canvasUser.playTimeSeconds)
+        this.querySelector("#userInfo2Description").textContent = "Seconds played"
+    }
+}
+customElements.define("r-user-tooltip", UserTooltip)
+
+
 class RplacePost extends HTMLElement {
     account
     canvasUser
@@ -154,6 +247,7 @@ class RplacePost extends HTMLElement {
     #authorName
     #authorImageUrl
     #creationDate
+    #showAuthorTooltip
     
     #authorImageEl
     #votesEl
@@ -161,6 +255,8 @@ class RplacePost extends HTMLElement {
     #hiddenEl
     #showVotes
     #authorNameEl
+    #authorNameSpanEl
+    #authorTooltipEl
     #creationDateEl
     #authorContainerEl
 
@@ -168,6 +264,7 @@ class RplacePost extends HTMLElement {
         super()
         this.#votesEl = document.createElement("r-votes")
         this.#coverImageEl = document.createElement("img")
+        this.#coverImageEl.className = "cover-image"
         this.#hiddenEl = document.createElement("button")
         this.#hiddenEl.className = "hider"
         this.#hiddenEl.textContent = "Post contains sensitive content. Click to show"
@@ -178,27 +275,69 @@ class RplacePost extends HTMLElement {
 
         this.#authorContainerEl = document.createElement("div")
         this.#authorContainerEl.className = "author-container"
+
         this.#authorImageEl = document.createElement("img")
         this.#authorImageEl.src = "images/rplace.png"
         this.#authorImageEl.className = "author-image"
         this.#authorImageEl.width = "28"
         this.#authorImageEl.height = "28"
         this.#authorContainerEl.appendChild(this.#authorImageEl)
+
         this.#authorNameEl = document.createElement("a")
         this.#authorNameEl.className = "author-name"
         this.#authorNameEl.href = ""
-        this.#authorContainerEl.appendChild(this.#authorNameEl)
         this.#authorNameEl.onclick = function(e) {
             e.stopPropagation()
             e.preventDefault()
         }
+        this.#authorNameEl.onmouseenter = function() {
+            _this.showAuthorTooltip = true
+        }
+        this.#authorContainerEl.appendChild(this.#authorNameEl)
+
+        this.#authorNameSpanEl = document.createElement("span")
+        this.#authorNameEl.appendChild(this.#authorNameSpanEl)
+
+        const authorTooltipEl = document.createElement("r-user-tooltip")
+        authorTooltipEl.onmouseleave = function() {
+            _this.showAuthorTooltip = false
+        }
+        this.#authorNameEl.onmouseleave = function() {
+            setTimeout(() => {
+                if (!authorTooltipEl.matches(":hover")) {
+                    _this.showAuthorTooltip = false
+                }
+            }, 200)
+        }
+        this.#authorTooltipEl = authorTooltipEl
+        
+
         const authorSeparator = document.createElement("span")
         authorSeparator.textContent = "·"
         this.#authorContainerEl.appendChild(authorSeparator)
+
         this.#creationDateEl = document.createElement("span")
         this.#creationDateEl.className = "creation-date"
         this.#authorContainerEl.appendChild(this.#creationDateEl)
         this.#connectionSource = new PublicPromise()
+    }
+
+    set showAuthorTooltip(value) {
+        this.#showAuthorTooltip = value
+        this.#onShowAuthorTooltipChanged()
+    }
+    get showAuthorTooltip() {
+        return this.#showAuthorTooltip
+    }
+    async #onShowAuthorTooltipChanged() {
+        if (this.#showAuthorTooltip) {
+            if (!this.#authorNameEl.contains(this.#authorTooltipEl)) {
+                this.#authorNameEl.appendChild(this.#authorTooltipEl)
+            }
+        }
+        else if (this.#authorNameEl.contains(this.#authorTooltipEl)) {
+            this.#authorNameEl.removeChild(this.#authorTooltipEl)
+        }
     }
 
     set creationDate(value) {
@@ -222,7 +361,7 @@ class RplacePost extends HTMLElement {
     }
     async #onAuthorNameChanged() {
         await this.#connectionSource.promise
-        this.#authorNameEl.textContent = "Posted by " + this.#authorName
+        this.#authorNameSpanEl.textContent = "Posted by " + this.#authorName
     }
 
     set authorImageUrl(value) {
@@ -246,12 +385,14 @@ class RplacePost extends HTMLElement {
     }
     async #onShowAuthorChanged() {
         await this.#connectionSource.promise
-        const main = this.querySelector("#main")
-        if (this.#showAuthor && !main.contains(this.#authorContainerEl)) {
-            main.prepend(this.#authorContainerEl)
+        const header = this.querySelector("#header")
+        if (this.#showAuthor) {
+            if (!header.contains(this.#authorContainerEl)) {
+                header.prepend(this.#authorContainerEl)
+            }
         }
-        else if (main.contains(this.#authorContainerEl)) {
-            main.removeChild(this.#authorContainerEl)
+        else if (header.contains(this.#authorContainerEl)) {
+            header.removeChild(this.#authorContainerEl)
         }
     }
 
@@ -264,8 +405,10 @@ class RplacePost extends HTMLElement {
     }
     async #onHiddenChanged() {
         await this.#connectionSource.promise
-        if (this.#hidden && !this.contains(this.#hiddenEl)) {
-            this.appendChild(this.#hiddenEl)
+        if (this.#hidden) {
+            if (!this.contains(this.#hiddenEl)) {
+                this.appendChild(this.#hiddenEl)
+            }
         }
         else if (this.contains(this.#hiddenEl)) {
             this.removeChild(this.#hiddenEl)
@@ -281,15 +424,14 @@ class RplacePost extends HTMLElement {
     }
     async #onCoverImageUrlChanged() {
         await this.#connectionSource.promise
-        const header = this.querySelector("#header")
         if (this.#coverImageUrl) {
-            if (!header.contains(this.#coverImageEl)) {
-                header.prepend(this.#coverImageEl)
+            if (!this.contains(this.#coverImageEl)) {
+                this.insertBefore(this.#coverImageEl, this.querySelector("#body"))
             }
             this.#coverImageEl.src = this.#coverImageUrl
         }
-        else if (header.contains(this.#coverImageEl)) {
-            header.removeChild(this.#coverImageEl)
+        else if (this.contains(this.#coverImageEl)) {
+            this.removeChild(this.#coverImageEl)
         }
     }
 
@@ -302,8 +444,10 @@ class RplacePost extends HTMLElement {
     }
     async #onShowVotesChanged() {
         await this.#connectionSource.promise
-        if (this.#showVotes && !this.contains(this.#votesEl)) {
-            this.prepend(this.#votesEl)
+        if (this.#showVotes) {
+            if (!this.contains(this.#votesEl)) {
+                this.prepend(this.#votesEl)
+            }
         }
         else if (this.contains(this.#votesEl)) {
             this.removeChild(this.#votesEl)
@@ -331,7 +475,10 @@ class RplacePost extends HTMLElement {
     }
     async #onDescriptionChanged() {
         await this.#connectionSource.promise
-        this.querySelector("#description").textContent = this.#description
+        let descriptionText = this.#description
+        descriptionText = sanitise(descriptionText)
+        descriptionText = markdownParse(descriptionText)
+        this.querySelector("#description").innerHTML = descriptionText
     }
 
     static get observedAttributes() {
@@ -362,12 +509,12 @@ class RplacePost extends HTMLElement {
 
     connectedCallback() {
         this.innerHTML = html`
-            <div class="body">
-                <div class="header" id="header">
-                    <div id="main">
-                        <div id="title" class="title"></div>
-                        <span id="description"></span>
-                    </div>
+            <div id="body" class="body">
+                <div id="header" class="header">
+                </div>
+                <div id="main" class="main">
+                    <div id="title" class="title"></div>
+                    <p id="description" class="description"></p>
                 </div>
             </div>`
         this.#connectionSource.resolve()
@@ -382,7 +529,7 @@ class RplacePost extends HTMLElement {
         this.#votesEl.upvotes = fromPost.upvotes
         this.#votesEl.downvotes = fromPost.downvotes
         if (fromPost.accountId) {
-            const res = await fetch(`${DEFAULT_AUTH}/profiles/${fromPost.accountId}`)
+            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/profiles/${fromPost.accountId}`)
             if (!res.ok) {
                 console.error(`Could not load account profile ${res.status} ${res.statusText}:`, await res.json())
                 return
@@ -391,13 +538,24 @@ class RplacePost extends HTMLElement {
             this.account = profileObject
             this.authorName = profileObject.username
             this.authorImageUrl = "images/rplace.png"
+            this.#authorTooltipEl.fromAccount(profileObject)
             this.showAuthor = true
         }
         else if (fromPost.canvasUserId) {
-            // TODO: Make an endpoint to pull canvas user info from the auth server
-            console.error("Not implemented!")
+            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/users/${fromPost.canvasUserId}`)
+            const canvasUserObject = await res.json()
+            this.canvasUser = canvasUserObject
+            this.authorName = canvasUserObject.chatName || "#" + canvasUserObject.userIntId
+            this.authorImageUrl = "images/rplace.png"
+            this.#authorTooltipEl.fromCanvasUser(canvasUserObject)
+            this.showAuthor = true
         }
         this.creationDate = new Date(fromPost.creationDate)
+        for (const content of fromPost.contents) {
+            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/content/${content.id}`)
+            const contentBlob = await res.blob()
+            
+        }
     }
 }
 customElements.define("r-post", RplacePost)

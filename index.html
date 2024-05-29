@@ -533,33 +533,6 @@
                 alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
             }
 
-            function markdownParse(text) {
-                text = text.replace(/(#{3}\s)(.*)/g, (match) => {
-                    return `<h3 style="display:inline;">${match.slice(4)}</h3>`
-                })
-                text = text.replace(/(#{2}\s)(.*)/g, (match) => {
-                    return `<h2 style="display:inline;">${match.slice(3)}</h2>`
-                })
-                text = text.replace(/(#{1}\s)(.*)/g, (match) => {
-                    return `<h1 style="display:inline;">${match.slice(2)}</h1>`
-                })
-                function matchBold(match) {
-                    return `<b>${match.slice(2, -2)}</b>`
-                }
-                text = text.replace(/\*\*([^*]+)\*\*/g, matchBold)
-                text = text.replace(/\_\_([^*]+)\_\_/g, matchBold)
-                function matchItalic(match) {
-                    return `<i>${match.slice(1, -1)}</i>`
-                }
-                text = text.replace(/\*([^*]+)\*/g, matchItalic)
-                text = text.replace(/\_(.*)\_/g, matchItalic)
-
-                text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
-                    return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
-                })
-                return text
-            }
-
             function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
                 let newMessage = document.createElement("div")
                 newMessage.messageId = messageId
@@ -567,7 +540,7 @@
                 newMessage.originalContent = txt
 
                 // Sanitise regex
-                txt = txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
+                txt = sanitise(txt)
                 // Simple markdown parse regexes
                 txt = markdownParse(txt)
                 // Custom emoji regex
@@ -1174,7 +1147,7 @@
             }
 
             let linkKeyRequest = null
-            async function _uploadPost(title, content) {
+            async function _uploadPost(title, content, contents) {
                 // TODO: Until global auth accounts are released, we will do all post authentications
                 // TODO: through the canvas account linkage API
                 const postData = {
@@ -1196,14 +1169,19 @@
                     headers: { "Content-Type": "application/json" }
                 })
                 if (!uploadResponse.ok) {
-                    const jsonError = await uploadResponse.json().catch(_ => _)
-                    alert("Could not upload post: " + jsonError.message)
-                    console.error(uploadResponse.status, uploadResponse.statusText)
+                    if (uploadResponse.status == 401) {
+                        alert("Error:  You are being rate limited. Please wait before posting again")
+                    }
+                    else {
+                        const jsonError = await uploadResponse.json().catch(_ => _)
+                        alert("Error: Could not upload post: " + jsonError.message)
+                        console.error(uploadResponse.status, uploadResponse.statusText)
+                    }
                     return
                 }
 
                 // Upload file as form content
-                for (const file of createPostContent.contents) {
+                for (const file of contents) {
                     const data = await uploadResponse.json()
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
                     contentForm.append("contentUploadKey", data.contentUploadKey)
@@ -2050,7 +2028,7 @@
                             <path style="fill: #939393;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"></path>
                         </svg>
                         <div style="flex-grow: 1; display: flex; flex-direction: column;">
-                            <input type="text" id="createPostTitle" maxlength="64" class="create-post-input create-post-extra" placeholder="Post title...">
+                            <input type="text" id="createPostTitle" minlength="1" maxlength="64" required class="create-post-input create-post-extra" placeholder="Post title...">
                             <textarea id="createPostInput" maxlength="360" class="create-post-input" placeholder="Create post..."
                                 onkeypress="event.stopPropagation()"
                                 onfocus="
@@ -2078,36 +2056,49 @@
                             createPostInput.placeholder = 'Create post...'
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
-                        <button class="post-button create-post-button" onclick="uploadPost(createPostTitle.value, createPostInput.value)">Post</button>
+                        <button class="post-button create-post-button" onclick="
+                            if (!createPostTitle.checkValidity()) {
+                                createPostTitle.setCustomValidity('Post title should be between 1-64 characters long!')
+                                return
+                            }
+                            createPostTitle.setCustomValidity('')
+                            if (!createPostInput.checkValidity()) {
+                                createPostInput.setCustomValidity('Invalid post content')
+                                return
+                            }
+                            createPostInput.setCustomValidity('')
+                            if (!localStorage.agredPostRules) {
+                                postRulesDialog.showModal()
+                                postRulesDialog.onclose = function(e) {
+                                    if (postRulesDialog.returnValue === true) {
+                                        uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)
+                                    }
+                                }
+                            }
+                            else {
+                                uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)
+                            }
+                            ">Post</button>
                     </div>
                 </div>
-                <div onclick="openChatPanel()" class="post" novotes="true">
+                <div onclick="openChatPanel()" class="post" style="cursor: pointer;" novotes="true">
+                    <img alt="Live chat icon" class="cover-image" src="images/live.png">
                     <div class="body">
-                        <div class="header">
-                            <img src="images/live.png">
-                            <div><div class="title" translate="liveChat">Live Chat</div><span id="onlineCounter2">... online</span></div>
+                        <div class="main">
+                            <div class="title" translate="liveChat">Live Chat</div>
+                            <span class="description" id="onlineCounter2">... online</span>
                         </div>
                     </div>
                 </div>
-                <div onclick="switchGameServer()" class="post" novotes="true">
+                <div onclick="switchGameServer()" class="post" style="cursor: pointer;" novotes="true">
+                    <img alt="Rplace logo" class="cover-image" src="images/rplace.png">
                     <div class="body">
-                        <div class="header">
-                            <img src="images/rplace.png">
-                            <div><div class="title">Main Canvas</div>750x750 (cooldown: 800ms)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
+                        <div class="main">
+                            <div class="title">Main Canvas</div>
+                            <div class="description">750x750 (cooldown: 800ms)</div>
                         </div>
                     </div>
+                    <r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
                 </div>
                 <r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
                     coverimageurl="images/lamda.png"></r-post>
@@ -2139,7 +2130,7 @@
                                 <option value="upvotes">Upvotes</option>
                             </select>
                             <label for="postsHideSensitive">Hide sensitive:</label>
-                            <input id="postsHideSensitive" type="checkbox" style="box-shadow: none; border-radius: 64px;">
+                            <input id="postsHideSensitive" type="checkbox" checked style="box-shadow: none; border-radius: 64px;">
                         </div>
                     </div>
                 </div>
@@ -2444,6 +2435,24 @@
             </div>
             <div class="progressbar"><!--progress bar--></div>
         </div>
+
+        <dialog id="postRulesDialog" class="reddit-modal">
+            <r-close-icon onclick="postRulesDialog.close()" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
+            <div style="display: flex; flex-direction: column; padding: 16px; overflow-y: scroll; row-gap: 8px;">
+                <h4>By creating a post, you agree to the following conditions:</h4>
+                <ol style="font-size: 18px;line-height: 32px;margin-left: 16px; flex-grow: 1;">
+                    <li>All posts you create are public, and any personal information shared will be visible to everyone.</li>
+                    <li>Your post must be related to rplace and must not contain NSFW or copyrighted content.</li>
+                    <li>All content uploaded may be processed by third party content filters and AI detection systems.</li>
+                    <li>Any illegal content will be reported to relevant authorities, alongside any necessary user information to aid with investigation.</li>
+                </ol>
+                <img src="images/example-post.png" alt="Example post" style="height: 256px;object-fit: contain;">
+                <button class="reddit-modal-button" onclick="
+                    localStorage.agredPostRules = true
+                    postRulesDialog.close(true)
+                    ">Create post</button>    
+            </div>
+        </dialog>
     </body>
     <script>
         let PALETTE_USABLE_REGION = { start: 0, end: 32 }
@@ -2465,6 +2474,37 @@
                     this.reject = reject
                 })
             }
+        }
+
+        function sanitise(txt) {
+            return txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
+        }
+
+        function markdownParse(text) {
+            text = text.replace(/^(#{3}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h3 style="display:inline;">${p2}</h3>`
+            })
+            text = text.replace(/^(#{2}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h2 style="display:inline;">${p2}</h2>`
+            })
+            text = text.replace(/^(#{1}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h1 style="display:inline;">${p2}</h1>`
+            })
+            function matchBold(match) {
+                return `<b>${match.slice(2, -2)}</b>`
+            }
+            text = text.replace(/\*\*([^*]+)\*\*/g, matchBold)
+            text = text.replace(/\_\_([^*]+)\_\_/g, matchBold)
+            function matchItalic(match) {
+                return `<i>${match.slice(1, -1)}</i>`
+            }
+            text = text.replace(/\*([^*]+)\*/g, matchItalic)
+            text = text.replace(/\_(.*)\_/g, matchItalic)
+
+            text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
+                return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
+            })
+            return text
         }
 
         document.body.ontouchstart = function(e) {

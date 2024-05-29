@@ -1305,13 +1305,6 @@ r-post, .post {
 	gap: 10px;
 	color: #aaa;
 	position: relative;
-	overflow: hidden;
-}
-r-post {
-	min-height: 76px;
-}
-.post {
-	cursor: pointer;
 }
 r-post[novotes="true"], .post[novotes="true"] {
 	padding-left: 16px;
@@ -1334,20 +1327,30 @@ r-post .hider {
 r-post .body, .post .body {
 	display: flex;
 	flex-direction: column;
-	flex: 1;
-	margin: 3px 0;
+	flex-grow: 1;
+	margin: 2px 0;
 	row-gap: 4px;
 }
 r-post .header, .post .header {
 	display: flex;
 	column-gap: 6px;
 }
-r-post .header .title, .post .header .title {
-	color: #000;
-}
-r-post .header > img, .post .header > img {
+r-post > .cover-image, .post > .cover-image {
 	width: 40px;
 	height: 40px;
+}
+r-post .main > .description, .post .main > .description {
+	white-space: pre-wrap;
+}
+r-post .main > .title, .post .main > .title {
+	color: #000;
+}
+r-post > r-clipboard-copy, .post > r-clipboard-copy {
+	align-self: center;
+}
+/* r-post only */
+r-post {
+	min-height: 76px;
 }
 r-post .author-container {
 	display: flex;
@@ -1355,7 +1358,7 @@ r-post .author-container {
 	align-items: center;
 	font-weight: lighter;
 }
-r-post .author-container * {
+r-post .author-container > *, r-post .author-container > a > span {
 	font-size: 12px;
 	color: #aaa;
 	margin-bottom: 8px;
@@ -1367,6 +1370,7 @@ r-post .author-image {
 }
 r-post .author-name {
 	text-decoration: underline;
+	position: relative;
 }
 r-votes, .r-votes {
 	position: absolute;
@@ -1393,6 +1397,67 @@ r-votes > svg:hover {
 }
 r-votes > svg:hover, r-votes > svg.voted {
 	fill: #cc3700;
+}
+r-user-tooltip {
+	position: absolute;
+	background: white;
+	width: max-content;
+	height: max-content;
+	z-index: 1;
+	top: calc(100% + 4px);
+	left: 0;
+	border-radius: 4px;
+	box-shadow: 0px 2px 4px grey;
+	color: black;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	row-gap: 4px;
+}
+r-user-tooltip::before {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 4px;
+	background: linear-gradient(to right, #7b71ef, #3d6dde);
+	content: "";
+	border-radius: 4px 4px 0px 0px;	
+}
+r-user-tooltip > hr {
+	opacity: 0.2;
+}
+r-user-tooltip > span {
+	color: #aaa;
+	font-size: 12px;
+}
+.user-tooltip-header {
+	display: flex;
+	align-items: center;
+	column-gap: 4px;
+}
+.user-tooltip-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: auto min-content;
+	column-gap: 2px;
+	flex-grow: 1;
+}
+.user-tooltip-grid > span {
+	color: #aaa;
+}
+r-clipboard-copy {
+	position: relative;
+	height: 30px;
+	width: 30px;
+}
+r-clipboard-copy .copy-status {
+	opacity: 0;
+	position: absolute;
+	left: 0;
+	transform: translate(-100%, -50%);
+	min-width: max-content;
+	top: 50%;
 }
 
 #createPostPost {
@@ -1441,6 +1506,9 @@ r-votes > svg:hover, r-votes > svg.voted {
 .create-post-input:hover {
 	background-color: #FFFFFF;
 	border: 1px solid #0079D3;
+}
+.create-post-input:invalid {
+	border: 1px solid #c40c0c;
 }
 #createPostInput {
 	min-height: 38px;
