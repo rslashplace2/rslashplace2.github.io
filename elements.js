@@ -227,8 +227,18 @@ class UserTooltip extends HTMLElement {
         this.querySelector("#userDate").textContent = "Last joined " + new Date(canvasUser.lastJoined).toLocaleString()
         this.querySelector("#userInfo1").textContent = fuzzyNumberFormat.format(canvasUser.pixelsPlaced)
         this.querySelector("#userInfo1Description").textContent = "Pixels placed"
-        this.querySelector("#userInfo2").textContent = fuzzyNumberFormat.format(canvasUser.playTimeSeconds)
-        this.querySelector("#userInfo2Description").textContent = "Seconds played"
+        let playTime = canvasUser.playTimeSeconds
+        let playTimeUnit = "Seconds played"
+        if (playTime > 3600) {
+            playTime /= 3600
+            playTimeUnit = "Hours played"
+        }
+        if (playTime > 60) {
+            playTime = Math.floor(playTime / 60)
+            playTimeUnit = "Minutes played"
+        }
+        this.querySelector("#userInfo2").textContent = fuzzyNumberFormat.format(playTime)
+        this.querySelector("#userInfo2Description").textContent = playTimeUnit
     }
 }
 customElements.define("r-user-tooltip", UserTooltip)

@@ -66,7 +66,7 @@ class PostElArray {
     }
 }
 
-let postEls = new PostElArray()
+const postEls = new PostElArray()
 let bottomUpvotes = 0xFFFFFFFF
 let bottomDate = new Date()
 
