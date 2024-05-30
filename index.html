@@ -1181,13 +1181,13 @@
                 }
 
                 // Upload file as form content
+                const uploadResponseObject = await uploadResponse.json()
                 for (const file of contents) {
-                    const data = await uploadResponse.json()
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
-                    contentForm.append("contentUploadKey", data.contentUploadKey)
+                    contentForm.append("contentUploadKey", uploadResponseObject.contentUploadKey)
                     contentForm.append("file", file)
 
-                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/contents/`, {
+                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponseObject.postId}/contents/`, {
                         method: "POST",
                         body: contentForm,
                     })
