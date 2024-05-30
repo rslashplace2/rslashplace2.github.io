@@ -2060,17 +2060,11 @@
                     </div>
                     <div id="createPostOptions" class="create-post-extra">
                         <r-post-contents-preview id="createPostContent"></r-post-contents-preview>
-                        <button class="post-button discard-post-button" onclick="
-                            createPostTitle.value = ''
-                            createPostInput.value = ''
-                            createPostContent.clearContents()
-                            createPostInput.placeholder = 'Create post...'
-                            createPostPost.classList.remove('focused')
-                        ">Discard</button>
+                        <button class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
                         <button class="post-button create-post-button" onclick="
                             async function uploadAndUpdatePosts() {
                                 if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)) {
-                                    createPostContent.clearContents()
+                                    resetCreatePost()
                                     alert('Post success!')
                                     await tryLoadTopPosts()
                                 }
@@ -2485,6 +2479,14 @@
                     this.reject = reject
                 })
             }
+        }
+
+        function resetCreatePost() {
+            createPostTitle.value = ""
+            createPostInput.value = ""
+            createPostContent.clearContents()
+            createPostInput.placeholder = 'Create post...'
+            createPostPost.classList.remove('focused')
         }
 
         function sanitise(txt) {
