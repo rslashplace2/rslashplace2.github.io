@@ -562,9 +562,9 @@ class RplacePost extends HTMLElement {
         }
         this.creationDate = new Date(fromPost.creationDate)
         for (const content of fromPost.contents) {
-            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/content/${content.id}`)
+            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/contents/${content.id}`)
             const contentBlob = await res.blob()
-            
+            console.error("Not implemented!")
         }
     }
 }
