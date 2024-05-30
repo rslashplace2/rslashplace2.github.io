@@ -2091,7 +2091,7 @@
                                 createPostButton.disabled = true
                                 const progressCb = function(stage, info) {
                                     if (stage == 'uploadPost') {
-                                        createPostStatus.textContent = 'Uploading post: ' + `${info.status}%`
+                                        createPostStatus.textContent = 'Uploading post: ' + `${info.progress}%`
                                     }
                                     else if (stage == 'uploadContent') {
                                         createPostStatus.textContent = 'Uploading attachment...' + `(${info.current}/${info.total})`
