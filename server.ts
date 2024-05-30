@@ -912,7 +912,9 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const startY = Math.floor(boardI / WIDTH) 
                     const regionWidth = data[5] + startX > WIDTH ? WIDTH - startX : data[5]
                     const regionHeight = data[6] + startY > HEIGHT ? HEIGHT - startY : data[6]
-
+                    if (regionWidth < 0 || regionWidth > 255 || regionHeight < 0 || regionHeight > 255) {
+                        return
+                    }
                     const placerInfoBuf = Buffer.alloc(7 + (regionWidth * regionHeight * 4))
                     placerInfoBuf[0] = 9
                     placerInfoBuf.writeUInt32BE(boardI, 1)

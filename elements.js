@@ -180,7 +180,7 @@ function reactify(object) {
     return proxy
 }
 
-class UserTooltip extends HTMLElement {
+class RplaceUserTooltip extends HTMLElement {
     #connectionSource
     #connected
 
@@ -241,8 +241,139 @@ class UserTooltip extends HTMLElement {
         this.querySelector("#userInfo2Description").textContent = playTimeUnit
     }
 }
-customElements.define("r-user-tooltip", UserTooltip)
+customElements.define("r-user-tooltip", RplaceUserTooltip)
 
+class RplaceCloseIcon extends HTMLElement {
+    constructor() {
+        super()
+    }
+
+    connectedCallback() {
+        this.innerHTML = html`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
+                <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+            </svg>`
+        this.tabIndex = 0
+        this.addEventListener("keydown", function(event) {
+            if (event.key == "Enter" || event.key == " ") {
+                this.click()
+                console.log(this)
+            }
+        })
+    }
+}
+customElements.define("r-close-icon", RplaceCloseIcon)
+
+
+class RplacePostContents extends HTMLElement {
+    #contentUrls
+    #connectionSource
+    #dialogEl
+    #dialogImgEl
+    #dialogReferenceEl
+    #contentsAlbumEl
+
+    constructor() {
+        super()
+        this.#connectionSource = new PublicPromise()
+        this.#contentUrls = []
+        const dialogEl = document.createElement("dialog")
+        dialogEl.className = "reddit-modal"
+        const dialogHeaderEl = document.createElement("div")
+        dialogHeaderEl.className = "dialog-header"
+        dialogEl.appendChild(dialogHeaderEl)
+        const dialogTitleEl = document.createElement("h4")
+        dialogTitleEl.textContent = "Viewing image "
+        dialogHeaderEl.appendChild(dialogTitleEl)
+        this.#dialogReferenceEl = document.createElement("a")
+        dialogHeaderEl.appendChild(this.#dialogReferenceEl)
+        const dialogCloseEl = document.createElement("r-close-icon")
+        dialogCloseEl.onclick = function() {
+            dialogEl.close()
+        }
+        dialogHeaderEl.appendChild(dialogCloseEl)
+        dialogEl.appendChild(dialogHeaderEl)
+        this.#dialogImgEl = document.createElement("img")
+        dialogEl.appendChild(this.#dialogImgEl)
+        this.#dialogEl = dialogEl
+
+        this.#contentsAlbumEl = document.createElement("div")
+    }
+
+    static get observedAttributes() {
+        return [ "contenturls" ]
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "images" && oldValue !== newValue) {
+            this.contentUrls = JSON.parse(newValue)
+            this.#refresh()
+        }
+    }
+
+    set contentUrls(value) {
+        this.#contentUrls = value
+        this.#refresh()
+    }
+    get contentUrls() {
+        return this.#contentUrls
+    }
+
+    connectedCallback() {
+        this.appendChild(this.#dialogEl)
+        this.appendChild(this.#contentsAlbumEl)
+        this.#connectionSource.resolve()
+        this.#refresh()
+    }
+
+    async #refresh() {
+        await this.#connectionSource.promise
+        const container = this.#contentsAlbumEl
+        for (const imageEl of container.children) {
+            container.removeChild(imageEl)
+        }
+        container.className = "contents-album"
+
+        switch (this.#contentUrls.length) {
+            case 1:
+                container.style.gridTemplateColumns = "1fr"
+                container.style.gridTemplateRows = "1fr"
+                break
+            case 2:
+                container.style.gridTemplateColumns = "1fr 1fr"
+                container.style.gridTemplateRows = "1fr"
+                break
+            case 3:
+                container.style.gridTemplateColumns = "1fr 1fr"
+                container.style.gridTemplateRows = "1fr 1fr"
+                break
+            case 4:
+                container.style.gridTemplateColumns = "1fr 1fr"
+                container.style.gridTemplateRows = "1fr 1fr"
+                break
+        }
+
+        this.#contentUrls.forEach((contentUrl, index) => {
+            const imageEl = document.createElement("img")
+            imageEl.src = contentUrl
+            if (this.#contentUrls.length === 3 && index === 2) {
+                imageEl.style.gridColumn = "1 / span 2"
+            }
+            container.appendChild(imageEl)
+            // TODO: Do with getter/setter
+            const dialogReferenceEl = this.#dialogReferenceEl
+            const dialogImgEl = this.#dialogImgEl
+            const dialogEl = this.#dialogEl
+            imageEl.onclick = function() {
+                dialogReferenceEl.textContent = "(Download original)"
+                dialogReferenceEl.href = contentUrl
+                dialogImgEl.src = contentUrl
+                dialogEl.showModal()
+            }
+        })
+    }
+}
+customElements.define("r-post-contents", RplacePostContents)
 
 class RplacePost extends HTMLElement {
     account
@@ -269,6 +400,8 @@ class RplacePost extends HTMLElement {
     #authorTooltipEl
     #creationDateEl
     #authorContainerEl
+    #contentsEl
+    #showContents
 
     constructor() {
         super()
@@ -321,7 +454,6 @@ class RplacePost extends HTMLElement {
         }
         this.#authorTooltipEl = authorTooltipEl
         
-
         const authorSeparator = document.createElement("span")
         authorSeparator.textContent = "·"
         this.#authorContainerEl.appendChild(authorSeparator)
@@ -329,6 +461,9 @@ class RplacePost extends HTMLElement {
         this.#creationDateEl = document.createElement("span")
         this.#creationDateEl.className = "creation-date"
         this.#authorContainerEl.appendChild(this.#creationDateEl)
+
+        this.#contentsEl = document.createElement("r-post-contents")
+        this.#showContents = false
         this.#connectionSource = new PublicPromise()
     }
 
@@ -491,6 +626,26 @@ class RplacePost extends HTMLElement {
         this.querySelector("#description").innerHTML = descriptionText
     }
 
+    set showContents(value) {
+        this.#showContents = value
+        this.#onShowContentsChanged()
+    }
+    get showContents() {
+        return this.#showContents
+    }
+    async #onShowContentsChanged() {
+        await this.#connectionSource.promise
+        const main = this.querySelector("#main")
+        if (this.#showContents) {
+            if (!main.contains(this.#contentsEl)) {
+                main.append(this.#contentsEl)
+            }
+        }
+        else if (main.contains(this.#contentsEl)) {
+            main.removeChild(this.#contentsEl)
+        }
+    }
+
     static get observedAttributes() {
         return [ "title", "description", "novotes", "coverimageurl", "hidden" ]
     }
@@ -561,35 +716,17 @@ class RplacePost extends HTMLElement {
             this.showAuthor = true
         }
         this.creationDate = new Date(fromPost.creationDate)
+        const contentUrls = []
         for (const content of fromPost.contents) {
-            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/contents/${content.id}`)
-            const contentBlob = await res.blob()
-            console.error("Not implemented!")
+            contentUrls.push(`${localStorage.auth || DEFAULT_AUTH}/posts/contents/${content.id}`)
+        }
+        if (contentUrls.length > 0) {
+            this.#contentsEl.contentUrls = contentUrls
+            this.showContents = true
         }
     }
 }
 customElements.define("r-post", RplacePost)
-
-class RplaceCloseIcon extends HTMLElement {
-    constructor() {
-        super()
-    }
-
-    connectedCallback() {
-        this.innerHTML = html`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="active">
-                <path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
-            </svg>`
-        this.tabIndex = 0
-        this.addEventListener("keydown", function(event) {
-            if (event.key == "Enter" || event.key == " ") {
-                this.click()
-                console.log(this)
-            }
-        })
-    }
-}
-customElements.define("r-close-icon", RplaceCloseIcon)
 
 class CreatePostContent extends HTMLElement {
     #fileThumbnail

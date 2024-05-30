@@ -1317,7 +1317,7 @@ r-post .hider {
 	width: 100%;
 	height: 100%;
 	background-color: #8080804d;
-	backdrop-filter: blur(4px);
+	backdrop-filter: blur(8px);
 	color: black;
 	display: flex;
 	justify-content: center;
@@ -1458,6 +1458,46 @@ r-clipboard-copy .copy-status {
 	transform: translate(-100%, -50%);
 	min-width: max-content;
 	top: 50%;
+}
+r-post-contents .contents-album {
+	height: 360px;
+	border-radius: 16px;
+	overflow: clip;
+	display: grid;
+	grid-gap: 2px;
+	border-radius: 4px;
+}
+r-post-contents .contents-album > img {
+	border: 1px solid lightgray;
+	border-radius: 2px;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	cursor: pointer;
+}
+r-post-contents > dialog {
+	height: min-content !important;
+	width: fit-content !important;
+}
+r-post-contents .dialog-header {
+	display: flex;
+	height: 36px;
+	padding: 4px;
+	flex-direction: row !important;
+	column-gap: 8px;
+	align-items: center;
+}
+r-post-contents .dialog-header > a  {
+	opacity: 0.8;
+	font-size: 14px;
+}
+r-post-contents .dialog-header > r-close-icon {
+	height: 24px;
+	width: 24px;
+	margin-left: auto;
+}
+r-post-contents > dialog > img {
+	width: 100%;
 }
 
 #createPostPost {
