@@ -647,7 +647,7 @@ body[eventphase="3"] .coverer-title {
 
 #ad {
 	/* Default: 'Advertise here', will be overriden in element style */
-	--adurl: url(https://media.discordapp.net/attachments/823957581545734204/1133043136382386177/ad.png);
+	--adurl: url(./images/default-ad.png);
     flex-shrink: 0;
     background-image: var(--adurl);
     background-position: center;
