@@ -328,28 +328,28 @@ class RplacePostContents extends HTMLElement {
 
     async #refresh() {
         await this.#connectionSource.promise
-        const container = this.#contentsAlbumEl
-        for (const imageEl of container.children) {
-            container.removeChild(imageEl)
+        const album = this.#contentsAlbumEl
+        while (album.firstChild) {
+            album.removeChild(album.lastChild)
         }
-        container.className = "contents-album"
+        album.className = "contents-album"
 
         switch (this.#contentUrls.length) {
             case 1:
-                container.style.gridTemplateColumns = "1fr"
-                container.style.gridTemplateRows = "1fr"
+                album.style.gridTemplateColumns = "1fr"
+                album.style.gridTemplateRows = "1fr"
                 break
             case 2:
-                container.style.gridTemplateColumns = "1fr 1fr"
-                container.style.gridTemplateRows = "1fr"
+                album.style.gridTemplateColumns = "1fr 1fr"
+                album.style.gridTemplateRows = "1fr"
                 break
             case 3:
-                container.style.gridTemplateColumns = "1fr 1fr"
-                container.style.gridTemplateRows = "1fr 1fr"
+                album.style.gridTemplateColumns = "1fr 1fr"
+                album.style.gridTemplateRows = "1fr 1fr"
                 break
             case 4:
-                container.style.gridTemplateColumns = "1fr 1fr"
-                container.style.gridTemplateRows = "1fr 1fr"
+                album.style.gridTemplateColumns = "1fr 1fr"
+                album.style.gridTemplateRows = "1fr 1fr"
                 break
         }
 
@@ -359,7 +359,7 @@ class RplacePostContents extends HTMLElement {
             if (this.#contentUrls.length === 3 && index === 2) {
                 imageEl.style.gridColumn = "1 / span 2"
             }
-            container.appendChild(imageEl)
+            album.appendChild(imageEl)
             // TODO: Do with getter/setter
             const dialogReferenceEl = this.#dialogReferenceEl
             const dialogImgEl = this.#dialogImgEl
