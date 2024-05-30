@@ -1148,7 +1148,7 @@
             }
 
             let linkKeyRequest = null
-            async function _uploadPost(title, content, contents) {
+            async function _uploadPost(title, content, contents, progressCb) {
                 // TODO: Until global auth accounts are released, we will do all post authentications
                 // TODO: through the canvas account linkage API
                 const postData = {
@@ -1164,6 +1164,7 @@
                 const linkInfo = await linkKeyRequest.promise
                 postData.canvasUser = linkInfo // { linkKey: number, instanceId: number }
 
+                if (progressCb) progressCb("uploadPost", { progress: 0 })
                 const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
                     method: "POST",
                     body: JSON.stringify(postData),
@@ -1174,25 +1175,50 @@
                         alert("Error: You are being rate limited. Please wait before posting again")
                     }
                     else {
-                        const jsonError = await uploadResponse.json().catch(_ => _)
+                        const jsonError = await uploadResponse.json().catch(e => console.error(e))
                         alert("Error: Could not upload post: " + jsonError.message)
                         console.error(uploadResponse.status, uploadResponse.statusText)
                     }
                     return false
                 }
+                if (progressCb) progressCb("uploadPost", { progress: 1 })
 
                 // Upload file as form content
+                let contentsUploaded = 0
+                let contentsUploadedSuccess = 0
+                const contentUploadTasks = []
                 const uploadResponseObject = await uploadResponse.json()
-                for (const file of contents) {
+                contents.forEach((file, index) => {
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
                     contentForm.append("contentUploadKey", uploadResponseObject.contentUploadKey)
                     contentForm.append("file", file)
-
-                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponseObject.postId}/contents/`, {
-                        method: "POST",
-                        body: contentForm,
-                    })
-                }
+                    contentUploadTasks.push(
+                        fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponseObject.postId}/contents/`, {
+                                method: "POST",
+                                body: contentForm,
+                            })
+                            .then(async (contentResponse) => {
+                                if (!contentResponse.ok) {
+                                    const jsonError = await contentResponse.json().catch(e => console.error(e))
+                                    alert("Error: Failed to upload one of the post attachments: " + jsonError.message)
+                                    console.error(contentResponse.status, contentResponse.statusText)
+                                    contentsUploadedSuccess++
+                                }
+                                contentsUploaded++
+                                if (progressCb) progressCb("uploadContent", {
+                                    current: index,
+                                    success: contentResponse.ok,
+                                    uploaded: contentsUploaded,
+                                    successfullyUploaded: contentsUploadedSuccess,
+                                    total: contents.length
+                                })
+                            })
+                            .catch(e => {
+                                alert("Error: Failed to upload one of the post attachments")
+                                console.error(e)
+                            }))
+                })
+                await Promise.all(contentUploadTasks)
                 return true
             }
             uploadPost = _uploadPost
@@ -1655,7 +1681,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=340" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=341" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -2058,13 +2084,27 @@
                     </div>
                     <div id="createPostOptions" class="create-post-extra">
                         <r-post-contents-preview id="createPostContent"></r-post-contents-preview>
-                        <button class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
-                        <button class="post-button create-post-button" onclick="
+                        <button id="discardPostButton" class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
+                        <button id="createPostButton" class="post-button create-post-button" onclick="
                             async function uploadAndUpdatePosts() {
-                                if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)) {
+                                discardPostButton.disabled = true
+                                createPostButton.disabled = true
+                                const progressCb = function(stage, info) {
+                                    if (stage == 'uploadPost') {
+                                        createPostStatus.textContent = 'Uploading post: ' + `${info.status}%`
+                                    }
+                                    else if (stage == 'uploadContent') {
+                                        createPostStatus.textContent = 'Uploading attachment...' + `(${info.current}/${info.total})`
+                                    }
+                                }
+                                if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents, progressCb)) {
                                     resetCreatePost()
                                     alert('Post success!')
                                     await tryLoadTopPosts()
+                                }
+                                else {
+                                    createPostButton.disabled = false
+                                    discardPostButton.disabled = false
                                 }
                             }
                             if (!createPostTitle.checkValidity()) {
@@ -2082,6 +2122,7 @@
                                 uploadAndUpdatePosts()
                             }
                         ">Post</button>
+                        <span id="createPostStatus" class="create-post-status"></span>
                     </div>
                 </div>
                 <div onclick="openChatPanel()" class="post" style="cursor: pointer;" novotes="true">
@@ -2480,6 +2521,9 @@
         }
 
         function resetCreatePost() {
+            createPostButton.disabled = false
+            discardPostButton.disabled = false
+            createPostStatus.textContent = ""
             createPostTitle.value = ""
             createPostInput.value = ""
             createPostContent.clearContents()
