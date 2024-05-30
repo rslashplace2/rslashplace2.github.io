@@ -1345,6 +1345,18 @@ r-post .main > .description, .post .main > .description {
 r-post .main > .title, .post .main > .title {
 	color: black;
 }
+/* main.authored - Community (non-system) posts */
+r-post .main.authored, .post .main.authored {
+	display: flex;
+	flex-direction: column;
+	row-gap: 4px;
+}
+r-post .main.authored > .title, .post .main.authored > .title {
+	text-decoration: underline;
+}
+r-post .main.authored > .description, .post .main.authored > .description {
+	color: black;
+}
 r-post > r-clipboard-copy, .post > r-clipboard-copy {
 	align-self: center;
 }

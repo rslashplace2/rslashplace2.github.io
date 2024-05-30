@@ -100,14 +100,10 @@ function insertElementAtIndex(parentElement, newElement, index) {
 async function tryLoadTopPosts() {
     const oldBottomDate = bottomDate
     const oldBottomUpvotes = bottomUpvotes
-    if (filter == "date") {
-        bottomDate = new Date()
-    }
-    else if (filter == "upvotes") {
-        bottomUpvotes = 0xFFFFFFF
-    }
+    bottomDate = new Date()
+    bottomUpvotes = 0xFFFFFFF
     await tryLoadBottomPosts()
-    for (const postEl of postEls) {
+    for (const postEl of postEls.posts) {
         if (filter == "date") {
             const postDate = new Date(postEl.post.creationDate)
             if (postDate < bottomDate) {

@@ -1683,7 +1683,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=341" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=342" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -2841,7 +2841,7 @@
                 idPositionTimeout = setTimeout(() => {
                     idPositionDebounce = false
                     let id = intIdPositions.get(intX + intY * WIDTH)
-                    if (id === undefined) {
+                    if (id === undefined || id === null) {
                         // Request 16x16 region of pixel placers from server (fine tune if necessary)
                         const placersRadius = 16
                         requestPixelPlacers(Math.max(intX - placersRadius / 2, 0), Math.max(intY - placersRadius / 2),
