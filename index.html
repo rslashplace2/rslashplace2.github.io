@@ -1173,14 +1173,14 @@
                 })
                 if (!uploadResponse.ok) {
                     if (uploadResponse.status == 401) {
-                        alert("Error:  You are being rate limited. Please wait before posting again")
+                        alert("Error: You are being rate limited. Please wait before posting again")
                     }
                     else {
                         const jsonError = await uploadResponse.json().catch(_ => _)
                         alert("Error: Could not upload post: " + jsonError.message)
                         console.error(uploadResponse.status, uploadResponse.statusText)
                     }
-                    return
+                    return false
                 }
 
                 // Upload file as form content
@@ -1195,6 +1195,7 @@
                         body: contentForm,
                     })
                 }
+                return true
             }
             uploadPost = _uploadPost
 
@@ -1642,8 +1643,8 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
     <script type="application/javascript" src="uv.min.js"></script>
-    <script type="application/javascript" src="elements.js?v=4" defer></script>
-    <script type="application/javascript" src="posts-manager.js?v=1" defer></script>
+    <script type="application/javascript" src="elements.js?v=5" defer></script>
+    <script type="application/javascript" src="posts-manager.js?v=2" defer></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
@@ -2067,12 +2068,13 @@
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
                         <button class="post-button create-post-button" onclick="
-                            function uploadAndUpdatePosts() {
-                                uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)
-                                clearPosts()
-                                tryLoadPosts()
+                            async function uploadAndUpdatePosts() {
+                                if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)) {
+                                    createPostContent.clearContents()
+                                    alert('Post success!')
+                                    await tryLoadTopPosts()
+                                }
                             }
-                            
                             if (!createPostTitle.checkValidity()) {
                                 return
                             }

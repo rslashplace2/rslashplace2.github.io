@@ -534,10 +534,18 @@ class RplacePost extends HTMLElement {
         if (this.#showAuthor) {
             if (!header.contains(this.#authorContainerEl)) {
                 header.prepend(this.#authorContainerEl)
+
+                // TODO: Clean this up with an attrib/css class
+                this.querySelector("#title").style.textDecoration = "underline"
+                this.querySelector("#description").style.color = "black"
             }
         }
         else if (header.contains(this.#authorContainerEl)) {
             header.removeChild(this.#authorContainerEl)
+
+            // TODO: Clean this up with an attrib/css class
+            this.querySelector("#title").style.textDecoration = "inherit"
+            this.querySelector("#description").style.color = "inherit"            
         }
     }
 
