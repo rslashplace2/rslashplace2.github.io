@@ -1310,8 +1310,12 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 case 110: {
                     const linkKey = randomString(32)
                     linkKeyInfos.set(linkKey, { intId: ws.data.intId, dateCreated: Date.now(), canvasId: CANVAS_ID })
-                    const linkKeyBuf = encoderUTF8.encode("\x6E" + linkKey) // code 110
-                    ws.send(linkKeyBuf)
+                    const linkKeyBytes = encoderUTF8.encode(linkKey)
+                    const linkResponseBuf = Buffer.alloc(5 + linkKeyBytes.byteLength)
+                    linkResponseBuf[0] = 110
+                    linkResponseBuf.writeUInt32BE(CANVAS_ID, 1)
+                    linkResponseBuf.set(linkKeyBytes, 5)
+                    ws.send(linkResponseBuf)
                     break
                 }
             }

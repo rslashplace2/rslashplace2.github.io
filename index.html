@@ -1130,7 +1130,7 @@
                     }
                     const instanceId = data.getUint32(1)
                     const linkKey = decoder.decode(data.buffer.slice(5))
-                    linkKeyRequest.resolve({ linkKey, instanceId: 1 })
+                    linkKeyRequest.resolve({ linkKey, instanceId })
                     break
                 }
                 }
