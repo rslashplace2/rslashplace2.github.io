@@ -1171,14 +1171,14 @@
                 })
                 if (!uploadResponse.ok) {
                     if (uploadResponse.status == 401) {
-                        alert("Error:  You are being rate limited. Please wait before posting again")
+                        alert("Error: You are being rate limited. Please wait before posting again")
                     }
                     else {
                         const jsonError = await uploadResponse.json().catch(_ => _)
                         alert("Error: Could not upload post: " + jsonError.message)
                         console.error(uploadResponse.status, uploadResponse.statusText)
                     }
-                    return
+                    return false
                 }
 
                 // Upload file as form content
@@ -1193,6 +1193,7 @@
                         body: contentForm,
                     })
                 }
+                return true
             }
             uploadPost = _uploadPost
 
@@ -2065,12 +2066,13 @@
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
                         <button class="post-button create-post-button" onclick="
-                            function uploadAndUpdatePosts() {
-                                uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)
-                                clearPosts()
-                                tryLoadPosts()
+                            async function uploadAndUpdatePosts() {
+                                if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)) {
+                                    createPostContent.clearContents()
+                                    alert('Post success!')
+                                    await tryLoadTopPosts()
+                                }
                             }
-                            
                             if (!createPostTitle.checkValidity()) {
                                 return
                             }

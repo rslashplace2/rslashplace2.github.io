@@ -1352,12 +1352,6 @@ r-post > r-clipboard-copy, .post > r-clipboard-copy {
 r-post {
 	min-height: 76px;
 }
-r-post .main > .title {
-	text-decoration: underline;
-}
-r-post .main > .description {
-	color: black;
-}
 r-post .author-container {
 	display: flex;
 	column-gap: 4px;

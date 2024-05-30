@@ -39,14 +39,22 @@ class PostElArray {
         this.posts = []
     }
 
-    add(postEl) {
-        const index = this.posts.findIndex(existingItem => existingItem.id === postEl.post?.id)
-        if (index >= 0) {
-            this.posts[index] = postEl
+    orderedInsert(postEl, comparisonFn) {
+        let insertIndex = this.posts.findIndex(existingItem => existingItem.id === postEl.post?.id)
+        if (insertIndex >= 0) {
+            this.posts[insertIndex] = postEl
         }
         else {
-            this.posts.push(postEl)
+            insertIndex = this.posts.findIndex(existingItem => comparisonFn(postEl, existingItem) < 0)
+            if (insertIndex === -1) {
+                this.posts.push(postEl)
+                insertIndex = this.posts.length - 1
+            }
+            else {
+                this.posts.splice(insertIndex, 0, postEl)
+            }
         }
+        return insertIndex
     }
 
     delete(postEl) {
@@ -70,12 +78,49 @@ const postEls = new PostElArray()
 let bottomUpvotes = 0xFFFFFFFF
 let bottomDate = new Date()
 
+const contentsBaseLength = contents.childNodes.length
 const postLimit = 16
 const postLoadCooldown = 1000
 let postFinishedLastLoad = null
 let filter = postsSortSelect.value // "upvotes" | "date" 
 let hideSensitive = !!postsHideSensitive.checked
 
+// TODO: This whole class is hacky but kinda works
+function insertElementAtIndex(parentElement, newElement, index) {
+    const referenceElement = parentElement.childNodes[index]
+    if (referenceElement) {
+        parentElement.insertBefore(newElement, referenceElement)
+    }
+    else {
+        parentElement.appendChild(newElement)
+    }
+}
+
+// Most recent / highest upvotes
+async function tryLoadTopPosts() {
+    const oldBottomDate = bottomDate
+    const oldBottomUpvotes = bottomUpvotes
+    if (filter == "date") {
+        bottomDate = new Date()
+    }
+    else if (filter == "upvotes") {
+        bottomUpvotes = 0xFFFFFFF
+    }
+    await tryLoadBottomPosts()
+    for (const postEl of postEls) {
+        if (filter == "date") {
+            const postDate = new Date(postEl.post.creationDate)
+            if (postDate < bottomDate) {
+                bottomDate = postDate
+            }
+        }
+        else if (filter == "upvotes" && postEl.post.upvotes < bottomUpvotes) {
+            bottomUpvotes = postEl.post.upvotes
+        }
+    }
+    bottomDate = oldBottomDate
+    bottomUpvotes = oldBottomUpvotes
+}
 function clearPosts() {
     for (const postEl of postEls.posts) {
         if (contents.contains(postEl)) {
@@ -93,7 +138,7 @@ async function finishPostLoadWithCd() {
 function shouldLoadPosts() {
     return more.scrollTopMax - more.scrollTop < 256
 }
-async function tryLoadPosts() {
+async function tryLoadBottomPosts() { // Most old, so lowest upvotes
     if (shouldLoadPosts() && !postFinishedLastLoad?.locked) {
         if (postFinishedLastLoad !== null) {
             await postFinishedLastLoad.acquireAwaitPromise()
@@ -136,8 +181,15 @@ async function tryLoadPosts() {
                 if (hideSensitive && post.hasSensitiveContent) {
                     postEl.hidden = true
                 }
-                contents.appendChild(postEl)
-                postEls.add(postEl)    
+                let comparisonFn = null
+                if (filter == "date") {
+                    comparisonFn = (a, b) => new Date(b.post.creationDate) - new Date(a.post.creationDate)
+                }
+                else if (filter == "upvotes") {
+                    comparisonFn = (a, b) => b.post.upvotes - a.post.upvotes
+                }
+                const insertIndex = postEls.orderedInsert(postEl, comparisonFn)
+                insertElementAtIndex(contents, postEl, contentsBaseLength + insertIndex)
             }
 
             if (filter == "date") {
@@ -147,7 +199,7 @@ async function tryLoadPosts() {
                 }
             }
             else if (filter == "upvotes") {
-                if (post.upvotes < bottomDate) {
+                if (post.upvotes < bottomUpvotes) {
                     bottomUpvotes = post.upvotes
                 }
             }
@@ -158,7 +210,7 @@ async function tryLoadPosts() {
 postsSortSelect.addEventListener("change", function() {
     filter = postsSortSelect.value
     clearPosts()
-    tryLoadPosts()
+    tryLoadBottomPosts()
 })
 postsHideSensitive.addEventListener("change", function() {
     hideSensitive = !!postsHideSensitive.checked
@@ -173,4 +225,4 @@ postsHideSensitive.addEventListener("change", function() {
         }    
     }
 })
-more.addEventListener("scroll", tryLoadPosts)
+more.addEventListener("scroll", tryLoadBottomPosts)
