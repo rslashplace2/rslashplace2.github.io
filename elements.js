@@ -531,15 +531,16 @@ class RplacePost extends HTMLElement {
     async #onShowAuthorChanged() {
         await this.#connectionSource.promise
         const header = this.querySelector("#header")
+        const main = this.querySelector("#main")
         if (this.#showAuthor) {
             if (!header.contains(this.#authorContainerEl)) {
                 header.prepend(this.#authorContainerEl)
-                this.querySelector("#main").classList.add("authored")
+                main.classList.add("authored")
             }
         }
         else if (header.contains(this.#authorContainerEl)) {
             header.removeChild(this.#authorContainerEl)
-            this.querySelector("#main").classList.remove("authored")
+            main.classList.remove("authored")
         }
     }
 

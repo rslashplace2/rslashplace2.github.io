@@ -2841,7 +2841,7 @@
                 idPositionTimeout = setTimeout(() => {
                     idPositionDebounce = false
                     let id = intIdPositions.get(intX + intY * WIDTH)
-                    if (id === undefined) {
+                    if (id === undefined || id === null) {
                         // Request 16x16 region of pixel placers from server (fine tune if necessary)
                         const placersRadius = 16
                         requestPixelPlacers(Math.max(intX - placersRadius / 2, 0), Math.max(intY - placersRadius / 2),

@@ -429,8 +429,6 @@ r-spoiler[hidden] {
 	color: transparent;
 	position: relative;
 	cursor: pointer;
-	padding: 4px;
-	margin: -4px;
 	background-color: var(--ui-panel-hover);
 	border-radius: 4px;
 }
