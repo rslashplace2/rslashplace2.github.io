@@ -96,7 +96,7 @@ function insertElementAtIndex(parentElement, newElement, index) {
     }
 }
 
-// Most recent / highest upvotes
+// "date" - Most recent / "upvotes" - highest upvotes
 async function tryLoadTopPosts() {
     const oldBottomDate = bottomDate
     const oldBottomUpvotes = bottomUpvotes
@@ -138,7 +138,8 @@ async function finishPostLoadWithCd() {
 function shouldLoadPosts() {
     return more.scrollTopMax - more.scrollTop < 256
 }
-async function tryLoadBottomPosts() { // Most old, so lowest upvotes
+// "date" - Most old, "votes" - lowest upvotes
+async function tryLoadBottomPosts() {
     if (shouldLoadPosts() && !postFinishedLastLoad?.locked) {
         if (postFinishedLastLoad !== null) {
             await postFinishedLastLoad.acquireAwaitPromise()
