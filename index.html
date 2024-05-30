@@ -10,8 +10,6 @@
         const VERIFIED_APP_HASH = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
         const UNMUTED_SVG = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>'
         const MUTED_SVG = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
-        const VOTED_SVG = 'M8.44857 0.401443C8.3347 0.273284 8.17146 0.199951 8.00002 0.199951C7.82859 0.199951 7.66534 0.273284 7.55148 0.401443L0.351479 8.50544C0.194568 8.68206 0.155902 8.93431 0.252709 9.14981C0.349516 9.36532 0.563774 9.50395 0.800023 9.50395H4.20002V15C4.20002 15.3313 4.46865 15.6 4.80002 15.6H11.2C11.5314 15.6 11.8 15.3313 11.8 15V9.50395H15.2C15.4363 9.50395 15.6505 9.36532 15.7473 9.14981C15.8441 8.93431 15.8055 8.68206 15.6486 8.50544L8.44857 0.401443Z'
-        const UNVOTED_SVG = 'm8 .200001c.17143 0 .33468.073332.44854.201491l7.19996 8.103998c.157.17662.1956.42887.0988.64437-.0968.21551-.3111.35414-.5473.35414h-3.4v5.496c0 .3314-.2686.6-.6.6h-6.4c-.33137 0-.6-.2686-.6-.6v-5.496h-3.4c-.236249 0-.450507-.13863-.547314-.35414-.096807-.2155-.058141-.46775.09877-.64437l7.200004-8.103998c.11386-.128159.27711-.201491.44854-.201491zm-5.86433 8.103999h2.66433c.33137 0 .6.26863.6.6v5.496h5.2v-5.496c0-.33137.2686-.6.6-.6h2.6643l-5.8643-6.60063'
         const BADGES = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
         const DEFAULT_PALETTE_KEYS = "123456789abcdefghijklmnopqrstuvwxyz"
         const TRANSLATIONS = {
@@ -447,8 +445,8 @@
         ])
 
         const DEFAULT_THEMES = new Map([
-            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "0.10", pixelselect: "svg/pixel-select-2022.svg" }],
-            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "0.10", pixelselect: "svg/pixel-select-2023.svg" }],
+            [ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "10", pixelselect: "svg/pixel-select-2022.svg" }],
+            [ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "10", pixelselect: "svg/pixel-select-2023.svg" }],
         ])
 
         const ADS = [
@@ -535,33 +533,6 @@
                 alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
             }
 
-            function markdownParse(text) {
-                text = text.replace(/(#{3}\s)(.*)/g, (match) => {
-                    return `<h3 style="display:inline;">${match.slice(4)}</h3>`
-                })
-                text = text.replace(/(#{2}\s)(.*)/g, (match) => {
-                    return `<h2 style="display:inline;">${match.slice(3)}</h2>`
-                })
-                text = text.replace(/(#{1}\s)(.*)/g, (match) => {
-                    return `<h1 style="display:inline;">${match.slice(2)}</h1>`
-                })
-                function matchBold(match) {
-                    return `<b>${match.slice(2, -2)}</b>`
-                }
-                text = text.replace(/\*\*([^*]+)\*\*/g, matchBold)
-                text = text.replace(/\_\_([^*]+)\_\_/g, matchBold)
-                function matchItalic(match) {
-                    return `<i>${match.slice(1, -1)}</i>`
-                }
-                text = text.replace(/\*([^*]+)\*/g, matchItalic)
-                text = text.replace(/\_(.*)\_/g, matchItalic)
-
-                text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
-                    return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
-                })
-                return text
-            }
-
             function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
                 let newMessage = document.createElement("div")
                 newMessage.messageId = messageId
@@ -569,7 +540,7 @@
                 newMessage.originalContent = txt
 
                 // Sanitise regex
-                txt = txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
+                txt = sanitise(txt)
                 // Simple markdown parse regexes
                 txt = markdownParse(txt)
                 // Custom emoji regex
@@ -861,8 +832,9 @@
                     let dataI = 7
                     while (dataI < data.byteLength) {
                         for (let xi = i; xi < i + regionWidth; xi++) {
-                            if (dataI != 0xFFFFFFFF) {
-                                intIdPositions.set(xi, data.getUint32(dataI))
+                            const placerIntId = data.getUint32(dataI)
+                            if (placerIntId != 0xFFFFFFFF) {
+                                intIdPositions.set(xi, placerIntId)
                             }
                             dataI += 4
                         }
@@ -1176,17 +1148,8 @@
                 showLoadingScreen()
             }
 
-            class PublicPromise {
-                constructor() {
-                    this.promise = new Promise((resolve, reject) => {
-                        this.resolve = resolve
-                        this.reject = reject
-                    })
-                }
-            }
-
             let linkKeyRequest = null
-            async function _uploadPost(title, content) {
+            async function _uploadPost(title, content, contents) {
                 // TODO: Until global auth accounts are released, we will do all post authentications
                 // TODO: through the canvas account linkage API
                 const postData = {
@@ -1208,20 +1171,25 @@
                     headers: { "Content-Type": "application/json" }
                 })
                 if (!uploadResponse.ok) {
-                    const jsonError = await uploadResponse.json().catch(_ => _)
-                    alert("Could not upload post: " + jsonError.message)
-                    console.error(uploadResponse.status, uploadResponse.statusText)
+                    if (uploadResponse.status == 401) {
+                        alert("Error:  You are being rate limited. Please wait before posting again")
+                    }
+                    else {
+                        const jsonError = await uploadResponse.json().catch(_ => _)
+                        alert("Error: Could not upload post: " + jsonError.message)
+                        console.error(uploadResponse.status, uploadResponse.statusText)
+                    }
                     return
                 }
 
                 // Upload file as form content
-                for (const file of createPostContent.contents) {
+                for (const file of contents) {
                     const data = await uploadResponse.json()
                     const contentForm = new FormData() // new Blob([], { type: "text/plain" })
                     contentForm.append("contentUploadKey", data.contentUploadKey)
                     contentForm.append("file", file)
 
-                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/content/`, {
+                    const contentResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${data.postId}/contents/`, {
                         method: "POST",
                         body: contentForm,
                     })
@@ -1240,6 +1208,9 @@
 
             // Requests all the pixel placers for a given region from the server to be loaded into 
             function _requestPixelPlacers(x, y, width, height) {
+                if (ws.readyState !== ws.OPEN) {
+                    throw new Error("Could not request pixel placers, websocket state is not open")
+                }
                 const placerInfoBuf = new DataView(new Uint8Array(7).buffer)
                 placerInfoBuf.setUint8(0, 9)
                 placerInfoBuf.setUint32(1, x + y * WIDTH)
@@ -1410,7 +1381,8 @@
                 }
                 else if (e.key === "/" && !("value" in document.activeElement)) {
                     e.preventDefault()
-                    chatPanel.toggleAttribute("open")
+                    openChatPanel()
+                    messageInput.focus()
                 }
                 else if (e.key === "Escape") {
                     // TODO: Not optimal, but it works for now
@@ -1572,6 +1544,7 @@
                 call(send, authSocket, buffer)
                 call(send, authSocket, new Uint8Array([4]))
             })
+
             function _requestLoadChannelPrevious(msgCount=64) {
                 chatPreviousLoadDebounce = true
                 const encChannel = encoder.encode(currentChannel)
@@ -1584,7 +1557,7 @@
                 }
                 call(send, ws, view.buffer)
             }
-	    requestLoadChannelPrevious = _requestLoadChannelPrevious
+	        requestLoadChannelPrevious = _requestLoadChannelPrevious
             call(addEventListener, chatMessages, "scroll", () => {
                 if (chatMessages.scrollTop < 4) {
                     if (chatPreviousAutoLoad === true && chatPreviousLoadDebounce === false) {
@@ -1668,7 +1641,8 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script type="application/javascript" src="virtual-select.min.js"></script>
     <script type="application/javascript" src="uv.min.js"></script>
-    <script type="application/javascript" src="elements.js?v=2"></script>
+    <script type="application/javascript" src="elements.js?v=3" defer></script>
+    <script type="application/javascript" src="posts-manager.js" defer></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
@@ -1681,7 +1655,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=3.38" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=339" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1869,7 +1843,7 @@
                 <a style="text-align: center;" href=".">(generate new captcha)</a>
                 <div id="captchaOptions"><!--clickable captcha answers--></div>
             </div>
-            <div id="chatbtn" tabindex="0" class="layout" noselect onclick="chatPanel.setAttribute('open', 'true')">
+            <div id="chatbtn" tabindex="0" class="layout" noselect onclick="openChatPanel()">
                 <img class="icon-image" src="svg/chat.svg" style="width:16px; height:21px">
             </div>
             <dialog id="popup">
@@ -1898,8 +1872,8 @@
             <div noselect id="closebtn" tabindex="0" class="layout" onclick="
                 bg.style.opacity = '0.5'
                 bg.style.display = 'block'
-                messageInput.blur()
-                chatPanel.removeAttribute('open')
+                closeChatPanel()
+
                 document.body.id = 'out'
                 window.onresize()
             ">...</div>
@@ -2014,7 +1988,7 @@
                 </div>
             </div>
         </div>
-        <div noselect id="more">
+        <div id="more">
             <div id="spaceFiller" onclick="
                 if (document.body.id != 'out')
                     return
@@ -2056,7 +2030,14 @@
                             <path style="fill: #939393;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"></path>
                         </svg>
                         <div style="flex-grow: 1; display: flex; flex-direction: column;">
-                            <input type="text" id="createPostTitle" maxlength="64" class="create-post-input create-post-extra" placeholder="Post title...">
+                            <input type="text" id="createPostTitle" minlength="1" maxlength="64" required class="create-post-input create-post-extra" placeholder="Post title..." onchange="
+                                    if (!createPostTitle.checkValidity()) {
+                                        createPostTitle.setCustomValidity('Post title should be between 1-64 characters long!')
+                                    }
+                                    else {
+                                        createPostTitle.setCustomValidity('')
+                                    }
+                                ">
                             <textarea id="createPostInput" maxlength="360" class="create-post-input" placeholder="Create post..."
                                 onkeypress="event.stopPropagation()"
                                 onfocus="
@@ -2084,205 +2065,65 @@
                             createPostInput.placeholder = 'Create post...'
                             createPostPost.classList.remove('focused')
                         ">Discard</button>
-                        <button class="post-button create-post-button" onclick="uploadPost(createPostTitle.value, createPostInput.value)">Post</button>
+                        <button class="post-button create-post-button" onclick="
+                            function uploadAndUpdatePosts() {
+                                uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents)
+                                clearPosts()
+                                tryLoadPosts()
+                            }
+                            
+                            if (!createPostTitle.checkValidity()) {
+                                return
+                            }
+                            if (!localStorage.agredPostRules) {
+                                postRulesDialog.showModal()
+                                postRulesDialog.onclose = function(e) {
+                                    if (postRulesDialog.returnValue === true) {
+                                        uploadAndUpdatePosts()
+                                    }
+                                }
+                            }
+                            else {
+                                uploadAndUpdatePosts()
+                            }
+                        ">Post</button>
                     </div>
                 </div>
-                <div onclick="chatPanel.setAttribute('open', 'true')" class="post">
+                <div onclick="openChatPanel()" class="post" style="cursor: pointer;" novotes="true">
+                    <img alt="Live chat icon" class="cover-image" src="images/live.png">
                     <div class="body">
-                        <div class="header">
-                            <img src="images/live.png">
-                            <div><div translate="liveChat">Live Chat</div><span id="onlineCounter2">... online</span></div>
+                        <div class="main">
+                            <div class="title" translate="liveChat">Live Chat</div>
+                            <span class="description" id="onlineCounter2">... online</span>
                         </div>
                     </div>
                 </div>
-                <div onclick="switchGameServer()" class="post">
+                <div onclick="switchGameServer()" class="post" style="cursor: pointer;" novotes="true">
+                    <img alt="Rplace logo" class="cover-image" src="images/rplace.png">
                     <div class="body">
-                        <div class="header">
-                            <img src="images/rplace.png">
-                            <div><div>Main Canvas</div>750x750 (cooldown: 800ms)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
+                        <div class="main">
+                            <div class="title">Main Canvas</div>
+                            <div class="description">750x750 (cooldown: 800ms)</div>
                         </div>
                     </div>
+                    <r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
                 </div>
-                <!--<div onclick="switchGameServer('server.poemanthology.org/place server.poemanthology.org/ws')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/rplace2.png">
-                            <div>
-                                <div>2nd Canvas</div> 500x500 (cooldown: 800ms)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.poemanthology.org/ws&board=https:\/\/server.poemanthology.org/place')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="switchGameServer('server.poemanthology.org/turkeyplace server.poemanthology.org/turkeyws')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Flag_of_Turkey.svg/1200px-Flag_of_Turkey.svg.png">
-                            <div>
-                                <div>TURKEY CANVAS</div> 250x250 (cooldown: 30ms)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/server.poemanthology.org/turkeyws&board=https:\/\/server.poemanthology.org/turkeyplace')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="switchGameServer('raw.githubusercontent.com/rplacetk/canvas1/04072023/place archive.rplace.tk:444')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/rplace.png" style="filter: grayscale(100%);">
-                            <div><div>Main canvas archive - 04/07/2023</div>1000x1000 (cooldown: ∞)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/archive.rplace.tk:444&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/04072023/place')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
-                        <div>
-                    </div>
-                </div>
-                <div onclick="switchGameServer('raw.githubusercontent.com/rplacetk/canvas1/27072023/place archive.rplace.tk:445')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/rplace.png" style="filter: grayscale(100%);">
-                            <div><div>Main canvas archive - 27/07/2023</div>1000x1000 (cooldown: ∞)
-                                <postcopy onclick="
-                                    event.stopPropagation()
-                                    navigator.clipboard.writeText('https:\/\/rplace.live/?server=wss:\/\/archive.rplace.tk:445&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/27072023/place')
-                                    this.children[1].animate([
-                                            { opacity: 1 },
-                                            { scale: 1.1 }
-                                        ], { duration: 1000, iterations: 1, })
-                                " title="copy canvas link">
-                                    <img src="svg/clipboard.svg">
-                                    <span style="opacity: 0;">Copied to clipboard!</span>
-                                </postcopy>
-                            </div>
-                        </div>
-                    </div>
-                </div>-->
-                <div onclick="" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/trophy.png">
-                            <div>
-                                <div>2023 stats</div>
-                                <span>Game and server statistics from October 29th 2023 to 2024</span>
-                            </div>
-                        </div>
-                        <video src="video/2023-stats.webm" type="video/webm" style="width: 100%; aspect-ratio: 16/9;">Error: Video failed to load</video>
-                    </div>
-                </div>
-                <!--<div onclick="" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/1984.png">
-                            <div>2023 timelapse</div>
-                            <span>Full timelapse of canvas 1 from 2023 to 2024</span>
-                        </div>
-                        <video src="video/2023-timelapse.mp4" type="video/mp4" style="width: 100%; aspect-ratio: 16/9;">Error: Video failed to load</video>
-                    </div>
-                </div>-->
-                <div onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/lamda.png">
-                            <div><div>Lamda</div><span>Chat anonymously with strangers online. Start random voice calls and meet others!</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/timelapse.png">
-                            <div><div>Timelapse tool</div>Combine a sequence from the history of the canvas to create your own timelapse video!</div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="overlayMenu.setAttribute('opened', 'true')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/hammer-and-wrench.png">
-                            <div><div translate="overlayMenu">Overlay menu</div><span translate="overlayMenuDesciption">Visualise your build with template images!</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="window.open('https:/\/discord.gg/xbRrVSXJdZ','_blank')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/discord.png">
-                            <div><div>Discord</div>discord.gg/xbRrVSXJdZ</div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/patreon.png">
-                            <div><div translate="donate">Donate</div>Keep r/place alive!</div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/reddit.png">
-                            <div><div>Subreddit</div>500 members yay!</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="post" onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin'" style="opacity: 0.6; pointer-events: none;">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/account-profile.png">
-                            <div><div translate="myAccount">My Account</div>Login or signup to an rplace.live account, access special features and host your own custom canvases.</div>
-                        </div>
-                    </div>
-                </div>
-                <div onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post">
-                    <div class="body">
-                        <div class="header">
-                            <img src="images/canv.png">
-                            <div><div>Canv.tk</div>Visit our sister site, the proof of concept this site itself was built off, canv.tk here!</div>
-                        </div>
-                    </div>
-                </div>
+                <r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
+                    coverimageurl="images/lamda.png"></r-post>
+                <r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
+                    coverimageurl="images/timelapse.png"></r-post>
+                <r-post onclick="overlayMenu.setAttribute('opened', 'true')" class="post" novotes="true"  title="Overlay menu" description="Visualise your build with template images!"
+                    coverimageurl="images/hammer-and-wrench.png"></r-post>
+                <r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
+                    coverimageurl="images/discord.png"></r-post>
+                <r-post onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" class="post" novotes="true" title="Donate" description="Help keep r/place alive!"
+                    coverimageurl="images/patreon.png"></r-post>
+                <r-post onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" class="post" novotes="true" title="Subreddit" description="Visit the official rplace.live subreddit (r/placetk)"
+                    coverimageurl="images/reddit.png"></r-post>
+                <r-post onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin';" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
+                    coverimageurl="images/account-profile.png"></r-post>
+                <r-post onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post" novotes="true" title="Canv.tk" description="Visit our sister site, the proof of concept this site itself was built off, canv.tk here!"
+                    coverimageurl="images/canv.png"></r-post>
                 <div class="post" novotes="true">
                     <div class="body">
                         <div class="horizontal-labeled-separator header">
@@ -2292,12 +2133,12 @@
                         </div>
                         <div style="display: flex; column-gap: 16px; align-items: center; justify-content: center;">
                             <label for="postsSortSelect">Sort by:</label>
-                            <select id="postsSortSelect" style="box-shadow: none; border-radius: 64px;">
+                            <select id="postsSortSelect" style="box-shadow: none; border-radius: 64px; background: white;">
                                 <option value="date">Date</option>
                                 <option value="upvotes">Upvotes</option>
                             </select>
                             <label for="postsHideSensitive">Hide sensitive:</label>
-                            <input id="postsHideSensitive" type="checkbox" checked="false" disabled="true" style="box-shadow: none; border-radius: 64px;">
+                            <input id="postsHideSensitive" type="checkbox" checked style="box-shadow: none; border-radius: 64px;">
                         </div>
                     </div>
                 </div>
@@ -2361,7 +2202,7 @@
                         <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path>
                     </svg>
                 </div>
-                <r-close-icon onclick="messageInput.blur(); chatPanel.removeAttribute('open')" class="active"></r-close-icon>
+                <r-close-icon onclick="closeChatPanel()" class="active"></r-close-icon>
             </div>
             <div id="chatContext" class="context-menu" style="display:none">
                 <ul>
@@ -2435,7 +2276,7 @@
                 <pre id="chatPunishInfo" style="display: none;"></pre>
             </div>
             <div style="display: flex; column-gap: 8px; z-index: 1;">
-                <textarea id="messageInput" onclick="chatPanel.setAttribute('open', 'true')" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200"></textarea>
+                <textarea id="messageInput" onclick="openChatPanel()" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200"></textarea>
                 <button class="message-options" onclick="messageTypePanel.toggleAttribute('closed')">...</button>
             </div>
         </div>
@@ -2602,6 +2443,24 @@
             </div>
             <div class="progressbar"><!--progress bar--></div>
         </div>
+
+        <dialog id="postRulesDialog" class="reddit-modal">
+            <r-close-icon onclick="postRulesDialog.close()" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
+            <div style="display: flex; flex-direction: column; padding: 16px; overflow-y: scroll; row-gap: 8px;">
+                <h4>By creating a post, you agree to the following conditions:</h4>
+                <ol style="font-size: 18px;line-height: 32px;margin-left: 16px; flex-grow: 1;">
+                    <li>All posts you create are public, and any information shared in a post will be visible to everyone.</li>
+                    <li>Your post must be related to rplace and must not contain NSFW or copyrighted content.</li>
+                    <li>All content uploaded may be processed by third party content filters and AI detection systems.</li>
+                    <li>Illegal content shall not be posted, and will be reported to relevant authorities, alongside any necessary user information to aid with investigation.</li>
+                </ol>
+                <img src="images/example-post.png" alt="Example post" style="height: 256px;object-fit: contain;">
+                <button class="reddit-modal-button" onclick="
+                    localStorage.agredPostRules = true
+                    postRulesDialog.close(true)
+                    ">Create post</button>    
+            </div>
+        </dialog>
     </body>
     <script>
         let PALETTE_USABLE_REGION = { start: 0, end: 32 }
@@ -2611,20 +2470,50 @@
         let COOLDOWN = 10e3
     </script>
     <script>
-        let i = +localStorage.vote
-
-        for (let el = 1; el < contents.children.length; el++) {
-            if (contents.children[el].getAttribute("novotes")) {
-                continue
-            }
-            contents.children[el].insertAdjacentHTML('afterbegin',
-                `<up onclick="event.stopPropagation()"><svg ${i & 1 ? 'style="fill:#ff4500" ' : ''}height="24" viewBox="0 0 16 16" width="24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="${i & 1 ? VOTED_SVG : UNVOTED_SVG}" fill-rule="evenodd"></path></svg><div>...</div></up>`)
-            i >>= 1
-        }
-
+        let moved = 3
         let touch1 = null
         let touch2 = null
         let touchmoved = 15
+
+        class PublicPromise {
+            constructor() {
+                this.promise = new Promise((resolve, reject) => {
+                    this.resolve = resolve
+                    this.reject = reject
+                })
+            }
+        }
+
+        function sanitise(txt) {
+            return txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
+        }
+
+        function markdownParse(text) {
+            text = text.replace(/^(#{3}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h3 style="display:inline;">${p2}</h3>`
+            })
+            text = text.replace(/^(#{2}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h2 style="display:inline;">${p2}</h2>`
+            })
+            text = text.replace(/^(#{1}\s)(.*)/gm, (match, p1, p2) => {
+                return `<h1 style="display:inline;">${p2}</h1>`
+            })
+            function matchBold(match) {
+                return `<b>${match.slice(2, -2)}</b>`
+            }
+            text = text.replace(/\*\*([^*]+)\*\*/g, matchBold)
+            text = text.replace(/\_\_([^*]+)\_\_/g, matchBold)
+            function matchItalic(match) {
+                return `<i>${match.slice(1, -1)}</i>`
+            }
+            text = text.replace(/\*([^*]+)\*/g, matchItalic)
+            text = text.replace(/\_(.*)\_/g, matchItalic)
+
+            text = text.replace(/\|\|([^*]+)\|\|/g, (match) => {
+                return `<r-spoiler hidden="true">${match.slice(2, -2)}</r-spoiler>`
+            })
+            return text
+        }
 
         document.body.ontouchstart = function(e) {
             for (let t of e.changedTouches) {
@@ -2633,8 +2522,6 @@
                 else [touch1, touch2] = [touch2, t]
             }
         }
-
-        let moved = 3
 
         document.body.onmousedown = function(e) {
             moved = 3
@@ -3708,6 +3595,18 @@
         let targetedMsgId = null
         let currentReply = null
 
+        function openChatPanel() {
+            chatPanel.setAttribute("open", "true")
+            chatPanel.inert = false
+        }
+
+        function closeChatPanel() {
+            messageInput.blur()
+            chatPanel.removeAttribute("open")
+            chatPanel.inert = true
+        }
+        closeChatPanel()
+
         function onChatContext(ev, senderId, msgId) {
             ev.preventDefault()
 
@@ -3755,32 +3654,27 @@
             }
         }
 
-        let redirectLocation = ({
-            "?discord": "https://discord.com/invite/xbRrVSXJdZ",
-            "?twitter": "https://twitter.com/rplacetk",
-            "?reddit": "https://www.reddit.com/r/placetk",
-            "?github": "https://github.com/rplacetk",
-            "?telegram": "https://t.me/rplacelive",
-            "?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        })[location.search]
-        if (redirectLocation) location.replace(redirectLocation)
-
-        async function sha256(message) {
-            const msgBuffer = encoder.encode(message) // encode as UTF-8
-            const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer) // hash the message
-            const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert ArrayBuffer to Array
-             // convert bytes to hex string
-            return hashArray.map(buffer => buffer.toString(16).padStart(2, '0')).join("")
-        }
-
-        async function verifyWebApp() {
-            // The page is in an iframe, android webview or free app maker, we check it against an irreversable hash (verified app hash) to check if it is the real rplace.live app or a fake clone
-            if (mobile && (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined")) {
-                if (await sha256(window.location.search.slice(1)) === VERIFIED_APP_HASH) console.log("You are using an official rplace client. Have fun!")
-                else window.location.replace("fakeapp.html")
+        function redirectQueryLocation() {
+            let redirectLocation = ({
+                "?discord": "https://discord.com/invite/xbRrVSXJdZ",
+                "?twitter": "https://twitter.com/rplacetk",
+                "?reddit": "https://www.reddit.com/r/placetk",
+                "?github": "https://github.com/rplacetk",
+                "?telegram": "https://t.me/rplacelive",
+                "?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            })[location.search]
+            if (redirectLocation) {
+                location.replace(redirectLocation)
             }
         }
-        verifyWebApp()
+        redirectQueryLocation()
+
+        async function blockWebviewLoad() {
+            if (window.location !== window.parent.location || typeof window.Android !== "undefined" || typeof window.Kodular !== "undefined") {
+                window.location.replace("fakeapp.html")
+            }
+        }
+        blockWebviewLoad()
 
         // Prompt user if they want to install site as PWA if they press the modal button
         let pwaPrompter = null
