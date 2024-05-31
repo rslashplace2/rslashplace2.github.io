@@ -2978,10 +2978,11 @@
             this.play().catch(e => e)
         }
 
-        if (localStorage.muted == undefined) {
+        const localStorageBoolValues = [ undefined, "true", "false" ]
+        if (!localStorageBoolValues.includes(localStorage.muted)) {
             localStorage.muted = "false"
         }
-        if (localStorage.placeChat === undefined) {
+        if (!localStorageBoolValues.includes(localStorage.placeChat)) {
             localStorage.placeChat = "true"
         }
         let muted = localStorage.muted === "true"
