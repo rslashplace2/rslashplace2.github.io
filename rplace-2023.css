@@ -357,21 +357,14 @@ r-spoiler {
 	transition: .2s text-shadow;
 }
 r-spoiler[hidden] {
-	color: transparent;
-	position: relative;
+    color: transparent;
 	cursor: pointer;
 	text-shadow: 0px 0px 4px var(--ui-text);
-}
-r-spoiler[hidden]::after {
-	content: " ";
-	position: absolute;
-	top: -4px;
-	left: -4px;
-	width: calc(100% + 8px);
-	height: calc(100% + 8px);
-    border: var(--pixel-border);
+	color: transparent;
+	cursor: pointer;
 	background-color: white;
+    border: var(--pixel-border);
 }
-r-spoiler[hidden]:hover::after {
+r-spoiler[hidden]:hover {
     background-color: lightgray;
 }

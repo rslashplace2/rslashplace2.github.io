@@ -34,6 +34,7 @@ self.addEventListener("install", (event) => {
                 "images/timelapse.png",
                 "images/trophy.png",
                 "images/twitter.png",
+                "images/default-ad.png",
 
                 // Svg
                 "svg/place-chat.svg",
@@ -100,6 +101,7 @@ self.addEventListener("install", (event) => {
                 "sounds/highlight.mp3",
                 "sounds/select-colour.mp3",
                 "sounds/close-palette.mp3",
+                "sounds/bell.mp3"
             ])
         )
     )

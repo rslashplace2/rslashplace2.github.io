@@ -339,7 +339,9 @@
             selectColour: new Audio("./sounds/select-colour.mp3"),
             closePalette: new Audio("./sounds/close-palette.mp3"),
             cooldownStart: new Audio("./sounds/cooldown-start.mp3"),
-            cooldownEnd: new Audio("./sounds/cooldown-end.mp3")
+            cooldownEnd: new Audio("./sounds/cooldown-end.mp3"),
+            bell: new Audio("./sounds/bell.mp3"),
+            celebration: new Audio("./sounds/celebration.mp3")
         }
 
         const EMOJIS = {
@@ -565,7 +567,7 @@
 
                 let namePart = document.createElement("span")
                 if (messageId === 0) {
-                    namePart.classList.add("special-glow")
+                    namePart.classList.add("rainbow-glow")
                 }
                 else {
                     namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
@@ -1672,10 +1674,12 @@
     <script type="application/javascript" src="elements.js?v=5" defer></script>
     <script type="application/javascript" src="posts-manager.js?v=2" defer></script>
     <script type="application/javascript" src="event-timer.js" defer></script>
+    <script type="application/javascript" src="quests.js" defer></script>
     <script type="application/javascript" src="captcha-canvas.js"></script>
     <script type="application/javascript" src="darkplace.js"></script>
     <script type="application/javascript" src="canvas-snow.min.js"></script>
     <script type="application/javascript" src="snowplace.js"></script>
+    <script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
     <link rel="stylesheet" type="text/css" href="virtual-select.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1683,7 +1687,7 @@
     <meta name="apple-mobile-web-app-title" content="place">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css?v=342" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+    <link href="style.css?v=343" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
     <title>place</title>
     <link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1927,7 +1931,7 @@
                     <img noselect="" alt="Place Logo" height="40" width="40" src="images/rplace.png" style="position: absolute;left: 50%;transform: translateX(-50%);opacity: 0.2;">
                     <mute-button noselect class="modal-footer-button" title="Enable sounds" onclick="
                         muted = !muted
-                        localStorage.muted =+ muted
+                        localStorage.muted = +muted
                         mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
                     ">
                         <svg xmlns="http://www.w3.org/2000/svg" id="mutesvg" class="icon-image" viewBox="0 0 20 20"></svg>
@@ -1973,9 +1977,9 @@
 							</ul>
 						</div>
 					</div>
-                    <place-chat-button class="modal-footer-button" title="Enable canvas chat" onclick="
-                        placeChat =! placeChat
-                        localStorage.placeChat = +placeChat
+                    <place-chat-button id="placeChatButton" class="modal-footer-button" title="Enable canvas chat" onclick="
+                        placeChat = !placeChat
+                        localStorage.placeChat = String(placeChat)
                         this.children[0].style.opacity = placeChat ? '1' : '0.6'
                     ">
                         <img src="svg/place-chat.svg" width="60">
@@ -2026,6 +2030,13 @@
                 window.onresize()
             "></div>
             <div id="contents">
+                <div class="posts-side-panel">
+                    <button type="button" id="postJumpButton" class="posts-jump-button" onclick="communityPostsPost.scrollIntoView({ behavior: 'smooth', block: 'start' })">
+                        <svg class="icon-image" title="Change channel" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+                            <path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
+                        </svg>Jump to community posts
+                    </button>
+                </div>
                 <div id="createPostPost" class="post" style="padding-left: 15px; cursor: default;" ondragenter="
                     event.stopPropagation()
                     event.preventDefault()
@@ -2146,10 +2157,10 @@
                     </div>
                     <r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
                 </div>
-                <r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
+                <!--<r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
                     coverimageurl="images/lamda.png"></r-post>
                 <r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
-                    coverimageurl="images/timelapse.png"></r-post>
+                    coverimageurl="images/timelapse.png"></r-post>-->
                 <r-post onclick="overlayMenu.setAttribute('opened', 'true')" class="post" novotes="true"  title="Overlay menu" description="Visualise your build with template images!"
                     coverimageurl="images/hammer-and-wrench.png"></r-post>
                 <r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
@@ -2158,11 +2169,11 @@
                     coverimageurl="images/patreon.png"></r-post>
                 <r-post onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" class="post" novotes="true" title="Subreddit" description="Visit the official rplace.live subreddit (r/placetk)"
                     coverimageurl="images/reddit.png"></r-post>
-                <r-post onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin';" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
-                    coverimageurl="images/account-profile.png"></r-post>
+                <!--<r-post onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin';" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
+                    coverimageurl="images/account-profile.png"></r-post>-->
                 <r-post onclick="window.open('https:\/\/canv.tk/', '_blank')" class="post" novotes="true" title="Canv.tk" description="Visit our sister site, the proof of concept this site itself was built off, canv.tk here!"
                     coverimageurl="images/canv.png"></r-post>
-                <div class="post" novotes="true">
+                <div id="communityPostsPost" class="post" novotes="true">
                     <div class="body">
                         <div class="horizontal-labeled-separator header">
                             <hr>
@@ -2202,7 +2213,7 @@
                 <h2 style="white-space:nowrap" translate="liveChat" class="live-chat-header1">Live Chat:</h2>
                 <div class="channels-options">
                     <span id="channelDropParent" style="opacity: 1;">
-                        <svg class="icon-image" onclick="event.stopPropagation(); channelDropParent.toggleAttribute('open')" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+                        <svg class="icon-image" onclick="event.stopPropagation(); channelDropParent.toggleAttribute('open')" title="Change channel" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
                             <path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"/>
                         </svg>
                         <div id="channelDrop" class="context-menu" ontouchstart="event.stopPropagation()">
@@ -2229,10 +2240,6 @@
                     <span id="channelEn" style="opacity: 0.5;" onclick="switchLanguageChannel('en')">
                         <img src="svg/flag-gb.svg" style="height: 20px; vertical-align:sub">EN
                     </span>
-                    <span id="channelTooltip" class="tooltip" onmouseleave="this.click()" onclick="
-                        this.style.opacity = '0'
-                        setTimeout(() => { this.style.display = 'none'; }, 200)
-                    " translate="changeChannel">Change channel:</span>
                 </div>
                 <div id="onlinepanel" noselect>
                     <p id="onlineCounter">...</p>
@@ -2497,6 +2504,16 @@
                     localStorage.agredPostRules = true
                     postRulesDialog.close(true)
                     ">Create post</button>    
+            </div>
+        </dialog>
+
+        <dialog id="questsDialog" class="reddit-modal">
+            <r-close-icon onclick="postRulesDialog.close()" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
+            <div style="display: flex; flex-direction: column; padding: 16px; overflow-y: scroll; row-gap: 8px;">
+                <h4>Quest complete! 🥳</h4>
+                <p id="questsDescription"><!--TODO: Flesh this out--></p>
+                <img src="images/trophy.png" style="flex-grow: 1; object-fit: contain;">
+                <button class="reddit-modal-button" onclick="questsDialog.close()">Close</button>
             </div>
         </dialog>
     </body>
@@ -2961,14 +2978,22 @@
             this.play().catch(e => e)
         }
 
-        let muted = localStorage.muted ?? false
-        let placeChat = localStorage.placeChat ?? true
+        const localStorageBoolValues = [ undefined, "true", "false" ]
+        if (!localStorageBoolValues.includes(localStorage.muted)) {
+            localStorage.muted = "false"
+        }
+        if (!localStorageBoolValues.includes(localStorage.placeChat)) {
+            localStorage.placeChat = "true"
+        }
+        let muted = localStorage.muted === "true"
+        let placeChat = localStorage.placeChat === "true"
         let onCooldown = false
         let PEN = -1
         let CD = null
         let initialConnect = false
 
         mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
+        placeChatButton.children[0].style.opacity = placeChat ? '1' : '0.6'
 
         setInterval(() => {
             let left = Math.floor((CD - Date.now()) / 1000)
@@ -3747,14 +3772,10 @@
         }
 
         setTimeout(() => {
-            if (window.connproblems)
+            if (window.connproblems) {
                 connproblems.style.opacity = 1
+            }
         }, 5000)
-
-        setTimeout(() => {
-            channelTooltip.style.opacity = "0"
-            channelTooltip.style.display = "none"
-        }, 0)
 
         if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) { // 14 days
             ad.style.display = "none"
