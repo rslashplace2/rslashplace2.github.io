@@ -1338,7 +1338,8 @@ r-post > .cover-image, .post > .cover-image {
 	height: 40px;
 }
 r-post .main > .description, .post .main > .description {
-	white-space: pre-wrap;
+	white-space: preserve-breaks;
+	word-wrap: anywhere;
 }
 r-post .main > .title, .post .main > .title {
 	color: black;
