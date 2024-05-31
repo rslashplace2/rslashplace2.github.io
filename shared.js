@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Contains shared resources across pages
+const DEFAULT_AUTH = "https://server.rplace.live/auth"
+
 const TRANSLATIONS = {
     en: {
         connecting: "Connecting...",
