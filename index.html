@@ -2031,7 +2031,8 @@
 
 		// Load more posts on scroll down
 		more.addEventListener("scroll", function(e) {
-			if (more.scrollTopMax - more.scrollTop < 256) {
+		    const moreMaxScroll = more.scrollHeight - more.clientHeight
+			if (moreMaxScroll - more.scrollTop < 256) {
 				sendPostsFrameMessage("tryLoadBottomPosts")
 			}
 			// Dialog positioning is messed up as it only sees iframe window, this is cursed but it works
