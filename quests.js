@@ -54,22 +54,24 @@ if (quests.seeCommunityPosts.stage <= stages.notStarted) {
         closebtn.removeEventListener("click", closeClicked)
     }
     closebtn.addEventListener("click", closeClicked)
-
 }
 if (quests.seeCommunityPosts.stage <= stages.closebtnClicked) {
-    postJumpButton.classList.add("please-click")
-    const postJumpClicked = () => {
-        postJumpButton.classList.remove("please-click")
-        quests.seeCommunityPosts.stage = stages.postJumpButtonClicked
-        AUDIOS.celebration.run()
-        confetti({
-            particleCount: 100,
-            spread: 100,
-            origin: { y: 0.6 },
-        })
-        questsDescription.textContent = "You have visited the community posts menu. Here you share canvas arts, make public announcements and chat with the community!"
-        questsDialog.showModal()
-        postJumpButton.removeEventListener("click", postJumpClicked)
-    }
-    postJumpButton.addEventListener("click", postJumpClicked)
+    postsFrame.addEventListener("load", function(e) {
+        const postJumpButton = postsFrame.contentDocument.querySelector("#postJumpButton")
+        postJumpButton.classList.add("please-click")
+        const postJumpClicked = () => {
+            postJumpButton.classList.remove("please-click")
+            quests.seeCommunityPosts.stage = stages.postJumpButtonClicked
+            AUDIOS.celebration.run()
+            confetti({
+                particleCount: 100,
+                spread: 100,
+                origin: { y: 0.6 },
+            })
+            questsDescription.textContent = "You have visited the community posts menu. Here you share canvas arts, make public announcements and chat with the community!"
+            questsDialog.showModal()
+            postJumpButton.removeEventListener("click", postJumpClicked)
+        }
+        postJumpButton.addEventListener("click", postJumpClicked)    
+    })    
 }
