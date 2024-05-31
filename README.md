@@ -24,17 +24,14 @@ This project is licensed under the GNU LGPL v3, out of goodwill we request forks
 not run commercially (That is, they should not generate more than the cost of server upkeep).
 
 ### For example,
-
 - My app (`fork-of-a-place.tk`) connecting to `wss://server.rplace.live:443` [✅ Cool, non-commercially]
 - Making `https://rplace.live` connect to `wss://fork-of-a-place.tk` (via devtools, for example) [✅ Cool, non-commercially]
 - My app (`fork-of-a-place.tk`) connecting to `wss://fork-of-a-place.tk` [❌ Not cool: Uses both different app and different server]
 
 ### Testing:
- - While in theory, all dependencies should be installable using `bun install` within the root directory. Some
- modules, such as skia canvas may have dependency issues using the bun package manager. It is reccomended you
- also run `npm i` to ensure all dependencies, such as n-api v6 are installed.
+ - Use `bun install` to install all required TS server dependencies
  - The server can be run with `bun run server.js` in the root directory of the project.
- - You can use a simple HTTP server, such as the npm static-server module to test the client with a local server. For example, `npx static-server --cors='*'`
+ - You can use a simple HTTP server, such as the npm static-server module to test the client with a local server. For example, `bunx static-server --cors='*'`
  
 For more information on the game's protocol, look to the [protocol documentation](PROTOCOL.md).
 
