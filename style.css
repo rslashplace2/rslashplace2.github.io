@@ -381,8 +381,8 @@ place-chat-button > img {
 		flex-basis: calc(100% / 8 - 4px);
 	}
 }
-@media (max-width: 300px){
-	#colours div{
+@media (max-width: 300px) {
+	#colours div {
 		flex-basis: calc(100% / 4 - 4px);
 	}
 }
@@ -1239,7 +1239,7 @@ kbd {
 	height: 60%;
 	transition: height .5s;
 }
-#out #more{
+#out #more {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -1257,9 +1257,12 @@ kbd {
 	overflow: auto;
 	touch-action: pan-y;
 }
-#more *{touch-action: pan-y;}
-#out #closebtn{ display: none }
-
+#more * {
+	touch-action: pan-y;
+}
+#out #closebtn {
+	display: none;
+}
 #out #more #spaceFiller {
 	display: block;
 	height: 60vh;
@@ -1273,7 +1276,10 @@ kbd {
 }
 
 /* Posts */
-#more #contents {
+#postsFrame {
+	border: none;
+}
+#contents {
 	background: #dae0e6;
 	width: 100%;
 	flex: 1;
@@ -1281,6 +1287,7 @@ kbd {
 	bottom: 0px;
 	padding: 15px 30px 30px 30px;
 	overflow: visible;
+	min-height: max-content;
 }
 r-post, .post {
 	border: 1px #ccc solid;
@@ -1479,8 +1486,14 @@ r-post-contents .contents-album > img {
 	cursor: pointer;
 }
 r-post-contents > dialog {
-	height: min-content !important;
+	height: fit-content !important;
 	width: fit-content !important;
+	max-height: calc(100% - 32px);
+	max-width: calc(100% - 32px);
+	margin: 0 !important;
+	position: fixed;
+	left: 50%; /* insanity */
+	transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
 }
 r-post-contents .dialog-header {
 	display: flex;
@@ -1552,6 +1565,15 @@ r-post-contents > dialog > img {
 }
 .create-post-input:invalid {
 	border: 1px solid #c40c0c;
+}
+.create-post-content-button {
+	box-shadow: none;
+	padding: 0px;
+	width: 36px;
+	height: 36px;
+	margin-top: 4px;
+	background-color:white;
+	border: none;
 }
 #createPostInput {
 	min-height: 38px;
@@ -1670,6 +1692,7 @@ r-create-post-content > button {
 	right: calc(50% - 620px);
 }
 .posts-jump-button {
+	color: black;
 	position: sticky;
 	top: 16px;
 	border: 1px solid #ccc;
@@ -1679,12 +1702,14 @@ r-create-post-content > button {
 	display: flex;
 	align-items: center;
 }
-@media screen and (max-width: 1300px) {
+@media screen and (max-width: 1200px) {
 	.posts-side-panel {
 		margin-left: auto;
 		margin-right: auto;
 		width: fit-content;
 		margin-bottom: 8px;
+		position: static;
+		height: auto;
 	}	
 }
 

@@ -1,7 +1,7 @@
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-nocheck
-
+// This script runs on posts.html
 /** Like PublicPromise, but limits to only one task being able to await it */
 class PublicPromiseSingle {
     locked
@@ -131,17 +131,11 @@ async function finishPostLoadWithCd() {
     await new Promise(resolve => setTimeout(resolve, postLoadCooldown))
     postFinishedLastLoad.resolve()
 }
-function shouldLoadPosts() {
-    return more.scrollTopMax - more.scrollTop < 256
-}
 // "date" - Most old, "votes" - lowest upvotes
 async function tryLoadBottomPosts() {
-    if (shouldLoadPosts() && !postFinishedLastLoad?.locked) {
+    if (!postFinishedLastLoad?.locked) {
         if (postFinishedLastLoad !== null) {
             await postFinishedLastLoad.acquireAwaitPromise()
-            if (!shouldLoadPosts()) {
-                return
-            }
         }
         postFinishedLastLoad = new PublicPromiseSingle()
 
@@ -222,4 +216,3 @@ postsHideSensitive.addEventListener("change", function() {
         }    
     }
 })
-more.addEventListener("scroll", tryLoadBottomPosts)

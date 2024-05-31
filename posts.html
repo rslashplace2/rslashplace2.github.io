@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>posts</title>
+	<link href="rplace-2022.css" rel="stylesheet"> <!-- TODO: Stop depending on this -->
+	<link href="style.css?v=343" rel="stylesheet">
+	<script type="application/javascript" src="elements.js" defer></script>
+	<script type="application/javascript" src="posts-manager.js" defer></script>
+	<script type="application/javascript" src="shared.js"></script>
+	<style>
+		body, html {
+			height: max-content;
+		}
+	</style>
+	<script>
+		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
+		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;
+		delete I.getSVGDocument; delete eval;  delete Function.prototype.constructor; delete Function; delete Worker; delete WebSocket;
+	</script>
+</head>
+<body>
+	<div id="contents">
+		<div class="posts-side-panel">
+			<button type="button" id="postJumpButton" class="posts-jump-button" onclick="communityPostsPost.scrollIntoView({ behavior: 'smooth', block: 'start' })">
+				<svg title="Change channel" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+					<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
+				</svg>Jump to community posts
+			</button>
+		</div>
+		<div id="createPostPost" class="post" style="padding-left: 15px; cursor: default;" ondragenter="
+			event.stopPropagation()
+			event.preventDefault()
+		" ondragover="
+			event.stopPropagation()
+			event.preventDefault()
+			this.classList.add('image-drop')
+		" ondrop="
+			event.stopPropagation()
+			event.preventDefault()
+			this.classList.remove('image-drop')
+			for (const file of event.dataTransfer.files) {
+				if (file.type.startsWith('image/')) {
+					createPostContent.addContent(file)
+				}
+			}
+		" ondragleave="
+			event.stopPropagation()
+			event.preventDefault()
+			this.classList.remove('image-drop')
+		">
+			<div class="create-post-image-drop">
+				<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+					<path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h360v80H200v560h560v-360h80v360q0 33-23.5 56.5T760-120H200Zm480-480v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80ZM240-280h480L570-480 450-320l-90-120-120 160Zm-40-480v560-560Z"/>
+				</svg>
+				<span>Upload image</span>
+			</div>
+			<div style="display: flex; flex-grow: 1;">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-right: 8px;margin-top: 4px;" height="36" width="36">
+					<path style="fill: #939393;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"></path>
+				</svg>
+				<div style="flex-grow: 1; display: flex; flex-direction: column;">
+					<input type="text" id="createPostTitle" minlength="1" maxlength="64" required class="create-post-input create-post-extra" placeholder="Post title..." onchange="
+							if (!createPostTitle.checkValidity()) {
+								createPostTitle.setCustomValidity('Post title should be between 1-64 characters long!')
+							}
+							else {
+								createPostTitle.setCustomValidity('')
+							}
+						">
+					<textarea id="createPostInput" maxlength="360" class="create-post-input" placeholder="Create post..."
+						onkeypress="event.stopPropagation()"
+						onfocus="
+							createPostPost.classList.add('focused')
+							createPostInput.placeholder = 'Post content...'
+						"></textarea>
+				</div>
+				<button class="create-post-content-button" onclick="createPostContentInput.click()">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="36" width="36">
+						<path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/>
+					</svg>
+				</button>
+				<input type="file" id="createPostContentInput" accept="image/*" onchange="
+					for (const file of this.files) {
+						createPostContent.addContent(file)
+					}
+				" style="display: none;">
+			</div>
+			<div id="createPostOptions" class="create-post-extra">
+				<r-post-contents-preview id="createPostContent"></r-post-contents-preview>
+				<button id="discardPostButton" class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
+				<button id="createPostButton" class="post-button create-post-button" onclick="
+					async function uploadAndUpdatePosts() {
+						discardPostButton.disabled = true
+						createPostButton.disabled = true
+						const progressCb = function(stage, info) {
+							if (stage == 'uploadPost') {
+								createPostStatus.textContent = 'Uploading post: ' + `${info.progress}%`
+							}
+							else if (stage == 'uploadContent') {
+								createPostStatus.textContent = 'Uploading attachment...' + `(${info.current}/${info.total})`
+							}
+						}
+						if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents, progressCb)) {
+							resetCreatePost()
+							alert('Post success!')
+							await tryLoadTopPosts()
+						}
+						else {
+							createPostStatus.textContent = ''
+							createPostButton.disabled = false
+							discardPostButton.disabled = false
+						}
+					}
+					if (!createPostTitle.checkValidity()) {
+						return
+					}
+					if (!localStorage.agredPostRules) {
+						postRulesDialog.showModal()
+						postRulesDialog.onclose = function(e) {
+							if (postRulesDialog.returnValue === true) {
+								uploadAndUpdatePosts()
+							}
+						}
+					}
+					else {
+						uploadAndUpdatePosts()
+					}
+				">Post</button>
+				<span id="createPostStatus" class="create-post-status"></span>
+			</div>
+		</div>
+		<div onclick="sendParentMessage('openChatPanel')" class="post" style="cursor: pointer;" novotes="true">
+			<img alt="Live chat icon" class="cover-image" src="images/live.png">
+			<div class="body">
+				<div class="main">
+					<div class="title" translate="liveChat">Live Chat</div>
+					<span class="description" id="onlineCounter2">... online</span>
+				</div>
+			</div>
+		</div>
+		<div onclick="sendParentMessage('switchGameServer')" class="post" style="cursor: pointer;" novotes="true">
+			<img alt="Rplace logo" class="cover-image" src="images/rplace.png">
+			<div class="body">
+				<div class="main">
+					<div class="title">Main Canvas</div>
+					<div class="description">750x750 (cooldown: 800ms)</div>
+				</div>
+			</div>
+			<r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
+		</div>
+		<!--<r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
+			coverimageurl="images/lamda.png"></r-post>
+		<r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
+			coverimageurl="images/timelapse.png"></r-post>-->
+		<r-post onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
+			coverimageurl="images/hammer-and-wrench.png"></r-post>
+		<r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
+			coverimageurl="images/discord.png"></r-post>
+		<r-post onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Donate" description="Help keep r/place alive!"
+			coverimageurl="images/patreon.png"></r-post>
+		<r-post onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Subreddit" description="Visit the official rplace.live subreddit (r/placetk)"
+			coverimageurl="images/reddit.png"></r-post>
+		<!--<r-post onclick="loginPopup.showModal(); unauthedPage.dataset.page = 'signin';" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
+			coverimageurl="images/account-profile.png"></r-post>-->
+		<r-post onclick="window.open('https:\/\/canv.tk/', '_blank')" style="cursor: pointer;" class="post" novotes="true" title="Canv.tk" description="Visit our sister site, the proof of concept this site itself was built off, canv.tk here!"
+			coverimageurl="images/canv.png"></r-post>
+		<div id="communityPostsPost" class="post" novotes="true">
+			<div class="body">
+				<div class="horizontal-labeled-separator header">
+					<hr>
+					<span>Community posts</span>
+					<hr>
+				</div>
+				<div style="display: flex; column-gap: 16px; align-items: center; justify-content: center;">
+					<label for="postsSortSelect">Sort by:</label>
+					<select id="postsSortSelect" style="box-shadow: none; border-radius: 64px; background: white;">
+						<option value="date">Date</option>
+						<option value="upvotes">Upvotes</option>
+					</select>
+					<label for="postsHideSensitive">Hide sensitive:</label>
+					<input id="postsHideSensitive" type="checkbox" checked style="box-shadow: none; border-radius: 64px;">
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+	// Bidirectional IPC, similar to server.ts - db-worker.ts communication
+	// Methods called by iframe parent
+	function onlineCounter(count) {
+		onlineCounter2.textContent = count + " online"
+	}
+	function updateDialogTop(topHeight) {
+		document.body.style.setProperty("--posts-dialog-top", topHeight + "px")
+	}
+	let parentReqId = 0
+	let parentReqs = new Map()
+	async function makeParentRequest(messageCall, args = undefined) {
+		const handle = parentReqId++
+		const promise = new PublicPromise()
+		const postCall = { call: messageCall, data: args, handle: handle }
+		parentReqs.set(handle, promise)
+		window.parent.postMessage(postCall)
+		return await promise.promise
+	}
+	window.addEventListener("message", async function(event) {
+		if (!event.origin.startsWith(location.origin)) {
+			throw new Error("Invalid message origin")
+		}
+		const message = event.data
+		if (message.call) { // Parent window asking to call iframe method
+			let result = undefined
+			if (window[message.call]) {
+				result = await window[message.call](message.data)
+			}
+			if (message.handle !== undefined && message.handle !== null) {
+				window.parent.postMessage({ handle: message.handle, data: result }, location.origin)
+			}
+		}
+		else { // Return value from parent method
+			parentReqs.get(message.handle)?.resolve(message.data)
+		}
+		
+	}, false)
+	function sendParentMessage(messageCall, args = undefined) {
+		window.parent.postMessage({ call: messageCall, data: args }, location.origin)
+	}
+
+	async function uploadPost(title, content, contents, progressCb) {
+		const postData = {
+			canvasUser: null,
+			accountId: null,
+			title: title,
+			description: content
+		}
+		// TODO: Until global auth accounts are released, we will do all post authentications
+		// TODO: through the canvas account linkage API
+		// Get link key from canvas server to prove we own this account ID
+		const linkInfo = await makeParentRequest("fetchLinkKey")
+		if (!linkInfo) {
+			alert("Could not upload post. Error communicating with server")
+			console.error("Could not upload post, linkinfo was falsy", linkInfo)
+			return false
+		}
+		postData.canvasUser = linkInfo // { linkKey: number, instanceId: number }
+
+		if (progressCb) progressCb("uploadPost", { progress: 0 })
+		const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
+			method: "POST",
+			body: JSON.stringify(postData),
+			headers: { "Content-Type": "application/json" }
+		})
+		if (!uploadResponse.ok) {
+			if (uploadResponse.status == 401) {
+				alert("Error: You are being rate limited. Please wait before posting again")
+			}
+			else {
+				const jsonError = await uploadResponse.json().catch(e => console.error(e))
+				alert("Error: Could not upload post: " + jsonError.message)
+				console.error(uploadResponse.status, uploadResponse.statusText)
+			}
+			return false
+		}
+		if (progressCb) progressCb("uploadPost", { progress: 1 })
+
+		// Upload file as form content
+		let contentsUploaded = 0
+		let contentsUploadedSuccess = 0
+		const contentUploadTasks = []
+		const uploadResponseObject = await uploadResponse.json()
+		contents.forEach((file, index) => {
+			const contentForm = new FormData() // new Blob([], { type: "text/plain" })
+			contentForm.append("contentUploadKey", uploadResponseObject.contentUploadKey)
+			contentForm.append("file", file)
+			contentUploadTasks.push(
+				fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponseObject.postId}/contents/`, {
+						method: "POST",
+						body: contentForm,
+					})
+					.then(async (contentResponse) => {
+						if (!contentResponse.ok) {
+							const jsonError = await contentResponse.json().catch(e => console.error(e))
+							alert("Error: Failed to upload one of the post attachments: " + jsonError.message)
+							console.error(contentResponse.status, contentResponse.statusText)
+							contentsUploadedSuccess++
+						}
+						contentsUploaded++
+						if (progressCb) progressCb("uploadContent", {
+							current: index,
+							success: contentResponse.ok,
+							uploaded: contentsUploaded,
+							successfullyUploaded: contentsUploadedSuccess,
+							total: contents.length
+						})
+					})
+					.catch(e => {
+						alert("Error: Failed to upload one of the post attachments")
+						console.error(e)
+					}))
+		})
+		await Promise.all(contentUploadTasks)
+		return true
+	}
+
+	function resetCreatePost() {
+		createPostButton.disabled = false
+		discardPostButton.disabled = false
+		createPostStatus.textContent = ""
+		createPostTitle.value = ""
+		createPostInput.value = ""
+		createPostContent.clearContents()
+		createPostInput.placeholder = 'Create post...'
+		createPostPost.classList.remove('focused')
+	}
+
+    const resizeObserver = new ResizeObserver(entries => {
+		for (let entry of entries) {
+			sendParentMessage("resizePostsFrame")
+		}
+    })
+    resizeObserver.observe(contents)
+</script>
+</html>
