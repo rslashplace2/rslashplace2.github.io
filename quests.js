@@ -69,7 +69,7 @@ if (quests.seeCommunityPosts.stage <= stages.closebtnClicked) {
         })
         questsDescription.textContent = "You have visited the community posts menu. Here you share canvas arts, make public announcements and chat with the community!"
         questsDialog.showModal()
-        postJumpButton.removeEventListener("click", closeClicked)
+        postJumpButton.removeEventListener("click", postJumpClicked)
     }
     postJumpButton.addEventListener("click", postJumpClicked)
 }
