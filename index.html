@@ -3,7 +3,6 @@
 <head>
 	<meta charset="UTF-8">
 	<script>
-		const DEFAULT_AUTH = "https://server.rplace.live/auth"
 		const DEFAULT_SERVER = "wss://server.rplace.live:443"
 		const DEFAULT_BOARD = "https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"
 		const CHAT_COLOURS = ["lightblue", "navy", "green", "purple", "grey", "brown", "orangered", "gold"]
@@ -127,8 +126,8 @@
 		])
 
 		const DEFAULT_THEMES = new Map([
-			[ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "10", pixelselect: "svg/pixel-select-2022.svg" }],
-			[ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "10", pixelselect: "svg/pixel-select-2023.svg" }],
+			[ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "11", pixelselect: "svg/pixel-select-2022.svg" }],
+			[ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "11", pixelselect: "svg/pixel-select-2023.svg" }],
 		])
 
 		const ADS = [
@@ -1291,14 +1290,14 @@
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
-	<script type="application/javascript" src="elements.js?v=5" defer></script>
+	<script type="application/javascript" src="elements.js?v=6" defer></script>
 	<script type="application/javascript" src="event-timer.js" defer></script>
 	<script type="application/javascript" src="quests.js" defer></script>
 	<script type="application/javascript" src="captcha-canvas.js"></script>
 	<script type="application/javascript" src="darkplace.js"></script>
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
-	<script type="application/javascript" src="shared.js"></script>
+	<script type="application/javascript" src="shared.js?v=1"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
@@ -1307,7 +1306,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=343" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=344" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
