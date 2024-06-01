@@ -1545,6 +1545,18 @@ r-post-contents > dialog > img {
 	pointer-events: none;
 	column-gap: 4px;
 }
+.create-post-body {
+	display: flex;
+	flex-grow: 1;
+	min-height: 44px;
+	column-gap: 8px;
+}
+.create-post-inputs-container {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 128px;
+}
 .create-post-input {
 	all: unset;
 	background-color: #F6F7F8;
@@ -1557,32 +1569,36 @@ r-post-contents > dialog > img {
 	flex-grow: 1;
 	font-size: 16px;
 	padding: 0 16px;
-	margin-right: 8px;
 	cursor: text;
+}
+.create-post-input:invalid {
+	border: 1px solid #c40c0ce1;
 }
 .create-post-input:hover {
 	background-color: #FFFFFF;
 	border: 1px solid #0079D3;
 }
-.create-post-input:invalid {
-	border: 1px solid #c40c0c;
+.create-post-account-button {
+	width: 32px;
+	height: 32px;
+	margin-top: 8px;
 }
 .create-post-content-button {
 	box-shadow: none;
 	padding: 0px;
-	width: 36px;
-	height: 36px;
-	margin-top: 4px;
+	width: 32px;
+	height: 32px;
+	margin-top: 8px;
 	background-color:white;
 	border: none;
 }
 #createPostInput {
-	min-height: 38px;
-	height: 38px;
-	min-width: 5px;
+	min-height: 42px;
+	height: 42px;
+	max-height: 42px;
 	overflow-x: hidden;
 	overflow-y: auto;
-	transition: .2s height;
+	transition: .2s height, .2s max-height;
 	word-break: break-all;
 	white-space: pre-wrap;
 }
@@ -1593,6 +1609,7 @@ r-post-contents > dialog > img {
 #createPostInput:focus-within, #createPostInput:active {
 	padding-top: 8px;
 	height: 256px;
+	max-height: 256px;
 }
 
 #createPostPost.focused #createPostInput::placeholder,
@@ -1604,7 +1621,8 @@ r-post-contents > dialog > img {
 .create-post-extra {
 	opacity: 0;
 	height: 0px;
-	transition: .2s opacity, .2s height;
+	max-height: 0px;
+	transition: .2s opacity, .2s height, .2s max-height, .2s margin;
 }
 #createPostTitle {
 	display: flex;
@@ -1616,16 +1634,18 @@ r-post-contents > dialog > img {
 	column-gap: 8px;
 	opacity: 0;
 	height: 0px;
-	transition: .2s opacity, .2s height;
+	transition: .2s opacity, .2s height, .2s max-height;
 }
 #createPostPost.focused .create-post-extra {
 	opacity: 1;
 	height: 36px;
+	max-height: 256px;
 }
 #createPostPost.focused #createPostOptions {
 	height: fit-content !important;
 }
 #createPostPost.focused #createPostTitle {
+	margin-top: 6px;
 	margin-bottom: 8px;
 }
 r-post-contents-preview {

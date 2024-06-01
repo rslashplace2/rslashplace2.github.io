@@ -5,13 +5,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
 	<link href="rplace-2022.css?v=11" rel="stylesheet"> <!-- TODO: Stop depending on this -->
-	<link href="style.css?v=345" rel="stylesheet">
+	<link href="style.css?v=346" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
 	<script type="application/javascript" src="posts-manager.js?v=3" defer></script>
 	<script type="application/javascript" src="shared.js?v=1"></script>
 	<style>
 		body, html {
 			height: max-content;
+		}
+		* {
+			touch-action: auto !important;
 		}
 	</style>
 	<script>
@@ -56,11 +59,11 @@
 				</svg>
 				<span>Upload image</span>
 			</div>
-			<div style="display: flex; flex-grow: 1;">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-right: 8px;margin-top: 4px;" height="36" width="36">
-					<path style="fill: #939393;" d="M11.1 35.25q3.15-2.2 6.25-3.375Q20.45 30.7 24 30.7q3.55 0 6.675 1.175t6.275 3.375q2.2-2.7 3.125-5.45Q41 27.05 41 24q0-7.25-4.875-12.125T24 7q-7.25 0-12.125 4.875T7 24q0 3.05.95 5.8t3.15 5.45ZM24 25.5q-2.9 0-4.875-1.975T17.15 18.65q0-2.9 1.975-4.875T24 11.8q2.9 0 4.875 1.975t1.975 4.875q0 2.9-1.975 4.875T24 25.5ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.775t4.3-6.35q2.725-2.725 6.375-4.3Q19.9 4 24 4q4.15 0 7.775 1.575t6.35 4.3q2.725 2.725 4.3 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.3 6.375-2.725 2.725-6.35 4.3Q28.15 44 24 44Zm0-3q2.75 0 5.375-.8t5.175-2.8q-2.55-1.8-5.2-2.75-2.65-.95-5.35-.95-2.7 0-5.35.95-2.65.95-5.2 2.75 2.55 2 5.175 2.8Q21.25 41 24 41Zm0-18.5q1.7 0 2.775-1.075t1.075-2.775q0-1.7-1.075-2.775T24 14.8q-1.7 0-2.775 1.075T20.15 18.65q0 1.7 1.075 2.775T24 22.5Zm0-3.85Zm0 18.7Z"></path>
-				</svg>
-				<div style="flex-grow: 1; display: flex; flex-direction: column;">
+			<div class="create-post-body">
+				<div class="create-post-account-button">
+					<img src="./svg/account.svg" alt="Account icon" width="32" height="32">
+				</div>
+				<div class="create-post-inputs-container">
 					<input type="text" id="createPostTitle" minlength="1" maxlength="64" required class="create-post-input create-post-extra" placeholder="Post title..." onchange="
 							if (!createPostTitle.checkValidity()) {
 								createPostTitle.setCustomValidity('Post title should be between 1-64 characters long!')
@@ -77,9 +80,7 @@
 						"></textarea>
 				</div>
 				<button class="create-post-content-button" onclick="createPostContentInput.click()">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="36" width="36">
-						<path style="fill: #979a9b;" d="M10 44q-2.5 0-4.25-1.75T4 38V10q0-2.5 1.75-4.25T10 4h28q2.5 0 4.25 1.75T44 10v28q0 2.5-1.75 4.25T38 44Zm0-3h28q1.3 0 2.15-.875Q41 39.25 41 38V10q0-1.3-.85-2.15Q39.3 7 38 7H10q-1.25 0-2.125.85T7 10v28q0 1.25.875 2.125T10 41Zm3.2-5.5 6.8-6.8 3.65 3.6L28 26.8l6.95 8.7Zm2.8-16q-1.45 0-2.475-1.025Q12.5 17.45 12.5 16q0-1.45 1.025-2.475Q14.55 12.5 16 12.5q1.45 0 2.475 1.025Q19.5 14.55 19.5 16q0 1.45-1.025 2.475Q17.45 19.5 16 19.5Z"/>
-					</svg>
+					<img src="./svg/image.svg" alt="Add post attachment" width="32" height="32">
 				</button>
 				<input type="file" id="createPostContentInput" accept="image/*" onchange="
 					for (const file of this.files) {
