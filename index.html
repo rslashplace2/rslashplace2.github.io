@@ -1639,7 +1639,7 @@
 				</div>
 			</div>
 		</div>
-		<div id="more">
+		<div id="more" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()">
 			<div id="spaceFiller" onclick="
 				if (document.body.id != 'out')
 					return
@@ -2039,7 +2039,7 @@
 			const dialogTopHeight = Math.max(more.scrollTop - spaceFiller.offsetHeight + window.innerHeight / 2,
 				spaceFiller.offsetHeight)
 			sendPostsFrameMessage("updateDialogTop", dialogTopHeight)
-		})
+		}, { passive: true })
 
 		document.body.ontouchstart = function(e) {
 			for (let t of e.changedTouches) {
