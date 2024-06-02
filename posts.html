@@ -7,11 +7,46 @@
 	<link href="rplace-2022.css?v=11" rel="stylesheet"> <!-- TODO: Stop depending on this -->
 	<link href="style.css?v=346" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script type="application/javascript" src="posts-manager.js?v=3" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=3" defer></script>
 	<script type="application/javascript" src="shared.js?v=1"></script>
 	<style>
 		body, html {
 			height: max-content;
+			overflow-y: hidden;
+			background: #dae0e6;
+		}
+		html[embedded="false"], html[embedded="false"] body {
+			height: 100%;
+		}
+		html[embedded="false"] body {
+			overflow-y: scroll;
+		}
+		html[embedded="false"] .posts-jump-button {
+			display: none;
+		}
+		html[embedded="false"] header {
+			position: sticky;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 64px;
+			background-color: white;
+			margin: 0;
+			padding: 8px;
+			border-bottom: 1px solid #EDEFF1;
+			display: flex;
+			column-gap: 8px;
+			z-index: 1;
+			align-items: center;
+		}
+		html[embedded="false"] r-post-contents > dialog {
+			top: 50%
+		}
+		.header-icon {
+			height: 100%;
+		}
+		html[embedded="true"] header {
+			display: none;
 		}
 		* {
 			touch-action: auto !important;
@@ -24,6 +59,10 @@
 	</script>
 </head>
 <body>
+	<header>
+		<img src="./images/rplace.png" class="header-icon" alt="Rplace logo">
+		<h1>rplace.live posts</h1>
+	</header>
 	<div id="contents">
 		<div class="posts-side-panel">
 			<button type="button" id="postJumpButton" class="posts-jump-button" onclick="communityPostsPost.scrollIntoView({ behavior: 'smooth', block: 'start' })">
@@ -132,7 +171,7 @@
 				<span id="createPostStatus" class="create-post-status"></span>
 			</div>
 		</div>
-		<div onclick="sendParentMessage('openChatPanel')" class="post" style="cursor: pointer;" novotes="true">
+		<div id="liveChatPost" onclick="sendParentMessage('openChatPanel')" class="post" style="cursor: pointer;" novotes="true">
 			<img alt="Live chat icon" class="cover-image" src="images/live.png">
 			<div class="body">
 				<div class="main">
@@ -141,7 +180,7 @@
 				</div>
 			</div>
 		</div>
-		<div onclick="sendParentMessage('switchGameServer')" class="post" style="cursor: pointer;" novotes="true">
+		<div id="mainCanvasPost" class="post" style="cursor: pointer;" novotes="true">
 			<img alt="Rplace logo" class="cover-image" src="images/rplace.png">
 			<div class="body">
 				<div class="main">
@@ -149,13 +188,13 @@
 					<div class="description">750x750 (cooldown: 800ms)</div>
 				</div>
 			</div>
-			<r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
+			<r-clipboard-copy title="Copy canvas URL to clipbaord" src="https://rplace.live/?server=wss://server.rplace.live:443&board=https://raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
 		</div>
 		<!--<r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
 			coverimageurl="images/lamda.png"></r-post>
 		<r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
 			coverimageurl="images/timelapse.png"></r-post>-->
-		<r-post onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
+		<r-post id="overlayPost" onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
 			coverimageurl="images/hammer-and-wrench.png"></r-post>
 		<r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
 			coverimageurl="images/discord.png"></r-post>
@@ -227,6 +266,36 @@
 	}, false)
 	function sendParentMessage(messageCall, args = undefined) {
 		window.parent.postMessage({ call: messageCall, data: args }, location.origin)
+	}
+
+	if (window.parent !== window) {
+		document.documentElement.setAttribute("embedded", "true")
+		mainCanvasPost.onclick = function() {
+			sendParentMessage('switchGameServer')
+		}
+	}
+	else {
+		document.documentElement.setAttribute("embedded", "false")
+		postsManager.addEventListener("load", async () => {
+			tryLoadBottomPosts()
+			updateDialogTop(0)
+			createPostPost.style.opacity = "0.6"
+			createPostPost.style.pointerEvents = "none"
+			liveChatPost.remove()
+			overlayPost.remove()
+			mainCanvasPost.onclick = function() {
+				window.open(`${window.location.origin}/?server=${DEFAULT_SERVER}&board=${DEFAULT_BOARD}`)
+			}
+
+			// Load more posts on scroll down
+			const body = document.body
+			body.addEventListener("scroll", function(e) {
+				const bodyMaxScroll = body.scrollHeight - body.clientHeight
+				if (bodyMaxScroll - body.scrollTop < 256) {
+					tryLoadBottomPosts()
+				}
+			}, { passive: true })
+		})
 	}
 
 	async function uploadPost(title, content, contents, progressCb) {

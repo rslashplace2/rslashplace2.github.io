@@ -1496,6 +1496,11 @@ r-post-contents > dialog {
 	left: 50%; /* insanity */
 	transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
 }
+@media screen and (max-width: 450px) {
+	r-post-contents > dialog {
+		width: calc(100% - 32px) !important;	
+	}
+}
 r-post-contents .dialog-header {
 	display: flex;
 	height: 36px;
