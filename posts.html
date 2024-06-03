@@ -177,7 +177,7 @@
 			<h1 class="header-title">rplace.live posts</h1>
 		</div>
 		<input type="text" class="post-input searchbar" placeholder="Search keyword" onchange="
-			const keyword = this.value.trim().toLower()
+			const keyword = this.value.trim().toLowerCase()
 			if (keyword) {
 				tryLoadKeywordPosts(keyword)
 			}
