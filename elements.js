@@ -355,6 +355,7 @@ class RplacePostContents extends HTMLElement {
 
         this.#contentUrls.forEach((contentUrl, index) => {
             const imageEl = document.createElement("img")
+            imageEl.loading = "lazy"
             imageEl.src = contentUrl
             if (this.#contentUrls.length === 3 && index === 2) {
                 imageEl.style.gridColumn = "1 / span 2"
