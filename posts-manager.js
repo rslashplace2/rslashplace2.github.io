@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
+// @ts-nocheck
 // This script runs on posts.html
 /** Like PublicPromise, but limits to only one task being able to await it */
 class PublicPromiseSingle {
@@ -34,50 +34,52 @@ class PublicPromiseSingle {
 }
 
 class PostElArray {
-    posts
+    items
     constructor() {
-        this.posts = []
+        this.items = []
     }
 
     orderedInsert(postEl, comparisonFn) {
-        let insertIndex = this.posts.findIndex(existingItem => existingItem.id === postEl.post?.id)
+        let insertIndex = this.items.findIndex(existingItem => existingItem.post.id === postEl.post?.id)
         if (insertIndex >= 0) {
-            this.posts[insertIndex] = postEl
+            this.items[insertIndex] = postEl
         }
         else {
-            insertIndex = this.posts.findIndex(existingItem => comparisonFn(postEl, existingItem) < 0)
+            insertIndex = this.items.findIndex(existingItem => comparisonFn(postEl, existingItem) < 0)
             if (insertIndex === -1) {
-                this.posts.push(postEl)
-                insertIndex = this.posts.length - 1
+                this.items.push(postEl)
+                insertIndex = this.items.length - 1
             }
             else {
-                this.posts.splice(insertIndex, 0, postEl)
+                this.items.splice(insertIndex, 0, postEl)
             }
         }
         return insertIndex
     }
 
     delete(postEl) {
-      this.posts = this.posts.filter(existingItem => existingItem.id !== postEl.post?.id)
+      this.items = this.items.filter(existingItem => existingItem.post.id !== postEl.post?.id)
     }
 
     includes(postEl) {
-      return this.posts.some(existingItem => existingItem.id === postEl.post?.id)
+      return this.items.some(existingItem => existingItem.post.id === postEl.post?.id)
     }
 
     getById(id) {
-        return this.posts.find(postEl => postEl.post?.id === id)
+        return this.items.find(postEl => postEl.post?.id === id)
     }
 
     clear() {
-        this.posts.length = 0
+        this.items.length = 0
     }
 }
 
-const postEls = new PostElArray()
+let topUpvotes = 0
+let topDate = new Date(0)
 let bottomUpvotes = 0xFFFFFFFF
 let bottomDate = new Date()
 
+const postEls = new PostElArray()
 const contentsBaseLength = contents.childNodes.length
 const postLimit = 16
 const postLoadCooldown = 1000
@@ -85,7 +87,6 @@ let postFinishedLastLoad = null
 let filter = postsSortSelect.value // "upvotes" | "date" 
 let hideSensitive = !!postsHideSensitive.checked
 
-// TODO: This whole class is hacky but kinda works
 function insertElementAtIndex(parentElement, newElement, index) {
     const referenceElement = parentElement.childNodes[index]
     if (referenceElement) {
@@ -96,107 +97,133 @@ function insertElementAtIndex(parentElement, newElement, index) {
     }
 }
 
-// "date" - Most recent / "upvotes" - highest upvotes
-async function tryLoadTopPosts() {
-    const oldBottomDate = bottomDate
-    const oldBottomUpvotes = bottomUpvotes
-    bottomDate = new Date()
-    bottomUpvotes = 0xFFFFFFF
-    await tryLoadBottomPosts()
-    for (const postEl of postEls.posts) {
-        if (filter == "date") {
-            const postDate = new Date(postEl.post.creationDate)
-            if (postDate < bottomDate) {
-                bottomDate = postDate
-            }
+async function finishPostLoadWithCd() {
+    await new Promise(resolve => setTimeout(resolve, postLoadCooldown))
+    postFinishedLastLoad.resolve()
+}
+async function tryLoadPosts(sortBy, paramsObject) {
+    paramsObject = Object.assign({limit: postLimit}, paramsObject)
+    const params = new URLSearchParams(paramsObject)
+
+    if (postFinishedLastLoad !== null) {
+        if (postFinishedLastLoad.locked) {
+            return false
+        }    
+        await postFinishedLastLoad.acquireAwaitPromise()
+    }
+    postFinishedLastLoad = new PublicPromiseSingle()
+
+    const postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?${params.toString()}`
+    const res = await fetch(postsUrl)
+    if (!res.ok) {
+        console.error(`Failed to load top posts, status ${res.status} ${res.statusText}:`, await res.json())
+        await finishPostLoadWithCd()
+        return false
+    }
+    const postsObject = await res.json()
+    for (const post of postsObject.posts) {
+        if (postEls.includes(post)) {
+            // Update the post with new data
+            const postEl = postEls.getById(post.id)
+            postEl.fromPost(post)
         }
-        else if (filter == "upvotes" && postEl.post.upvotes < bottomUpvotes) {
-            bottomUpvotes = postEl.post.upvotes
+        else {
+            const postEl = document.createElement("r-post")
+            postEl.fromPost(post)
+            if (hideSensitive && post.hasSensitiveContent) {
+                postEl.hidden = true
+            }
+            const postDate = new Date(post.creationDate)
+            let comparisonFn = null
+            switch (sortBy) {
+                case "beforeDate": {
+                    comparisonFn = (a, b) => new Date(b.post.creationDate) - new Date(a.post.creationDate)
+                    if (postDate < bottomDate) {
+                        bottomDate = postDate
+                    }
+                    break
+                }
+                case "sinceDate": {
+                    comparisonFn = (a, b) => new Date(a.post.creationDate) - new Date(b.post.creationDate)
+                    if (postDate > topDate) {
+                        topDate = postDate
+                    }
+                    break
+                }
+                case "beforeUpvotes": {
+                    comparisonFn = (a, b) => b.post.upvotes - a.post.upvotes
+                    if (post.upvotes < bottomUpvotes) {
+                        bottomUpvotes = post.upvotes
+                    }
+                    break
+                }
+                case "sinceUpvotes": {
+                    comparisonFn = (a, b) => a.post.upvotes - b.post.upvotes
+                    if (post.upvotes > topUpvotes) {
+                        topUpvotes = post.upvotes
+                    }
+                    break
+                }
+                default: {
+                    await finishPostLoadWithCd()
+                    return false
+                }
+            }
+            const insertIndex = postEls.orderedInsert(postEl, comparisonFn)
+            insertElementAtIndex(contents, postEl, contentsBaseLength + insertIndex)
         }
     }
-    bottomDate = oldBottomDate
-    bottomUpvotes = oldBottomUpvotes
+
+    await finishPostLoadWithCd()
+    return true
+}
+
+// "date" - Most recent / "upvotes" - highest upvotes
+async function tryLoadTopPosts() {
+    if (filter == "date") {
+        await tryLoadPosts("sinceDate", { sinceDate: topDate.toISOString() })
+    }
+    else if (filter == "upvotes") {
+        await tryLoadPosts("sinceUpvotes", { sinceUpvotes: topUpvotes })
+    }
+}
+// "date" - Most old, "votes" - lowest upvotes
+async function tryLoadBottomPosts() {
+    if (filter == "date") {
+        await tryLoadPosts("beforeDate", { beforeDate: bottomDate.toISOString() })
+    }
+    else if (filter == "upvotes") {
+        await tryLoadPosts("beforeUpvotes", { beforeUpvotes: bottomUpvotes })
+    }
+}
+async function tryLoadKeywordPosts(keyword) {
+    clearPosts()
+    let sortBy = null
+    let sortValue = null
+    if (filter == "date") {
+        sortBy = "beforeDate"
+        sortValue = bottomDate.toISOString()
+    }
+    else if (filter == "upvotes") {
+        sortBy = "beforeUpvotes"
+        sortValue = bottomUpvotes
+    }
+    if (sortBy === null || sortValue === null) {
+        return
+    }
+    await tryLoadPosts(sortBy, { [sortBy]: sortValue, keyword })
 }
 function clearPosts() {
-    for (const postEl of postEls.posts) {
+    for (const postEl of postEls.items) {
         if (contents.contains(postEl)) {
             contents.removeChild(postEl)
         }
     }
     postEls.clear()
+    topUpvotes = 0
+    topDate = new Date(0)
     bottomUpvotes = 0xFFFFFFF
     bottomDate = new Date()
-}
-async function finishPostLoadWithCd() {
-    await new Promise(resolve => setTimeout(resolve, postLoadCooldown))
-    postFinishedLastLoad.resolve()
-}
-// "date" - Most old, "votes" - lowest upvotes
-async function tryLoadBottomPosts() {
-    if (!postFinishedLastLoad?.locked) {
-        if (postFinishedLastLoad !== null) {
-            await postFinishedLastLoad.acquireAwaitPromise()
-        }
-        postFinishedLastLoad = new PublicPromiseSingle()
-
-        let postsUrl = null
-        if (filter == "date") {
-            postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?beforeDate=${
-                bottomDate.toISOString()}&limit=${postLimit}`
-        }
-        else if (filter == "upvotes") {
-            postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?beforeUpvotes=${
-                bottomUpvotes}&limit=${postLimit}`
-        }
-        if (postsUrl == null) {
-            await finishPostLoadWithCd()
-            return
-        }
-
-        const res = await fetch(postsUrl)
-        if (!res.ok) {
-            console.error(`Failed to load posts, status ${res.status} ${res.statusText}:`, await res.json())
-            await finishPostLoadWithCd()
-            return
-        }
-        const postsObject = await res.json()
-        for (const post of postsObject.posts) {
-            if (postEls.includes(post)) {
-                // Update the post with new data
-                const postEl = postEls.getById(post.id)
-                postEl.fromPost(post)
-            }
-            else {
-                const postEl = document.createElement("r-post")
-                postEl.fromPost(post)
-                if (hideSensitive && post.hasSensitiveContent) {
-                    postEl.hidden = true
-                }
-                let comparisonFn = null
-                if (filter == "date") {
-                    comparisonFn = (a, b) => new Date(b.post.creationDate) - new Date(a.post.creationDate)
-                }
-                else if (filter == "upvotes") {
-                    comparisonFn = (a, b) => b.post.upvotes - a.post.upvotes
-                }
-                const insertIndex = postEls.orderedInsert(postEl, comparisonFn)
-                insertElementAtIndex(contents, postEl, contentsBaseLength + insertIndex)
-            }
-
-            if (filter == "date") {
-                const postDate = new Date(post.creationDate)
-                if (postDate < bottomDate) {
-                    bottomDate = postDate
-                }
-            }
-            else if (filter == "upvotes") {
-                if (post.upvotes < bottomUpvotes) {
-                    bottomUpvotes = post.upvotes
-                }
-            }
-        }
-        await finishPostLoadWithCd()
-    }
 }
 postsSortSelect.addEventListener("change", function() {
     filter = postsSortSelect.value
@@ -206,12 +233,12 @@ postsSortSelect.addEventListener("change", function() {
 postsHideSensitive.addEventListener("change", function() {
     hideSensitive = !!postsHideSensitive.checked
     if (hideSensitive) {
-        for (const postEl of postEls.posts) {
+        for (const postEl of postEls.items) {
             postEl.hidden = postEl.post.hasSensitiveContent
         }
     }
     else {
-        for (const postEl of postEls.posts) {
+        for (const postEl of postEls.items) {
             postEl.hidden = false
         }    
     }

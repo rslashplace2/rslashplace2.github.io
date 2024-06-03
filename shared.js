@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Contains shared resources across pages
+const DEFAULT_SERVER = "wss://server.rplace.live:443"
+const DEFAULT_BOARD = "https://raw.githubusercontent.com/rplacetk/canvas1/main/place"
 const DEFAULT_AUTH = "https://server.rplace.live/auth"
 
 const TRANSLATIONS = {

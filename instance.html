@@ -554,7 +554,7 @@
         <h3 style="text-align: center;">The server has disconnected and something isn't working right</h3>
         <div style="display: flex; column-gap: 8px;">
             <button onclick="window.location.reload(true)">Reload page</button>
-            <button onclick="window.location = './index.html'">Go back</button>
+            <button onclick="window.location = window.location.origin">Go back</button>
         </div>
     </div>
     <dialog class="modal" id="createModal">

@@ -1471,7 +1471,7 @@ r-clipboard-copy .copy-status {
 	top: 50%;
 }
 r-post-contents .contents-album {
-	height: 360px;
+	/*height: 360px;*/
 	border-radius: 16px;
 	overflow: clip;
 	display: grid;
@@ -1495,6 +1495,11 @@ r-post-contents > dialog {
 	position: fixed;
 	left: 50%; /* insanity */
 	transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
+}
+@media screen and (max-width: 450px) {
+	r-post-contents > dialog {
+		width: calc(100% - 32px) !important;	
+	}
 }
 r-post-contents .dialog-header {
 	display: flex;
@@ -1706,22 +1711,25 @@ r-create-post-content > button {
 	width: 144px;
 }
 
-.posts-side-panel {
-	display: block;
-	position: absolute;
-	height: 600px;
-	right: calc(50% - 620px);
-}
-.posts-jump-button {
+.posts-button {
 	color: black;
-	position: sticky;
-	top: 16px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	box-shadow: none;
 	background: white;
 	display: flex;
 	align-items: center;
+	padding: 6px;
+}
+.posts-side-panel {
+	display: block;
+	position: absolute;
+	height: 600px;
+	right: calc(50% - 680px);
+}
+.posts-jump-button {
+	position: sticky;
+	top: 16px;
 }
 @media screen and (max-width: 1200px) {
 	.posts-side-panel {

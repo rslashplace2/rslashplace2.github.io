@@ -4,14 +4,158 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
-	<link href="rplace-2022.css?v=11" rel="stylesheet"> <!-- TODO: Stop depending on this -->
-	<link href="style.css?v=346" rel="stylesheet">
+	<link href="rplace-2022.css?v=11" rel="stylesheet">
+	<link href="style.css?v=347" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script type="application/javascript" src="posts-manager.js?v=3" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=4" defer></script>
 	<script type="application/javascript" src="shared.js?v=1"></script>
 	<style>
+		:root {
+			--sidebar-width: min(312px, 100%);
+		}
 		body, html {
 			height: max-content;
+			overflow-y: hidden;
+			background: #dae0e6;
+		}
+		html[embedded="false"], html[embedded="false"] body {
+			height: 100%;
+		}
+		html[embedded="false"] body {
+			overflow-y: scroll;
+		}
+		html[embedded="false"] header {
+			position: sticky;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 64px;
+			background-color: white;
+			margin: 0;
+			padding: 8px;
+			border-bottom: 1px solid #EDEFF1;
+			display: flex;
+			column-gap: 8px;
+			z-index: 1;
+			align-items: center;
+			justify-content: space-between;
+		}
+		html[embedded="false"] r-post-contents > dialog {
+			top: 50%
+		}
+		html[embedded="true"] .posts-extern-buttons {
+			display: flex;
+			column-gap: 8px;
+		}
+		html[embedded="false"] .posts-extern-buttons {
+			display: none;
+		}
+		.header-icon {
+			height: 100%;
+		}
+		.header-menu {
+			width: 36px;
+			height: 36px;
+			padding: 0;
+			margin-right: 8px;
+			box-shadow: none;
+		}
+		.header-title-container {
+			display: flex;
+			align-items: center;
+			height: 100%;
+		}
+		.header-title {
+			display: none;
+		}
+		html[embedded="true"] header {
+			display: none;
+		}
+		.sidebar-background {
+			position: fixed;
+			background: rgba(0, 0, 0, 0.2);
+			width: 100%;
+			height: 100%;
+			top: 64px;
+			z-index: 1;
+			pointer-events: none;
+		}
+		.sidebar {
+			position: fixed;
+			top: 64px;
+			left: 0;
+			width: var(--sidebar-width);
+			height: calc(100% - 64px);
+			background: white;
+			z-index: 2;
+			border-left: 1px solid white;
+			display: flex;
+			flex-direction: column;
+			row-gap: 8px;
+			padding: 8px;
+		}
+		html[embedded="true"] .sidebar {
+			display: none;
+		}
+		.sidebar-footer {
+			margin-top: auto;
+			text-align: center;
+			display: flex;
+			justify-content: space-between;
+			padding-left: 16px;
+			padding-right: 16px;
+		}
+		.sidebar > a {
+			height: 48px;
+			padding: 8px;
+			display: flex;
+			align-items: center;
+			text-decoration: none;
+			color: black;
+			border-radius: 8px;
+			column-gap: 8px;
+		}
+		.sidebar > a:hover {
+			background: #F6F8F9;
+		}
+		.post-input {
+			background-color: #F6F7F8;
+			border-radius: 4px;
+			border: 1px solid #EDEFF1;
+			box-shadow: none;
+			box-sizing: border-box;
+			color: #1c1c1c;
+			font-size: 16px;
+			padding: 0 16px;
+			cursor: text;
+		}
+		.post-input:hover {
+			background-color: #FFFFFF;
+  			border: 1px solid #0079D3;
+		}
+		.searchbar {
+			border-radius: 64px;
+			height: 48px;
+			width: min(640px, 80%);
+		}
+		@media screen and (min-width: 1200px) {
+			.header-title-container {
+				width: calc(var(--sidebar-width) - 8px);
+			}
+			.searchbar {
+				position: absolute;
+				left: calc(50% + var(--sidebar-width) / 2 - 15px);
+				transform: translateX(-50%);
+			}
+			.header-menu {
+				display: none;
+			}
+			.header-title {
+				display: block;
+			}
+			html[embedded="false"] #contents {
+				padding-left: var(--sidebar-width);
+			}
 		}
 		* {
 			touch-action: auto !important;
@@ -24,13 +168,54 @@
 	</script>
 </head>
 <body>
+	<header>
+		<div class="header-title-container">
+			<button type="button" class="header-menu" onclick="openSidebar()">
+				<img src="./svg/menu.svg" alt="Menu" width="36" height="36">
+			</button>	
+			<img src="./images/rplace.png" class="header-icon" alt="Rplace logo">
+			<h1 class="header-title">rplace.live posts</h1>
+		</div>
+		<input type="text" class="post-input searchbar" placeholder="Search keyword" onchange="
+			const keyword = this.value.trim().toLower()
+			if (keyword) {
+				tryLoadKeywordPosts(keyword)
+			}
+			else {
+				tryLoadBottomPosts()
+			}">
+		<div><!--Spacer--></div>
+	</header>
+	<div id="sidebar" class="sidebar">
+		<a type="button" href="./posts.html" style="column-gap: 8px;">
+			<svg fill="currentColor" icon-name="home-fill" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+				<path d="m19.724 6.765-9.08-6.11A1.115 1.115 0 0 0 9.368.647L.276 6.765a.623.623 0 0 0 .35 1.141h.444v10.001c.001.278.113.544.31.74.196.195.462.304.739.303h5.16a.704.704 0 0 0 .706-.707v-4.507c0-.76 1.138-1.475 2.02-1.475.882 0 2.02.715 2.02 1.475v4.507a.71.71 0 0 0 .707.707h5.16c.274-.001.538-.112.732-.307.195-.195.305-.46.306-.736v-10h.445a.618.618 0 0 0 .598-.44.625.625 0 0 0-.25-.702Z"></path>
+			</svg>
+			Posts
+		</a>
+		<a type="button" href="./index.html">
+			<img src="svg/rplace.svg" width="24" height="24">	
+			Game
+		</a>
+		<div class="sidebar-footer">
+			<a href="https://rplace.live">rplace.live</a> | 
+			<a href="./disclaimer.html">disclaimer</a> | 
+			<a href="https://github.com/rplacetk">github</a>
+		</div>
+	</div>
+	<div id="sidebarBackground" class="sidebar-background"></div>
 	<div id="contents">
 		<div class="posts-side-panel">
-			<button type="button" id="postJumpButton" class="posts-jump-button" onclick="communityPostsPost.scrollIntoView({ behavior: 'smooth', block: 'start' })">
-				<svg title="Change channel" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-					<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
-				</svg>Jump to community posts
-			</button>
+			<div class="posts-extern-buttons">
+				<button type="button" id="postJumpButton" class="posts-button posts-jump-button" onclick="communityPostsPost.scrollIntoView({ behavior: 'smooth', block: 'start' })">
+					<svg title="Change channel" style="vertical-align: bottom;" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+						<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
+					</svg>Jump to community posts
+				</button>
+				<a type="button" style="column-gap: 4px" class="posts-button posts-jump-button" href="#" onclick="event.preventDefault(); sendParentMessage('open', './posts.html')">
+					<img alt="Expand" src="./svg/expand-external.svg" width="24" height="24"> See more
+				</a>
+			</div>
 		</div>
 		<div id="createPostPost" class="post" style="padding-left: 15px; cursor: default;" ondragenter="
 			event.stopPropagation()
@@ -132,7 +317,7 @@
 				<span id="createPostStatus" class="create-post-status"></span>
 			</div>
 		</div>
-		<div onclick="sendParentMessage('openChatPanel')" class="post" style="cursor: pointer;" novotes="true">
+		<div id="liveChatPost" onclick="sendParentMessage('openChatPanel')" class="post" style="cursor: pointer;" novotes="true">
 			<img alt="Live chat icon" class="cover-image" src="images/live.png">
 			<div class="body">
 				<div class="main">
@@ -141,7 +326,7 @@
 				</div>
 			</div>
 		</div>
-		<div onclick="sendParentMessage('switchGameServer')" class="post" style="cursor: pointer;" novotes="true">
+		<div id="mainCanvasPost" class="post" style="cursor: pointer;" novotes="true">
 			<img alt="Rplace logo" class="cover-image" src="images/rplace.png">
 			<div class="body">
 				<div class="main">
@@ -149,13 +334,13 @@
 					<div class="description">750x750 (cooldown: 800ms)</div>
 				</div>
 			</div>
-			<r-clipboard-copy title="Copy canvas URL to clipbaord" src="https:\/\/rplace.live/?server=wss:\/\/server.rplace.live:443&board=https:\/\/raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
+			<r-clipboard-copy title="Copy canvas URL to clipbaord" src="https://rplace.live/?server=wss://server.rplace.live:443&board=https://raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
 		</div>
 		<!--<r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
 			coverimageurl="images/lamda.png"></r-post>
 		<r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
 			coverimageurl="images/timelapse.png"></r-post>-->
-		<r-post onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
+		<r-post id="overlayPost" onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
 			coverimageurl="images/hammer-and-wrench.png"></r-post>
 		<r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
 			coverimageurl="images/discord.png"></r-post>
@@ -227,6 +412,107 @@
 	}, false)
 	function sendParentMessage(messageCall, args = undefined) {
 		window.parent.postMessage({ call: messageCall, data: args }, location.origin)
+	}
+
+	//  Main
+	function lerp(from, to, weight) {
+		return from + weight * (to - from)
+	}
+	let sidebarDragLastX = 0, sidebarDragStartX = 0, sidebarDragStartY = 0,
+		sidebarOpen = false, sidebarDrag = 0, sidebarDragging = false
+	function openSidebar() {
+		sidebarOpen = true
+		sidebarDragging = false
+		transitionSidebar()
+	}
+	function closeSidebar() {
+		sidebarOpen = false
+		sidebarDrag = 0
+		sidebarDragging = false
+		transformSidebar()
+	}
+	function transitionSidebar() {
+		sidebarDrag = lerp(sidebarDrag, sidebarOpen, 0.3)
+		if ((!sidebarOpen && sidebarDrag < 0.05) || (sidebarOpen && sidebarDrag > 0.95)) {
+			sidebarDrag = Math.round(sidebarDrag)
+		}
+		else {
+			requestAnimationFrame(transitionSidebar)
+		}
+		transformSidebar()
+	}
+	function transformSidebar() {
+		if (window.innerWidth < 1200) {
+			sidebarBackground.style.background = `rgba(0, 0, 0, ${0.2 * sidebarDrag})`
+			sidebar.style.transform = `translateX(${(sidebarDrag - 1) * 100}%)`
+		}
+		else {
+			sidebarBackground.style.background = `rgba(0, 0, 0, 0)`
+			sidebar.style.transform = `translateX(0%)`
+		}
+	}
+	transformSidebar()
+
+	// Embedded switches
+	if (window.parent !== window) {
+		document.documentElement.setAttribute("embedded", "true")
+		mainCanvasPost.onclick = function() {
+			sendParentMessage('switchGameServer')
+		}
+	}
+	else {
+		document.documentElement.setAttribute("embedded", "false")
+		postsManager.addEventListener("load", async () => {
+			tryLoadBottomPosts()
+			updateDialogTop(0)
+			// TODO: Until accounts are enabled
+			createPostPost.style.opacity = "0.6"
+			createPostPost.style.pointerEvents = "none"
+			createPostInput.disabled = true
+			createPostTitle.disabled =  true
+			liveChatPost.remove()
+			overlayPost.remove()
+			mainCanvasPost.onclick = function() {
+				window.open(`${window.location.origin}/?server=${DEFAULT_SERVER}&board=${DEFAULT_BOARD}`)
+			}
+
+			// Load more posts on scroll down
+			const body = document.body
+			body.addEventListener("scroll", function(e) {
+				const bodyMaxScroll = body.scrollHeight - body.clientHeight
+				if (bodyMaxScroll - body.scrollTop < 256) {
+					tryLoadBottomPosts()
+				}
+			}, { passive: true })
+			
+			// Sidebar navigation
+			contents.addEventListener("touchstart", (e) => {
+				sidebarDragging = true
+				sidebarDragStartX = sidebarDragLastX = e.touches[0].clientX
+				sidebarDragStartY = e.touches[0].clientY
+				transformSidebar()
+			})
+			contents.addEventListener("touchmove", (e) => {
+				if (!sidebarDragging) {
+					return
+				}
+				const deltaY = sidebarDragStartY - e.touches[0].clientY
+				if (deltaY > 16 && sidebarDrag < 0.1) {
+					closeSidebar()
+				}
+				const deltaX = e.touches[0].clientX - sidebarDragLastX
+				sidebarDrag = Math.max(0, Math.min(sidebarDrag + (deltaX / sidebar.offsetWidth), 1))
+				transformSidebar()
+				sidebarDragLastX = e.touches[0].clientX
+			})
+			contents.addEventListener("touchend", (e) => {
+				sidebarOpen = sidebarDrag > 0.3
+				sidebarDragging = false
+				requestAnimationFrame(transitionSidebar)
+			})
+			contents.addEventListener("click", closeSidebar)
+			window.addEventListener("resize", transformSidebar)
+		})
 	}
 
 	async function uploadPost(title, content, contents, progressCb) {
