@@ -1725,7 +1725,7 @@ r-create-post-content > button {
 	display: block;
 	position: absolute;
 	height: 600px;
-	right: calc(50% - 620px);
+	right: calc(50% - 680px);
 }
 .posts-jump-button {
 	position: sticky;

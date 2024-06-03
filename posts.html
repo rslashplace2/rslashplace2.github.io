@@ -7,7 +7,7 @@
 	<link href="rplace-2022.css?v=11" rel="stylesheet">
 	<link href="style.css?v=347" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=3" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=4" defer></script>
 	<script type="application/javascript" src="shared.js?v=1"></script>
 	<style>
 		:root {
@@ -176,7 +176,14 @@
 			<img src="./images/rplace.png" class="header-icon" alt="Rplace logo">
 			<h1 class="header-title">rplace.live posts</h1>
 		</div>
-		<input type="text" class="post-input searchbar" placeholder="Search">
+		<input type="text" class="post-input searchbar" placeholder="Search" onchange="
+			const keyword = this.value.trim().toLower()
+			if (keyword) {
+				tryLoadKeywordPosts(keyword)
+			}
+			else {
+				tryLoadBottomPosts()
+			}">
 		<div><!--Spacer--></div>
 	</header>
 	<div id="sidebar" class="sidebar">

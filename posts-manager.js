@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-//@ts-nocheck
+// @ts-nocheck
 // This script runs on posts.html
 /** Like PublicPromise, but limits to only one task being able to await it */
 class PublicPromiseSingle {
@@ -101,7 +101,10 @@ async function finishPostLoadWithCd() {
     await new Promise(resolve => setTimeout(resolve, postLoadCooldown))
     postFinishedLastLoad.resolve()
 }
-async function tryLoadPosts(queryName, queryValue) {
+async function tryLoadPosts(sortBy, paramsObject) {
+    paramsObject = Object.assign({limit: postLimit}, paramsObject)
+    const params = new URLSearchParams(paramsObject)
+
     if (postFinishedLastLoad !== null) {
         if (postFinishedLastLoad.locked) {
             return false
@@ -110,8 +113,7 @@ async function tryLoadPosts(queryName, queryValue) {
     }
     postFinishedLastLoad = new PublicPromiseSingle()
 
-    const postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?${queryName}=${
-        queryValue}&limit=${postLimit}`
+    const postsUrl = `${localStorage.auth || DEFAULT_AUTH}/posts/?${params.toString()}`
     const res = await fetch(postsUrl)
     if (!res.ok) {
         console.error(`Failed to load top posts, status ${res.status} ${res.statusText}:`, await res.json())
@@ -133,7 +135,7 @@ async function tryLoadPosts(queryName, queryValue) {
             }
             const postDate = new Date(post.creationDate)
             let comparisonFn = null
-            switch (queryName) {
+            switch (sortBy) {
                 case "beforeDate": {
                     comparisonFn = (a, b) => new Date(b.post.creationDate) - new Date(a.post.creationDate)
                     if (postDate < bottomDate) {
@@ -179,20 +181,37 @@ async function tryLoadPosts(queryName, queryValue) {
 // "date" - Most recent / "upvotes" - highest upvotes
 async function tryLoadTopPosts() {
     if (filter == "date") {
-        await tryLoadPosts("sinceDate", topDate.toISOString())
+        await tryLoadPosts("sinceDate", { sinceDate: topDate.toISOString() })
     }
     else if (filter == "upvotes") {
-        await tryLoadPosts("sinceUpvotes", topUpvotes)
+        await tryLoadPosts("sinceUpvotes", { sinceUpvotes: topUpvotes })
     }
 }
 // "date" - Most old, "votes" - lowest upvotes
 async function tryLoadBottomPosts() {
     if (filter == "date") {
-        await tryLoadPosts("beforeDate", bottomDate.toISOString())
+        await tryLoadPosts("beforeDate", { beforeDate: bottomDate.toISOString() })
     }
     else if (filter == "upvotes") {
-        await tryLoadPosts("beforeUpvotes", bottomUpvotes)
+        await tryLoadPosts("beforeUpvotes", { beforeUpvotes: bottomUpvotes })
     }
+}
+async function tryLoadKeywordPosts(keyword) {
+    clearPosts()
+    let sortBy = null
+    let sortValue = null
+    if (filter == "date") {
+        sortBy = "beforeDate"
+        sortValue = bottomDate.toISOString()
+    }
+    else if (filter == "upvotes") {
+        sortBy = "beforeUpvotes"
+        sortValue = bottomUpvotes
+    }
+    if (sortBy === null || sortValue === null) {
+        return
+    }
+    await tryLoadPosts(sortBy, { [sortBy]: sortValue, keyword })
 }
 function clearPosts() {
     for (const postEl of postEls.items) {
@@ -201,6 +220,8 @@ function clearPosts() {
         }
     }
     postEls.clear()
+    topUpvotes = 0
+    topDate = new Date(0)
     bottomUpvotes = 0xFFFFFFF
     bottomDate = new Date()
 }
