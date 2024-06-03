@@ -1471,7 +1471,7 @@ r-clipboard-copy .copy-status {
 	top: 50%;
 }
 r-post-contents .contents-album {
-	height: 360px;
+	/*height: 360px;*/
 	border-radius: 16px;
 	overflow: clip;
 	display: grid;
@@ -1711,6 +1711,16 @@ r-create-post-content > button {
 	width: 144px;
 }
 
+.posts-button {
+	color: black;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-shadow: none;
+	background: white;
+	display: flex;
+	align-items: center;
+	padding: 6px;
+}
 .posts-side-panel {
 	display: block;
 	position: absolute;
@@ -1718,15 +1728,8 @@ r-create-post-content > button {
 	right: calc(50% - 620px);
 }
 .posts-jump-button {
-	color: black;
 	position: sticky;
 	top: 16px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	box-shadow: none;
-	background: white;
-	display: flex;
-	align-items: center;
 }
 @media screen and (max-width: 1200px) {
 	.posts-side-panel {

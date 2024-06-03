@@ -34,43 +34,43 @@ class PublicPromiseSingle {
 }
 
 class PostElArray {
-    posts
+    items
     constructor() {
-        this.posts = []
+        this.items = []
     }
 
     orderedInsert(postEl, comparisonFn) {
-        let insertIndex = this.posts.findIndex(existingItem => existingItem.id === postEl.post?.id)
+        let insertIndex = this.items.findIndex(existingItem => existingItem.post.id === postEl.post?.id)
         if (insertIndex >= 0) {
-            this.posts[insertIndex] = postEl
+            this.items[insertIndex] = postEl
         }
         else {
-            insertIndex = this.posts.findIndex(existingItem => comparisonFn(postEl, existingItem) < 0)
+            insertIndex = this.items.findIndex(existingItem => comparisonFn(postEl, existingItem) < 0)
             if (insertIndex === -1) {
-                this.posts.push(postEl)
-                insertIndex = this.posts.length - 1
+                this.items.push(postEl)
+                insertIndex = this.items.length - 1
             }
             else {
-                this.posts.splice(insertIndex, 0, postEl)
+                this.items.splice(insertIndex, 0, postEl)
             }
         }
         return insertIndex
     }
 
     delete(postEl) {
-      this.posts = this.posts.filter(existingItem => existingItem.id !== postEl.post?.id)
+      this.items = this.items.filter(existingItem => existingItem.post.id !== postEl.post?.id)
     }
 
     includes(postEl) {
-      return this.posts.some(existingItem => existingItem.id === postEl.post?.id)
+      return this.items.some(existingItem => existingItem.post.id === postEl.post?.id)
     }
 
     getById(id) {
-        return this.posts.find(postEl => postEl.post?.id === id)
+        return this.items.find(postEl => postEl.post?.id === id)
     }
 
     clear() {
-        this.posts.length = 0
+        this.items.length = 0
     }
 }
 
@@ -191,11 +191,11 @@ async function tryLoadBottomPosts() {
         await tryLoadPosts("beforeDate", bottomDate.toISOString())
     }
     else if (filter == "upvotes") {
-        await tryLoadPosts("sinceUpvotes", bottomUpvotes)
+        await tryLoadPosts("beforeUpvotes", bottomUpvotes)
     }
 }
 function clearPosts() {
-    for (const postEl of postEls.posts) {
+    for (const postEl of postEls.items) {
         if (contents.contains(postEl)) {
             contents.removeChild(postEl)
         }
@@ -212,12 +212,12 @@ postsSortSelect.addEventListener("change", function() {
 postsHideSensitive.addEventListener("change", function() {
     hideSensitive = !!postsHideSensitive.checked
     if (hideSensitive) {
-        for (const postEl of postEls.posts) {
+        for (const postEl of postEls.items) {
             postEl.hidden = postEl.post.hasSensitiveContent
         }
     }
     else {
-        for (const postEl of postEls.posts) {
+        for (const postEl of postEls.items) {
             postEl.hidden = false
         }    
     }
