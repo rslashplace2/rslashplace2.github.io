@@ -1775,7 +1775,7 @@ function applyPreban(incomingX: number, incomingY: number, p: ServerWebSocket<Cl
         }
         switch(prebanArea.action) {
             case "blacklist":
-                blacklist(p.data.ip)
+                blacklist(p.data.ip, "Violating canvas preban")
                 return true
             case "ban":
                 ban(p.data.intId, 0xFFFFFFFF / 1000, "Violating canvas preban")
