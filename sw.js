@@ -35,23 +35,31 @@ self.addEventListener("install", (event) => {
                 "images/trophy.png",
                 "images/twitter.png",
                 "images/default-ad.png",
+                "images/august21-ad.png",
 
                 // Svg
-                "svg/place-chat.svg",
-                "svg/clipboard.svg",
-                "svg/flag-gb.svg",
-                "svg/pattern.svg",
-                "svg/santa-hat.svg",
-                "svg/pixel-select-2022.svg",
+                "svg/account.svg",
                 "svg/chat.svg",
+                "svg/clipboard.svg",
+                "svg/expand-external.svg",
+                "svg/flag-gb.svg",
+                "svg/green-checkmark.svg",
+                "svg/help.svg",
+                "svg/icon-back.svg",
+                "svg/image.svg",
+                "svg/loading-spinner.svg",
                 "svg/lock.svg",
+                "svg/menu.svg",
                 "svg/moderate-action.svg",
+                "svg/pattern.svg",
+                "svg/pixel-select-2022.svg",
+                "svg/pixel-select-2023.svg",
+                "svg/place-chat.svg",
+                "svg/player.svg",
                 "svg/reply-action.svg",
                 "svg/report-action.svg",
-                "svg/player.svg",
-                "svg/help.svg",
-                "svg/green-checkmark.svg",
-                "svg/pixel-select-2023.svg",
+                "svg/rplace.svg",
+                "svg/santa-hat.svg",
                 
                 //Badges
                 "badges/1000000-pixels-placed.svg",
@@ -108,10 +116,7 @@ self.addEventListener("install", (event) => {
 })
 
 self.addEventListener("fetch", (event) => {
-    // Only catch GET requests.
     if (event.request.method !== "GET") return
-
-    // Prevent the default, and handle the request ourselves.
     event.respondWith(
         (async () => {
             const cache = await caches.open(CURRENT_CACHES)
