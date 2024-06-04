@@ -122,10 +122,10 @@ async function tryLoadPosts(sortBy, paramsObject) {
     }
     const postsObject = await res.json()
     for (const post of postsObject.posts) {
-        if (postEls.includes(post)) {
-            // Update the post with new data
-            const postEl = postEls.getById(post.id)
-            postEl.fromPost(post)
+        const postDate = new Date(post.creationDate)
+        const existingPost = postEls.getById(post.id)
+        if (existingPost) { // Update the post with new data
+            existingPost.fromPost(post)
         }
         else {
             const postEl = document.createElement("r-post")
@@ -133,35 +133,22 @@ async function tryLoadPosts(sortBy, paramsObject) {
             if (hideSensitive && post.hasSensitiveContent) {
                 postEl.hidden = true
             }
-            const postDate = new Date(post.creationDate)
             let comparisonFn = null
             switch (sortBy) {
                 case "beforeDate": {
                     comparisonFn = (a, b) => new Date(b.post.creationDate) - new Date(a.post.creationDate)
-                    if (postDate < bottomDate) {
-                        bottomDate = postDate
-                    }
                     break
                 }
                 case "sinceDate": {
                     comparisonFn = (a, b) => new Date(a.post.creationDate) - new Date(b.post.creationDate)
-                    if (postDate > topDate) {
-                        topDate = postDate
-                    }
                     break
                 }
                 case "beforeUpvotes": {
                     comparisonFn = (a, b) => b.post.upvotes - a.post.upvotes
-                    if (post.upvotes < bottomUpvotes) {
-                        bottomUpvotes = post.upvotes
-                    }
                     break
                 }
                 case "sinceUpvotes": {
                     comparisonFn = (a, b) => a.post.upvotes - b.post.upvotes
-                    if (post.upvotes > topUpvotes) {
-                        topUpvotes = post.upvotes
-                    }
                     break
                 }
                 default: {
@@ -171,6 +158,22 @@ async function tryLoadPosts(sortBy, paramsObject) {
             }
             const insertIndex = postEls.orderedInsert(postEl, comparisonFn)
             insertElementAtIndex(contents, postEl, contentsBaseLength + insertIndex)
+        }
+        if (sortBy === "beforeDate" || sortBy === "sinceDate") {
+            if (postDate < bottomDate) {
+                bottomDate = postDate
+            }
+            if (postDate > topDate) {
+                topDate = postDate
+            }
+        }
+        else if (sortBy === "beforeUpvotes" || sortBy === "sincecUpvotes") {
+            if (post.upvotes < bottomUpvotes) {
+                bottomUpvotes = post.upvotes
+            }
+            if (post.upvotes > topUpvotes) {
+                topUpvotes = post.upvotes
+            }
         }
     }
 
