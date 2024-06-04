@@ -377,9 +377,9 @@ if (!vipTxt) {
     Bun.write("./vip.txt",
         "# VIP Key configuration file\n" +
         "# Below is the correct format of a VIP key configuration:\n" +
-        "# MY_SHA256_HASHED_VIP_KEY { perms: \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", cooldownMs: N, enforceChatName: '...' }\n\n" +
+        "# MY_SHA256_HASHED_VIP_KEY { \"perms\": \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", \"cooldownMs\": number, \"enforceChatName\": string|null }\n\n" +
         "# Example VIP key configuration:\n" +
-        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
+        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30, \"enforceChatName\": \"<ADMIN> zekiah\" }\n" +
         "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
 }
 
