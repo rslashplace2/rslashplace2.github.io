@@ -1017,6 +1017,7 @@
 					else sendLiveChatMsg(messageInput.value)
 					e.preventDefault()
 					messageInput.value = ""
+					updateMessageInputHeight()
 				}
 			}
 
@@ -2006,6 +2007,9 @@
 			return await promise.promise
 		}
 		window.addEventListener("message", async function(event) {
+			if (event.origin.startsWith("https://challenges.cloudflare.com")) {
+				return
+			}
 			if (!event.origin.startsWith(location.origin)) {
 				throw new Error("Invalid message origin")
 			}
@@ -2808,12 +2812,20 @@
 			messageInput.setAttribute("state", "default")
 		}
 
+		let messageInputHeight = messageInput.scrollHeight
+		function updateMessageInputHeight() {
+			messageInput.style.height = "0px"
+			const oldHeight = messageInputHeight
+			messageInputHeight = Math.min(messageInput.scrollHeight, 256)
+			chatPanel.style.setProperty("--message-input-height", messageInputHeight + "px")
+			messageInput.style.height = "" // unset
+			const diffHeight = oldHeight - messageInputHeight
+			chatMessages.scrollBy(0, diffHeight)
+		}
+
 		messageInput.oninput = e => {
 			if (!e.isTrusted) return
-			messageInput.style.height = "0px"
-			chatPanel.style.setProperty("--message-input-height",
-				Math.min(messageInput.scrollHeight, 256) + "px")
-			messageInput.style.height = "" // unset
+			updateMessageInputHeight()
 
 			messageEmojisPanel.innerHTML = ""
 			let comp = ""
@@ -3150,7 +3162,9 @@
 						userNote.style.display = "block"
 						userNote.textContent = "This user is verified as @" + msgName
 					}
-					else { userNote.style.display = "none" }
+					else {
+						userNote.style.display = "none"
+					}
 				}
 
 				targetedMsgId = msgId
