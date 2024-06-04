@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable jsdoc/require-param */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
@@ -12,7 +13,7 @@ import sha256 from "sha256"
 import fsExists from "fs.promises.exists"
 import util from "util"
 import path from "path"
-import * as zcaptcha from './zcaptcha/server.ts'
+import * as zcaptcha from "./zcaptcha/server.ts"
 import { isUser } from "ipapi-sync"
 import { Worker } from "worker_threads"
 import cookie from "cookie"
@@ -159,6 +160,8 @@ if (CHALLENGE) {
 type PixelInfo = { index: number, colour: number, placer: ServerWebSocket<ClientData> }
 const newPixels:PixelInfo[] = [] 
 // Reports must persist between client sessions and be rate limited
+let chatNameCooldownMs = 10_000
+const chatNameCooldowns = new Map<string, number>()
 let reportCooldownMs = 60_000
 const reportCooldowns = new Map<string, number>()
 let activityCooldownMs = 10_000 
@@ -298,25 +301,33 @@ const RESERVED_NAMES = new DoubleMap()
 const reservedLines = ((await fs.readFile("reserved_names.txt")).toString()).split('\n')
 for (const pair of reservedLines) RESERVED_NAMES.set(pair.split(' ')[0], pair.split(' ')[1])
 
-/**
- * Retrieves blacklisted IP addresses from banlists.txt
- * @returns {Promise<Set<string>>} A Promise that resolves to a Set of blacklisted IP addresses.
- */
+type BlacklistInfo = { reason: string, date: number }
 async function getBansheetsIps() {
     const bansheetsText = await fs.readFile("bansheets.txt")
-    const banListUrls = bansheetsText.toString().trim().split('\n')
+    const banListUrls = bansheetsText.toString().trim().split("\n")
     const banLists = await Promise.all(
         banListUrls.map(banListUrl => fetch(banListUrl)
-            .then((response: Response) => response.text()))
+            .then(response => response.text()))
     )
     const blacklistedIps = banLists
-        .flatMap((line: string) => line.trim().split('\n')
-        .map((ip: string) => ip.split(':')[0].trim()))
-    return new Set(blacklistedIps)
+        .flatMap((line: string) => line.trim().split("\n")
+        .filter((line: string) => line.trim() && !line.trim().startsWith("#"))
+        .map((ip: string): [string, BlacklistInfo] => [ip.split(":")[0].trim(), { reason: "Bansheeted IP", date: 0 }]))
+    return new Map<string, BlacklistInfo>(blacklistedIps)
 }
-let BLACKLISTED = await getBansheetsIps()
-for (const ban of (await fs.readFile("blacklist.txt")).toString().split('\n')) {
-    BLACKLISTED.add(ban)
+let BLACKLISTED:Map<string, BlacklistInfo> = await getBansheetsIps()
+for (let banLine of (await fs.readFile("blacklist.txt")).toString().split("\n")) {
+    banLine = banLine.trim()
+    if (!banLine || banLine.startsWith("#")) {
+        continue
+    }
+    const spaceI = banLine.indexOf(" ")
+    const ip = banLine.slice(0, spaceI)
+    let info = banLine.slice(spaceI).trim()
+    let infoObject:BlacklistInfo|null = null
+    try { infoObject = JSON.parse(info) } catch(e) {/* Ignore */}
+    infoObject = Object.assign({ reason: "Blacklisted IP", date: 0 }, infoObject)
+    BLACKLISTED.set(ip, infoObject)
 }
 
 const toValidate = new Map()
@@ -366,21 +377,22 @@ if (!vipTxt) {
     Bun.write("./vip.txt",
         "# VIP Key configuration file\n" +
         "# Below is the correct format of a VIP key configuration:\n" +
-        "# MY_SHA256_HASHED_VIP_KEY { perms: \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", cooldownMs: N }\n\n" +
+        "# MY_SHA256_HASHED_VIP_KEY { \"perms\": \"canvasmod\"|\"chatmod\"|\"admin\",\"vip\", \"cooldownMs\": number, \"enforceChatName\": string|null }\n\n" +
         "# Example VIP key configuration:\n" +
-        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30 }\n" +
+        "# 7eb65b1afd96609903c54851eb71fbdfb0e3bb2889b808ef62659ed5faf09963 { \"perms\": \"admin\", \"cooldownMs\": 30, \"enforceChatName\": \"<ADMIN> zekiah\" }\n" +
         "# Make sure all VIP keys stored here are sha256 hashes of the real keys you hand out\n")
 }
 
 type VipEntry = {
     perms: "admin"|"chatmod"|"vip",
-    cooldownMs: number
+    cooldownMs: number,
+    enforceChatName: string|null
 }
 function readVip(vipTxt: string):Map<string, VipEntry> {
     return new Map(vipTxt
-        .split('\n')
-        .filter((/** @type {string} */ line) => line.trim() && !line.trim().startsWith('#'))
-        .map((/** @type {string} */ pair) => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
+        .split("\n")
+        .filter((line: string) => line.trim() && !line.trim().startsWith("#"))
+        .map((pair: string) => [ pair.trim().slice(0, 64), JSON.parse(pair.slice(64).trim()) ]))
 }
 const VIP = readVip(vipTxt)
 ;(async function() {
@@ -514,7 +526,7 @@ function createChatPacket(type: number, message: string, sendDate: number, messa
  * @param {Map<number, string>} names IntId : String names map to be encoded
  * @returns {Buffer} Name packet data prepended with packet code (12)
  */
-function createNamesPacket(names: Map<number, string>) {
+function createNamesPacket(names: Map<number, string>): Buffer {
     let size = 1
     const encodedNames = new Map()
     for (const [intId, name] of names) {
@@ -533,6 +545,15 @@ function createNamesPacket(names: Map<number, string>) {
     }
 
     return infoBuffer
+}
+function createNamePacket(name: string, intId: number): Buffer {
+    const encName = encoderUTF8.encode(name)
+    const nmInfoBuf = Buffer.alloc(6 + encName.length)
+    nmInfoBuf.writeUInt8(12, 0)
+    nmInfoBuf.writeUInt32BE(intId, 1)
+    nmInfoBuf.writeUInt8(encName.length, 5)
+    nmInfoBuf.set(encName, 6)
+    return nmInfoBuf 
 }
 
 /**
@@ -756,6 +777,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 ws.close(4000, "No agent")
                 return
             }
+            let chatName:string|null = null
             const ORIGIN  = ws.data.headers.get("origin")
             if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
             if (BLACKLISTED.has(IP)) return ws.close()
@@ -773,6 +795,9 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 ws.data.codeHash = codeHash
                 ws.data.perms = vip.perms
                 ws.data.cd = vip.cooldownMs
+                if (vip.enforceChatName) {
+                    chatName = vip.enforceChatName
+                }
             }
             const CD = ws.data.cd
 
@@ -831,28 +856,36 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
 
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const pIntId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
-            if (pIntId == null || typeof pIntId != "number") {
+            const intId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
+            if (intId == null || typeof intId != "number") {
                 console.error(`Could not authenticate user ${IP}, user ID was null, even after new creation`)
                 return ws.close()
             }
-            ws.data.intId = pIntId
-            playerIntIds.set(ws, pIntId)
+            ws.data.intId = intId
+            playerIntIds.set(ws, intId)
             const pIdBuf = Buffer.alloc(5)
             pIdBuf.writeUInt8(11, 0) // TODO: Integrate into packet 1
-            pIdBuf.writeUInt32BE(pIntId, 1)
+            pIdBuf.writeUInt32BE(intId, 1)
             ws.send(pIdBuf)
 
             if (ws.data.codeHash) {
-                postDbMessage("updateUserVip", { intId: pIntId, codeHash: ws.data.codeHash })
+                postDbMessage("updateUserVip", { intId: intId, codeHash: ws.data.codeHash })
             }
-            await applyPunishments(ws, pIntId, IP)
+            await applyPunishments(ws, intId, IP)
 
-            const pName = await makeDbRequest("getUserChatName", pIntId) as string
-            if (pName) {
-                ws.data.chatName = pName
-                playerChatNames.set(ws.data.intId, pName)
+            chatName = await makeDbRequest("getUserChatName", intId) as string
+            if (chatName) {
+                ws.data.chatName = chatName
+                playerChatNames.set(intId, chatName)
+                // Alert all other players of this player's name
+                const pNameInfoBuf = createNamePacket(chatName, intId)
+                for (const p of wss.clients) {
+                    if (p !== ws) {
+                        ws.send(pNameInfoBuf)
+                    }
+                }
             }
+            // Alert this player of all player's names
             const nmInfoBuf = createNamesPacket(playerChatNames)
             ws.send(nmInfoBuf)
         },
@@ -890,7 +923,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         await forceCaptchaSolve(ws)
                         ws.data.lastPeriodCaptcha = NOW
                     }
-                    if (checkPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) {
+                    if (applyPreban(i % WIDTH, Math.floor(i / HEIGHT), ws)) {
                         rejectPixel(ws, i, cd)
                         return
                     }
@@ -930,6 +963,11 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     break
                 }
                 case 12: { // Submit name
+                    const nameCooldown = chatNameCooldowns.get(ws.data.ip) ||  0
+                    if (nameCooldown > NOW) {
+                        return
+                    }
+                    chatNameCooldowns.set(ws.data.ip, NOW + chatNameCooldownMs)
                     let name = decoderUTF8.decode(data.subarray(1))
                     const resName = RESERVED_NAMES.getReverse(name) // reverse = valid code, use reserved name, forward = trying to use name w/out code, invalid
                     name = resName ? resName + "✓" : censorText(name.replace(/\W+/g, "").toLowerCase()) + (RESERVED_NAMES.getForward(name) ? "~" : "")
@@ -941,12 +979,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     postDbMessage("setUserChatName", { intId: ws.data.intId, newName: name })
 
                     // Combine with player intId and alert all other clients of name change
-                    const encName = encoderUTF8.encode(name)
-                    const nmInfoBuf = Buffer.alloc(6 + encName.length)
-                    nmInfoBuf.writeUInt8(12, 0)
-                    nmInfoBuf.writeUInt32BE(ws.data.intId, 1)
-                    nmInfoBuf.writeUInt8(encName.length, 5)
-                    nmInfoBuf.set(encName, 6)
+                    const nmInfoBuf = createNamePacket(name, ws.data.intId)
                     wss.publish("all", nmInfoBuf)
                     break
                 }
@@ -1138,26 +1171,23 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 case 23: {
                     const turnstileToken = decoderUTF8.decode(data.buffer.slice(1))
                     if (!turnstileToken) return ws.close(4000, "Invalid turnstile packet")
-                    const formData = new FormData()
-                    formData.append("secret", TURNSTILE_PRIVATE_KEY)
-                    formData.append("response", turnstileToken)
-                    formData.append("remoteip", ws.data.ip)
-                    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-                        body: formData,
-                        method: "POST"
-                    })
-                    if (!response.ok) {
-                        modWebhookLog(`Couldn't verify turnstile for client ${IP}/${ws.data.intId} bad cloudflare HTTP response, kicking`)
-                        return ws.close(4000, "Internal turnstile fail")
+                    const outcome = await verifyTurnstile(turnstileToken, ws.data.ip)
+                    switch (outcome.result) {
+                        case "error": {
+                            modWebhookLog(`Couldn't verify turnstile for client ${IP}/${ws.data.intId} bad cloudflare HTTP response, kicking`)
+                            return ws.close(4000, "Internal turnstile fail")
+                        }
+                        case  "fail": {
+                            modWebhookLog(`Client ${IP}/${ws.data.intId} gave an incorrect turnstile token, kicking`)
+                            return ws.close(4000, "No turnstile")
+                        }
+                        default: {
+                            const turnstileSuccessBuf = Buffer.from([24])
+                            ws.send(turnstileSuccessBuf)
+                            delete ws.data.turnstile
+                            break
+                        }
                     }
-                    const outcome:any = await response.json()
-                    if (!outcome?.success) {
-                        modWebhookLog(`Client ${IP}/${ws.data.intId} gave an incorrect turnstile token, kicking`)
-                        return ws.close(4000, "No turnstile")
-                    }
-                    const turnstileSuccessBuf = Buffer.from([24])
-                    ws.send(turnstileSuccessBuf)
-                    delete ws.data.turnstile
                     break
                 }
                 case 30: { // Client activity webdriver
@@ -1254,8 +1284,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                                 await forceCaptchaSolve(actionCli)
                             }
                             else {
-                                for (const c of wss.clients) {
-                                    forceCaptchaSolve(c)
+                                for (const p of wss.clients) {
+                                    forceCaptchaSolve(p)
                                 }
                             }
 
@@ -1426,6 +1456,22 @@ function isSimilarToPrevious(message: string, previous: string[]): boolean {
     }
 }
 
+async function verifyTurnstile(turnstileToken:string, ip:string) {
+    const formData = new FormData()
+    formData.append("secret", TURNSTILE_PRIVATE_KEY)
+    formData.append("response", turnstileToken)
+    formData.append("remoteip", ip)
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        body: formData,
+        method: "POST"
+    })
+    if (!response.ok) {
+        return { result: "error", response }
+    }
+    const outcome:any = await response.json()
+    return { result: outcome?.success ? "success" : "fail", response }
+}
+
 /**
  * Force a client to redo the captcha
  * @param {string|number|import('bun').ServerWebSocket<any>} identifier - String client ip address, intId or client websocket instance
@@ -1564,9 +1610,7 @@ setInterval(function () {
                     const unrestrictionsBuffer = Buffer.alloc(2)
                     unrestrictionsBuffer[0] = 8
                     unrestrictionsBuffer[1] = 0
-                    for (const p of wss.clients) {
-                        p.send(unrestrictionsBuffer)
-                    }
+                    wss.publish("all", unrestrictionsBuffer)
                 }, pastPxpsWindowSize * 1000)
 
                 const pxpsLogPath = `./${pxpsLogName}`
@@ -1721,7 +1765,7 @@ function setPreban(_x: number, _y: number, _x1: number, _y1: number, _action:"ki
 function clearPreban() {
     prebanArea.x = 0; prebanArea.y = 0; prebanArea.x1 = 0; prebanArea.y1 = 0; prebanArea.action = "kick"
 }
-function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<ClientData>) {
+function applyPreban(incomingX: number, incomingY: number, p: ServerWebSocket<ClientData>) {
     if (prebanArea.x == 0 && prebanArea.y == 0 && prebanArea.x1 == 0 && prebanArea.y1 == 0) return false
     if ((incomingX > prebanArea.x && incomingX < prebanArea.x1) && (incomingY > prebanArea.y && incomingY < prebanArea.y1)) {
         modWebhookLog(`Pixel placed in preban area at ${incomingX}, ${incomingY} by ${p.data.ip}`)
@@ -1731,7 +1775,7 @@ function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<Cl
         }
         switch(prebanArea.action) {
             case "blacklist":
-                blacklist(p.data.ip)
+                blacklist(p.data.ip, "Violating canvas preban")
                 return true
             case "ban":
                 ban(p.data.intId, 0xFFFFFFFF / 1000, "Violating canvas preban")
@@ -1746,6 +1790,8 @@ function checkPreban(incomingX: number, incomingY: number, p: ServerWebSocket<Cl
 
     return false
 }
+
+
 
 /**
  * Softban a client using their intId for a finite amount of time
@@ -1796,7 +1842,7 @@ async function mute(intId: number, duration: number, reason: string|null = null,
 /**
  * Permamently IP block a player by IP, via WS instance or via intID
  */
-function blacklist(identifier: ServerWebSocket<any>|number|string) {
+function blacklist(identifier: ServerWebSocket<any>|number|string, reason: string = "Blacklisted IP") {
     let ip:string|null = null
     if (typeof identifier === "number") {
         for (const cli of wss.clients) {
@@ -1819,8 +1865,10 @@ function blacklist(identifier: ServerWebSocket<any>|number|string) {
     }
     if (!ip) return
 
-    BLACKLISTED.add(ip)
-    fs.appendFile("./blacklist.txt", "\n" + ip)
+    const info = { reason: reason, date: Date.now() }
+    BLACKLISTED.set(ip, info)
+    const entry = `\n${ip} ${JSON.stringify(info)}`
+    fs.appendFile("./blacklist.txt", entry)
 }
 
 const defaultChannels = ["en", "zh", "hi", "es", "fr", "ar", "bn", "ru", "pt", "ur", "de", "jp", "tr", "vi", "ko", "it", "fa", "sr", "az"]
