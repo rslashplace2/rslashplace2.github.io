@@ -10,7 +10,6 @@
 import { promises as fs } from "fs"
 import sha256 from "sha256"
 import fsExists from "fs.promises.exists"
-import fetch from "node-fetch"
 import util from "util"
 import path from "path"
 import * as zcaptcha from './zcaptcha/server.ts'
