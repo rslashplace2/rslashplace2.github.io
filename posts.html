@@ -276,7 +276,7 @@
 				<button class="create-post-content-button" onclick="createPostContentInput.click()">
 					<img src="./svg/image.svg" alt="Add post attachment" width="32" height="32">
 				</button>
-				<input type="file" id="createPostContentInput" accept="image/*" onchange="
+				<input type="file" id="createPostContentInput" accept="image/gif,image/jpeg,image/png,image/webp" onchange="
 					for (const file of this.files) {
 						createPostContent.addContent(file)
 					}
