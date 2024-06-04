@@ -873,7 +873,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
             await applyPunishments(ws, intId, IP)
 
-            chatName = await makeDbRequest("getUserChatName", intId) as string
+            chatName ??= await makeDbRequest("getUserChatName", intId) as string
             if (chatName) {
                 ws.data.chatName = chatName
                 playerChatNames.set(intId, chatName)
