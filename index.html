@@ -666,7 +666,7 @@
 
 						// If at scroll bottom (we scroll down when new chat messages come)
 						if (atScrollBottom) {
-							chatMessages.scrollTo(0, 10e8)
+							chatMessages.scrollTo(0, chatMessages.scrollHeight)
 						}
 					}
 					else { // place
@@ -2819,7 +2819,7 @@
 			messageInputHeight = Math.min(messageInput.scrollHeight, 256)
 			chatPanel.style.setProperty("--message-input-height", messageInputHeight + "px")
 			messageInput.style.height = "" // unset
-			const diffHeight = oldHeight - messageInputHeight
+			const diffHeight = messageInputHeight - oldHeight
 			chatMessages.scrollBy(0, diffHeight)
 		}
 
