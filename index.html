@@ -1639,14 +1639,14 @@
 			</div>
 		</div>
 		<div id="more" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()">
-			<div id="spaceFiller" onclick="
+			<button type="button" id="spaceFiller" onclick="
 				if (document.body.id != 'out')
 					return
 				bg.style.opacity = '1'
 				bg.style.display = 'none'
 				document.body.id = ''
 				window.onresize()
-			"></div>
+			"></button>
 			<iframe id="postsFrame" src="posts.html" title="posts" onload="resizePostsFrame()" frameborder="0" scrolling="no"></iframe>
 		</div>
 		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"
