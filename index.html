@@ -1305,7 +1305,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=348" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=349" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1639,14 +1639,14 @@
 			</div>
 		</div>
 		<div id="more" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()">
-			<div id="spaceFiller" onclick="
+			<button type="button" id="spaceFiller" onclick="
 				if (document.body.id != 'out')
 					return
 				bg.style.opacity = '1'
 				bg.style.display = 'none'
 				document.body.id = ''
 				window.onresize()
-			"></div>
+			"></button>
 			<iframe id="postsFrame" src="posts.html" title="posts" onload="resizePostsFrame()" frameborder="0" scrolling="no"></iframe>
 		</div>
 		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"

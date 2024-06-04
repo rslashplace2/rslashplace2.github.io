@@ -5,168 +5,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
 	<link href="rplace-2022.css?v=11" rel="stylesheet">
-	<link href="style.css?v=348" rel="stylesheet">
+	<link href="style.css?v=349" rel="stylesheet">
+	<link href="posts.css?v=1" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=4" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=5" defer></script>
 	<script type="application/javascript" src="shared.js?v=2"></script>
-	<style>
-		:root {
-			--sidebar-width: min(312px, 100%);
-		}
-		body, html {
-			height: max-content;
-			overflow-y: hidden;
-			background: #dae0e6;
-		}
-		html[embedded="false"], html[embedded="false"] body {
-			height: 100%;
-		}
-		html[embedded="false"] body {
-			overflow-y: scroll;
-		}
-		html[embedded="false"] header {
-			position: sticky;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 64px;
-			background-color: white;
-			margin: 0;
-			padding: 8px;
-			border-bottom: 1px solid #EDEFF1;
-			display: flex;
-			column-gap: 8px;
-			z-index: 1;
-			align-items: center;
-			justify-content: space-between;
-		}
-		html[embedded="false"] r-post-contents > dialog {
-			top: 50%
-		}
-		html[embedded="true"] .posts-extern-buttons {
-			display: flex;
-			column-gap: 8px;
-		}
-		html[embedded="false"] .posts-extern-buttons {
-			display: none;
-		}
-		.header-icon {
-			height: 100%;
-		}
-		.header-menu {
-			width: 36px;
-			height: 36px;
-			padding: 0;
-			margin-right: 8px;
-			box-shadow: none;
-		}
-		.header-title-container {
-			display: flex;
-			align-items: center;
-			height: 100%;
-		}
-		.header-title {
-			display: none;
-		}
-		html[embedded="true"] header {
-			display: none;
-		}
-		.sidebar-background {
-			position: fixed;
-			background: rgba(0, 0, 0, 0.2);
-			width: 100%;
-			height: 100%;
-			top: 64px;
-			z-index: 1;
-			pointer-events: none;
-		}
-		.sidebar {
-			position: fixed;
-			top: 64px;
-			left: 0;
-			width: var(--sidebar-width);
-			height: calc(100% - 64px);
-			background: white;
-			z-index: 2;
-			border-left: 1px solid white;
-			display: flex;
-			flex-direction: column;
-			row-gap: 8px;
-			padding: 8px;
-		}
-		html[embedded="true"] .sidebar {
-			display: none;
-		}
-		.sidebar-footer {
-			margin-top: auto;
-			text-align: center;
-			display: flex;
-			justify-content: space-between;
-			padding-left: 16px;
-			padding-right: 16px;
-		}
-		.sidebar > a {
-			height: 48px;
-			padding: 8px;
-			display: flex;
-			align-items: center;
-			text-decoration: none;
-			color: black;
-			border-radius: 8px;
-			column-gap: 8px;
-		}
-		.sidebar > a:hover {
-			background: #F6F8F9;
-		}
-		.post-input {
-			background-color: #F6F7F8;
-			border-radius: 4px;
-			border: 1px solid #EDEFF1;
-			box-shadow: none;
-			box-sizing: border-box;
-			color: #1c1c1c;
-			font-size: 16px;
-			padding: 0 16px;
-			cursor: text;
-		}
-		.post-input:hover {
-			background-color: #FFFFFF;
-  			border: 1px solid #0079D3;
-		}
-		.searchbar {
-			border-radius: 64px;
-			height: 48px;
-			width: min(640px, 80%);
-		}
-		@media screen and (min-width: 1200px) {
-			.header-title-container {
-				width: calc(var(--sidebar-width) - 8px);
-			}
-			.searchbar {
-				position: absolute;
-				left: calc(50% + var(--sidebar-width) / 2 - 15px);
-				transform: translateX(-50%);
-			}
-			.header-menu {
-				display: none;
-			}
-			.header-title {
-				display: block;
-			}
-			html[embedded="false"] #contents {
-				padding-left: var(--sidebar-width);
-			}
-		}
-		dialog {
-			margin: 0 !important;
-			position: fixed;
-			left: 50%; /* insanity */
-			transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
-		}
-		* {
-			touch-action: auto !important;
-		}
-	</style>
 	<script>
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;
@@ -182,12 +25,15 @@
 			<img src="./images/rplace.png" class="header-icon" alt="Rplace logo">
 			<h1 class="header-title">rplace.live posts</h1>
 		</div>
-		<input type="text" class="post-input searchbar" placeholder="Search keyword" onchange="
+		<input id="postsSearchbar" type="text" class="post-input searchbar" placeholder="Search keyword" onchange="
 			const keyword = this.value.trim().toLowerCase()
 			if (keyword) {
 				tryLoadKeywordPosts(keyword)
+				this.dataset.searching = 'true'
 			}
 			else {
+				this.dataset.searching = 'false'
+				clearPosts()
 				tryLoadBottomPosts()
 			}">
 		<div><!--Spacer--></div>
@@ -199,7 +45,7 @@
 			</svg>
 			Posts
 		</a>
-		<a type="button" href="./index.html">
+		<a type="button" href="./">
 			<img src="svg/rplace.svg" width="24" height="24">	
 			Game
 		</a>
@@ -218,7 +64,7 @@
 						<path d="M480-345 240-585l43-43 197 198 197-197 43 43-240 239Z"></path>
 					</svg>Jump to community posts
 				</button>
-				<a type="button" style="column-gap: 4px" class="posts-button posts-jump-button" href="#" onclick="event.preventDefault(); sendParentMessage('open', './posts.html')">
+				<a type="button" style="column-gap: 4px" class="posts-button" href="#" onclick="event.preventDefault(); sendParentMessage('open', './posts.html')">
 					<img alt="Expand" src="./svg/expand-external.svg" width="24" height="24"> See more
 				</a>
 			</div>
@@ -284,47 +130,49 @@
 			</div>
 			<div id="createPostOptions" class="create-post-extra">
 				<r-post-contents-preview id="createPostContent"></r-post-contents-preview>
-				<button id="discardPostButton" class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
-				<button id="createPostButton" class="post-button create-post-button" onclick="
-					async function uploadAndUpdatePosts() {
-						discardPostButton.disabled = true
-						createPostButton.disabled = true
-						const progressCb = function(stage, info) {
-							if (stage == 'uploadPost') {
-								createPostStatus.textContent = 'Uploading post: ' + `${info.progress}%`
+				<div class="create-post-create-discard">
+					<button id="discardPostButton" type="button" class="post-button discard-post-button" onclick="resetCreatePost()">Discard</button>
+					<button id="createPostButton" type="button" class="post-button create-post-button" onclick="
+						async function uploadAndUpdatePosts() {
+							discardPostButton.disabled = true
+							createPostButton.disabled = true
+							const progressCb = function(stage, info) {
+								if (stage == 'uploadPost') {
+									createPostStatus.textContent = 'Uploading post: ' + `${info.progress}%`
+								}
+								else if (stage == 'uploadContent') {
+									createPostStatus.textContent = 'Uploading attachment...' + `(${info.current}/${info.total})`
+								}
 							}
-							else if (stage == 'uploadContent') {
-								createPostStatus.textContent = 'Uploading attachment...' + `(${info.current}/${info.total})`
+							if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents, progressCb)) {
+								resetCreatePost()
+								alert('Post success!')
+								await tryLoadTopPosts()
+							}
+							else {
+								createPostStatus.textContent = ''
+								createPostButton.disabled = false
+								discardPostButton.disabled = false
 							}
 						}
-						if (await uploadPost(createPostTitle.value, createPostInput.value, createPostContent.contents, progressCb)) {
-							resetCreatePost()
-							alert('Post success!')
-							await tryLoadTopPosts()
+						if (!createPostTitle.checkValidity()) {
+							createPostTitle.reportValidity()
+							return
+						}
+						if (!localStorage.agredPostRules) {
+							sendParentMessage('scrollToPosts')
+							postRulesDialog.showModal()
+							postRulesDialog.onclose = function(e) {
+								if (postRulesDialog.returnValue === true) {
+									uploadAndUpdatePosts()
+								}
+							}
 						}
 						else {
-							createPostStatus.textContent = ''
-							createPostButton.disabled = false
-							discardPostButton.disabled = false
+							uploadAndUpdatePosts()
 						}
-					}
-					if (!createPostTitle.checkValidity()) {
-						createPostTitle.reportValidity()
-						return
-					}
-					if (!localStorage.agredPostRules) {
-						sendParentMessage('scrollToPosts')
-						postRulesDialog.showModal()
-						postRulesDialog.onclose = function(e) {
-							if (postRulesDialog.returnValue === true) {
-								uploadAndUpdatePosts()
-							}
-						}
-					}
-					else {
-						uploadAndUpdatePosts()
-					}
-				">Post</button>
+					">Post</button>
+				</div>
 				<span id="createPostStatus" class="create-post-status"></span>
 			</div>
 		</div>
@@ -508,7 +356,7 @@
 			const body = document.body
 			body.addEventListener("scroll", function(e) {
 				const bodyMaxScroll = body.scrollHeight - body.clientHeight
-				if (bodyMaxScroll - body.scrollTop < 256) {
+				if (bodyMaxScroll - body.scrollTop < 256 && postsSearchbar.dataset.searching != "true") {
 					tryLoadBottomPosts()
 				}
 			}, { passive: true })
