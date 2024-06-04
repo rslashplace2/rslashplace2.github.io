@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
 	<link href="rplace-2022.css?v=11" rel="stylesheet">
-	<link href="style.css?v=347" rel="stylesheet">
+	<link href="style.css?v=348" rel="stylesheet">
 	<script type="application/javascript" src="elements.js?v=6" defer></script>
 	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=4" defer></script>
 	<script type="application/javascript" src="shared.js?v=2"></script>
@@ -157,6 +157,12 @@
 				padding-left: var(--sidebar-width);
 			}
 		}
+		dialog {
+			margin: 0 !important;
+			position: fixed;
+			left: 50%; /* insanity */
+			transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
+		}
 		* {
 			touch-action: auto !important;
 		}
@@ -250,12 +256,15 @@
 				</div>
 				<div class="create-post-inputs-container">
 					<input type="text" id="createPostTitle" minlength="1" maxlength="64" required class="create-post-input create-post-extra" placeholder="Post title..." onchange="
-							if (!createPostTitle.checkValidity()) {
+							createPostTitle.value = createPostTitle.value.trim()
+							const validityState = createPostTitle.validity
+							if (validityState.tooLong || validityState.tooShort || validityState.valueMissing) {
 								createPostTitle.setCustomValidity('Post title should be between 1-64 characters long!')
 							}
 							else {
 								createPostTitle.setCustomValidity('')
 							}
+							createPostTitle.reportValidity()
 						">
 					<textarea id="createPostInput" maxlength="360" class="create-post-input" placeholder="Create post..."
 						onkeypress="event.stopPropagation()"
@@ -300,9 +309,11 @@
 						}
 					}
 					if (!createPostTitle.checkValidity()) {
+						createPostTitle.reportValidity()
 						return
 					}
 					if (!localStorage.agredPostRules) {
+						sendParentMessage('scrollToPosts')
 						postRulesDialog.showModal()
 						postRulesDialog.onclose = function(e) {
 							if (postRulesDialog.returnValue === true) {
@@ -371,6 +382,23 @@
 			</div>
 		</div>
 	</div>
+	<dialog id="postRulesDialog" class="reddit-modal">
+		<r-close-icon onclick="postRulesDialog.close()" style="position: absolute; top: 10px; right: 10px; z-index: 1;"></r-close-icon>
+		<div style="display: flex; flex-direction: column; padding: 16px; overflow-y: scroll; row-gap: 8px;">
+			<h4>By creating a post, you agree to the following conditions:</h4>
+			<ol style="font-size: 18px;line-height: 32px;margin-left: 16px; flex-grow: 1;">
+				<li>All posts you create are public, and any information shared in a post will be visible to everyone.</li>
+				<li>Your post must be related to rplace and must not contain NSFW or copyrighted content.</li>
+				<li>All content uploaded may be processed by third party content filters and AI detection systems.</li>
+				<li>Illegal content shall not be posted, and will be reported to relevant authorities, alongside any necessary user information to aid with investigation.</li>
+			</ol>
+			<img src="images/example-post.png" alt="Example post" style="height: 256px;object-fit: contain;">
+			<button class="reddit-modal-button" onclick="
+				localStorage.agredPostRules = true
+				postRulesDialog.close(true)
+				">Create post</button>    
+		</div>
+	</dialog>
 </body>
 <script>
 	// Bidirectional IPC, similar to server.ts - db-worker.ts communication
