@@ -798,6 +798,11 @@ class CreatePostContentsPreview extends HTMLElement {
 
     addContent(file) {
         if (this.contents.size >= this.maxContents) {
+            alert("Error: Can't attach more than 4 files")
+            return
+        }
+        if (file.size > 5e6) {
+            alert("Error: Attachment size can't be more than 5mb")
             return
         }
         this.contents.add(file)

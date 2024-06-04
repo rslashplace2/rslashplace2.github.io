@@ -1491,10 +1491,6 @@ r-post-contents > dialog {
 	width: fit-content !important;
 	max-height: calc(100% - 32px);
 	max-width: calc(100% - 32px);
-	margin: 0 !important;
-	position: fixed;
-	left: 50%; /* insanity */
-	transform: translate(-50%, calc(-50% + var(--posts-dialog-top)));
 }
 @media screen and (max-width: 450px) {
 	r-post-contents > dialog {
