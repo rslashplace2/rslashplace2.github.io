@@ -513,12 +513,6 @@
 					while (dataI < data.byteLength) {
 						for (let xi = i; xi < i + regionWidth; xi++) {
 							const placerIntId = data.getUint32(dataI)
-							//  TODO: HACK: until we can debug this mess
-							if (placerIntId === 0) {
-								const dumpPropName = "_placerData" + Date.now()
-								window[dumpPropName] = data
-								return console.warn("Possibly wrong placer detected, check", dumpPropName)
-							}
 							if (placerIntId !== 0xFFFFFFFF) {
 								intIdPositions.set(xi, placerIntId)
 							}
