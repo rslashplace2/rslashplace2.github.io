@@ -23,7 +23,7 @@ import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise } from "./server-types.ts"
 import { distance } from "fastest-levenshtein"
 
-let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Uint32Array
+let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Buffer
 
 type ServerConfig = {
     "SECURE": boolean,
@@ -128,11 +128,11 @@ catch(e) {
     CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
 }
 try {
-    PLACERS = new Uint32Array(await Bun.file(path.join(PUSH_PLACE_PATH, "placers")).arrayBuffer())
+    PLACERS = Buffer.from(await Bun.file(path.join(PUSH_PLACE_PATH, "placers")).arrayBuffer())
 }
 catch(e) {
     console.log(e, ", regenerating")
-    PLACERS = new Uint32Array(WIDTH * HEIGHT).fill(0xFFFFFFFF)
+    PLACERS = Buffer.alloc(WIDTH * HEIGHT).fill(0xFFFFFFFF)
 }
 let uidTokenFailed = false
 const uidTokenFile = await fs.readFile("uidtoken.txt").catch(_ => uidTokenFailed = true)
@@ -928,7 +928,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         return
                     }
                     CHANGES[i] = c
-                    PLACERS[i] = ws.data.intId
+                    PLACERS.writeUInt32BE(ws.data.intId, i * 4) 
                     // Damn you, blob!
                     cooldowns.set(IP, NOW + CD)
                     newPixels.push({ index: i, colour: c, placer: ws })
@@ -947,16 +947,16 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (regionWidth < 0 || regionWidth > 255 || regionHeight < 0 || regionHeight > 255) {
                         return
                     }
-                    const placerInfoBuf = Buffer.alloc(7 + (regionWidth * regionHeight * 4))
+                    const regionSize = regionWidth * regionHeight * 4
+                    const placerInfoBuf = Buffer.alloc(7 + regionSize)
                     placerInfoBuf[0] = 9
                     placerInfoBuf.writeUInt32BE(boardI, 1)
                     placerInfoBuf[5] = regionWidth
                     placerInfoBuf[6] = regionHeight
                     for (let pi = 7; pi < placerInfoBuf.byteLength; pi += regionWidth * 4) {
                         // We need to reinterpret PLACERS as a uint8 array for set to work properly
-                        const placersXLine = PLACERS.subarray(boardI, boardI + regionWidth)
-                        const placersUint8Array = new Uint8Array(placersXLine.buffer, placersXLine.byteOffset, placersXLine.byteLength)
-                        placerInfoBuf.set(placersUint8Array, pi)
+                        const placersXLine = PLACERS.subarray(boardI*4, (boardI + regionWidth)*4)
+                        placerInfoBuf.set(placersXLine, pi)
                         boardI += WIDTH
                     }
                     ws.send(placerInfoBuf)
