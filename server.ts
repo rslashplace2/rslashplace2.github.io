@@ -132,7 +132,7 @@ try {
 }
 catch(e) {
     console.log(e, ", regenerating")
-    PLACERS = Buffer.alloc(WIDTH * HEIGHT).fill(0xFFFFFFFF)
+    PLACERS = Buffer.alloc(WIDTH * HEIGHT * 4).fill(0xFFFFFFFF)
 }
 let uidTokenFailed = false
 const uidTokenFile = await fs.readFile("uidtoken.txt").catch(_ => uidTokenFailed = true)
