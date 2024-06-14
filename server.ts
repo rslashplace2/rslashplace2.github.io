@@ -953,8 +953,6 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     placerInfoBuf.writeUInt32BE(boardI, 1)
                     placerInfoBuf[5] = regionWidth
                     placerInfoBuf[6] = regionHeight
-
-                    let bufIndex = 7                    
                     for (let pi = 7; pi < placerInfoBuf.byteLength; pi += regionWidth * 4) {
                         // We need to reinterpret PLACERS as a uint8 array for set to work properly
                         const placersXLine = PLACERS.subarray(boardI*4, (boardI + regionWidth)*4)
