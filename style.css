@@ -928,22 +928,6 @@ body[eventphase="3"] .coverer-title {
 	flex-grow: 1;
 }
 
-#chatPunishPanel {
-	position: absolute;
-	top: 50%;
-	margin: 8px;
-	width: calc(100% - 16px);
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-	justify-content: center;
-	text-align: center;
-	row-gap: 4px;
-	transform: translateY(-50%);
-	height: min-content;
-	overflow-x: scroll;
-}
-
 .messageTypeBtn {
 	width: calc(50% - 10px);
 	margin-bottom: 5px;
@@ -990,6 +974,30 @@ body[eventphase="3"] .coverer-title {
 
 .toast-menu[opened] {
 	display: block;
+}
+
+.punishment-notice {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	padding: 16px;
+	margin-top: 16px;
+	background-color: #f9f9f9;
+}
+.punishment-header {
+	display: flex;
+	column-gap:  8px;
+	justify-content: space-between;
+}
+.punishment-header time {
+	display: block;
+}
+.punishment-content {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1em;
 }
 
 #moderationMenu[opened] {
