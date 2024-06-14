@@ -589,30 +589,30 @@
 				}
 				case 14: { // Moderation
 					let i = 1
-					let state = data.getUint8(i++)
-					let startDate = data.getUint32(i) * 1000; i += 4
-					let endDate = data.getUint32(i) * 1000; i+= 4
-					let reasonLen = data.getUint8(i++)
-					let reason = decoder.decode(data.buffer.slice(i, i + reasonLen)); i += reasonLen
-					let appealLen = data.getUint8(i++)
-					let appeal = decoder.decode(data.buffer.slice(i, i + appealLen)); i += appealLen
-
-					let punishInfo = "Started on: " + new Date(startDate).toLocaleString() + "\n" +
-						"Ends on: " + new Date(endDate).toLocaleString() + "\n" +
-						"Reason: " + reason + "\n" +
-						"Appeal: " + (appeal || "N/A")
-					chatPunishInfo.textContent = punishInfo
-
-					messageInput.disabled = true
-					chatPunishPanel.removeAttribute("closed")
-					if (state == PUNISHMENT_STATE.mute) {
-						chatPunishNote.innerText = "You have been muted. You can not send messages in live chat."
+					const state = data.getUint8(i++)
+					const startDate = data.getUint32(i) * 1000; i += 4
+					const endDate = data.getUint32(i) * 1000; i += 4
+					const reasonLen = data.getUint8(i++)
+					const reason = decoder.decode(data.buffer.slice(i, i + reasonLen)); i += reasonLen
+					const appealLen = data.getUint8(i++)
+					const appeal = decoder.decode(data.buffer.slice(i, i + appealLen)); i += appealLen
+					// TODO: Localise
+					if (state === PUNISHMENT_STATE.mute) {
+						messageInput.disabled = true
+						punishmentNote.innerHTML = "You have been <stronng>muted</stronng>, you can not send messages in live chat." 
 					}
-					else if (state == PUNISHMENT_STATE.ban) {
+					else if (state === PUNISHMENT_STATE.ban) {
+						messageInput.disabled = true
 						canvasLock.style.display = "flex"
 						canvasLocked = true
-						chatPunishNote.innerText = "You have been banned from placing on the canvas or sending messages in live chat."
+						punishmentNote.innerHTML = "You have been <strong>banned</strong> from placing on the canvas or sending messages in live chat."
 					}
+					punishmentUserId.textContent = `Your User ID: #${intId}`
+					punishmentStartDate.textContent = `Started on: ${new Date(startDate).toLocaleString()}`
+					punishmentEndDate.textContent = `Ending on: ${new Date(endDate).toLocaleString()}`
+					punishmentReason.textContent = `Reason: ${reason}`
+					punishmentAppeal.textContent = `Appeal status: ${(appeal && appeal !== "null") ? appeal : 'Unappealable'}`
+					punishmentMenu.setAttribute("opened", "true")
 					break
 				}
 				case 15: { // Chat
@@ -1299,7 +1299,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=349" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=350" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1385,6 +1385,22 @@
 				</div>
 				<p>Don't worry, this process should be automatic!</p><br>
 				<div id="turnstileContainer"></div>
+			</div>
+			<div id="punishmentMenu" class="toast-menu">
+				<h2>Punishment notice:</h2>
+				<p id="punishmentNote"></p>
+				<div class="punishment-notice">
+					<header class="punishment-header">
+						<time id="punishmentStartDate" datetime="1970-01-01T00:00:00"></time>
+						<hr>
+						<time id="punishmentEndDate" datetime="1970-01-01T00:00:00"></time>
+					</header>
+					<div class="punishment-content">
+						<p id="punishmentUserId"></p>
+						<p id="punishmentReason"></p>
+						<p id="punishmentAppeal"></p>
+					</div>
+				</div>
 			</div>
 			<div id="moderationMenu" noselect="" mode="delete" class="toast-menu">
 				<div style="display: flex;margin-bottom: 16px;">
@@ -1762,14 +1778,6 @@
 					</svg>
 				</div>
 			</div>
-			<div class="chat-input-panel" id="chatPunishPanel" closed>
-				<h3>Punishment notice:</h3>
-				<span id="chatPunishNote"></span>
-				<input type="button" value="See detailed info" style="width: fit-content;" onclick="
-					chatPunishInfo.style.display = chatPunishInfo.style.display == 'block' ? 'none' : 'block'
-				">
-				<pre id="chatPunishInfo" style="display: none;"></pre>
-			</div>
 			<div style="display: flex; column-gap: 8px; z-index: 1;">
 				<textarea id="messageInput" onclick="openChatPanel()" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200"></textarea>
 				<button class="message-options" onclick="messageTypePanel.toggleAttribute('closed')">...</button>
@@ -1938,6 +1946,7 @@
 			</div>
 			<div class="progressbar"><!--progress bar--></div>
 		</div>
+
 		<dialog id="questsDialog" class="reddit-modal">
 			<r-close-icon onclick="postRulesDialog.close()" style="position: absolute; top: 10px; right: 10px; z-index: 1;"></r-close-icon>
 			<div style="display: flex; flex-direction: column; padding: 16px; overflow-y: scroll; row-gap: 8px;">
