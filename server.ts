@@ -263,9 +263,13 @@ class DoubleMap<T, K> {
     size() { return this.foward.size }
 }
 
-const criticalFiles = ["blacklist.txt", "webhook_url.txt", "bansheets.txt", "mutes.txt", "vip.txt", "reserved_names.txt"]
+const criticalFiles = ["blacklist.txt", "bansheets.txt", "vip.txt", "reserved_names.txt", "censors.txt"]
 for (let i = 0; i < criticalFiles.length; i++) {
-    if (!await fsExists(criticalFiles[i])) await fs.writeFile(criticalFiles[i], "")
+    const criticalFile = criticalFiles[i]
+    if (!await fsExists(criticalFile)) {
+        console.warn("Could not find critical file", criticalFile, "regenerating.")
+        await fs.writeFile(criticalFile, "")
+    }
 }
 
 /**
@@ -329,6 +333,14 @@ for (let banLine of (await fs.readFile("blacklist.txt")).toString().split("\n"))
     infoObject = Object.assign({ reason: "Blacklisted IP", date: 0 }, infoObject)
     BLACKLISTED.set(ip, infoObject)
 }
+let CENSORS:Array<RegExp> = []
+for (let censorPattern of (await fs.readFile("censors.txt")).toString().split("\n")) {
+    censorPattern = censorPattern.trim()
+    if (!censorPattern || censorPattern.startsWith("#")) {
+        continue
+    }
+    CENSORS.push(new RegExp(censorPattern, "i"))
+}
 
 const toValidate = new Map()
 const captchaFailed = new Map()
@@ -370,6 +382,7 @@ let placeChatMessageId:number = (await makeDbRequest("getMaxPlaceChatId")) as nu
 const mutes = new Map<string, number>() // IP : finishDate (unix epoch offset ms)
 const bans = new Map<string, number>() // IP : finishDate (unix epoch offset ms)
 const activeVips = new Map<string, ServerWebSocket<ClientData>>() // String VIP key : client
+
 
 // vip key, cooldown
 const vipTxt = (await fs.readFile("./vip.txt")).toString()
@@ -463,15 +476,11 @@ for (const idFinish of banIdFinishes) {
 playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
 
 const allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
-/**
- *
- * @param {string} text Input text to be sanitised
- * @returns {string} sanitised string
- */
-function censorText(text:string) {
+function censorText(text:string): string {
+    for (const censorPattern of CENSORS) {
+        text = text.replace(censorPattern, match => "*".repeat(match.length))
+    }
     return text
-        .replace(/(sik[ey]rim|orospu|piç|yavşak|kevaşe|ıçmak|kavat|kaltak|götveren|amcık|amcık|[fF][uU][ckr]{1,3}(\\b|ing\\b|ed\\b)?|shi[t]|c[u]nt|((n|i){1,32}((g{2,32}|q){1,32}|[gq]{2,32})[e3r]{1,32})|bastard|b[i1]tch|blowjob|clit|c[o0]ck|cunt|dick|(f[Aa4][g6](g?[oi]t)?)|jizz|lesbian|masturbat(e|ion)|nigga|卐|卍|whore|porn|pussy|r[a4]pe|slut|suck)/gi,
-            match => "*".repeat(match.length))
         .replace(/https?:\/\/(\w+\.)+\w{2,15}(\/\S*)?|(\w+\.)+\w{2,15}\/\S*|(\w+\.)+(tk|ga|gg|gq|cf|ml|fun|xxx|webcam|sexy?|tube|cam|p[o]rn|adult|com|net|org|online|ru|co|info|link)/gi,
             match => allowed.has(match.replace(/^https?:\/\//, "").split("/")[0]) ? match : "")
         .trim()

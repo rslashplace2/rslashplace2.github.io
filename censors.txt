@@ -1,0 +1,75 @@
+# Every line is either a regex or likewise describing a chat filter. Regexes are matched
+# case insensitively and work in a 'string contains X pattern' fashion.
+
+# General symbols / nuisances
+卐
+卍
+𓂸
+𓂹
+𓂺
+࿗
+࿘
+﷽
+𒐫
+𒈙
+⸻
+꧅
+
+
+# English
+cum
+b[i1]tch
+s[eе3]x
+[f][uυ][cсks]{1,3}(\b|ing\b|eеd\b)?
+sh[i1][t]
+cunt
+[nΠñη]\s*[iіíîïì1І!ilЇyYÝýỳι]\s*(\s*[KkGGBgqbg9])+\s*[aаạąäàáąeеẹėéè3](\s*[rR])*
+bastard
+bl[oо0]wj[oо0]b
+cl[i1]t
+c[oо0]ck
+cunt
+d[i1]ck
+(f[a4][g6](g?[oi]t)?)
+j[i1]zz
+masturbat([eе3]|[i1][oо0]n)
+wh[oо0]r[eе3]
+p[oо0]rn
+pussy
+r[a4]p[eе3]
+slut
+suck
+p[eе3]n[i1]s
+vag[i1]na
+
+
+# German
+ad[oо0]lf
+h[i1]tl[eе3]r
+h[eе3][i1][l1]
+naz[i1]
+sp[i1]nnst
+r[eе3]ich
+bl[oö]d
+fick
+sch[eе3]i(ß|ss)[eе3]
+
+
+# Turkish
+sik([ey]?r?[i1]m|tir)
+piç
+yavşak
+kevaşe
+ıçmak
+kavat
+kaltak
+götveren
+amcık
+orospu
+ibne
+
+
+# Chinese
+滚
+傻逼
+色情
