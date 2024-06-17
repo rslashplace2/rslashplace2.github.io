@@ -1,7 +1,7 @@
-# Every line is either a regex or likewise des[cс]ribing a [cс]hat filter. Regexes are mat[cс]hed
-# [cс]ase insensitively and work in a 'string [cс]ontains X pattern' fashion.
+# Every line is either a regex or likewise describing a chat filter. Regexes are matched
+# case insensitively and work in a 'string contains X pattern' fashion.
 
-# General symbols / nuisan[cс]es
+# General symbols / nuisances
 卐
 卍
 𓂸
@@ -69,7 +69,7 @@ orospu
 ibne
 
 
-# [cс]hinese
+# Chinese
 滚
 傻逼
 色情
