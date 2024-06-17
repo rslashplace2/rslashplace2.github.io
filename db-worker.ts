@@ -387,9 +387,9 @@ const internal: DbInternals = {
     },
     commitShutdown: function() {
         if (!dbClosed) {
+            dbClosed = true
             performBulkInsertions()
             db.close()
-            dbClosed = true    
         }
     },
     /* Send date is seconds unix epoch offset */
@@ -467,10 +467,14 @@ const internal: DbInternals = {
     reInitialise: function() { //  Re-create the DB 
         internal.commitShutdown()
         db = new Database("server.db")
+        dbClosed = false
     }
 }
 
 parentPort?.on("message", (message) => {
     const result = internal[message.call] && internal[message.call](message.data)
     parentPort?.postMessage({ handle: message.handle, data: result })
+})
+self.addEventListener("error", event => {
+    console.error("Uncaught exception in DB worker:", event.error)
 })
