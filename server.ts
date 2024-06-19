@@ -476,7 +476,7 @@ for (const idFinish of banIdFinishes) {
 playerChatNames.set(0, "SERVER@RPLACE.LIVE✓")
 
 const allowed = new Set(["rplace.tk", "rplace.live", "discord.gg", "twitter.com", "wikipedia.org", "pxls.space", "reddit.com"])
-function censorText(text:string): string {
+function censorText(text:string):string {
     for (const censorPattern of CENSORS) {
         text = text.replace(censorPattern, match => "*".repeat(match.length))
     }
@@ -1071,7 +1071,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     let offset = 1
                     const type = data.readUInt8(offset++)
                     const msgLength = data.readUInt16BE(offset); offset += 2
-                    let message = decoderUTF8.decode(data.subarray(offset, offset + msgLength)); offset += msgLength
+                    const message = decoderUTF8.decode(data.subarray(offset, offset + msgLength)); offset += msgLength
                     if (type == 0) { // Live chat message
                         const channelLength = data.readUInt8(offset); offset++
                         channel = decoderUTF8.decode(data.subarray(offset, offset + channelLength)); offset += channelLength
@@ -1100,39 +1100,49 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         return
                     }
 
-                    // Profanity filters
-                    message = censorText(message)
-                    if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
-                        message = message.replaceAll("@everyone", "*********")
-                        message = message.replaceAll("@here", "*****")
-                    }
-                    else if (ws.data.perms !== "admin") {
-                        message = message.replaceAll("@everyone", "*********")
-                    }
-
                     // Accept
                     let messageId = 0
                     if (type === 0 && channel != null) {
                         messageId = ++liveChatMessageId
-                        const liveChat:LiveChatMessage = { messageId, message, sendDate: NOW, channel, senderIntId: ws.data.intId, repliesTo: null, deletionId: null }
+                        const liveChat:LiveChatMessage = { messageId, message: message, sendDate: NOW, channel, senderIntId: ws.data.intId, repliesTo: null, deletionId: null }
                         postDbMessage("insertLiveChat", liveChat)
                     }
                     else if (positionIndex != null) {
                         messageId = ++placeChatMessageId
                         postDbMessage("insertPlaceChat", { messageId,
-                            message, sendDate: NOW, senderIntId: ws.data.intId, x: Math.floor(positionIndex % WIDTH),
+                            message: message, sendDate: NOW, senderIntId: ws.data.intId, x: Math.floor(positionIndex % WIDTH),
                             y: Math.floor(positionIndex / HEIGHT) })
                     }
 
-                    wss.publish("all", createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
-                        channel, repliesTo, positionIndex))
+                    // Profanity filters
+                    let censoredMessage = censorText(message)
+                    if (ws.data.perms !== "admin" && ws.data.perms !== "vip" && ws.data.perms !== "chatmod") {
+                        censoredMessage = censoredMessage.replaceAll("@everyone", "*********")
+                        censoredMessage = censoredMessage.replaceAll("@here", "*****")
+                    }
+                    else if (ws.data.perms !== "admin") {
+                        censoredMessage = censoredMessage.replaceAll("@everyone", "*********")
+                    }
+
+                    const censoredChatPacket = createChatPacket(type, censoredMessage, Math.floor(NOW / 1000), messageId, ws.data.intId,
+                        channel, repliesTo, positionIndex)
+                    if (censoredMessage !== message) {
+                        const chatPacket = createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
+                            channel, repliesTo, positionIndex)
+                        for (const c of wss.clients) {
+                            c.send(c === ws ? chatPacket : censoredChatPacket)
+                        }
+                    }
+                    else { // Performance shortcut
+                        wss.publish("all", censoredChatPacket)
+                    }
 
                     if (!CHAT_WEBHOOK_URL) break
                     try {
                         if (channel != null) {
                             const hookName = ws.data.chatName?.replaceAll("@", "@​")
                             const hookChannel = channel.replaceAll("@", "@​")
-                            const hookMessage = message.replaceAll("@", "@​")
+                            const hookMessage = censoredMessage.replaceAll("@", "@​")
                             const msgHook = { username: `[${hookChannel || "place chat"}] ${hookName || "anon"} @rplace.live`, content: hookMessage }
                             fetch(CHAT_WEBHOOK_URL + "?wait=true", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(msgHook) })
                         }

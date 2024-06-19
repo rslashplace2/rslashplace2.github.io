@@ -20,11 +20,11 @@
 [cс]um
 b[i1!]t[cс]h
 s[eе3Е]x
-[f][uυ][[cс]сks]{1,3}(\b|[i1!]ng\b|eеd\b)?
+f\s*[uυ]*\s*[cс]?\s*[ks]{1,3}\s*(\b|[i1!]ng\b|eеd\b)?
 sh[i1!]t
 [cс]unt
-[nΠñηΝ]\s*[iіíîïì17І!ilЇyYÝýỳι]\s*(\s*[KkGGBgqbg9])+\s*[aаạąäàáąeеẹėéè35](\s*[rR])*
-bastard
+[nΠñηΝ]\s*[iіíîïì17ІΙ|!ilЇyYÝýỳι]\s*(\s*[KkBbqG6gg9])+\s*[aаạąäàáąeеẹėéè35ЕΕ](\s*[rR])*
+b[a4]st[a4]rd
 bl[oо0]wj[oо0]b
 [cс]l[i1!]t
 [cс][oо0][cс]k
@@ -32,7 +32,7 @@ bl[oо0]wj[oо0]b
 d[i1!][cс]k
 (f[a4][g6](g?[oi]t)?)
 j[i1!]zz
-masturbat([eе3Е]|[i1!][oо0]n)
+m[a4]sturb[a4]t([eе3Е]|[i1!][oо0]n)
 wh[oо0]r[eе3Е]
 p[oо0]rn
 pussy
@@ -40,7 +40,11 @@ r[a4]p[eе3Е]
 slut
 su[cс]k
 p[eе3Е]n[i1!]s
-vag[i1!]na
+v[a4]g[i1!]na
+tr[a4]nny
+tr[oо0]+n
+f[a4][G6gg9]+[oо0]t
+k[i1!]k[eе3Е]
 
 
 # German
@@ -56,15 +60,15 @@ s[cс]h[eе3Е]i(ß|ss)[eе3Е]
 
 
 # Turkish
-sik([ey]?r?[i1!]m|t[i1!]r)
-piç
+sik(e?[ry]?[i1!]m|t[i1!]r)
+pi[cç]
 yavşak
 kevaşe
-ıçmak
+ı[cç]mak
 kavat
 kaltak
-götveren
-am[cс]ık
+g[oö]tveren
+am[cс][iı]k
 orospu
 ibne
 
