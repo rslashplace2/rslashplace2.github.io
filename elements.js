@@ -230,10 +230,10 @@ class RplaceUserTooltip extends HTMLElement {
         let playTime = canvasUser.playTimeSeconds
         let playTimeUnit = "Seconds played"
         if (playTime > 3600) {
-            playTime /= 3600
+            playTime = Math.floor(playTime / 3600) 
             playTimeUnit = "Hours played"
         }
-        if (playTime > 60) {
+        else if (playTime > 60) {
             playTime = Math.floor(playTime / 60)
             playTimeUnit = "Minutes played"
         }
