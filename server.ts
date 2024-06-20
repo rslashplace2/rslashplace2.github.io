@@ -860,7 +860,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
             let chatName:string|null = null
             const ORIGIN = ws.data.headers.get("Origin")
-            if (ORIGIN == null || !ORIGINS.includes(ORIGIN)) {
+            if (ORIGIN == null || (ORIGINS && !ORIGINS.includes(ORIGIN))) {
                 return ws.close(4000, "No origin")
             }
             if (BLACKLISTED.has(IP)) return ws.close()
