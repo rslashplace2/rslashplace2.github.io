@@ -671,44 +671,32 @@ function createPunishPacket(type: typeof PUNISHMENT_STATE.mute | typeof PUNISHME
  * @param {string} ip - IP address of client to have punishments applied and scanned for
  */
 async function applyPunishments(ws: ServerWebSocket<ClientData>, intId: number, ip: string) {
-    const banFinish = bans.get(ip)
-    if (banFinish) {
-        if (banFinish < NOW) {
-            bans.delete(ip)
+    async function resolvePunishments(tableName: string, ipFinishMap: Map<string, number>, stateType: number) {
+        const punishInfo:any = await makeDbRequest("exec", {
+            stmt: `SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM ${tableName} WHERE userIntId = ?`,
+            params: intId })
+        
+        let ipFinish = ipFinishMap.get(ip) ?? null
+        
+        if (ipFinish && ipFinish < NOW) {
+            ipFinishMap.delete(ip)
+            ipFinish = null
         }
-        else {
-            let banInfo:any = await makeDbRequest("exec", {
-                stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Bans WHERE userIntId = ?",
-                params: intId })
-            if (banInfo && banInfo[0]) {
-                banInfo = banInfo[0]
-                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, banInfo.startDate,
-                    banInfo.finishDate, banInfo.reason, banInfo.userAppeal, banInfo.appealRejected))
+
+        if (punishInfo && punishInfo.finishDate > NOW) {
+            if (!ipFinish) {
+                // Banned user ID on a new IP, ban this IP too
+                ipFinishMap.set(ip, punishInfo.finishDate)
             }
-            else {
-                ws.send(createPunishPacket(PUNISHMENT_STATE.ban, NOW, banFinish, "Unknown", "N/A", true))
-            }
+            ws.send(createPunishPacket(stateType, punishInfo.startDate,
+                punishInfo.finishDate, punishInfo.reason, punishInfo.userAppeal, punishInfo.appealRejected))
         }
+        else if (ipFinish) {
+            ws.send(createPunishPacket(stateType, NOW, ipFinish, "Unknown", "N/A", true))
+        }    
     }
-    const muteFinish = mutes.get(ip)
-    if (muteFinish) {
-        if (muteFinish < NOW) {
-            mutes.delete(ip)
-        }
-        else {
-            let muteInfo:any = await makeDbRequest("exec", {
-                stmt: "SELECT startDate, finishDate, reason, userAppeal, appealRejected FROM Mutes WHERE userIntId = ?1",
-                params: intId })
-            if (muteInfo && muteInfo[0]) {
-                muteInfo = muteInfo[0]
-                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, muteInfo.startDate,
-                    muteInfo.finishDate, muteInfo.reason, muteInfo.userAppeal, muteInfo.appealRejected))
-            }
-            else {
-                ws.send(createPunishPacket(PUNISHMENT_STATE.mute, NOW, muteFinish, "Unknown", "N/A", true))
-            }
-        }
-    }
+    await resolvePunishments("Bans", bans, PUNISHMENT_STATE.ban)
+    await resolvePunishments("Mutes", mutes, PUNISHMENT_STATE.mute)
 }
 
 function rejectPixel(ws:ServerWebSocket<any>, i:number, cd:number) {
@@ -1362,7 +1350,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                             if (actionCli == null) return
 
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
-                                }** user **${actionCli.data.ip}**, for **${actionTimeS}** seconds, with reason: '${
+                                }** user **${actionCli.data.intId} (${actionCli.data.chatName})**, for **${actionTimeS}** seconds, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)
 
                             if (action == 1) mute(actionIntId, actionTimeS, actionReason, ws.data.intId)
