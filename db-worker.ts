@@ -6,7 +6,8 @@ import { parentPort } from 'worker_threads'
 import { Database } from 'bun:sqlite'
 import { Queue } from '@datastructures-js/queue'
 
-let db = new Database("server.db")
+const defaultDbOptions = { strict: true }
+let db = new Database("server.db", defaultDbOptions)
 let dbClosed = false
 
 export type LiveChatMessage = {
@@ -62,6 +63,7 @@ export type User = {
 export type KnownIp = {
     userIntId: number,
     ip: string,
+    userAgent: string,
     lastUsed: number
 }
 export type UserVip = {
@@ -71,7 +73,6 @@ export type UserVip = {
 }
 export type DeletionMessageInfo =  {
     messageId: number,
-
     reason: string,
     moderatorIntId: number
 }
@@ -93,18 +94,24 @@ export type LiveChatReport = {
     reason: string,
     reportDate: number
 }
+export type Linkage = {
+    userIntId: number,
+    accountId: number,
+    linkDate: number
+}
 type LiveChatUpdateDeletion = { deletionId: number, messageId: number }
-export type AuthenticateUser = { token: string, ip: string }
+export type AuthenticateUser = { token: string, ip: string, userAgent: string }
 export type DbInternals = {
     setUserChatName: (data: { newName: string, intId: number }) => void,
     getUserChatName: (intId: number) => string|null,
     authenticateUser: (data: AuthenticateUser) => number|null,
-    getLiveChatHistory: (data: { messageId: number, count: number, before: number, channel: string, includeDeleted?: boolean }) => LiveChatMessage[],
+    getLiveChatHistory: (data: { messageId: number, count: number, before: boolean, channel: string, includeDeleted?: boolean }) => LiveChatMessage[],
     updatePixelPlace: (intId: number) => void,
     getMaxLiveChatId: () => number,
     getMaxPlaceChatId: () => number,
-    commitShutdown: () => void,
+    commitShutdown: () => boolean,
     insertLiveChat: (data: LiveChatMessage) => void,
+    addLiveChatReaction: (data: { messageId: number, reaction: string, senderIntId: number }) => void
     deleteLiveChat: (data: DeletionMessageInfo) => void,
     insertPlaceChat: (data: PlaceChatMessage) => void,
     updateUserVip: (data: { intId: number, codeHash: string}) => void,
@@ -196,6 +203,7 @@ const createKnownIps = `
         userIntId INTEGER NOT NULL,
         ip TEXT NOT NULL,
         lastUsed INTEGER,
+        userAgent TEXT,
         FOREIGN KEY (userIntId) REFERENCES Users(intId)
     )
 ` // ip and userIntId combined form a composite key to identify a record
@@ -231,18 +239,15 @@ const createLiveChatReports = `
     )
 `
 db.exec(createLiveChatReports)
-
-/**
- * Adds $ to object keys in order to make it act as a valid bun SQLite query object
- */
-function toQueryObject<T extends object>(object: T): T {
-    // @ts-expect-error Chicanery to keep type inference whilst transforming
-    const queryObject:T = {}
-    for (const k of Object.keys(object)) {
-        queryObject["$" + k] = object[k]
-    }
-    return queryObject
-}
+const createLinkages = `
+    CREATE TABLE IF NOT EXISTS Linkages (
+        userIntId INTEGER UNIQUE,
+        accountId INTEGER,
+        linkDate INTEGER,
+        FOREIGN KEY (userIntId) REFERENCES Users(intId)
+    )
+`
+db.exec(createLinkages)
 
 const insertLiveChat = db.query<void, LiveChatMessage>(`
     INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo, deletionId)
@@ -276,35 +281,35 @@ function performBulkInsertions() {
     db.transaction(() => {
         while (!liveChatInserts.isEmpty()) {
             const data = liveChatInserts.dequeue()
-            insertLiveChat.run(toQueryObject(data))
+            insertLiveChat.run(data)
         }
         while (!placeChatInserts.isEmpty()) {
             const data = placeChatInserts.dequeue()
-            insertPlaceChat.run(toQueryObject(data))
+            insertPlaceChat.run(data)
         }
     })()
 }
 setInterval(performBulkInsertions, 10000)
 
 const internal: DbInternals = {
-    setUserChatName: function(data) {
+    setUserChatName: function({ newName, intId }) {
         const updateQuery = db.query("UPDATE Users SET chatName = ?1 WHERE intId = ?2")
-        updateQuery.run(data.newName, data.intId)
+        updateQuery.run(newName, intId)
     },
     getUserChatName: function(intId) {
         const getNameQuery = db.query<User, number>("SELECT chatName FROM Users WHERE intId = ?1")
         const result = getNameQuery.get(intId)
         return result ? result.chatName : null
     },
-    authenticateUser: function(data) {
+    authenticateUser: function({ token, ip, userAgent }) {
         const selectUser = db.query<User, string>("SELECT * FROM Users WHERE token = ?1")
         const epochMs = Date.now()
         
-        let user = selectUser.get(data.token)
+        let user = selectUser.get(token)
         if (!user)  { // Create new user
             const insertUser = db.query<User, [string, number, number, number]>(
                 "INSERT INTO Users (token, lastJoined, pixelsPlaced, playTimeSeconds) VALUES (?1, ?2, ?3, ?4) RETURNING *")
-            user = insertUser.get(data.token, epochMs, 0, 0)
+            user = insertUser.get(token, epochMs, 0, 0)
             if (user == null) return null
         }
         else { // Update last joined
@@ -313,20 +318,20 @@ const internal: DbInternals = {
         }
 
         // Add known IP if not already there
-        const getIpsQuery = db.query<KnownIp, [number, string]>("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2")
-        const ipExists = getIpsQuery.get(user.intId, data.ip)
+        const getIpsQuery = db.query<KnownIp, [number, string]>("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2 AND userAgent = ?3")
+        const ipExists = getIpsQuery.get(user.intId, ip, userAgent)
         if (ipExists) { // Update last used
-            const updateIp = db.query<void, [number, number, string]>("UPDATE KnownIps SET lastUsed = ?1 WHERE userIntId = ?2 AND ip = ?3")
-            updateIp.run(epochMs, user.intId, data.ip)
+            const updateIp = db.query<void, [number, number, string]>("UPDATE KnownIps SET lastUsed = ?1 WHERE userIntId = ?2 AND ip = ?3 AND userAgent = ?4")
+            updateIp.run(epochMs, user.intId, ip, userAgent)
         }
         else { // Create new
-            const createIp = db.query<void, [number, string, number]>("INSERT INTO KnownIps (userIntId, ip, lastUsed) VALUES (?1, ?2, ?3)")
-            createIp.run(user.intId, data.ip, epochMs)
+            const createIp = db.query<void, [number, string, number]>("INSERT INTO KnownIps (userIntId, ip, userAgent, lastUsed) VALUES (?1, ?2, ?3, ?4)")
+            createIp.run(user.intId, ip, userAgent, epochMs)
         }
         
         return user.intId
     },
-    getLiveChatHistory: function(data) {
+    getLiveChatHistory: function({ channel, includeDeleted, before, messageId, count}) {
         const liveChatMessageId = internal.getMaxLiveChatId()
         let params:any[] = []
         let query = `
@@ -335,38 +340,38 @@ const internal: DbInternals = {
             INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
         let preceeding = false
 
-        if (data.channel) {
+        if (channel) {
             query += "WHERE channel = ?1\n"
-            params.push(data.channel)
+            params.push(channel)
             preceeding = true
         }
-        if (!data.includeDeleted) {
+        if (!includeDeleted) {
             query += "AND deletionId IS NULL\n"
             preceeding = true
         }
 
         // If messageId is 0 and we are getting before, it will return [count] most recent messages
         // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
-        if (data.before) {
-            data.messageId = Math.min(liveChatMessageId, data.messageId)
-            data.count = Math.min(liveChatMessageId, data.count)
-            if (data.messageId == 0) {
+        if (before) {
+            messageId = Math.min(liveChatMessageId, messageId)
+            count = Math.min(liveChatMessageId, count)
+            if (messageId == 0) {
                 query += "ORDER BY messageId DESC LIMIT ?2"
-                params.push(data.count)
+                params.push(count)
             }
             else {
                 query += preceeding ? "AND " : ""
                 query += "messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
-                params.push(data.messageId)
-                params.push(data.count)
+                params.push(messageId)
+                params.push(count)
             }
         }
         else { // Ater
-            data.count = Math.min(liveChatMessageId - data.messageId, data.count)
+            count = Math.min(liveChatMessageId - messageId, count)
             query += preceeding ? "AND " : ""
             query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
-            params.push(data.messageId)
-            params.push(data.count)
+            params.push(messageId)
+            params.push(count)
         }
 
         const stmt = db.query(query)
@@ -390,7 +395,9 @@ const internal: DbInternals = {
             dbClosed = true
             performBulkInsertions()
             db.close()
+            return true
         }
+        return false
     },
     /* Send date is seconds unix epoch offset */
     insertLiveChat: function(data) {
@@ -399,44 +406,49 @@ const internal: DbInternals = {
         liveChatInserts.push(data)
     },
     // Messages may or may not be in the DB by the time they are being asked to be deleted due to periodic transactions
-    deleteLiveChat: function(data) {
+    deleteLiveChat: function({ moderatorIntId, reason, messageId }) {
         const deletionQuery = db.query<LiveChatDeletion, DeletionInsert>(
             "INSERT INTO LiveChatDeletions (moderatorIntId, reason, deletionDate) VALUES ($moderatorIntId, $reason, $deletionDate) RETURNING *")             
-        const deletion = deletionQuery.get(toQueryObject({ moderatorIntId: data.moderatorIntId, reason: data.reason, deletionDate: Date.now() }))
-        if (deletion == null) return
+        const deletion = deletionQuery.get({ moderatorIntId, reason, deletionDate: Date.now() })
+        if (deletion == null) {
+            return
+        }
 
         // If pending to be inserted into DB we can update the record in preflight
         for (const messageData of liveChatInserts._elements) {
-            if (messageData.messageId === data.messageId) {
+            if (messageData.messageId === messageId) {
                 messageData.deletionId = deletion.deletionId
                 return
             }
         }
 
         const query = db.query<void, LiveChatUpdateDeletion>("UPDATE LiveChatMessages SET deletionId = $deletionId WHERE messageId = $messageId")
-        const deletionUpdate:LiveChatUpdateDeletion = { deletionId: deletion.deletionId, messageId: data.messageId }
-        query.run(toQueryObject(deletionUpdate))
+        const deletionUpdate:LiveChatUpdateDeletion = { deletionId: deletion.deletionId, messageId }
+        query.run(deletionUpdate)
     },
     insertPlaceChat: function(data) {
         placeChatInserts.push(data)
     },
-    updateUserVip: function(data) {
+    updateUserVip: function({ intId, codeHash }) {
         const epochMs = Date.now()
         const getKeysQuery = db.query("SELECT * FROM UserVips WHERE userIntId = ?1 AND keyHash = ?2")
-        const keyExists = getKeysQuery.get(data.intId, data.codeHash)
+        const keyExists = getKeysQuery.get(intId, codeHash)
         
         if (keyExists) {
             const updateKeysQuery = db.query("UPDATE UserVips SET lastUsed = ?1 WHERE userIntId = ?2 AND keyHash = ?3")
-            updateKeysQuery.run(epochMs, data.intId, data.codeHash)
+            updateKeysQuery.run(epochMs, intId, codeHash)
         }
         else {
             const createVipQuery = db.query("INSERT INTO UserVips (userIntId, keyHash, lastUsed) VALUES (?1, ?2, ?3)")
-            createVipQuery.run(data.intId, data.codeHash, epochMs)
+            createVipQuery.run(intId, codeHash, epochMs)
         }
     },
-    insertLiveChatReport: function(data) {
+    insertLiveChatReport: function({ reporterId, messageId, reason }) {
         const insertReportQuery = db.query("INSERT INTO LiveChatReports (reporterId, messageId, reason, reportDate) VALUES (?1, ?2, ?3, ?4)")
-        insertReportQuery.run(data.reporterId, data.messageId, data.reason, Date.now())
+        insertReportQuery.run(reporterId, messageId, reason, Date.now())
+    },
+    addLiveChatReaction: function({ messageId, reaction, senderIntId }) {
+        // TODO: Implement this
     },
     getLiveChatMessage: function(intId) {
         // Message may not be in the DB yet if recently sent so getting a message requires some logic
@@ -452,12 +464,12 @@ const internal: DbInternals = {
         }
         return null
     },
-    exec: function(data) {
+    exec: function({ stmt, params }) {
         try {
-            const query = db.query(data.stmt)
-            return (typeof data.params[Symbol.iterator] === "function"
-                ? query.all(...data.params)
-                : query.all(data.params))
+            const query = db.query(stmt)
+            return (typeof params[Symbol.iterator] === "function"
+                ? query.all(...params)
+                : query.all(params))
         }
         catch(err) {
             console.log("Could not exec DB query: ", err)
@@ -466,7 +478,7 @@ const internal: DbInternals = {
     },
     reInitialise: function() { //  Re-create the DB 
         internal.commitShutdown()
-        db = new Database("server.db")
+        db = new Database("server.db", defaultDbOptions)
         dbClosed = false
     }
 }
