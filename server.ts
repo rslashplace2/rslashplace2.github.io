@@ -1074,7 +1074,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     let size = 7 + encChannel.byteLength
                     for (const row of messageHistory) {
                         usernames.set(row.senderIntId, row.chatName)
-                        const messageData = createChatPacket(0, row.message, Math.floor(row.sendDate / 1000), row.messageId,
+                        const censoredMessage = censorText(row.message)
+                        const messageData = createChatPacket(0, censoredMessage, Math.floor(row.sendDate / 1000), row.messageId,
                             row.senderIntId, row.channel, row.repliesTo)
                         // We reuse the first two bytes (would be type and packetcode) for length. Could overflow if txt is 100% of the 2 byte max len
                         messageData.writeUint16BE(messageData.byteLength, 0)
