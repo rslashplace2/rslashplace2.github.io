@@ -1350,7 +1350,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                             if (actionCli == null) return
 
                             modWebhookLog(`Moderator (${ws.data.codeHash}) requested to **${["mute", "ban"][action - 1]
-                                }** user **${actionCli.data.intId} (${actionCli.data.chatName})**, for **${actionTimeS}** seconds, with reason: '${
+                                }** user **${actionCli.data.intId} (${actionCli.data.chatName})**, for **${formatTimeSeconds(actionTimeS)}** seconds, with reason: '${
                                 actionReason.replaceAll("@", "@​")}'`)
 
                             if (action == 1) mute(actionIntId, actionTimeS, actionReason, ws.data.intId)
@@ -1997,6 +1997,27 @@ function expand(newWidth:number, newHeight:number) {
         "to avoid potential canvas corruption.\x1b[0m")
     console.log("\x1b[33;4;1mREMEMBER TO CALL pushImage() to push commit new canvas dimensions" +
         "to git\x1b[0m")
+}
+
+/**
+ * Converts seconds to a formatted string depending on the magnitude.
+ * @returns {string} - Fuzzy time string, e.g 1h 1m 1s / 1m 1s / 59s
+ */
+function formatTimeSeconds(seconds:number): string {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const remainingSeconds = seconds % 60
+
+    let result = ""
+    if (hours > 0) {
+        result += `${hours}h `;
+    }
+    if (minutes > 0 || hours > 0) {
+        result += `${minutes}m `
+    }
+    result += `${remainingSeconds}s`
+
+    return result.trim()
 }
 
 let shutdown = false
