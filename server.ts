@@ -102,6 +102,77 @@ if (configFailed) {
     process.exit(0)
 }
 
+const DEFAULT_EMOJIS = {
+    rofl: "🤣",
+    joy: "😂",
+    cool: "😎",
+    sunglasses: "😎",
+    heart: "❤️",
+    moyai: "🗿",
+    bruh: "🗿",
+    turkey: "🇹🇷",
+    skull: "💀",
+    sus: "ඞ",
+    iran: "🇮🇷",
+    uk: "🇬🇧",
+    usa: "🇺🇸",
+    america: "🇺🇸",
+    eyes: "👀",
+    fire: "🔥",
+    thumbsup: "👍",
+    thumbsdown: "👎",
+    clown: "🤡",
+    facepalm: "🤦‍♂️",
+    ok: "👌",
+    poop: "💩",
+    rocket: "🚀",
+    tada: "🎉",
+    celebration: "🎉",
+    moneybag: "💰",
+    crown: "👑",
+    muscle: "💪",
+    beer: "🍺",
+    pizza: "🍕",
+    cookie: "🍪",
+    balloon: "🎈",
+    gift: "🎁",
+    star: "⭐️",
+    love: "😍",
+    crying: "😢",
+    angry: "😠",
+    sleepy: "😴",
+    nerd: "🤓",
+    laughing: "😆",
+    vomiting: "🤮",
+    unicorn: "🦄",
+    alien: "👽",
+    ghost: "👻",
+    skullcrossbones: "☠️",
+    explosion: "💥",
+    shush: "🤫",
+    deaf: "🧏",
+    mew:"🤫🧏",
+    pray: "🙏",
+    thinking: "🤔"
+}
+const DEFAULT_CUSTOM_EMOJIS = {
+    amogus: "custom_emojis/amogus.png",
+    biaoqing: "custom_emojis/biaoqing.png",
+    deepfriedh: "custom_emojis/deepfriedh.png",
+    edp445: "custom_emojis/edp445.png",
+    fan: "custom_emojis/fan.png",
+    heavy: "custom_emojis/heavy.png",
+    herkul: "custom_emojis/herkul.png",
+    kaanozdil: "custom_emojis/kaanozdil.png",
+    lowtiergod: "custom_emojis/lowtiergod.png",
+    manly: "custom_emojis/manly.png",
+    plsaddred: "custom_emojis/plsaddred.png",
+    rplace: "custom_emojis/rplace.png",
+    rplacediscord: "custom_emojis/rplacediscord.png",
+    sonic: "custom_emojis/sonic.png",
+    transparent: "custom_emojis/transparent.png",
+    trollface: "custom_emojis/trollface.png"
+}
 const DEFAULT_PALETTE = [ 0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff ]
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, PALETTE_USABLE_REGION, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
@@ -112,7 +183,7 @@ try {
     BOARD = new Uint8Array(await Bun.file(path.join(PUSH_PLACE_PATH, "place")).arrayBuffer())
 }
 catch(e) {
-    console.log(e, ", regenerating")
+    console.log(e, "(regenerating)")
     BOARD = new Uint8Array(WIDTH * HEIGHT)
 }
 try {
@@ -124,14 +195,14 @@ try {
         throw new Error("Changes was smaller than expected")
 }
 catch(e) {
-    console.log(e, ", regenerating")
+    console.log(e, "(regenerating)")
     CHANGES = new Uint8Array(WIDTH * HEIGHT).fill(255)
 }
 try {
     PLACERS = Buffer.from(await Bun.file(path.join(PUSH_PLACE_PATH, "placers")).arrayBuffer())
 }
 catch(e) {
-    console.log(e, ", regenerating")
+    console.log(e, "(regenerating)")
     PLACERS = Buffer.alloc(WIDTH * HEIGHT * 4).fill(0xFFFFFFFF)
 }
 let uidTokenFailed = false
@@ -348,8 +419,8 @@ const encoderUTF8 = new util.TextEncoder()
 const decoderUTF8 = new util.TextDecoder()
 
 let dbReqId = 0
+let dbWorker = new Worker("./db-worker.ts")
 const dbReqs = new Map()
-const dbWorker = new Worker("./db-worker.ts")
 
 /*
  * __Always await this__, and only use in cases where you __WANT the response__, if you want something that
@@ -782,13 +853,16 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 ws.close(4000, "Not user")
                 return
             }
-            if (!ws.data.headers.get("User-Agent")) {
+            const USER_AGENT = ws.data.headers.get("User-Agent")
+            if (!USER_AGENT) {
                 ws.close(4000, "No agent")
                 return
             }
             let chatName:string|null = null
-            const ORIGIN  = ws.data.headers.get("origin")
-            if (USE_CLOUDFLARE && (ORIGIN == null || !ORIGINS.includes(ORIGIN))) return ws.close(4000, "No origin")
+            const ORIGIN = ws.data.headers.get("Origin")
+            if (ORIGIN == null || !ORIGINS.includes(ORIGIN)) {
+                return ws.close(4000, "No origin")
+            }
             if (BLACKLISTED.has(IP)) return ws.close()
             ws.subscribe("all") // receive all ws messages
             ws.data.cd = COOLDOWN
@@ -796,10 +870,10 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 const codeHash = sha256(URL)
                 const vip = VIP.get(codeHash)
                 if (!vip) {
-                    return ws.close(4000, "Invalid VIP code. Please do not try again.")
+                    return ws.close(4000, "Invalid VIP code. Please do not try again")
                 }
                 const existingVip = activeVips.get(codeHash)
-                existingVip?.close(4000, "You have connected with this VIP code on another session.")
+                existingVip?.close(4000, "You have connected with this VIP code on another session")
                 activeVips.set(codeHash, ws)
                 ws.data.codeHash = codeHash
                 ws.data.perms = vip.perms
@@ -865,7 +939,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
             }
 
             // This section is the only potentially hot DB-related code in the server, investigate optimisatiions
-            const intId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP })
+            const intId = await makeDbRequest("authenticateUser", { token: ws.data.token, ip: IP, userAgent: USER_AGENT })
             if (intId == null || typeof intId != "number") {
                 console.error(`Could not authenticate user ${IP}, user ID was null, even after new creation`)
                 return ws.close()
@@ -971,6 +1045,13 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     ws.send(placerInfoBuf)
                     break
                 }
+                case 11: { // Live chat reaction
+                    const messageId = data.readUInt32BE(1)
+                    const reactionKey = data.subarray(5).toString()
+                    postDbMessage("addLiveChatReaction", { messageId, reaction: reactionKey, senderIntId: ws.data.intId })
+                    // TODO: Implement this
+                    break
+                }
                 case 12: { // Submit name
                     const nameCooldown = chatNameCooldowns.get(ws.data.ip) ||  0
                     if (nameCooldown > NOW) {
@@ -995,7 +1076,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 case 13: { // Live chat history
                     const messageId = data.readUint32BE(1)
                     const count = data[5] & 127
-                    const before = data[5] >> 7
+                    const before = Boolean(data[5] >> 7)
                     const encChannel = data.subarray(6)
                     const channel = decoderUTF8.decode(encChannel)
                     const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel }) as any[]
@@ -1129,8 +1210,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     if (censoredMessage !== message) {
                         const chatPacket = createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
                             channel, repliesTo, positionIndex)
-                        for (const c of wss.clients) {
-                            c.send(c === ws ? chatPacket : censoredChatPacket)
+                        for (const p of wss.clients) {
+                            p.send(p === ws ? chatPacket : censoredChatPacket)
                         }
                     }
                     else { // Performance shortcut
@@ -1864,10 +1945,10 @@ async function mute(intId: number, duration: number, reason: string|null = null,
 function blacklist(identifier: ServerWebSocket<any>|number|string, reason: string = "Blacklisted IP") {
     let ip:string|null = null
     if (typeof identifier === "number") {
-        for (const cli of wss.clients) {
-            if (cli.data.intId == identifier) {
-                ip = cli.data.ip
-                cli.close()
+        for (const p of wss.clients) {
+            if (p.data.intId == identifier) {
+                ip = p.data.ip
+                p.close()
             }
         }
     }
