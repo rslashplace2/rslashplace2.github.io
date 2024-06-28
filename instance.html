@@ -1,909 +1,909 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instances</title>
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="icon" type="image/x-icon" href="favicon.png">
-    <script type="application/javascript" src="./elements.js"></script>
-    <script type="application/javascript" src="https://unpkg.com/dataproto@1.0.0/index.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
-        @keyframes slideaway {
-            from { display: block; transform: translateY(40px); opacity: 0; }
-            to { transform: translateY(0px); opacity: 1; }
-        }
-
-        html {
-            height: 100%;
-            width: 100%;
-        }
-
-        * {
-            font-family: 'IBM Plex Sans', sans-serif;
-            box-sizing: border-box;
-        }
-
-        *:not(h1, h2, h3, h4) {
-            font-size: 20px;
-        }
-
-        #dashboard, #servers {
-            animation: slideaway 400ms;
-            display: none;
-        }
-
-        #dashboard:target, #servers:target {
-            display: block;
-
-            flex-grow: 1;
-            padding: 8px;
-            position: relative;
-        }
-
-        body {
-            background-color: #dae0e6;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            overflow-y: scroll;
-            height: 100%;
-            margin: 0px;
-        }
-
-        #instancePlayer {
-            position: fixed;
-            left: calc(60% - 16px);
-            width: 40%;
-            top: 84px;
-            height: calc(100% - 100px);
-            display: flex;
-            flex-direction: column;
-            row-gap: 8px;
-            padding-top: 8px;
-            padding-bottom: 8px;
-            z-index: -1;
-        }
-
-        #instancePlayer > * {
-            opacity: 0.2;
-            transition: .2s opacity, .2s background-color;
-            background-color: white;
-            border: 2px solid gray;
-        }
-
-        #instanceCanvas {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            width: 100%;
-            opacity: 0.2;
-        }
-
-        #instanceLiveChat > span {
-            display: block;
-        }
-
-        #instanceLiveChat > span:nth-child(even) {
-            background-color: #8080800d;
-        }
-
-        #serverSettings {
-            width: 40%;
-        }
-
-        #serverSettings > div {
-            display: flex;
-            flex-direction: row;
-            column-gap: 8px;
-        }
-
-        #serverSettings > div > span {
-            flex-grow: 1;
-        }
-
-        #serverSettings > div > input {
-            min-width: 128px;
-            width: 128px;
-        }
-
-        .container {
-            max-width: 1024px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            position: sticky;
-            top: 0px;
-            z-index: 2;
-        }
-
-        nav {
-            background-color: #343536e0;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-radius: 0px 0px 8px 8px;
-            backdrop-filter: blur(8px);
-        }
-
-        nav a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        input {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 14px;
-            outline: none;
-            height: 32px;
-            margin-top: 4px;
-            margin-bottom: 4px;
-            box-shadow: none;
-        }
-
-        input:focus {
-            border-color: #369;
-            box-shadow: 0 0 5px #ccc;
-        }
-
-        input[type=checkbox] {
-            appearance: none;
-            position: relative;
-            cursor: pointer;
-            background-color: white;
-            height: 32px;
-            margin-left: 0px;
-            margin-right: 0px;
-        }
-
-        input[type=checkbox]:checked::after {
-            content: "✓";
-            font-size: 28px;
-            font-weight: 1000;
-            position: absolute;
-            color: #0079d3;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        input[type=file]::file-selector-button {
-            border-radius: 5px;
-            background-color: white;
-            border: 0px solid black;
-            box-shadow: none;
-            height: 100%;
-        }
-
-        input[type=file] {
-            height: 24px;
-            background-color: transparent !important;
-        }
-
-        input[type=text]:invalid:focus {
-            border: 1px solid red;
-        }
-
-        select {
-            background-color: white;
-            border-radius: 4px;
-            font-size: 16px !important;
-            box-shadow: none;
-            height: 32px;
-            border: 1px solid #ccc;
-            padding: 2px;
-            font-family: inherit;
-            color: inherit;
-        }
-
-        .content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .content h2 {
-            font-size: 24px;
-            margin-top: 0;
-        }
-
-        .content p {
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        ul {
-            align-self: center;
-            list-style: none;
-            padding-left: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 50px;
-            margin: 0;
-            padding: 0 5px;
-            background-color: #FF4500;
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: bold;
-            font-family: 'IBM Plex Sans', sans-serif;
-            border-radius: 8px;
-        }
-
-        li {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        li a {
-            color: #FFFFFF;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 8px;
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        ul li a:hover {
-            background-color: #E34234;
-        }
-
-        a {
-            color: #0079d3;
-            text-decoration: none;
-        }
-
-        .content a:hover {
-            text-decoration: underline;
-        }
-
-        .footer {
-            background-color: #343536;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .footer p {
-            margin: 0;
-        }
-
-        button {
-            display: inline-block;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            background-color: #cee3f8;
-            color: #1a1a1b;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        button:hover {
-            background-color: #b0c8e6;
-        }
-
-        .player-list {
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #ccc;
-            padding: 10px;
-            width: min(calc(100% - 8px), 800px);
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            box-shadow: 0px 0px 12px #00000005;
-        }
-
-        .player-list-header {
-            margin-bottom: 10px;
-            display: flex;
-        }
-
-        .player-card {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-            position: relative;
-            background: white;
-        }
-
-        .player-list-body {
-            max-height: 600px;
-            overflow: scroll;
-        }
-
-        .player-card:hover > .player-card-actions {
-            opacity: 1;
-        }
-
-        .player-card-ip {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .player-card-vip, .player-card-detail {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .player-card-detail {
-            color: #666;
-        }
-
-        .player-card-actions {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            opacity: 0;
-            transition: .2s opacity;
-        }
-
-        .player-card-actions > button {
-            width: 96px;
-            height: 32px;
-        }
-
-        .server-link {
-            font-size: 24px;
-            position: relative;
-        }
-        
-        #instanceTable {
-            width: 50%;
-        }
-
-        .modal {
-            border: 1px solid gray;
-            border-radius: 4px;
-            background-color: #f0f0f0;
-            height: 600px;
-            width: min(800px, 100% - 16px);
-            box-shadow: 0px 0px 12px black;
-            overflow: clip;
-            padding: 0;
-            z-index: 1;
-        }
-
-        .modal[open] {
-            display: flex;
-        }
-
-        .header {
-            color: black;
-            padding: 16px;
-            background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
-            background-size: auto;
-            background-size: cover;
-        }
-
-        .body {
-            margin: 32px 8px 8px 8px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .close-icon {
-            width: 24px;
-            position: absolute;
-            cursor: pointer;
-            right: 8px;
-            top: 8px;
-        }
-
-        #overlay {
-            position: fixed;
-            z-index: 6;
-            width: 100%;
-            height: 100%;
-            display: block;
-            left: 0px;
-            top: 0px;
-            backdrop-filter: blur(10px);
-            background: rgba(0, 0, 0, 0.7);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-
-        @media screen and (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            nav a {
-                margin-bottom: 10px;
-            }
-
-            #instancePlayer {
-                display: none;
-            }
-
-            #serverSettings {
-                width: 100%;
-            }
-
-            #instanceTable {
-                width: 100%;
-            }
-
-            .modal {
-                flex-direction: column;
-                z-index: 3;
-            }
-
-            .header {
-                background: #343536;
-                color: white;
-            }
-
-            .body {
-                margin: 8px;
-            }
-        }
-    </style>
-    <script>
-        let accountData = null;
-        const ws = new WebSocket("ws://localhost:1234")
-        ws.binaryType = "arraybuffer"
-        ws.onmessage = async function ({ data }) {
-            data = new DataView(data)
-
-            switch (data.getUint8(0)) {
-                //string Username, string Password, string Email, int AccountTier, List<int> Instances
-                case ServerPackets.AccountInfo: {
-                    accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
-                    accountName.textContent = accountData.Username
-                    let censoredSection = accountData.Email.slice(4, accountData.Email.indexOf("@"))
-                    accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
-                    accountInfo.style.display = 'block'
-
-                    // Add to servers select
-                    for (let instance of accountData.Instances) {
-                        let el = document.createElement("option")
-                        el.textContent = instance
-                        viewServerOptions.appendChild(el)
-                    }
-
-                    // Create canvas if originated from builder
-                    if (builderData) {
-                        createCanvas(builderData)
-                    }
-                    break
-                }
-                case ServerPackets.Fail: {
-                    console.log(decoder.decode(data.buffer.slice(1)))
-                    break
-                }
-                case ServerPackets.WorkerLocations: {
-                    workerLocations = JSON.parse(decoder.decode(data.buffer.slice(1)))
-                    for (let i = 0; i < workerLocations.length; i++) {
-                        workerLocations[i].workerSocket = new WebSocket(workerLocations[i].SocketAddress)
-                        workerLocations[i].workerSocket.binaryType = "arraybuffer"
-
-                        for (let instance in accountData.Instances) {
-                            if (instance >= workerLocations[i].Range.Start && instance < workerLocations[i].Range.End) {
-                                // Then this worker carries one of our instances, this is the first step to building up what we know about
-                                // our "instances" before we can finally combine it all on the instances HTML table. Is like an odd form of bootstrapping.
-                                if (!instances[instance]) instances[instance] = { }
-                                instances[instance].workerSocket = workerLocations[i].workerSocket
-                                instances[instance].workerSocket.onmessage = async function ({ data }) {
-                                    data = new DataView(data)
-
-                                    switch (data.getUint8(0)) {
-                                        case WorkerPackets.InstanceQuery: {
-                                            instances[instance].info = JSON.parse(data.buffer.slice(1))
-                                            break
-                                        }
-                                        case WorkerPackets.InstanceCreated: {
-                                            console.log("Callback - Created instance " + data.getInt32(5))
-                                            requestQueue[data.getInt32(1)]?.resolve(data.getInt32(5))
-                                            break
-                                        }
-                                    }
-                                }
-
-                                let buffer = new DataView(new ArrayBuffer(5))
-                                buffer.setUint8(0, ClientPackets.QueryInstance)
-                                buffer.setInt32(1, instance)
-                                instances[instance].workerSocket.send(buffer)
-                            }
-                        }
-                    }
-
-                    break
-                }
-                case ServerPackets.AvailableVanity: {
-                    vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
-                    vanity.setAttribute("available", !!data.getUint8(1))
-                    break
-                }
-            }
-        }
-        ws.onclose = function() {
-            overlay.style.display = 'flex'
-        }
-    </script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Instances</title>
+	<link rel="apple-touch-icon" href="favicon.png">
+	<link rel="icon" type="image/x-icon" href="favicon.png">
+	<script type="application/javascript" src="./elements.js"></script>
+	<script type="application/javascript" src="https://unpkg.com/dataproto@1.0.0/index.js"></script>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+		@keyframes slideaway {
+			from { display: block; transform: translateY(40px); opacity: 0; }
+			to { transform: translateY(0px); opacity: 1; }
+		}
+
+		html {
+			height: 100%;
+			width: 100%;
+		}
+
+		* {
+			font-family: 'IBM Plex Sans', sans-serif;
+			box-sizing: border-box;
+		}
+
+		*:not(h1, h2, h3, h4) {
+			font-size: 20px;
+		}
+
+		#dashboard, #servers {
+			animation: slideaway 400ms;
+			display: none;
+		}
+
+		#dashboard:target, #servers:target {
+			display: block;
+
+			flex-grow: 1;
+			padding: 8px;
+			position: relative;
+		}
+
+		body {
+			background-color: #dae0e6;
+			font-family: Arial, sans-serif;
+			display: flex;
+			flex-direction: column;
+			overflow-y: scroll;
+			height: 100%;
+			margin: 0px;
+		}
+
+		#instancePlayer {
+			position: fixed;
+			left: calc(60% - 16px);
+			width: 40%;
+			top: 84px;
+			height: calc(100% - 100px);
+			display: flex;
+			flex-direction: column;
+			row-gap: 8px;
+			padding-top: 8px;
+			padding-bottom: 8px;
+			z-index: -1;
+		}
+
+		#instancePlayer > * {
+			opacity: 0.2;
+			transition: .2s opacity, .2s background-color;
+			background-color: white;
+			border: 2px solid gray;
+		}
+
+		#instanceCanvas {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			opacity: 0.2;
+		}
+
+		#instanceLiveChat > span {
+			display: block;
+		}
+
+		#instanceLiveChat > span:nth-child(even) {
+			background-color: #8080800d;
+		}
+
+		#serverSettings {
+			width: 40%;
+		}
+
+		#serverSettings > div {
+			display: flex;
+			flex-direction: row;
+			column-gap: 8px;
+		}
+
+		#serverSettings > div > span {
+			flex-grow: 1;
+		}
+
+		#serverSettings > div > input {
+			min-width: 128px;
+			width: 128px;
+		}
+
+		.container {
+			max-width: 1024px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		header {
+			position: sticky;
+			top: 0px;
+			z-index: 2;
+		}
+
+		nav {
+			background-color: #343536e0;
+			color: #fff;
+			display: flex;
+			justify-content: space-between;
+			padding: 10px;
+			border-radius: 0px 0px 8px 8px;
+			backdrop-filter: blur(8px);
+		}
+
+		nav a {
+			color: #fff;
+			text-decoration: none;
+		}
+
+		nav a:hover {
+			text-decoration: underline;
+		}
+
+		input {
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			padding: 8px;
+			font-size: 14px;
+			outline: none;
+			height: 32px;
+			margin-top: 4px;
+			margin-bottom: 4px;
+			box-shadow: none;
+		}
+
+		input:focus {
+			border-color: #369;
+			box-shadow: 0 0 5px #ccc;
+		}
+
+		input[type=checkbox] {
+			appearance: none;
+			position: relative;
+			cursor: pointer;
+			background-color: white;
+			height: 32px;
+			margin-left: 0px;
+			margin-right: 0px;
+		}
+
+		input[type=checkbox]:checked::after {
+			content: "✓";
+			font-size: 28px;
+			font-weight: 1000;
+			position: absolute;
+			color: #0079d3;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		input[type=file]::file-selector-button {
+			border-radius: 5px;
+			background-color: white;
+			border: 0px solid black;
+			box-shadow: none;
+			height: 100%;
+		}
+
+		input[type=file] {
+			height: 24px;
+			background-color: transparent !important;
+		}
+
+		input[type=text]:invalid:focus {
+			border: 1px solid red;
+		}
+
+		select {
+			background-color: white;
+			border-radius: 4px;
+			font-size: 16px !important;
+			box-shadow: none;
+			height: 32px;
+			border: 1px solid #ccc;
+			padding: 2px;
+			font-family: inherit;
+			color: inherit;
+		}
+
+		.content {
+			background-color: #fff;
+			padding: 20px;
+			border-radius: 5px;
+			box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+		}
+
+		.content h2 {
+			font-size: 24px;
+			margin-top: 0;
+		}
+
+		.content p {
+			font-size: 16px;
+			line-height: 1.5;
+		}
+
+		li {
+			margin-bottom: 10px;
+		}
+
+		ul {
+			align-self: center;
+			list-style: none;
+			padding-left: 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			height: 50px;
+			margin: 0;
+			padding: 0 5px;
+			background-color: #FF4500;
+			color: #FFFFFF;
+			font-size: 18px;
+			font-weight: bold;
+			font-family: 'IBM Plex Sans', sans-serif;
+			border-radius: 8px;
+		}
+
+		li {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		li a {
+			color: #FFFFFF;
+			text-decoration: none;
+			padding: 10px;
+			border-radius: 8px;
+			transition: background-color 0.2s ease-in-out;
+		}
+
+		ul li a:hover {
+			background-color: #E34234;
+		}
+
+		a {
+			color: #0079d3;
+			text-decoration: none;
+		}
+
+		.content a:hover {
+			text-decoration: underline;
+		}
+
+		.footer {
+			background-color: #343536;
+			color: #fff;
+			padding: 10px;
+			text-align: center;
+		}
+
+		.footer p {
+			margin: 0;
+		}
+
+		button {
+			display: inline-block;
+			padding: 8px 16px;
+			border: none;
+			border-radius: 4px;
+			background-color: #cee3f8;
+			color: #1a1a1b;
+			font-size: 14px;
+			font-weight: bold;
+			text-align: center;
+			text-decoration: none;
+			cursor: pointer;
+			transition: background-color 0.2s ease-in-out;
+		}
+
+		button:hover {
+			background-color: #b0c8e6;
+		}
+
+		.player-list {
+			display: flex;
+			flex-direction: column;
+			border: 1px solid #ccc;
+			padding: 10px;
+			width: min(calc(100% - 8px), 800px);
+			background-color: #f0f0f0;
+			border-radius: 4px;
+			box-shadow: 0px 0px 12px #00000005;
+		}
+
+		.player-list-header {
+			margin-bottom: 10px;
+			display: flex;
+		}
+
+		.player-card {
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			padding: 10px;
+			margin-bottom: 10px;
+			position: relative;
+			background: white;
+		}
+
+		.player-list-body {
+			max-height: 600px;
+			overflow: scroll;
+		}
+
+		.player-card:hover > .player-card-actions {
+			opacity: 1;
+		}
+
+		.player-card-ip {
+			font-size: 16px;
+			font-weight: bold;
+			margin-bottom: 5px;
+		}
+
+		.player-card-vip, .player-card-detail {
+			font-size: 14px;
+			margin-bottom: 5px;
+		}
+
+		.player-card-detail {
+			color: #666;
+		}
+
+		.player-card-actions {
+			position: absolute;
+			top: 4px;
+			right: 4px;
+			opacity: 0;
+			transition: .2s opacity;
+		}
+
+		.player-card-actions > button {
+			width: 96px;
+			height: 32px;
+		}
+
+		.server-link {
+			font-size: 24px;
+			position: relative;
+		}
+		
+		#instanceTable {
+			width: 50%;
+		}
+
+		.modal {
+			border: 1px solid gray;
+			border-radius: 4px;
+			background-color: #f0f0f0;
+			height: 600px;
+			width: min(800px, 100% - 16px);
+			box-shadow: 0px 0px 12px black;
+			overflow: clip;
+			padding: 0;
+			z-index: 1;
+		}
+
+		.modal[open] {
+			display: flex;
+		}
+
+		.header {
+			color: black;
+			padding: 16px;
+			background: url(https://www.redditstatic.com/accountmanager/bbb584033aa89e39bad69436c504c9bd.png);
+			background-size: auto;
+			background-size: cover;
+		}
+
+		.body {
+			margin: 32px 8px 8px 8px;
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+		}
+
+		.close-icon {
+			width: 24px;
+			position: absolute;
+			cursor: pointer;
+			right: 8px;
+			top: 8px;
+		}
+
+		#overlay {
+			position: fixed;
+			z-index: 6;
+			width: 100%;
+			height: 100%;
+			display: block;
+			left: 0px;
+			top: 0px;
+			backdrop-filter: blur(10px);
+			background: rgba(0, 0, 0, 0.7);
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			color: white;
+		}
+
+		@media screen and (max-width: 768px) {
+			nav {
+				flex-direction: column;
+				align-items: center;
+			}
+
+			nav a {
+				margin-bottom: 10px;
+			}
+
+			#instancePlayer {
+				display: none;
+			}
+
+			#serverSettings {
+				width: 100%;
+			}
+
+			#instanceTable {
+				width: 100%;
+			}
+
+			.modal {
+				flex-direction: column;
+				z-index: 3;
+			}
+
+			.header {
+				background: #343536;
+				color: white;
+			}
+
+			.body {
+				margin: 8px;
+			}
+		}
+	</style>
+	<script>
+		let accountData = null;
+		const ws = new WebSocket("ws://localhost:1234")
+		ws.binaryType = "arraybuffer"
+		ws.onmessage = async function ({ data }) {
+			data = new DataView(data)
+
+			switch (data.getUint8(0)) {
+				//string Username, string Password, string Email, int AccountTier, List<int> Instances
+				case ServerPackets.AccountInfo: {
+					accountData = JSON.parse(decoder.decode(data.buffer.slice(1)))
+					accountName.textContent = accountData.Username
+					let censoredSection = accountData.Email.slice(4, accountData.Email.indexOf("@"))
+					accountEmail.textContent = accountData.Email.replace(censoredSection, "*".repeat(censoredSection.length))
+					accountInfo.style.display = 'block'
+
+					// Add to servers select
+					for (let instance of accountData.Instances) {
+						let el = document.createElement("option")
+						el.textContent = instance
+						viewServerOptions.appendChild(el)
+					}
+
+					// Create canvas if originated from builder
+					if (builderData) {
+						createCanvas(builderData)
+					}
+					break
+				}
+				case ServerPackets.Fail: {
+					console.log(decoder.decode(data.buffer.slice(1)))
+					break
+				}
+				case ServerPackets.WorkerLocations: {
+					workerLocations = JSON.parse(decoder.decode(data.buffer.slice(1)))
+					for (let i = 0; i < workerLocations.length; i++) {
+						workerLocations[i].workerSocket = new WebSocket(workerLocations[i].SocketAddress)
+						workerLocations[i].workerSocket.binaryType = "arraybuffer"
+
+						for (let instance in accountData.Instances) {
+							if (instance >= workerLocations[i].Range.Start && instance < workerLocations[i].Range.End) {
+								// Then this worker carries one of our instances, this is the first step to building up what we know about
+								// our "instances" before we can finally combine it all on the instances HTML table. Is like an odd form of bootstrapping.
+								if (!instances[instance]) instances[instance] = { }
+								instances[instance].workerSocket = workerLocations[i].workerSocket
+								instances[instance].workerSocket.onmessage = async function ({ data }) {
+									data = new DataView(data)
+
+									switch (data.getUint8(0)) {
+										case WorkerPackets.InstanceQuery: {
+											instances[instance].info = JSON.parse(data.buffer.slice(1))
+											break
+										}
+										case WorkerPackets.InstanceCreated: {
+											console.log("Callback - Created instance " + data.getInt32(5))
+											requestQueue[data.getInt32(1)]?.resolve(data.getInt32(5))
+											break
+										}
+									}
+								}
+
+								let buffer = new DataView(new ArrayBuffer(5))
+								buffer.setUint8(0, ClientPackets.QueryInstance)
+								buffer.setInt32(1, instance)
+								instances[instance].workerSocket.send(buffer)
+							}
+						}
+					}
+
+					break
+				}
+				case ServerPackets.AvailableVanity: {
+					vanity.style.border = "1px solid " + (data.getUint8(1) ? "green" : "red")
+					vanity.setAttribute("available", !!data.getUint8(1))
+					break
+				}
+			}
+		}
+		ws.onclose = function() {
+			overlay.style.display = 'flex'
+		}
+	</script>
 </head>
 <body>
-    <div id="overlay">
-        <h1 style="margin: 0px;">Bruh.. 💀</h1>
-        <h3 style="text-align: center;">The server has disconnected and something isn't working right</h3>
-        <div style="display: flex; column-gap: 8px;">
-            <button onclick="window.location.reload(true)">Reload page</button>
-            <button onclick="window.location = window.location.origin">Go back</button>
-        </div>
-    </div>
-    <dialog class="modal" id="createModal">
-        <div class="header"><h4 style="margin: 0px;">Create new<br>rplace canvas</h4></div>
-        <div class="body">
-            <r-close-icon tabindex="0" class="close-icon" onclick="createModal.close()"></r-close-icon>
-            <input id="vanity" type="text" placeholder="Vanity name (unique)" oninput="
-                this.value = this.value.toLowerCase().replaceAll(' ', '-')
-                let encoded = encoder.encode('X' + this.value)
-                encoded[0] = ClientPackets.VanityAvailable
-                ws.send(encoded)">
-            <input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)">
-            <input id="width" type="number" placeholder="Canvas width (pixels)">
-            <input id="height" type="number" placeholder="Canvas height (pixels)">
-            <p style="margin: 0px;">Import canvas from image file:</p>
-            <input type="file">
-            <div style="flex-grow: 1"></div>
-            <button class="create-button" onclick="
-                if (vanity.getAttribute('available') != 'true') {
-                    alert('The provided canvas vanity name is not available, try another.')
-                    return
-                }
+	<div id="overlay">
+		<h1 style="margin: 0px;">Bruh.. 💀</h1>
+		<h3 style="text-align: center;">The server has disconnected and something isn't working right</h3>
+		<div style="display: flex; column-gap: 8px;">
+			<button onclick="window.location.reload(true)">Reload page</button>
+			<button onclick="window.location = window.location.origin">Go back</button>
+		</div>
+	</div>
+	<dialog class="modal" id="createModal">
+		<div class="header"><h4 style="margin: 0px;">Create new<br>rplace canvas</h4></div>
+		<div class="body">
+			<r-close-icon tabindex="0" class="close-icon" onclick="createModal.close()"></r-close-icon>
+			<input id="vanity" type="text" placeholder="Vanity name (unique)" oninput="
+				this.value = this.value.toLowerCase().replaceAll(' ', '-')
+				let encoded = encoder.encode('X' + this.value)
+				encoded[0] = ClientPackets.VanityAvailable
+				ws.send(encoded)">
+			<input id="cooldown" type="number" placeholder="Canvas cooldown (seconds)">
+			<input id="width" type="number" placeholder="Canvas width (pixels)">
+			<input id="height" type="number" placeholder="Canvas height (pixels)">
+			<p style="margin: 0px;">Import canvas from image file:</p>
+			<input type="file">
+			<div style="flex-grow: 1"></div>
+			<button class="create-button" onclick="
+				if (vanity.getAttribute('available') != 'true') {
+					alert('The provided canvas vanity name is not available, try another.')
+					return
+				}
 
-                createCanvas({
-                    name: vanity.value,
-                    width: Math.max(parseInt(width.value), 1),
-                    height: Math.max(parseInt(height.value), 1),
-                    cooldown: Math.max(cooldown.value, 1)
-                })
-            ">Create canvas!</button>
-        </div>
-    </dialog>
-    <header>
-        <nav>
-            <img src="favicon.png" style="height: 64px;border-radius: 8px;">
-            <h1 style="align-self: center;margin: 0px;">Rplace instance manager</h1>
-            <ul>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#servers">Servers</a></li>
-                <li><a href="https://discord.gg/xbRrVSXJdZ">Discord</a></li>
-            </ul>
-        </nav>
-    </header>
-    <div id="dashboard">
-        <h1>Dashboard</h1>
-        <p>Welcome to the rplace server hosting control panel. Here you can
-            manage your servers, view your server statistics, and get
-            support.</p>
-        <br>
-        <div>
-            <h2>Your Servers</h2>
-            <table id="instanceTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>IP Address</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <button onclick="createModal.showModal()">+ Create instance</button> <button>- Delete instance</button>
-        </div>
-        <br>
-        <div>
-            <h2 id="accountHeader">Your Account</h2>
-            <div id="loginPanel" style="display: block;">
-                <input id="loginUsername" type="text" placeholder="Username" style="display: block; width: 256px;"
-                    maxlength="10">
-                <input id="loginEmail" type="text" placeholder="Email" style="display: block; width: 256px;"
-                    maxlength="32">
-            </div>
-            <div id="preLoginOptions">
-                <a href="#dashboard" onclick="
-                    if (loginPanel.style.display == 'block') {
-                        let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginEmail.value.padEnd(32))
-                        buffer[0] = ClientPackets.Authenticate
-                        ws.send(buffer)
+				createCanvas({
+					name: vanity.value,
+					width: Math.max(parseInt(width.value), 1),
+					height: Math.max(parseInt(height.value), 1),
+					cooldown: Math.max(cooldown.value, 1)
+				})
+			">Create canvas!</button>
+		</div>
+	</dialog>
+	<header>
+		<nav>
+			<img src="favicon.png" style="height: 64px;border-radius: 8px;">
+			<h1 style="align-self: center;margin: 0px;">Rplace instance manager</h1>
+			<ul>
+				<li><a href="#dashboard">Dashboard</a></li>
+				<li><a href="#servers">Servers</a></li>
+				<li><a href="https://discord.gg/xbRrVSXJdZ">Discord</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div id="dashboard">
+		<h1>Dashboard</h1>
+		<p>Welcome to the rplace server hosting control panel. Here you can
+			manage your servers, view your server statistics, and get
+			support.</p>
+		<br>
+		<div>
+			<h2>Your Servers</h2>
+			<table id="instanceTable">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>IP Address</th>
+						<th>Status</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<button onclick="createModal.showModal()">+ Create instance</button> <button>- Delete instance</button>
+		</div>
+		<br>
+		<div>
+			<h2 id="accountHeader">Your Account</h2>
+			<div id="loginPanel" style="display: block;">
+				<input id="loginUsername" type="text" placeholder="Username" style="display: block; width: 256px;"
+					maxlength="10">
+				<input id="loginEmail" type="text" placeholder="Email" style="display: block; width: 256px;"
+					maxlength="32">
+			</div>
+			<div id="preLoginOptions">
+				<a href="#dashboard" onclick="
+					if (loginPanel.style.display == 'block') {
+						let buffer = encoder.encode('X' + loginUsername.value.padEnd(10) + loginEmail.value.padEnd(32))
+						buffer[0] = ClientPackets.Authenticate
+						ws.send(buffer)
 
-                        loginPanel.style.display = 'none'
-                        preLoginOptions.style.display = 'none'
-                        signoutOptions.style.display = 'block'
-                        localStorage.username = btoa(loginUsername.value)
-                        localStorage.password = btoa(loginEmail.value)
-                        setTimeout(() => {
-                            ws.send(new Uint8Array([ClientPackets.AccountInfo]))
-                            ws.send(new Uint8Array([ClientPackets.LocateWorkers]))
-                        }, 100) // TODO: Unjank
-                    }
-                    else {
-                        loginPanel.style.display = 'block'
-                        signupPanel.style.display = 'none'
-                    }
-                ">Login</a>
-                <span style="color: gray;">•</span>
-                <a href="./index.hml">Signup</a>
-            </div>
-            <div id="signoutOptions" style="display: none;">
-                <a href="#dashboard" onclick="window.location.reload()">Log out</a>
-            </div>
-            <p id="loginSignupMessage" style="color: red; font-size: small;"></p>
-            <br>
-            <div id="accountInfo" style="display: none;">
-                <h4>Account info:</h4>
-                <div>Account name: <span id="accountName"></span></div>
-                <div>Account email: <span id="accountEmail"></span></div>
-                <div>Billing info: <span id="accountBilling"></span></div>
-                <a href="#dashboard">Delete account</a>
-            </div>
-        </div>
-    </div>
-    <div id="servers">
-        <h1>Servers</h1>
-        <p>Manage one of your servers, view it's activity and change its settings.</p>
-        <select id="viewServerOptions">
-            <option>currently viewing</option>
-        </select> 
-        <br><br>
-        <h4>Canvas info:</h4>
-        <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
-            <div><a href="">https://rplace.live?board=...</a> <button>copy direct link</button></div>
-            <span style="color: #0079d3;">https://rplace.live/<span></span><button>edit vanity link</button></span>
-        </div>
-        <h4>Canvas settings:</h4>
-        <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
-            <div id="serverSettings"></div>
-            <div>
-                <button class="button">Save changes</button>
-                <button class="button">Undo changes</button>
-            </div>
-        </div>
-        <h4>Server activity:</h4>
-        <div id="serverActivity">
-            <div class="player-list">
-                <div class="player-list-header">
-                    <h4 style="flex-grow: 1;">Players</h4>
-                    <span style="opacity: 0.5;">16 online, 4 VIPs</span>
-                </div>
-                <div class="player-list-body">
-                    <div class="player-card">
-                        <div class="player-card-ip">192.168.1.1 | #1234</div>
-                        <div class="player-card-vip">Permissions: VIP</div>
-                        <div class="player-card-detail">Join date: Mon Jan 01 1970 00:00:00</div>
-                        <div class="player-card-detail">Pixels placed: 0</div>
-                        <div style="position: absolute;top: 0px;right: 0px;"></div>
-                        <div class="player-card-actions">
-                            <button>Kick</button>
-                            <button>Ban</button>
-                            <button>Message</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <button class="button">Restart server</button>
-            <button class="button">Delete server</button>
-            <br><br>
-        </div>
-    </div>
-    <div id="instancePlayer">
-        <div style="position: relative;aspect-ratio: 1/1;"><canvas id="instanceCanvas" width="400" height="400"></canvas></div>
-        <div id="instanceLiveChat" style="flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: scroll;">
-            <span>[en][zekiahepic] Hello world</span>
-        </div>
-    </div>
-    <footer>
-        <p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
-    </footer>
+						loginPanel.style.display = 'none'
+						preLoginOptions.style.display = 'none'
+						signoutOptions.style.display = 'block'
+						localStorage.username = btoa(loginUsername.value)
+						localStorage.password = btoa(loginEmail.value)
+						setTimeout(() => {
+							ws.send(new Uint8Array([ClientPackets.AccountInfo]))
+							ws.send(new Uint8Array([ClientPackets.LocateWorkers]))
+						}, 100) // TODO: Unjank
+					}
+					else {
+						loginPanel.style.display = 'block'
+						signupPanel.style.display = 'none'
+					}
+				">Login</a>
+				<span style="color: gray;">•</span>
+				<a href="./index.hml">Signup</a>
+			</div>
+			<div id="signoutOptions" style="display: none;">
+				<a href="#dashboard" onclick="window.location.reload()">Log out</a>
+			</div>
+			<p id="loginSignupMessage" style="color: red; font-size: small;"></p>
+			<br>
+			<div id="accountInfo" style="display: none;">
+				<h4>Account info:</h4>
+				<div>Account name: <span id="accountName"></span></div>
+				<div>Account email: <span id="accountEmail"></span></div>
+				<div>Billing info: <span id="accountBilling"></span></div>
+				<a href="#dashboard">Delete account</a>
+			</div>
+		</div>
+	</div>
+	<div id="servers">
+		<h1>Servers</h1>
+		<p>Manage one of your servers, view it's activity and change its settings.</p>
+		<select id="viewServerOptions">
+			<option>currently viewing</option>
+		</select> 
+		<br><br>
+		<h4>Canvas info:</h4>
+		<div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+			<div><a href="">https://rplace.live?board=...</a> <button>copy direct link</button></div>
+			<span style="color: #0079d3;">https://rplace.live/<span></span><button>edit vanity link</button></span>
+		</div>
+		<h4>Canvas settings:</h4>
+		<div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+			<div id="serverSettings"></div>
+			<div>
+				<button class="button">Save changes</button>
+				<button class="button">Undo changes</button>
+			</div>
+		</div>
+		<h4>Server activity:</h4>
+		<div id="serverActivity">
+			<div class="player-list">
+				<div class="player-list-header">
+					<h4 style="flex-grow: 1;">Players</h4>
+					<span style="opacity: 0.5;">16 online, 4 VIPs</span>
+				</div>
+				<div class="player-list-body">
+					<div class="player-card">
+						<div class="player-card-ip">192.168.1.1 | #1234</div>
+						<div class="player-card-vip">Permissions: VIP</div>
+						<div class="player-card-detail">Join date: Mon Jan 01 1970 00:00:00</div>
+						<div class="player-card-detail">Pixels placed: 0</div>
+						<div style="position: absolute;top: 0px;right: 0px;"></div>
+						<div class="player-card-actions">
+							<button>Kick</button>
+							<button>Ban</button>
+							<button>Message</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<button class="button">Restart server</button>
+			<button class="button">Delete server</button>
+			<br><br>
+		</div>
+	</div>
+	<div id="instancePlayer">
+		<div style="position: relative;aspect-ratio: 1/1;"><canvas id="instanceCanvas" width="400" height="400"></canvas></div>
+		<div id="instanceLiveChat" style="flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: scroll;">
+			<span>[en][zekiahepic] Hello world</span>
+		</div>
+	</div>
+	<footer>
+		<p>&copy; 2023 Zekiah-A. Powered by <a href="https://github.com/Zekiah-A/RplaceServer">RplaceServer</a>.</p>
+	</footer>
 </body>
 <script>
-    const params = new URLSearchParams(location.search)
-    const encoder = new TextEncoder()
-    const decoder = new TextDecoder()
-    const instances = {}
-    const ClientPackets = {
-        // To auth server
-        DeleteAccount: 0,
-        UpdateAccount: 1,
-        CreateAccount: 2,
-        AuthenticateCreate: 3,
-        AccountInfo: 4,
-        Authenticate: 5,
-        LocateVanity: 6,
-        LocateWorkers: 7,
-        VanityAvailable: 8,
+	const params = new URLSearchParams(location.search)
+	const encoder = new TextEncoder()
+	const decoder = new TextDecoder()
+	const instances = {}
+	const ClientPackets = {
+		// To auth server
+		DeleteAccount: 0,
+		UpdateAccount: 1,
+		CreateAccount: 2,
+		AuthenticateCreate: 3,
+		AccountInfo: 4,
+		Authenticate: 5,
+		LocateVanity: 6,
+		LocateWorkers: 7,
+		VanityAvailable: 8,
 
-        // To worker
-        CreateInstance: 0,
-        DeleteInstance: 1,
-        RestartInstance: 2,
-        Subscribe: 3,
-        QueryInstance: 4,
-        CreateVanity: 5,
-    }
-    const ServerPackets = {
-        Fail: 0,
-        AccountInfo: 1,
-        VanityLocation: 2,
-        WorkerLocations: 3,
-        AvailableVanity: 4
-    }
-    const WorkerPackets = {
-        Logger: 0,
-        PlayerConnected: 1,
-        PlayerDisconnected: 2,
-        BackupCreated: 3,
-        InstanceQuery: 4,
-        InstanceCreated: 5
-    }
-    const gameData = {
-        Cooldown: 10,
-        ChatCooldown: 10,
-        CaptchaEnabled: false,
-        CreateBackups: false,
-        Vips: [],
-        Bans: [],
-        BoardWidth: 1000,
-        BoardHeight: 1000,
-        BackupFrequency: 100000,
-        PostLimitPeriod: 100000,
-        TimelapseLimitPeriod: 100000,
-        CensorChatMessages: false,
-        ChatHistoryLength: 100,
-        WebhookUrl: "\"\"",
-        Palette: []
-    }
-    let builderData = null
-    let requestQueue = { }
-    let requestId = 0
-    let workerLocations = null
+		// To worker
+		CreateInstance: 0,
+		DeleteInstance: 1,
+		RestartInstance: 2,
+		Subscribe: 3,
+		QueryInstance: 4,
+		CreateVanity: 5,
+	}
+	const ServerPackets = {
+		Fail: 0,
+		AccountInfo: 1,
+		VanityLocation: 2,
+		WorkerLocations: 3,
+		AvailableVanity: 4
+	}
+	const WorkerPackets = {
+		Logger: 0,
+		PlayerConnected: 1,
+		PlayerDisconnected: 2,
+		BackupCreated: 3,
+		InstanceQuery: 4,
+		InstanceCreated: 5
+	}
+	const gameData = {
+		Cooldown: 10,
+		ChatCooldown: 10,
+		CaptchaEnabled: false,
+		CreateBackups: false,
+		Vips: [],
+		Bans: [],
+		BoardWidth: 1000,
+		BoardHeight: 1000,
+		BackupFrequency: 100000,
+		PostLimitPeriod: 100000,
+		TimelapseLimitPeriod: 100000,
+		CensorChatMessages: false,
+		ChatHistoryLength: 100,
+		WebhookUrl: "\"\"",
+		Palette: []
+	}
+	let builderData = null
+	let requestQueue = { }
+	let requestId = 0
+	let workerLocations = null
 
-    // Equivalent of TaskCompletionSource
-    class PublicPromise {
-        constructor() {
-            this.promise = new Promise((resolve, reject) => {
-                this.resolve = resolve
-                this.reject = reject
-            })
-        }
-    }
+	// Equivalent of TaskCompletionSource
+	class PublicPromise {
+		constructor() {
+			this.promise = new Promise((resolve, reject) => {
+				this.resolve = resolve
+				this.reject = reject
+			})
+		}
+	}
 
-    serverSettings.innerHTML = objectToHtml(gameData, true)
-    window.location.hash = "#dashboard"
-    loginUsername.value = atob(localStorage.username || "")
-    loginEmail.value = atob(localStorage.password || "")
-    if (params.get("builder")) {
-        accountHeader.textContent = "Sign in to finish creating your canvas"
-        builderData = {
-            name: params.get("name"),
-            width: +params.get("width"),
-            height: +params.get("height"),
-            cooldown: +params.get("cooldown")
-        }
-    }
+	serverSettings.innerHTML = objectToHtml(gameData, true)
+	window.location.hash = "#dashboard"
+	loginUsername.value = atob(localStorage.username || "")
+	loginEmail.value = atob(localStorage.password || "")
+	if (params.get("builder")) {
+		accountHeader.textContent = "Sign in to finish creating your canvas"
+		builderData = {
+			name: params.get("name"),
+			width: +params.get("width"),
+			height: +params.get("height"),
+			cooldown: +params.get("cooldown")
+		}
+	}
 
-    async function createCanvas(builder) {
-        let encoded = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32) + 'XXXX')
-        encoded[0] = ClientPackets.CreateInstance
-        let view = new DataView(encoded.buffer)
-        let request = requestId++
-        view.setInt32(42, request)
+	async function createCanvas(builder) {
+		let encoded = encoder.encode('X' + atob(localStorage.username).padEnd(10) + atob(localStorage.password).padEnd(32) + 'XXXX')
+		encoded[0] = ClientPackets.CreateInstance
+		let view = new DataView(encoded.buffer)
+		let request = requestId++
+		view.setInt32(42, request)
 
-        let responseSource = new PublicPromise()
-        requestQueue[request] = responseSource
-        workerLocations[0].workerSocket.send(view.buffer)
-        let instanceId = await responseSource.promise
-        delete requestQueue[request]
-        
-        if (builder.name) {
-            let vanityEncode = endoded.slice(0, encoded.length - 4) + encoder.encode(builder.name)
-            vanityEncode[0] = ClientPackets.CreateVanity
-            workerLocations[0].workerSocket.send(vanityEncode)
-        }
-    }
-    
-    function objectToHtml(object, editable = false) {
-        let html = ""
-        let indent = 1
-        let last = false
+		let responseSource = new PublicPromise()
+		requestQueue[request] = responseSource
+		workerLocations[0].workerSocket.send(view.buffer)
+		let instanceId = await responseSource.promise
+		delete requestQueue[request]
+		
+		if (builder.name) {
+			let vanityEncode = endoded.slice(0, encoded.length - 4) + encoder.encode(builder.name)
+			vanityEncode[0] = ClientPackets.CreateVanity
+			workerLocations[0].workerSocket.send(vanityEncode)
+		}
+	}
+	
+	function objectToHtml(object, editable = false) {
+		let html = ""
+		let indent = 1
+		let last = false
 
-        function propToHtml(obj) {
-            for (let prop in obj) {
-                if (typeof obj[prop] === 'object' && !Array.isArray(obj[prop])) {
-                    indent++
-                    html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${propToHtml(obj[prop])}</div>\n`
-                    last = false
-                }
-                else {
-                    if (!last) indent--
-                    last = true
-                    if (!editable) {
-                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${obj[prop]}</div>\n`
-                    }
-                    else {
-                        let input = ""
-                        switch (typeof obj[prop]) {
-                            case 'string': input = `<input type="text" value=${obj[prop]}>`; break
-                            case 'number': input = `<input type="number" value=${Number(obj[prop])}>`; break
-                            case 'boolean': input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`; break
-                            case 'object': input = `<button>+ Add new</button>`; break;
-                        }
+		function propToHtml(obj) {
+			for (let prop in obj) {
+				if (typeof obj[prop] === 'object' && !Array.isArray(obj[prop])) {
+					indent++
+					html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${propToHtml(obj[prop])}</div>\n`
+					last = false
+				}
+				else {
+					if (!last) indent--
+					last = true
+					if (!editable) {
+						html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${obj[prop]}</div>\n`
+					}
+					else {
+						let input = ""
+						switch (typeof obj[prop]) {
+							case 'string': input = `<input type="text" value=${obj[prop]}>`; break
+							case 'number': input = `<input type="number" value=${Number(obj[prop])}>`; break
+							case 'boolean': input = `<input type="checkbox" ${obj[prop] ? 'checked' : ''}>`; break
+							case 'object': input = `<button>+ Add new</button>`; break;
+						}
 
-                        html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
-                    }
-                }
-            }
-        }
-        propToHtml(object)
+						html += `<div style="margin-left: ${indent * 8}px"><span>${prop}:</span> ${input}</div>\n`
+					}
+				}
+			}
+		}
+		propToHtml(object)
 
-        return html
-    }
+		return html
+	}
 
-    async function renderBoard(url) {
-        const ctx = instanceCanvas.getContext("2d")
-        ctx.clearRect(0, 0, +instanceCanvas.getAttribute("width") || 0, +instanceCanvas.getAttribute("height") || 0)
-        instanceCanvas.style.visibility = 'visible'
-        
-        let response = await fetch(url)
-        if (!response.ok) return
-        let placeView = new DataView(await response.arrayBuffer())
-        let metadataLength = placeView.getInt16(placeView.byteLength - 2)
-        let boardLength = placeView.byteLength - metadataLength
-        let boardWidth = placeView.getUint32(boardLength)
-        let boardHeight = boardLength / boardWidth 
-        instanceCanvas.setAttribute("width", boardWidth)
-        instanceCanvas.setAttribute("height", boardHeight)
-        
-        let palette = []
-        for (let i = boardLength + 4; i < boardLength - 2; i += 4) {
-            palette.push(placeView.getUint32(i))
-        }
-        if (!palette.length) {
-            palette = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00,
-                0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a,
-                0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c,
-                0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff] // argb
-        }
-        
-        const pixelData = ctx.createImageData(1, 1)
-        for (let i = 0; i < boardLength; i++) {
-            let colour = palette[placeView.getUint8(i)]
-            pixelData.data[0] = colour & 0xFF
-            pixelData.data[1] = (colour >> 8) & 0xFF
-            pixelData.data[2] = (colour >> 16) & 0xFF
-            pixelData.data[3] = (colour >> 24) & 0xFF
-            ctx.putImageData(pixelData, i % boardWidth, Math.floor(i / boardWidth));
-        }
-    }
+	async function renderBoard(url) {
+		const ctx = instanceCanvas.getContext("2d")
+		ctx.clearRect(0, 0, +instanceCanvas.getAttribute("width") || 0, +instanceCanvas.getAttribute("height") || 0)
+		instanceCanvas.style.visibility = 'visible'
+		
+		let response = await fetch(url)
+		if (!response.ok) return
+		let placeView = new DataView(await response.arrayBuffer())
+		let metadataLength = placeView.getInt16(placeView.byteLength - 2)
+		let boardLength = placeView.byteLength - metadataLength
+		let boardWidth = placeView.getUint32(boardLength)
+		let boardHeight = boardLength / boardWidth 
+		instanceCanvas.setAttribute("width", boardWidth)
+		instanceCanvas.setAttribute("height", boardHeight)
+		
+		let palette = []
+		for (let i = boardLength + 4; i < boardLength - 2; i += 4) {
+			palette.push(placeView.getUint32(i))
+		}
+		if (!palette.length) {
+			palette = [0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00,
+				0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a,
+				0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c,
+				0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff] // argb
+		}
+		
+		const pixelData = ctx.createImageData(1, 1)
+		for (let i = 0; i < boardLength; i++) {
+			let colour = palette[placeView.getUint8(i)]
+			pixelData.data[0] = colour & 0xFF
+			pixelData.data[1] = (colour >> 8) & 0xFF
+			pixelData.data[2] = (colour >> 16) & 0xFF
+			pixelData.data[3] = (colour >> 24) & 0xFF
+			ctx.putImageData(pixelData, i % boardWidth, Math.floor(i / boardWidth));
+		}
+	}
 </script>
 
 </html>
