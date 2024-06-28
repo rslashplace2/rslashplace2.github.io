@@ -5,17 +5,20 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="apple-touch-icon" href="favicon.png">
 		<link rel="icon" type="image/x-icon" href="favicon.png">
+		<link rel="stylesheet" href="shared.css?v=1">
 		<script type="application/javascript" src="shared.js?v=2"></script>
 		<title>custom canvas</title>
 		<script>
-			const DISALLOWED_VANITIES = [ "index", "index.html", "disclaimer", "disclaimer.html", "fakeapp", "fakeapp.html",
-				"instance", "instance.html", "posts", "posts.html", "404", "404.html" ]
-
 			async function getVanityInstance(name) {
-				const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
-				if (!response.ok) return null
-				const instanceInfo = await response.json()
-				return instanceInfo
+				try {
+					const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
+					if (!response.ok) return null
+					const instanceInfo = await response.json()
+					return instanceInfo
+				}
+				catch(e) {
+					return null
+				}
 			}
 
 			let vanityRequestFinished = false
@@ -23,7 +26,14 @@
 				const urlName = window.location.pathname.replaceAll("/", "")
 				const info = await getVanityInstance(urlName)
 				if (info !== null) {
-					window.location.replace(window.location.origin)
+					const protocol = usesHttps ? "https://" : "http://"
+					const wsProtocol = usesHttps ? "wss://" : "ws://"
+					const filesLocation = info.legacy ? info.serverLocation : info.fileServerLocation
+					const newLocation = `${window.location.origin}/?server=${wsProtocol}${info.serverLocation}&board=${protocol}${filesLocation}/place`
+					window.location.replace(newLocation)
+				}
+				else {
+					overlay.remove()
 				}
 				vanityRequestFinished = true
 			})()
@@ -97,9 +107,6 @@
 			input[type=file] {
 				height: 48px;
 			}
-			input:invalid {
-				border-color: red;
-			}
 			input:focus {
 				border-color: #369;
 				box-shadow: 0 0 5px #ccc;
@@ -121,9 +128,24 @@
 			button:hover {
 				background-color: #b0c8e6;
 			}
+
+			@keyframes waitSpin {
+				0%, 20% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
+			}
+			.spinner {
+				animation: waitSpin 1.8s cubic-bezier(.68,-0.55,.5,1.27) infinite;
+				border-radius: 100%;
+				overflow: clip;
+			}
 		</style>
 	</head>
 	<body>
+		<div id="overlay" class="page-cover">
+			<img alt="rplace logo" class="spinner" src="images/rplace.png">
+			<span style="font-size: 10px; opacity: 0.4;">rplace.live</span>
+			<h3 style="margin: 0px;">Loading custom canvas...</h3>
+		</div>
 		<div class="modal">
 			<div class="header">
 				<h4 style="margin: 0px;">Make a new rplace canvas</h4>
@@ -143,9 +165,12 @@
 		</div>
 	</body>
 	<script defer>
+		const DISALLOWED_VANITIES = [ "index", "index.html", "disclaimer", "disclaimer.html", "fakeapp", "fakeapp.html",
+			"instance", "instance.html", "posts", "posts.html", "404", "404.html" ]
+
 		vanity.addEventListener("input", async function(e) {
-			const name = vanity.value = vanity.value.replace(' ', '-').replace('--', '-')
-					.replace('__', '_').replace('..', '.').replace(/[^\p{L}\d_.-]/gu, '')
+			const name = vanity.value = vanity.value.replace(" ", "-").replace("--", "-")
+					.replace("__", "_").replace("..", ".").replace(/[^\p{L}\d_.-]/gu, "")
 
 			if (!vanityRequestFinished) {
 				return
@@ -181,8 +206,12 @@
 				else if (cooldown.validity.rangeOverflow) {
 					cooldown.setCustomValidity("Cooldown must be less than 4294967")
 				}
+				cooldown.style.border = "1px solid red"
 				cooldown.reportValidity()
 				allValid = false
+			}
+			else {
+				cooldown.style.border = "1px solid green"
 			}
 			if (!width.checkValidity()) {
 				if (width.validity.rangeUnderflow) {
@@ -191,8 +220,12 @@
 				else if (width.validity.rangeOverflow) {
 					width.setCustomValidity("Canvas width must be less than 4294967")
 				}
+				width.style.border = "1px solid red"
 				width.reportValidity()
 				allValid = false
+			}
+			else {
+				width.style.border = "1px solid green"
 			}
 			if (!height.checkValidity()) {
 				if (height.validity.rangeUnderflow) {
@@ -201,8 +234,12 @@
 				else if (height.validity.rangeOverflow) {
 					height.setCustomValidity("Canvas height must be less than 4294967")
 				}
+				height.style.border = "1px solid red"
 				height.reportValidity()
 				allValid = false
+			}
+			else {
+				height.style.border = "1px solid green"
 			}
 			if (allValid) {
 				window.location = `${window.location.origin}/instance.html?builder=true&name=${name.value}&cooldown=${cooldown.value}&width=${width.value}&height=${height.value}`

@@ -3,7 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Instances</title>
+	<title>instances</title>
+	<link rel="stylesheet" href="shared.css?v=1">
 	<link rel="apple-touch-icon" href="favicon.png">
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 	<script type="application/javascript" src="./elements.js"></script>
@@ -412,22 +413,6 @@
 			top: 8px;
 		}
 
-		#overlay {
-			position: fixed;
-			z-index: 6;
-			width: 100%;
-			height: 100%;
-			display: block;
-			left: 0px;
-			top: 0px;
-			backdrop-filter: blur(10px);
-			background: rgba(0, 0, 0, 0.7);
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			color: white;
-		}
-
 		@media screen and (max-width: 768px) {
 			nav {
 				flex-direction: column;
@@ -549,7 +534,7 @@
 	</script>
 </head>
 <body>
-	<div id="overlay">
+	<div id="overlay" class="page-cover">
 		<h1 style="margin: 0px;">Bruh.. 💀</h1>
 		<h3 style="text-align: center;">The server has disconnected and something isn't working right</h3>
 		<div style="display: flex; column-gap: 8px;">
