@@ -9,6 +9,7 @@ const DEFAULT_AUTH = "https://server.rplace.live/auth"
 
 const TRANSLATIONS = {
     en: {
+        // Game
         connecting: "Connecting...",
         connectingFail: "Could not connect!",
         downloadingImage: "Downloading image...",
@@ -44,7 +45,17 @@ const TRANSLATIONS = {
         lockMessage: "This canvas is locked... You can't place pixels here anymore",
         adHidden: "Ad hidden for 14 days!",
         specialEventTitle: "Special event - 2023-2024 full canvas timelapse released!",
-        copiedToClipboard: "Copied to clipboard!"
+        copiedToClipboard: "Copied to clipboard!",
+
+        // Posts
+        rplaceLivePosts: "rplace.live posts",
+        searchKeyword: "Search keyword",
+        createPost: "Create post",
+        communityPosts: "Community posts",
+        sortBy: "Sort by:",
+        hideSensitive: "Hide sensitive:",
+        date: "Date",
+        upvotes: "Upvotes",
     },
     fa: {
         connecting: "در حال وصل شدن",
@@ -336,6 +347,21 @@ function translate(key) {
         return TRANSLATIONS[lang][key] || TRANSLATIONS["en"][key]
     else
         return TRANSLATIONS["en"][key] || key
+}
+
+function translateAll() {
+	document.querySelectorAll("[translate]").forEach((element) => {
+		const key = element.getAttribute("translate")
+		if (TRANSLATIONS[lang] == null) return
+		if (element.nodeName === "INPUT" || element.nodeName === "TEXTAREA") {
+			if (element.getAttribute("type") == "text")
+				element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
+			else
+				element.value = TRANSLATIONS[lang][key] || element.value
+		}
+		else
+			element.innerHTML = TRANSLATIONS[lang][key] || element.innerHTML
+	})
 }
 
 class PublicPromise {

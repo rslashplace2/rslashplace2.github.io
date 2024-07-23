@@ -185,7 +185,7 @@
 			call(addEventListener, window, "focus", () => focused = true)
 
 			let authSocket = {} //new WebSocket("wss://server.poemanthology.org/auth")
-			// HACK: Until enough clients are using the new server 
+			// HACK: Until enough clients are using the new server
 			if (localStorage.server?.startsWith("wss://server.rplace.tk")) {
 				delete localStorage.server
 			}
@@ -509,7 +509,7 @@
 					let i = data.getUint32(1)
 					const regionWidth = data.getUint8(5)
 					const regionHeight = data.getUint8(6)
-					 
+
 					let dataI = 7
 					while (dataI < data.byteLength) {
 						for (let xi = i; xi < i + regionWidth; xi++) {
@@ -600,7 +600,7 @@
 					// TODO: Localise
 					if (state === PUNISHMENT_STATE.mute) {
 						messageInput.disabled = true
-						punishmentNote.innerHTML = "You have been <stronng>muted</stronng>, you can not send messages in live chat." 
+						punishmentNote.innerHTML = "You have been <stronng>muted</stronng>, you can not send messages in live chat."
 					}
 					else if (state === PUNISHMENT_STATE.ban) {
 						messageInput.disabled = true
@@ -850,7 +850,7 @@
 			}
 			setName = _setName
 
-			// Requests all the pixel placers for a given region from the server to be loaded into 
+			// Requests all the pixel placers for a given region from the server to be loaded into
 			function _requestPixelPlacers(x, y, width, height) {
 				if (ws.readyState !== ws.OPEN) {
 					throw new Error("Could not request pixel placers, websocket state is not open")
@@ -1791,11 +1791,11 @@
 		let touchmoved = 15
 
 		// Bidirectional IPC, similar to server.ts - db-worker.ts communication
-		// Methods called by posts frame 
+		// Methods called by posts frame
 		function resizePostsFrame() {
 			const calcHeight = postsFrame.contentWindow.document.body.scrollHeight
-			postsFrame.height = calcHeight 
-			postsFrame.style.minHeight = calcHeight + "px" 
+			postsFrame.height = calcHeight
+			postsFrame.style.minHeight = calcHeight + "px"
 		}
 		function openOverlayMenu() {
 			overlayMenu.setAttribute("opened", "true")
@@ -2322,7 +2322,7 @@
 			}
 			for (const colour of colours.children) {
 				colour.classList.remove("sel")
-			} 
+			}
 			PEN = i
 			canvselect.style.background = e.target.style.background
 			e.target.classList.add("sel")
@@ -2520,7 +2520,7 @@
 			}
 		}
 
-		/* @return {Element | HTMLCollection} */ 
+		/* @return {Element | HTMLCollection} */
 		function stringToHtml(html, trim = true) {
 			const template = document.createElement("template")
 			template.innerHTML = html
@@ -2815,20 +2815,7 @@
 		theme(startupThemeSet, localStorage.variant, localStorage.effects)
 		themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
-		function translateAll() {
-			document.querySelectorAll("[translate]").forEach((element) => {
-				let key = element.getAttribute("translate")
-				if (TRANSLATIONS[lang] == null) return
-				if (element.nodeName === "INPUT" || element.nodeName === "TEXTAREA") {
-					if (element.getAttribute("type") == "text")
-						element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
-					else
-						element.value = TRANSLATIONS[lang][key] || element.value
-				}
-				else
-					element.innerHTML = TRANSLATIONS[lang][key] || element.innerHTML
-			})
-		}
+		// Apply all translations from shared.js
 		translateAll()
 
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)

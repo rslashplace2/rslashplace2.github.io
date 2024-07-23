@@ -26,8 +26,8 @@
 				const urlName = window.location.pathname.replaceAll("/", "")
 				const info = await getVanityInstance(urlName)
 				if (info !== null) {
-					const protocol = usesHttps ? "https://" : "http://"
-					const wsProtocol = usesHttps ? "wss://" : "ws://"
+					const protocol = info.usesHttps ? "https://" : "http://"
+					const wsProtocol = info.usesHttps ? "wss://" : "ws://"
 					const filesLocation = info.legacy ? info.serverLocation : info.fileServerLocation
 					const newLocation = `${window.location.origin}/?server=${wsProtocol}${info.serverLocation}&board=${protocol}${filesLocation}/place`
 					window.location.replace(newLocation)
