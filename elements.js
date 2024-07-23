@@ -78,7 +78,7 @@ class RplaceVotes extends HTMLElement {
         this.#voteCountEl.textContent = this.votes
         this.#downSvg = this.#createArrowSvg()
         this.#downSvg.style.transform = "rotate(180deg)"
-        
+
         // TODO: Implement
         this.#upSvg.onclick = function() {
             alert("You must be logged in to upvote a post!")
@@ -128,13 +128,13 @@ class RplaceVotes extends HTMLElement {
     #refresh() {
         const upSelected = this.#voted === "up"
         const downSelected = this.#voted === "down"
-    
+
         this.#upSvg.innerHTML = upSelected ? RplaceVotes.votedPath : RplaceVotes.unvotedPath
         this.#downSvg.innerHTML = downSelected ? RplaceVotes.votedPath : RplaceVotes.unvotedPath
-    
+
         this.#upSvg.classList.toggle("voted", upSelected)
         this.#downSvg.classList.toggle("voted", downSelected)
-    
+
         this.#voteCountEl.textContent = this.votes
     }
 
@@ -178,6 +178,67 @@ function reactify(object) {
         }
     }
     return proxy
+}
+
+// Utility functions for Auth DB IndexedDB caches
+const currentAuthUrl = new URL(localStorage.auth || DEFAULT_AUTH) // i.e server.rplace.live/auth
+const currentAuthDb = `${currentAuthUrl.host}${currentAuthUrl.pathname}`
+
+function openCurrentAuthDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(currentAuthDb, 2)
+        request.onupgradeneeded = event => {
+            const db = event.target.result
+            db.createObjectStore("profiles", { keyPath: "id" })
+            db.createObjectStore("users", { keyPath: "id" })
+        }
+        request.onsuccess = event => resolve(event.target.result)
+        request.onerror = event => reject(event.target.error)
+    })
+}
+
+function getCachedData(storeName, key) {
+    return new Promise(async (resolve, reject) => {
+        const db = await openCurrentAuthDB()
+        const transaction = db.transaction(storeName, "readonly")
+        const store = transaction.objectStore(storeName)
+        const request = store.get(key)
+        request.onsuccess = event => resolve(event.target.result)
+        request.onerror = event => reject(event.target.error)
+    })
+}
+
+function setCachedData(storeName, data) {
+    return new Promise(async (resolve, reject) => {
+        const db = await openCurrentAuthDB()
+        const transaction = db.transaction(storeName, "readwrite")
+        const store = transaction.objectStore(storeName)
+        const request = store.put(data)
+        request.onsuccess = () => resolve()
+        request.onerror = event => reject(event.target.error)
+    })
+}
+
+// Responsible for setting and retrieving form DB, will attempt to grab the object from the DB, if it can't
+// it will grab the object from the URL and then cache it in the database
+async function cachedFetch(keystore, id, url, expiry) {
+    const now = Date.now()
+    let cachedObject = await getCachedData(keystore, id)
+    if (!cachedObject || (now - cachedObject.timestamp) > expiry) {
+        const res = await fetch(url)
+        if (!res.ok) {
+            console.error(`Could not fetch object ${id} belonging to ${keystore}: ${res.status} ${res.statusText}:`, await res.json())
+            return null
+        }
+
+        cachedObject = await res.json()
+        await setCachedData(keystore, { id, data: cachedObject, timestamp: now })
+    }
+    else {
+        cachedObject = cachedObject.data
+    }
+
+    return cachedObject
 }
 
 class RplaceUserTooltip extends HTMLElement {
@@ -230,7 +291,7 @@ class RplaceUserTooltip extends HTMLElement {
         let playTime = canvasUser.playTimeSeconds
         let playTimeUnit = "Seconds played"
         if (playTime > 3600) {
-            playTime = Math.floor(playTime / 3600) 
+            playTime = Math.floor(playTime / 3600)
             playTimeUnit = "Hours played"
         }
         else if (playTime > 60) {
@@ -390,7 +451,7 @@ class RplacePost extends HTMLElement {
     #authorImageUrl
     #creationDate
     #showAuthorTooltip
-    
+
     #authorImageEl
     #votesEl
     #coverImageEl
@@ -454,7 +515,7 @@ class RplacePost extends HTMLElement {
             }, 200)
         }
         this.#authorTooltipEl = authorTooltipEl
-        
+
         const authorSeparator = document.createElement("span")
         authorSeparator.textContent = "·"
         this.#authorContainerEl.appendChild(authorSeparator)
@@ -697,13 +758,18 @@ class RplacePost extends HTMLElement {
         this.description = fromPost.description
         this.#votesEl.upvotes = fromPost.upvotes
         this.#votesEl.downvotes = fromPost.downvotes
+
+        const AUTHOR_CACHE_EXPIRY = 2.592e8 // 3 days
+
         if (fromPost.accountId) {
-            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/profiles/${fromPost.accountId}`)
-            if (!res.ok) {
-                console.error(`Could not load account profile ${res.status} ${res.statusText}:`, await res.json())
+            // First pull from indexedDb `profiles`, otherwise fetch account profile
+            const profileObject = await cachedFetch("profiles", fromPost.accountId,
+                `${localStorage.auth || DEFAULT_AUTH}/profiles/${fromPost.accountId}`, AUTHOR_CACHE_EXPIRY)
+            if (profileObject === null) {
+                console.error(`Could not load account profile ${fromPost.accountId}: Not found in caches and could not be fetched`)
                 return
             }
-            const profileObject = await res.json()
+
             this.account = profileObject
             this.authorName = profileObject.username
             this.authorImageUrl = "images/rplace.png"
@@ -711,8 +777,14 @@ class RplacePost extends HTMLElement {
             this.showAuthor = true
         }
         else if (fromPost.canvasUserId) {
-            const res = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/users/${fromPost.canvasUserId}`)
-            const canvasUserObject = await res.json()
+            // First pull from indexedDb `users`, otherwise fetch canvas user
+            const canvasUserObject = await cachedFetch("users", fromPost.canvasUserId,
+                `${localStorage.auth || DEFAULT_AUTH}/instances/users/${fromPost.canvasUserId}`, AUTHOR_CACHE_EXPIRY)
+            if (canvasUserObject === null) {
+                console.error(`Could not load canvas user ${fromPost.canvasUserId}: Not found in caches and could not be fetched`)
+                return
+            }
+
             this.canvasUser = canvasUserObject
             this.authorName = canvasUserObject.chatName || "#" + canvasUserObject.userIntId
             this.authorImageUrl = "images/rplace.png"
@@ -840,7 +912,7 @@ class CreatePostContentsPreview extends HTMLElement {
         this.contents.clear()
         this.#elementItems.clear()
         for (const item of this.#contentsContainer.children) {
-            this.#contentsContainer.removeChild(item)    
+            this.#contentsContainer.removeChild(item)
         }
     }
 
