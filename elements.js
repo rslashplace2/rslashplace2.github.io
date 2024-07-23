@@ -180,8 +180,8 @@ function reactify(object) {
     return proxy
 }
 
-// Utility functions for IndexedDB caches
-const currentAuthUrl = new URL(localStorage.auth || DEFAULT_AUTH) // i.e auth-server.rplace.live/auth
+// Utility functions for Auth DB IndexedDB caches
+const currentAuthUrl = new URL(localStorage.auth || DEFAULT_AUTH) // i.e server.rplace.live/auth
 const currentAuthDb = `${currentAuthUrl.host}${currentAuthUrl.pathname}`
 
 function openCurrentAuthDB() {
