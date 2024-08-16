@@ -84,7 +84,7 @@ const contentsBaseLength = contents.childNodes.length
 const postLimit = 16
 const postLoadCooldown = 1000
 let postFinishedLastLoad = null
-let filter = postsSortSelect.value // "upvotes" | "date" 
+let filter = postsSortSelect.value // "upvotes" | "date"
 let hideSensitive = !!postsHideSensitive.checked
 
 function insertElementAtIndex(parentElement, newElement, index) {
@@ -108,7 +108,7 @@ async function tryLoadPosts(sortBy, paramsObject) {
     if (postFinishedLastLoad !== null) {
         if (postFinishedLastLoad.locked) {
             return false
-        }    
+        }
         await postFinishedLastLoad.acquireAwaitPromise()
     }
     postFinishedLastLoad = new PublicPromiseSingle()
@@ -243,6 +243,6 @@ postsHideSensitive.addEventListener("change", function() {
     else {
         for (const postEl of postEls.items) {
             postEl.hidden = false
-        }    
+        }
     }
 })

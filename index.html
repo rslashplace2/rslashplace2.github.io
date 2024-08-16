@@ -2826,20 +2826,7 @@
 		theme(startupThemeSet, localStorage.variant, localStorage.effects)
 		themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
-		function translateAll() {
-			document.querySelectorAll("[translate]").forEach((element) => {
-				let key = element.getAttribute("translate")
-				if (TRANSLATIONS[lang] == null) return
-				if (element.nodeName === "INPUT" || element.nodeName === "TEXTAREA") {
-					if (element.getAttribute("type") == "text")
-						element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
-					else
-						element.value = TRANSLATIONS[lang][key] || element.value
-				}
-				else
-					element.innerHTML = TRANSLATIONS[lang][key] || element.innerHTML
-			})
-		}
+		// Apply all translations from shared.js
 		translateAll()
 
 		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)

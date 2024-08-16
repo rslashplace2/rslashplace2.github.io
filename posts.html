@@ -21,11 +21,11 @@
 		<div class="header-title-container">
 			<button type="button" class="header-menu" onclick="openSidebar()">
 				<img src="./svg/menu.svg" alt="Menu" width="36" height="36">
-			</button>	
+			</button>
 			<img src="./images/rplace.png" class="header-icon" alt="Rplace logo">
-			<h1 class="header-title">rplace.live posts</h1>
+			<h1 class="header-title" translate="rplaceLivePosts">rplace.live posts</h1>
 		</div>
-		<input id="postsSearchbar" type="text" class="post-input searchbar" placeholder="Search keyword" onchange="
+		<input id="postsSearchbar" type="text" class="post-input searchbar" translate="searchKeyword" placeholder="Search keyword" onchange="
 			const keyword = this.value.trim().toLowerCase()
 			if (keyword) {
 				tryLoadKeywordPosts(keyword)
@@ -46,12 +46,12 @@
 			Posts
 		</a>
 		<a type="button" href="./">
-			<img src="svg/rplace.svg" width="24" height="24">	
+			<img src="svg/rplace.svg" width="24" height="24">
 			Game
 		</a>
 		<div class="sidebar-footer">
-			<a href="https://rplace.live">rplace.live</a> | 
-			<a href="./disclaimer.html">disclaimer</a> | 
+			<a href="https://rplace.live">rplace.live</a> |
+			<a href="./disclaimer.html">disclaimer</a> |
 			<a href="https://github.com/rplacetk">github</a>
 		</div>
 	</div>
@@ -219,12 +219,12 @@
 					<hr>
 				</div>
 				<div style="display: flex; column-gap: 16px; align-items: center; justify-content: center;">
-					<label for="postsSortSelect">Sort by:</label>
+					<label for="postsSortSelect" translate="sortBy">Sort by:</label>
 					<select id="postsSortSelect" style="box-shadow: none; border-radius: 64px; background: white;">
-						<option value="date">Date</option>
-						<option value="upvotes">Upvotes</option>
+						<option value="date" translate="date">Date</option>
+						<option value="upvotes" translate="upvotes">Upvotes</option>
 					</select>
-					<label for="postsHideSensitive">Hide sensitive:</label>
+					<label for="postsHideSensitive" translate="hideSensitive">Hide sensitive:</label>
 					<input id="postsHideSensitive" type="checkbox" checked style="box-shadow: none; border-radius: 64px;">
 				</div>
 			</div>
@@ -244,7 +244,7 @@
 			<button class="reddit-modal-button" onclick="
 				localStorage.agredPostRules = true
 				postRulesDialog.close(true)
-				">Create post</button>    
+				">Create post</button>
 		</div>
 	</dialog>
 	<dialog id="accountDialog" class="reddit-modal">
@@ -281,7 +281,7 @@
 					<p>Enter the code sent below to authenticate your account</p>
 					<div style="display: flex;align-items: center;align-content: center;">
 						<input type="text"><input type="text"><input type="text"><input type="text"><input type="text"><input type="text">
-							
+
 					</div>
 					<input type="text" class="reddit-modal-input" placeholder="Authentication code*" id="authCode" autocomplete="off" minlength="10">
 					<button type="button" class="reddit-modal-button" id="authCodeButton">Submit</button>
@@ -303,7 +303,7 @@
 						unauthedPage.dataset.page = isSigninPage ? 'signup' : 'signin'
 						//this.textContent = translate(isSigninPage ? 'signInInstead' : 'createNewAccount')
 					}" style="align-self: center;" translate="createNewAccount">Create a new account</a>
-				</div>    
+				</div>
 			</div>
 			<div class="body" style="display: none;overflow-y: scroll;" data-page="profile">
 				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <span id="profileName2"></span></h4>
@@ -408,7 +408,7 @@
 		else { // Return value from parent method
 			parentReqs.get(message.handle)?.resolve(message.data)
 		}
-		
+
 	}, false)
 	function sendParentMessage(messageCall, args = undefined) {
 		window.parent.postMessage({ call: messageCall, data: args }, location.origin)
@@ -484,7 +484,7 @@
 					tryLoadBottomPosts()
 				}
 			}, { passive: true })
-			
+
 			// Sidebar navigation
 			contents.addEventListener("touchstart", (e) => {
 				sidebarDragging = true
@@ -598,8 +598,8 @@
 		createPostTitle.value = ""
 		createPostInput.value = ""
 		createPostContent.clearContents()
-		createPostInput.placeholder = 'Create post...'
-		createPostPost.classList.remove('focused')
+		createPostInput.placeholder = "Create post..."
+		createPostPost.classList.remove("focused")
 	}
 
 	/*call(addEventListener, signupButton, 'click', function(e) {
@@ -659,6 +659,8 @@
 		call(send, authSocket, new Uint8Array([4]))
 	})
 	*/
+
+	translateAll()
 
     const resizeObserver = new ResizeObserver(entries => {
 		for (let entry of entries) {
