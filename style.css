@@ -664,7 +664,7 @@ body[eventphase="3"] .coverer-title {
     z-index: -1;
     background-size: cover;
     transform: scale(1.5);
-    filter: blur(6px) saturate(1.2);	
+    filter: blur(6px) saturate(1.2);
 }
 
 .ad-close {
@@ -1543,4 +1543,5 @@ postcopy span {
 	height: calc(60.4vmin + 36px);
 	display: flex;
 	flex-direction: column;
+	row-gap: 4px;
 }

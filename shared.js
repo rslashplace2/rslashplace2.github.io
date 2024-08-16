@@ -43,7 +43,7 @@ const TRANSLATIONS = {
         placedBy: "Placed by:",
         lockMessage: "This canvas is locked... You can't place pixels here anymore",
         adHidden: "Ad hidden for 14 days!",
-        specialEventTitle: "Special event - 2023-2024 full canvas timelapse released!",
+        specialEventTitle: "Special event - August 21st!",
         copiedToClipboard: "Copied to clipboard!"
     },
     fa: {
@@ -93,7 +93,7 @@ const TRANSLATIONS = {
         overlayMenu: "Bindirme menüsü",
         modalAboutContent: "Boş bir tuval var.<br><br>Üzerine renkli bir piksel koyabilirsiniz ama yenisini yerleştirmek için beklemeniz gerekir.<br><br>Tek başınıza bir şeyler yapabilirsiniz.<br><br>Topluluk ile daha fazlasını yapabilirsiniz.",
         overlayMenuDesciption: "Haritanın üzerine bir fotoğraf koyun ve onu çizin!",
-        specialEventTitle: "Özel etkinlik - 2023-2024 tam tuval timelapse yayınlandı!"
+        specialEventTitle: "Özel etkinlik - August 21st!"
     },
     ro: {
         connecting: "Se conectează...",
@@ -151,7 +151,7 @@ const TRANSLATIONS = {
         pleaseBeRespectful: "Por favor se respetuoso!",
         enterNickname: "Introduce el apodo...",
         enterMessage: "Introduce el mensaje...",
-        specialEventTitle: "Evento especial: ¡lanzamiento del timelapse completo del lienzo 2023-2024!"
+        specialEventTitle: "Evento especial - August 21st!"
     },
     fr: {
         connecting: "De liaison...",
