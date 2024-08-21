@@ -1464,10 +1464,10 @@
 						<img src="svg/lock.svg" height="16" width="16">
 						Coming soon!
 						<span id="august21PopupTimer"></span>
-						<button id="august21PopupButton" onclick="startAugust21Event()" style="display: none; position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);font-size: 36px;border: 6px solid #cdcdcd;padding: 16px;height: fit-content;background: linear-gradient(to bottom right, #d6c275 0%, #cfbc6e 26%, #e5cd84 38%, #f0d990 49%, #f0d990 63%, #b9a563 100%);box-shadow: 0px 0px 16px #00000070;color: white;-webkit-text-stroke: 1px black;font-family: bold;font-weight: 800;">
-							Play now!
-						</button>
 					</span>
+					<button id="august21PopupButton" onclick="startAugust21Event()" style="display: none; position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);font-size: 36px;border: 6px solid #cdcdcd;padding: 16px;height: fit-content;background: linear-gradient(to bottom right, #d6c275 0%, #cfbc6e 26%, #e5cd84 38%, #f0d990 49%, #f0d990 63%, #b9a563 100%);box-shadow: 0px 0px 16px #00000070;color: white;-webkit-text-stroke: 1px black;font-family: bold;font-weight: 800;">
+						Play now!
+					</button>
 				</div>
 			</dialog>
 			<div noselect id="helpbtn" tabindex="0" class="layout" onclick="
@@ -2767,9 +2767,18 @@
 			storage.board = boardAddress
 		}
 
+		async function forceTheme(forceTheme, forceVariant = null , effects = null) {
+			const currentThemeSet = document.documentElement.dataset.theme
+			const currentVariant = document.documentElement.dataset.variant
+			if (currentThemeSet != forceTheme || currentVariant != forceVariant) {
+				console.warn("Forcing site theme to", forceTheme, forceVariant)
+				await theme(DEFAULT_THEMES.get(forceTheme), forceVariant, effects)
+			}
+		}
+
 		let styleElement = null
 		let currentTheme = null
-		async function theme(themeSet, variant = null, effects=null) {
+		async function theme(themeSet, variant = null, effects = null) {
 			variant ??= ""
 
 			// Effects
@@ -2828,8 +2837,9 @@
 
 		// Apply all translations from shared.js
 		translateAll()
-
-		const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
+		function clamp(num, min, max) {
+			return Math.min(Math.max(num, min), max)
+		}
 
 		function tlMouseMove(e) {
 			if (!tlSelect.getAttribute('dragging') == "true") {

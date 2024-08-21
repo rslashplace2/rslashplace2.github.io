@@ -4,14 +4,9 @@ let fallingMessages = null
 let fallingMessageInterval = -1
 let backgroundCanvas = null
 async function enableDarkplace() {
-    const forceVariant = "dark"
     const forceTheme = "r/place 2022"
-    const currentThemeSet = document.documentElement.dataset.theme
-    const currentVariant = document.documentElement.dataset.variant
-    if (currentThemeSet != forceTheme || currentVariant != forceVariant) {
-        console.warn("Forcing site theme to", forceTheme, forceVariant)
-        await theme(DEFAULT_THEMES.get(forceTheme), forceVariant)
-    }
+    const forceVariant = "dark"
+    forceTheme(forceTheme, forceVariant)
     const bgWrapper = document.getElementById("bgWrapper")
     backgroundCanvas = document.getElementById("backgroundCanvas") || document.createElement("canvas")
     backgroundCanvas.id = "backgroundCanvas"
@@ -25,7 +20,7 @@ async function enableDarkplace() {
 
     function updateBgCanvasSize() {
         backgroundCanvas.width = window.innerWidth
-        backgroundCanvas.height = window.innerHeight    
+        backgroundCanvas.height = window.innerHeight
     }
     updateBgCanvasSize()
     window.addEventListener("resize", updateBgCanvasSize)

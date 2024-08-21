@@ -8,10 +8,18 @@ setInterval(() => {
 }, 1000)
 
 startCountDown(eventDate, false).then((async) => {
-    august21PopupLabel.style.display = "none"
-    august21PopupButton.style.display = "flex"
+    august21PopupTimer.style.display = "none"
+    // TODO: Reimplement on game release
+    //august21PopupLabel.style.display = "none"
+    //august21PopupButton.style.display = "flex"
+    enableAugust21Event()
 })
 
-function startAugust21Event() {
-    return
+async function enableAugust21Event() {
+    const forceTheme = "goldplace.live" // goldplace.live (August 21st 2024)
+    forceTheme(forceTheme)
+
 }
+
+// TODO: Temporary
+//enableAugust21Event()
