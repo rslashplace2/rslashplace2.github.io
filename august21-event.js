@@ -17,9 +17,7 @@ startCountDown(eventDate, false).then((async) => {
 
 async function enableAugust21Event() {
     const forceTheme = "goldplace.live" // goldplace.live (August 21st 2024)
-    forceTheme(forceTheme)
-
+    //forceTheme(forceTheme)
 }
 
-// TODO: Temporary
-//enableAugust21Event()
+enableAugust21Event()

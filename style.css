@@ -1538,10 +1538,28 @@ postcopy span {
 	z-index: 20;
 	overflow: hidden;
 }
+
 #popup > div {
     width: 90vmin;
-	height: calc(60.4vmin + 36px);
+	/*height: calc(60.4vmin + 36px);*/
 	display: flex;
 	flex-direction: column;
 	row-gap: 4px;
+	height: fit-content;
+	max-height: 90vh;
+}
+
+.august21-popup-content {
+	display: flex;
+	flex-direction: column;
+	row-gap: 16px;
+	touch-action: pan-y;
+	overflow-y: auto;
+}
+
+.hidden-question {
+    display: block;
+    cursor: pointer;
+    font-size: 8px;
+    opacity: 0.3;
 }
