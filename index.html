@@ -1242,7 +1242,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="style.css?v=350" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=351" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1459,15 +1459,36 @@
 					<!--<iframe id="timelapseEmbed" src="https://www.youtube-nocookie.com/embed/H67q2HfYl7s" title="YouTube video player"
 						frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 						allowfullscreen="true" width="100%" height="100%"></iframe>-->
-					<img src="images/august21-cover.png" style="width: 100%;height: 100%;flex-grow: 1;border-radius: 4px;">
-					<span id="august21PopupLabel" style="border-radius: 100px; height: 24px; background: var(--ui-panel-bg); display: flex; column-gap: 4px;position: absolute;left: 50%;top: 50%;transform: translate(-50%);padding: 5px;line-height: 15px;">
-						<img src="svg/lock.svg" height="16" width="16">
-						Coming soon!
-						<span id="august21PopupTimer"></span>
-					</span>
-					<button id="august21PopupButton" onclick="startAugust21Event()" style="display: none; position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);font-size: 36px;border: 6px solid #cdcdcd;padding: 16px;height: fit-content;background: linear-gradient(to bottom right, #d6c275 0%, #cfbc6e 26%, #e5cd84 38%, #f0d990 49%, #f0d990 63%, #b9a563 100%);box-shadow: 0px 0px 16px #00000070;color: white;-webkit-text-stroke: 1px black;font-family: bold;font-weight: 800;">
-						Play now!
-					</button>
+					<div class="august21-popup-content">
+						<div>
+							<h1>HAPPY AUGUST 21st 🪑‍🔥🪑‍🔥 Δ ΔΔ</h1>
+							<em>A day of chaos and destruction, randomness and all things <strong>Mad.</strong></em>
+							<a class="hidden-question" href="javascript:alert('Doesn\'t matter, August 21st is forever...')">It's not August 21st though?</a>
+						</div>
+						<h2>What was that countdown thing though?</h2>
+						<p>
+							A game, canon to the site's history, community and  other memes, titled August 21st
+							and developed by Zekiah-A was planned to release as part of the August 21st event,
+							due to some very <abbr title="Context: Zekiah found out that you can't spend 25 hours per day on development (he was very surprised)">
+							random and unexpected events</abbr>, the game is expected to become available
+							to all players some time between 21/08/24 and September 11th...
+						</p>
+						<div style="position: relative;">
+							<img src="images/august21-cover.png" style="width: 100%;height: 100%;flex-grow: 1;border-radius: 4px;">
+							<span id="august21PopupLabel" style="border-radius: 100px; height: 24px; background: var(--ui-panel-bg); display: flex; column-gap: 4px;position: absolute;left: 50%;top: 50%;transform: translate(-50%);padding: 5px;line-height: 15px;">
+								<img src="svg/lock.svg" height="16" width="16">
+								Coming soon!
+								<span id="august21PopupTimer"></span>
+							</span>
+							<button id="august21PopupButton" onclick="startAugust21Event()" style="display: none; position: absolute;left: 50%;top: 50%;transform: translate(-50%, -50%);font-size: 36px;border: 6px solid #cdcdcd;padding: 16px;height: fit-content;background: linear-gradient(to bottom right, #d6c275 0%, #cfbc6e 26%, #e5cd84 38%, #f0d990 49%, #f0d990 63%, #b9a563 100%);box-shadow: 0px 0px 16px #00000070;color: white;-webkit-text-stroke: 1px black;font-family: bold;font-weight: 800;">
+								Play now!
+							</button>
+						</div>
+						<h2>So what now?</h2>
+						<p>
+							You wait. You look. Turn your eye. Look to andromeda. Do you see it?
+						</p>
+					</div>
 				</div>
 			</dialog>
 			<div noselect id="helpbtn" tabindex="0" class="layout" onclick="
