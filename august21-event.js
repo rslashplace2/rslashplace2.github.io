@@ -16,7 +16,7 @@ startCountDown(eventDate, false).then((async) => {
 })
 
 async function enableAugust21Event() {
-    const forceTheme = "goldplace.live" // goldplace.live (August 21st 2024)
+    //const forceTheme = "goldplace"
     //forceTheme(forceTheme)
 }
 
