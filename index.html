@@ -853,7 +853,7 @@
 			// Requests all the pixel placers for a given region from the server to be loaded into
 			function _requestPixelPlacers(x, y, width, height) {
 				if (ws.readyState !== ws.OPEN) {
-					throw new Error("Could not request pixel placers, websocket state is not open")
+					return
 				}
 				const placerInfoBuf = new DataView(new Uint8Array(7).buffer)
 				placerInfoBuf.setUint8(0, 9)
@@ -1475,7 +1475,7 @@
 						</p>
 						<div style="position: relative;">
 							<img src="images/august21-cover.png" style="width: 100%;height: 100%;flex-grow: 1;border-radius: 4px;">
-							<span id="august21PopupLabel" style="border-radius: 100px; height: 24px; background: var(--ui-panel-bg); display: flex; column-gap: 4px;position: absolute;left: 50%;top: 50%;transform: translate(-50%);padding: 5px;line-height: 15px;">
+							<span id="august21PopupLabel" style="border-radius: 100px; height: 24px; background: var(--ui-panel-bg); display: flex; column-gap: 4px;position: absolute;left: 50%;top: 50%;transform: translate(-50%);padding: 5px;line-height: 15px;background: white;">
 								<img src="svg/lock.svg" height="16" width="16">
 								Coming soon!
 								<span id="august21PopupTimer"></span>
@@ -2287,11 +2287,11 @@
 			this.play().catch(e => e)
 		}
 
-		const localStorageBoolValues = [ undefined, "true", "false" ]
-		if (!localStorageBoolValues.includes(localStorage.muted)) {
+		// Necessary because of rolling updates
+		if (!localStorage.muted !== "true") { // Prefer false
 			localStorage.muted = "false"
 		}
-		if (!localStorageBoolValues.includes(localStorage.placeChat)) {
+		if (!localStorage.placeChat !== "false") { // Prefer true
 			localStorage.placeChat = "true"
 		}
 		let muted = localStorage.muted === "true"
