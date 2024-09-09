@@ -1,7 +1,7 @@
 // Show game popup
 const eventDate = 1724238000000
-const popup = document.getElementById("popup")
-popup.showModal()
+//const popup = document.getElementById("popup")
+//popup.showModal()
 
 setInterval(() => {
     august21PopupTimer.textContent = ` (${toCountdownString(eventDate)})`
@@ -10,14 +10,6 @@ setInterval(() => {
 startCountDown(eventDate, false).then((async) => {
     august21PopupTimer.style.display = "none"
     // TODO: Reimplement on game release
-    //august21PopupLabel.style.display = "none"
-    //august21PopupButton.style.display = "flex"
-    enableAugust21Event()
+    august21PopupLabel.style.display = "none"
+    august21PopupButton.style.display = "flex"
 })
-
-async function enableAugust21Event() {
-    //const forceTheme = "goldplace"
-    //forceTheme(forceTheme)
-}
-
-enableAugust21Event()
