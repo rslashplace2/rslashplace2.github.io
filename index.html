@@ -3072,7 +3072,11 @@
 			function cancelZoomGesture(e) {
 				e.preventDefault()
 			}
-			window.addEventListener("wheel", cancelZoomGesture, { passive: false })
+			window.addEventListener("wheel", function(e) {
+				if (e.target == maincontent || canvparent2.contains(e.target)) {
+					e.preventDefault()
+				}
+			}, { passive: false })
 			window.addEventListener("gesturestart", cancelZoomGesture)
 			window.addEventListener("gesturechange", cancelZoomGesture)
 			window.addEventListener("gestureend", cancelZoomGesture)
