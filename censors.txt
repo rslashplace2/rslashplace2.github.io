@@ -4,7 +4,7 @@
 # game imaginable, but should help to catch the majority of cases where a user is not intentionally
 # attempting to circumvent the system.
 
-# General symbols / nuisances / controversial topics
+# General symbols / nuisances / websites / controversial topics
 卐
 卍
 𓂸
@@ -21,7 +21,6 @@ gtvflyers
 kiwifarms
 soyjak\.?party
 4chan
-
 
 # English
 [a4]n[a4]l
