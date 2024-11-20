@@ -92,10 +92,12 @@
 			sonic: '<img src="custom_emojis/sonic.png" height="24">',
 			transparent: '<img src="custom_emojis/transparent.png" height="24">',
 			trollface: '<img src="custom_emojis/trollface.png" height="24">',
-			// Special 'commands'
-			help: "<kbd>Chat commands: :vip, :name, :getid</kbd>",
+		}
+
+		const COMMANDS = {
+			help: "<kbd>Help information for live chat</kbd>",
 			name: "<kbd>Change your username</kbd>",
-			vip: "<kbd>Apply a VIP cooldown code</kbd>",
+			vip: "<kbd>Apply a VIP code</kbd>",
 			lookup: "<kbd>Get the IDs of all players with the given name</kbd>",
 			getid: "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>",
 			whoplaced: "<kbd>View details of who placed the current pixel being hoveredd</kbd>"
@@ -818,16 +820,16 @@
 				}
 			}
 			ws.onclose = function(e) {
-				//Something went wrong...
-				CD = null
 				console.error(e)
+				CD = null
 				if (e.code == 1006 && !sessionStorage.err) {
 					sessionStorage.err = "1"
 					window.location.reload(true)
 				}
-
 				loadingScreen.children[0].src = "images/rplace-offline.png"
 				showLoadingScreen()
+				loadingMessage.hidden = false
+				loadingMessage.textContent = `${translate("disconnectedFromServer")} ${e.reason}`
 			}
 
 			let linkKeyRequests = []
@@ -948,6 +950,30 @@
 					return
 				}
 				else if (message.startsWith(":help")) {
+					const newMessage = createLiveChatMessage(0, `
+# Chat styling:
+---
+Text in rplace live chat can be styled using a simplified version of markdown, for example:
+**bold**, *italic*, ||hidden||, __underline__, and ~strikethrough~.
+
+### Headers:
+Use # for a large header, ## for medium, and ### for small. Don’t forget to add a space between the leading heading character (#, ##, ###) and your text!
+
+### Separators:
+To create a separator, create a blank line (Shift + Enter on keyboard) and insert a triple dash (---).
+
+
+# Chat commands:
+---
+:vip, :name, :lookup, :getid, :whoplaced
+
+## Usage:
+:command arg1 arg2 arg3
+
+### Example:
+:name zekiah
+(^ Will set your username to 'zekiah')`, 0, ":HELP@RPLACE.LIVE", Date.now())
+					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
 					return
 				}
 
@@ -1233,7 +1259,7 @@
 	<script type="application/javascript" src="darkplace.js"></script>
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
-	<script type="application/javascript" src="shared.js?v=3"></script>
+	<script type="application/javascript" src="shared.js?v=4"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
@@ -1242,7 +1268,7 @@
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=351" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=352" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1252,13 +1278,14 @@
 </head>
 	<body>
 		<div id="loadingScreen">
-			<img src="images/rplace-loader.gif" style="position: absolute; width: 128px; height: 128px; z-index: 22;"/>
-			<canvas id="waitingGameCanvas" style="width: 100%; height: 100%; z-index: 21;"></canvas>
+			<canvas id="waitingGameCanvas"></canvas>
+			<img src="images/rplace-loader.gif" alt="rplace.live" class="loading-logo"/>
+			<span id="loadingMessage" class="loading-message" hidden></span>
 			<div id="connproblems">
 				<span translate="connectionProblems">Connection problems?</span>
 				<a onclick="localStorage.clear(); history.pushState(null, '', location.origin)" href translate="tryClickingHere">try clicking here</a>
 				<br>
-				or tweet us
+				<span translate="tweetUs">or tweet us</span>
 				<a href="https://twitter.com/rplacetk">@rplacetk</a>
 			</div>
 		</div>
@@ -1745,7 +1772,7 @@
 				">x</button>
 			</a>
 			<span id="adLabel" style="display: none; opacity: 0; align-self: center;" translate="adHidden">Ad hidden for 14 days!</span>
-			<div id="chatPreviousButton" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></div>
+			<button id="chatPreviousButton" type="button" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></button>
 			<div id="chatMessages"><!--Live chat messages--></div>
 			<div id="messageTypePanel" class="chat-input-panel" closed>
 				<input type="button" class="messageTypeBtn" title="Use the shortcut 'ctrl+enter' to send quickly" style="left: 5px;" translate="putOnCanvas" value="🫧 Put on canvas">
@@ -2756,6 +2783,28 @@
 				}
 
 				if (messageInput.value.includes(":" + emojiCode + ":")) {
+					messageInput.setAttribute("state", "default")
+					handled = true
+				}
+			}
+			if (!handled) for (const [commandCode, value] of Object.entries(COMMANDS)) {
+				if (comp && commandCode.startsWith(comp)) {
+					const entryElement = document.createElement("button")
+					entryElement.classList.add("message-emojis-suggestion")
+					entryElement.title = `Use this command in chat :${commandCode} [ARGUMENTS]`
+					const entryLabel = document.createElement("span")
+					entryLabel.textContent = `:${commandCode}`
+					entryElement.appendChild(entryLabel)
+					entryElement.addEventListener("click", function() {
+						messageInput.value = ":" + commandCode
+						closeMessageEmojisPanel()
+					})
+					entryElement.appendChild(stringToHtml(value))
+					messageEmojisPanel.appendChild(entryElement)
+					messageEmojisPanel.removeAttribute("closed")
+				}
+
+				if (messageInput.value.includes(":" + commandCode)) {
 					messageInput.setAttribute("state", "default")
 					handled = true
 				}
