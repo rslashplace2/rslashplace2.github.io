@@ -5,8 +5,9 @@
   "author": "rplace.live",
   "dependencies": {
     "@datastructures-js/queue": "^4.2.3",
+    "@types/sha256": "^0.2.2",
     "basic-repl": "^2.2.2",
-    "bun-types": "^1.1.15",
+    "bun-types": "^1.1.36",
     "cookie": "^0.6.0",
     "fastest-levenshtein": "^1.0.16",
     "fs.promises.exists": "^1.1.4",
@@ -16,7 +17,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-plugin-jsdoc": "^46.10.1",
     "eslint-plugin-node": "^11.1.0",
     "@types/bun": "latest"

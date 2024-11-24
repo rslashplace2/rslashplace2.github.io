@@ -921,3 +921,12 @@ class CreatePostContentsPreview extends HTMLElement {
 	}
 }
 customElements.define("r-post-contents-preview", CreatePostContentsPreview)
+
+
+class LiveChatMessage extends HTMLElement {
+	constructor() {
+		super()
+		// TODO: Implement this
+	}
+}
+customElements.define("r-live-chat-message", LiveChatMessage)

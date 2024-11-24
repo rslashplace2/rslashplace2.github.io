@@ -11,7 +11,7 @@ This site aims to be as similar to the april fools r/place event, where users we
 *Feel free to contribute!*
 
 # Setting up my own custom canvas!
-To set up your own custom canvas to be played on rplace.tk, we have made a guide at our [Manual](MANUAL.md)!
+To set up your own custom canvas to be played on rplace.live, we have made a guide at our [Manual](MANUAL.md)!
 
 
 # Development

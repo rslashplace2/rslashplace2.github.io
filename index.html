@@ -186,12 +186,6 @@
 			call(addEventListener, window, "blur", () => focused = false)
 			call(addEventListener, window, "focus", () => focused = true)
 
-			let authSocket = {} //new WebSocket("wss://server.poemanthology.org/auth")
-			// HACK: Until enough clients are using the new server
-			if (localStorage.server?.startsWith("wss://server.rplace.tk")) {
-				delete localStorage.server
-			}
-
 			let svUri = localStorage.server || DEFAULT_SERVER
 			if (localStorage.vip) {
 				if (!svUri.endsWith("/")) svUri += "/"
@@ -216,6 +210,7 @@
 				alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
 			}
 
+			// TODO: Web component-ise (see elements.js)
 			function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
 				let newMessage = document.createElement("div")
 				newMessage.messageId = messageId
@@ -329,94 +324,6 @@
 				return newMessage
 			}
 
-			authSocket.binaryType = "arraybuffer"
-			authSocket.onopen = function() {
-				// Then we know we have been redirected from a reddit oauth, and will now authenticate with auth server
-				if (redditOauthCode) {
-					let cb = encoder.encode("X" + redditOauthCode)
-					cb[0] = 9 // ClientPackets.RedditCreateAccount
-					call(send, authSocket, cb)
-				}
-				else if (localStorage.refreshToken) {
-					let ab = encoder.encode("X" + localStorage.refreshToken)
-					ab[0] = 10 // ClientPackets.RedditAuthenticate
-					call(send, authSocket, ab)
-				}
-				else if (localStorage.accountToken) {
-					let ab = encoder.encode("X" + localStorage.accountToken)
-					ab[0] = 5 // ClientPackets.Authenticate
-					call(send, authSocket, ab)
-				}
-			}
-			authSocket.onmessage = async function({data}) {
-				data = new DataView(data)
-
-				switch (data.getUint8(0)) {
-				case 0: { // ServerPackets.Fail
-					console.error(decoder.decode(data.buffer.slice(1)))
-					break
-				}
-				case 1: {
-					loginPanel.style.display = "flex"
-
-					account = JSON.parse(decoder.decode(data.buffer.slice(1)))
-					profileName2.textContent = profileName.textContent = account.Username
-					// We use discord ID so that we can directly link their discord profile. Thanks https://discord.name/ for the api :).
-					if (account.DiscordSnowflake) {
-						let discordUser = await (await fetch("https://discord-lookup-api.herokuapp.com/user/" + account.DiscordSnowflake)).json()
-						if (discordUser && discordUser.success) {
-							profileDiscordIcon.src = discordUser.data.avatar || "images/discord.png"
-							profileDiscord.textContent = discordUser.data.username
-							profileDiscord.href = "https://discord.com/users/" + account.DiscordSnowflake
-						}
-					}
-					if (account.TwitterHandle) {
-						profileTwitter.textContent = account.TwitterHandle
-						profileTwitter.href = "https://twitter.com/" + account.TwitterHandle
-					}
-					// We can also scrape their snoo/user icon using reddit. Thanks reddit!
-					if (account.RedditHandle) {
-						profileReddit.textContent = account.RedditHandle
-						profileReddit.href = "https://www.reddit.com/user/" + account.RedditHandle.replaceAll("/u/", "")
-						let redditUser = await (await fetch("https://www.reddit.com/user/"+ account.RedditHandle +"/about.json")).json()
-						if (redditUser && !redditUser.error) {
-							profileRedditIcon.src = redditUser.data.snoovatar_img || redditUser.data.icon_img || "images/reddit.png"
-						}
-					}
-					profilePixels.textContent = account.PixelsPlaced
-					profileJoin.textContent = new Date(account.JoinDate).toLocaleString()
-					for (let i of account.Badges) {
-						let badgeImg = document.createElement("img")
-						badgeImg.src = BADGES[i]
-						badgeImg.style.width = "16px"
-						badgeImg.title = BADGES[i][7].toUpperCase() + BADGES[i].replace("_", "").slice(8, BADGES[i].length - 4)
-						profileBadges.appendChild(badgeImg)
-					}
-					accountTier.textContent = account.AccountTier
-					accountName.textContent = account.Username
-					let censoredSection = account.Email.slice(4, account.Email.indexOf("@"))
-					accountEmail.textContent = account.Email.replace(censoredSection, "*".repeat(censoredSection.length))
-					break
-				}
-				case 5: { // ServerPackets.AccountToken
-					localStorage.accountToken = decoder.decode(data.buffer.slice(1))
-					console.log("Account authentication success")
-					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
-					break
-				}
-				case 7: { // ServerPackets.RedditRefreshToken
-					localStorage.refreshToken = decoder.decode(data.buffer.slice(1))
-					console.log("Reddit OAuth success")
-					call(send, authSocket, new Uint8Array([4])) // ClientPackets.AccountInfo
-					// Clean up our params to avoid reauthenticating on reload
-					let params = new URLSearchParams(location.search)
-					params.delete("code")
-					history.pushState(null, "", location.origin + "/" + params.toString())
-					break
-				}
-			}
-			}
-			authSocket.onclose = console.error
 			ws.onopen = function(e) {
 				initialConnect = true
 				if (automated) {
@@ -502,7 +409,7 @@
 					canvasLocked = !!data.getUint8(1)
 					canvasLock.style.display = canvasLocked ? "flex" : "none"
 					const reason = decoder.decode(data.buffer.slice(2))
-					if (reason) { // TODO: Maybe find a more pretty elegant solution
+					if (reason) { // TODO: Find a more elegant solution
 						alert(reason)
 					}
 					break
@@ -563,11 +470,18 @@
 						const intId = data.getUint32(offset); offset += 4 // sender int ID
 						const name = intIdNames.get(intId)
 
-						let sendDate = data.getUint32(offset); offset += 4
-						let reactionsL = data.getUint8(offset); offset++ // TODO: Reactions
-						// let reactions = .. TODO: we worry about this later
-						let channelL = data.getUint8(offset); offset++
-						let channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
+						const sendDate = data.getUint32(offset); offset += 4
+						const reactionsL = data.getUint8(offset); offset++
+						for (let j = 0; j < reactionsL; j++) {
+							const reactionKeyL = data.getUint8(offset); offset++
+							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
+							const reactorsL = data.getUint32(offset); offset += 4
+							for (let k = 0; k < reactorsL; k++) {
+								const reactor = data.getUint32BE(offset); offset += 4
+							}
+						}
+						const channelL = data.getUint8(offset); offset++
+						const channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
 						let repliesTo = null
 						if (messageLength - (offset - i) == 4) {
 							repliesTo = data.getUint32(offset); offset += 4
@@ -576,7 +490,7 @@
 						// TODO: We will worry about after when we get dynamic message loading
 						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo)
 						if (before) {
-							let scrollBefore = chatMessages.scrollTop
+							const scrollBefore = chatMessages.scrollTop
 							chatMessages.prepend(newMessage)
 							chatMessages.scrollTop = scrollBefore + newMessage.offsetHeight
 						}
@@ -630,15 +544,24 @@
 					const name = intIdNames.get(senderIntId)
 
 					if (msgType == 0) { // live
-						let sendDate = data.getUint32(offset); offset += 4
-						let reactionsL = data.getUint8(offset); offset++ // TODO: Reactions
-						// let reactions = .. TODO: we worry about this later
-						let channelL = data.getUint8(offset); offset++
-						let channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
+						const sendDate = data.getUint32(offset); offset += 4
+						const reactionsL = data.getUint8(offset); offset++
+						for (let j = 0; j < reactionsL; j++) {
+							const reactionKeyL = data.getUint8(offset); offset++
+							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
+							const reactorsL = data.getUint32(offset); offset += 4
+							for (let k = 0; k < reactorsL; k++) {
+								const reactor = data.getUint32BE(offset); offset += 4
+							}
+						}
+						const channelL = data.getUint8(offset); offset++
+						const channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
 						if (data.byteLength - offset >= 4) {
 							repliesTo = data.getUint32(offset)
 						}
-						if (!(channel in cMessages)) return
+						if (!(channel in cMessages)) {
+							break
+						}
 
 						const newMessage = createLiveChatMessage(messageId, txt, senderIntId, name, sendDate, repliesTo)
 						if (senderIntId !== 0 && blockedUsers.includes(senderIntId)) {
@@ -699,11 +622,17 @@
 					}
 					break
 				}
-				case 18: { // Text capcha
+				case 18: { // Live chat reaction
+					const senderId = data.getUint32(1)
+					const reactionKey = decoder.decode(data.buffer.slice(5))
+					// TODO: Modify chat message
+					break
+				}
+				case 20: { // Text capcha
 					let textsSize = data.getUint8(1)
 					let texts = decoder.decode(new Uint8Array(data.buffer).slice(2, textsSize + 2)).split("\n")
 					let imageData = new Uint8Array(data.buffer).slice(2 + textsSize)
-					captchaOptions.innerHTML = ""
+					captchaOptions.innerHTMcreateChatPacketL = ""
 
 					for (let text of texts) {
 						let button = document.createElement("button")
@@ -726,11 +655,11 @@
 					}
 					break
 				}
-				case 19: { // Math captcha
+				case 21: { // Math captcha
 					console.error("Math captcha not yet supported. Ignoring.")
 					break
 				}
-				case 20: { // Emoji captcha
+				case 22: { // Emoji captcha
 					let emojisSize = data.getUint8(1)
 					let emojis = decoder.decode(new Uint8Array(data.buffer).slice(2, emojisSize + 2)).split("\n")
 					let imageData = new Uint8Array(data.buffer).slice(2 + emojisSize)
@@ -778,13 +707,13 @@
 					}
 					break
 				}
-				case 21: {
+				case 23: {
 					let a=data.getUint32(1),b=5+a,c=data.buffer.slice(5,5+a),f=new Uint8Array(9),u=new DataView(f.buffer)
 					;window.challengeData=new Uint8Array(data.buffer.slice(b));let d=await Object.getPrototypeOf(async function(){}).constructor(atob(decoder.decode(c)))()
-					;delete window.challengeData;u.setUint8(0,21);u.setBigInt64(1,d);call(send,ws,u.buffer);
+					;delete window.challengeData;u.setUint8(0,23);u.setBigInt64(1,d);call(send,ws,u.buffer);
 					break
 				}
-				case 23: { // Turnstile
+				case 24: { // Turnstile
 					const siteKey = decoder.decode(data.buffer.slice(1))
 					const siteVariant = document.documentElement.dataset.variant
 					const turnstileTheme = siteVariant === "dark" ? "dark" : "light"
@@ -796,13 +725,13 @@
 							theme: turnstileTheme,
 							language: lang,
 							callback: function(token) {
-								call(send, ws, encoder.encode("\x17" + token))
+								call(send, ws, encoder.encode("\x18" + token))
 							},
 						})
 					})
 					break
 				}
-				case 24: { // Turnstile success
+				case 25: { // Turnstile success
 					turnstileMenu.removeAttribute("opened")
 					break
 				}
@@ -953,14 +882,14 @@
 					const newMessage = createLiveChatMessage(0, `
 # Chat styling:
 ---
-Text in rplace live chat can be styled using a simplified version of markdown, for example:
-**bold**, *italic*, ||hidden||, __underline__, and ~strikethrough~.
+Text in rplace live chat can be styled using a simplified version of markdown, currently:
+**bold**, *italic*, ||hidden||, __underline__, and ~strikethrough~ text are supported.
 
 ### Headers:
-Use # for a large header, ## for medium, and ### for small. Don’t forget to add a space between the leading heading character (#, ##, ###) and your text!
+Use # for a large header, ## for medium, and ### for small. Don’t forget to add a space between the leading heading character and your text!
 
 ### Separators:
-To create a separator, create a blank line (Shift + Enter on keyboard) and insert a triple dash (---).
+To create a separator, create a blank line (Shift + Enter on keyboard) and insert a triple dash ---.
 
 
 # Chat commands:
@@ -970,7 +899,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 ## Usage:
 :command arg1 arg2 arg3
 
-### Example:
+## Example:
 :name zekiah
 (^ Will set your username to 'zekiah')`, 0, ":HELP@RPLACE.LIVE", Date.now())
 					chatMessages.insertAdjacentElement("beforeEnd", newMessage)
@@ -1259,7 +1188,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="darkplace.js"></script>
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
-	<script type="application/javascript" src="shared.js?v=4"></script>
+	<script type="application/javascript" src="shared.js?v=5"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
@@ -1268,7 +1197,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=352" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=353" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>

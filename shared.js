@@ -373,6 +373,36 @@ class PublicPromise {
 	}
 }
 
+class PublicPromiseSync {
+	locked
+	resolve
+	reject
+	#promise
+	constructor() {
+		this.#promise = new Promise((resolve, reject) => {
+			this.resolve = resolve
+			this.reject = reject
+		})
+		this.locked = false
+	}
+
+	async acquireAwaitPromise() {
+		if (this.locked) {
+			throw new Error("This promise is already being awaited.")
+		}
+		this.locked = true
+		try {
+			const result = await this.#promise
+			this.locked = false
+			return result
+		}
+		catch (error) {
+			this.locked = false
+			throw error
+		}
+	}
+}
+
 function sanitise(txt) {
 	return txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
 }
