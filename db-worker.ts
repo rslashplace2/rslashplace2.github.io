@@ -2,9 +2,9 @@
 /* eslint-disable jsdoc/require-returns */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-inner-declarations */
-import { parentPort } from 'worker_threads'
-import { Database } from 'bun:sqlite'
-import { Queue } from '@datastructures-js/queue'
+import { parentPort } from "worker_threads"
+import { Database } from "bun:sqlite"
+import { Queue } from "@datastructures-js/queue"
 
 const defaultDbOptions = { strict: true }
 let db = new Database("server.db", defaultDbOptions)
@@ -117,7 +117,8 @@ export type DbInternals = {
     updateUserVip: (data: { intId: number, codeHash: string}) => void,
     insertLiveChatReport: (data: { reporterId: number, messageId: number, reason: string }) => void,
     getLiveChatMessage: (intId: number) => LiveChatMessage|null,
-    exec: (data: { stmt: string, params: any }) => any[]|null
+    exec: (data: { stmt: string, params: any }) => any[]|null,
+    reInitialise: () => void
 }
 
 const createLiveChatMessages = `
@@ -249,6 +250,16 @@ const createLinkages = `
 `
 db.exec(createLinkages)
 
+export type LiveChatHistoryMessage = LiveChatMessage & {
+    chatName: string,
+    reactions: Map<string, number[]>
+}
+export type LiveChatHistoryParams = {
+    channel: string|null,
+    count: number|null,
+    messageId: number|null,
+}
+
 const insertLiveChat = db.query<void, LiveChatMessage>(`
     INSERT INTO LiveChatMessages (messageId, message, sendDate, channel, senderIntId, repliesTo, deletionId)
     VALUES ($messageId, $message, $sendDate, $channel, $senderIntId, $repliesTo, $deletionId)`)
@@ -259,10 +270,13 @@ const updatePixelPlaces = db.query<void, [number, number]>(`
     UPDATE Users SET pixelsPlaced = pixelsPlaced + ?1 WHERE intId = ?2`)
 
 interface PublicQueue<T> extends Queue<T> {
-    _elements: T[]
+    _elements: T[],
+    isEmpty(): boolean,
+    dequeue(): T|undefined,
+    push(item:T): any
 }
 const pixelPlaces = new Map<number, number>() // intId, count
-// @ts-expect-error Some chicanery to bypass them hiding _elements from the definition
+// Some chicanery to bypass them hiding _elements from the definition
 const liveChatInserts:PublicQueue<LiveChatMessage> = new Queue<LiveChatMessage>()
 const placeChatInserts = new Queue<PlaceChatMessage>()
 /**
@@ -281,11 +295,15 @@ function performBulkInsertions() {
     db.transaction(() => {
         while (!liveChatInserts.isEmpty()) {
             const data = liveChatInserts.dequeue()
-            insertLiveChat.run(data)
+            if (data) {
+                insertLiveChat.run(data)
+            }
         }
         while (!placeChatInserts.isEmpty()) {
             const data = placeChatInserts.dequeue()
-            insertPlaceChat.run(data)
+            if (data) {
+                insertPlaceChat.run(data)
+            }
         }
     })()
 }
@@ -318,64 +336,72 @@ const internal: DbInternals = {
         }
 
         // Add known IP if not already there
-        const getIpsQuery = db.query<KnownIp, [number, string]>("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2 AND userAgent = ?3")
+        const getIpsQuery = db.query<KnownIp, [number, string, string]>("SELECT * FROM KnownIps WHERE userIntId = ?1 AND ip = ?2 AND userAgent = ?3")
         const ipExists = getIpsQuery.get(user.intId, ip, userAgent)
         if (ipExists) { // Update last used
-            const updateIp = db.query<void, [number, number, string]>("UPDATE KnownIps SET lastUsed = ?1 WHERE userIntId = ?2 AND ip = ?3 AND userAgent = ?4")
+            const updateIp = db.query<void, [number, number, string, string]>("UPDATE KnownIps SET lastUsed = ?1 WHERE userIntId = ?2 AND ip = ?3 AND userAgent = ?4")
             updateIp.run(epochMs, user.intId, ip, userAgent)
         }
         else { // Create new
-            const createIp = db.query<void, [number, string, number]>("INSERT INTO KnownIps (userIntId, ip, userAgent, lastUsed) VALUES (?1, ?2, ?3, ?4)")
+            const createIp = db.query<void, [number, string, string, number]>("INSERT INTO KnownIps (userIntId, ip, userAgent, lastUsed) VALUES (?1, ?2, ?3, ?4)")
             createIp.run(user.intId, ip, userAgent, epochMs)
         }
         
         return user.intId
     },
-    getLiveChatHistory: function({ channel, includeDeleted, before, messageId, count}) {
+    getLiveChatHistory: function({ channel, includeDeleted, before, messageId, count }) {
         const liveChatMessageId = internal.getMaxLiveChatId()
-        let params:any[] = []
+        const params:LiveChatHistoryParams = { channel: null, count: null, messageId: null }
         let query = `
             SELECT LiveChatMessages.*, Users.chatName AS chatName
             FROM LiveChatMessages
-            INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId\n`
-        let preceeding = false
-
+            INNER JOIN Users ON LiveChatMessages.senderIntId = Users.intId
+        `
+        const conditions = []
+    
         if (channel) {
-            query += "WHERE channel = ?1\n"
-            params.push(channel)
-            preceeding = true
+            conditions.push("channel = $channel")
+            params.channel = channel
         }
         if (!includeDeleted) {
-            query += "AND deletionId IS NULL\n"
-            preceeding = true
+            conditions.push("deletionId IS NULL")
         }
-
-        // If messageId is 0 and we are getting before, it will return [count] most recent messages
-        // Will give messageIDs ascending if AFTER and messageIDs descending if before to make it easier on client
+    
         if (before) {
             messageId = Math.min(liveChatMessageId, messageId)
             count = Math.min(liveChatMessageId, count)
-            if (messageId == 0) {
-                query += "ORDER BY messageId DESC LIMIT ?2"
-                params.push(count)
+            if (messageId === 0) {
+                query += conditions.length ? "WHERE " + conditions.join(" AND ") + " " : ""
+                query += "ORDER BY messageId DESC LIMIT $count"
+                params.count = count
+            } else {
+                conditions.push("messageId < $messageId")
+                query += "WHERE " + conditions.join(" AND ") + " ORDER BY messageId DESC LIMIT $count"
+                params.messageId = messageId
+                params.count = count
             }
-            else {
-                query += preceeding ? "AND " : ""
-                query += "messageId < ?2 ORDER BY messageId DESC LIMIT ?3"
-                params.push(messageId)
-                params.push(count)
-            }
-        }
-        else { // Ater
+        } else {
             count = Math.min(liveChatMessageId - messageId, count)
-            query += preceeding ? "AND " : ""
-            query += "messageId > ?2 ORDER BY messageId ASC LIMIT ?3"
-            params.push(messageId)
-            params.push(count)
+            conditions.push("messageId > $messageId")
+            query += "WHERE " + conditions.join(" AND ") + " ORDER BY messageId ASC LIMIT $count"
+            params.messageId = messageId
+            params.count = count
         }
-
-        const stmt = db.query(query)
-        return stmt.all(params)
+    
+        const history = []
+        const messagesStmt = db.query<LiveChatHistoryMessage, LiveChatHistoryParams>(query)
+        for (const message of messagesStmt.iterate(params)) {
+            message.reactions = new Map<string, number[]>()
+            const reactionsQuery = db.query<LiveChatReaction, [number]>("SELECT * FROM LiveChatReactions WHERE messageId = ?1")
+            for (const reaction of reactionsQuery.iterate(message.messageId)) {
+                if (!message.reactions.has(reaction.reaction)) {
+                    message.reactions.set(reaction.reaction, [])
+                }
+                message.reactions.get(reaction.reaction)?.push(reaction.senderIntId)
+            }
+            history.push(message)
+        }
+        return history
     },
     updatePixelPlace: function(intId) {
         pixelPlaces.set(intId, (pixelPlaces.get(intId)||0) + 1)
@@ -448,7 +474,9 @@ const internal: DbInternals = {
         insertReportQuery.run(reporterId, messageId, reason, Date.now())
     },
     addLiveChatReaction: function({ messageId, reaction, senderIntId }) {
-        // TODO: Implement this
+        // Message does not directly reference reaction so it is OK if message has not been inserted into DB yet (due to message bulk transactions)
+        const insertReactionQuery = db.query("INSERT INTO LiveChatReactions (messageId, reaction, senderIntId) VALUES (?1, ?2, ?3)")
+        insertReactionQuery.run(messageId, reaction, senderIntId)
     },
     getLiveChatMessage: function(intId) {
         // Message may not be in the DB yet if recently sent so getting a message requires some logic

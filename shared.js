@@ -41,7 +41,7 @@ const TRANSLATIONS = {
 		overlayMenu: "Overlay menu",
 		modalAboutContent: "There is an empty canvas.<br><br>You may place a tile upon it, but you must wait to place another.<br><br>Individually you can create something.<br><br>Together you can create something more.",
 		overlayMenuDesciption: "Visualise your build with a template image!",
-		messageCouldntBeLoaded: "Message could not be loaded",
+		messageNotFound: "Message could not be loaded",
 		placedBy: "Placed by:",
 		lockMessage: "This canvas is locked... You can't place pixels here anymore",
 		adHidden: "Ad hidden for 14 days!",
@@ -316,7 +316,7 @@ const TRANSLATIONS = {
 		overlayMenu: "قائمة الصوره",
 		modalAboutContent: "هنالك لوح فاضي.<br><br>تستطيع اضافة بلاطه, ولكن يجب عليك الانتظار لإضافة اخرى<br><br>لوحدك, تستطيع انشاء شيء.<br><br>مع الاخرين, تستطيع انشاء الكثير.",
 		overlayMenuDesciption: "تصور بناءك بصورة نموذج!",
-		messageCouldntBeLoaded: "لا يمكن تحميل الرسالة"
+		messageNotFound: "لا يمكن تحميل الرسالة"
 	},
 	jp: {
 		connecting: "接続中...",
@@ -373,6 +373,36 @@ class PublicPromise {
 	}
 }
 
+class PublicPromiseSync {
+	locked
+	resolve
+	reject
+	#promise
+	constructor() {
+		this.#promise = new Promise((resolve, reject) => {
+			this.resolve = resolve
+			this.reject = reject
+		})
+		this.locked = false
+	}
+
+	async acquireAwaitPromise() {
+		if (this.locked) {
+			throw new Error("This promise is already being awaited.")
+		}
+		this.locked = true
+		try {
+			const result = await this.#promise
+			this.locked = false
+			return result
+		}
+		catch (error) {
+			this.locked = false
+			throw error
+		}
+	}
+}
+
 function sanitise(txt) {
 	return txt.replaceAll(/&/g,"&amp;").replaceAll(/</g,"&lt;").replaceAll(/"/g,"&quot;")
 }
@@ -416,4 +446,81 @@ function markdownParse(text) {
 		return "<hr>"
 	})
 	return text
+}
+
+// Utility functions for Auth DB IndexedDB caches
+const currentAuthUrl = new URL(localStorage.auth || DEFAULT_AUTH) // i.e server.rplace.live/auth
+const currentAuthDb = `${currentAuthUrl.host}${currentAuthUrl.pathname}`
+
+function openCurrentAuthDB() {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(currentAuthDb, 2)
+		request.onupgradeneeded = event => {
+			const db = event.target.result
+			db.createObjectStore("profiles", { keyPath: "id" })
+			db.createObjectStore("users", { keyPath: "id" })
+		}
+		request.onsuccess = event => resolve(event.target.result)
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
+function getCachedData(storeName, key) {
+	return new Promise(async (resolve, reject) => {
+		const db = await openCurrentAuthDB()
+		const transaction = db.transaction(storeName, "readonly")
+		const store = transaction.objectStore(storeName)
+		const request = store.get(key)
+		request.onsuccess = event => resolve(event.target.result)
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
+function setCachedData(storeName, data) {
+	return new Promise(async (resolve, reject) => {
+		const db = await openCurrentAuthDB()
+		const transaction = db.transaction(storeName, "readwrite")
+		const store = transaction.objectStore(storeName)
+		const request = store.put(data)
+		request.onsuccess = () => resolve()
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
+// Responsible for setting and retrieving form DB, will attempt to grab the object from the DB, if it can't
+// it will grab the object from the URL and then cache it in the database
+async function cachedFetch(keystore, id, url, expiry) {
+	const now = Date.now()
+	let cachedObject = await getCachedData(keystore, id)
+	if (!cachedObject || (now - cachedObject.timestamp) > expiry) {
+		const res = await fetch(url)
+		if (!res.ok) {
+			console.error(`Could not fetch object ${id} belonging to ${keystore}: ${res.status} ${res.statusText}:`, await res.json())
+			return null
+		}
+
+		cachedObject = await res.json()
+		await setCachedData(keystore, { id, data: cachedObject, timestamp: now })
+	}
+	else {
+		cachedObject = cachedObject.data
+	}
+
+	return cachedObject
+}
+
+window.moduleExports = {
+	...window.moduleExports,
+	get DEFAULT_AUTH() {
+		return DEFAULT_AUTH
+	},
+	get markdownParse() {
+		return markdownParse
+	},
+	get sanitise() {
+		return sanitise
+	},
+	get cachedFetch() {
+		return cachedFetch
+	}
 }

@@ -44,4 +44,4 @@ Setting up a custom server that users can connect to via the posts menu is very 
 
 10. If you encountered no errors, Bon Voilà, you have set up an rplace custom server acessable from in the game.
 
-11. If you did encounter errors, no worries, visit the rplace discord, acessable through out site `https://rplace.tk` and ask one of the admins (our usernames are usually `@BlobKat`/`@zekiahepic`), and we will try our best to assist you!
+11. If you did encounter errors, no worries, visit the rplace discord, acessable through out site `https://rplace.live` and ask one of the admins (our usernames are usually `@BlobKat`/`@zekiahepic`), and we will try our best to assist you!

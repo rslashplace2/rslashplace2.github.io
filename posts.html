@@ -5,11 +5,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
 	<link href="rplace-2022.css?v=11" rel="stylesheet">
-	<link href="style.css?v=352" rel="stylesheet">
-	<link href="posts.css?v=1" rel="stylesheet">
-	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=5" defer></script>
-	<script type="application/javascript" src="shared.js?v=4"></script>
+	<link href="style.css?v=354" rel="stylesheet">
+	<link href="posts.css?v=2" rel="stylesheet">
+	<script type="application/javascript" src="shared.js?v=6"></script>
+	<script type="application/javascript" src="shared-elements.js?v=8" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=6" defer></script>
+	<script type="module" src="posts-elements.js?v=8" defer></script>
 	<script>
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;
@@ -46,7 +47,7 @@
 			Posts
 		</a>
 		<a type="button" href="./">
-			<img src="svg/rplace.svg" width="24" height="24">
+			<img alt="rplace.live" src="svg/rplace.svg" width="24" height="24">
 			Game
 		</a>
 		<div class="sidebar-footer">
@@ -203,9 +204,9 @@
 			coverimageurl="images/timelapse.png"></r-post>-->
 		<r-post id="overlayPost" onclick="sendParentMessage('openOverlayMenu')" style="cursor: pointer;" class="post" novotes="true" title="Overlay menu" description="Visualise your build with template images!"
 			coverimageurl="images/hammer-and-wrench.png"></r-post>
-		<r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Discord" description="discord.gg/r-place-2-960966748289507338"
+		<r-post onclick="window.open('https:\/\/discord.gg/r-place-2-960966748289507338','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Discord" description="Join the community at discord.gg/r-place-2-960966748289507338"
 			coverimageurl="images/discord.png"></r-post>
-		<r-post onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Donate" description="Help keep r/place alive!"
+		<r-post onclick="window.open('https:\/\/bit.ly/3LVwDtW','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Donate" description="Help keep rplace.live alive!"
 			coverimageurl="images/patreon.png"></r-post>
 		<r-post onclick="window.open('https:/\/reddit.com/r/placetk','_blank')" style="cursor: pointer;" class="post" novotes="true" title="Subreddit" description="Visit the official rplace.live subreddit (r/placetk)"
 			coverimageurl="images/reddit.png"></r-post>
@@ -249,7 +250,7 @@
 				">Create post</button>
 		</div>
 	</dialog>
-	<dialog id="accountDialog" class="reddit-modal" style="top:  50%">
+	<dialog id="accountDialog" class="reddit-modal">
 		<div id="loginPanel" data-page="unauthed">
 			<div class="header">
 				<h4 style="margin: 0px;">My account</h4>
@@ -316,7 +317,7 @@
 					<div class="reddit-card">
 						<img id="profileImg" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
 						<div class="profile-section" style="min-width: 164px;">
-							<p id="profileName"></p>
+							<h5 id="profileName"></h5>
 							<div style="overflow-y: auto;">
 								<details class="profile-editable" noselect>
 									<summary>

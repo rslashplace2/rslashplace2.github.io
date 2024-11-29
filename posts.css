@@ -53,6 +53,7 @@ r-post .hider {
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+	border-radius: 4px;
 }
 r-post .body, .post .body {
 	display: flex;
@@ -126,6 +127,7 @@ r-votes, .r-votes {
 	flex-direction: column;
 	align-items: center;
 	padding: 4px;
+	border-radius: 4px 0px 0px 4px;
 }
 r-votes > svg {
 	fill: #888a8c;
@@ -134,6 +136,9 @@ r-votes > svg {
 	min-width: 24px;
 	min-height: 24px;
 	cursor: pointer;
+}
+r-votes > svg.down {
+	transform: rotate(180deg);
 }
 r-votes > svg:hover {
 	background: #1a1a1b1a;
@@ -635,4 +640,219 @@ dialog {
 }
 * {
 	touch-action: auto !important;
+}
+
+/* Reddit-themed dialog & modal styles (ported from instance manager) */
+#loginPanel[data-page] > div[page] {
+	display: none;
+}
+#loginPanel[data-page="unauthed"] > div[page="unauthed"],
+#loginPanel[data-page="profile"] > div[page="profile"] {
+	display: flex;
+}
+
+#verificationCode {
+	height: 64px;
+	font-size: 42px;
+	text-align: center;
+	margin: 8 0 0 0;
+}
+
+#loginSignupMessage {
+	color: red;
+	font-weight: bold;
+}
+
+#unauthedPage[data-page] > div[page] {
+	display: none;
+}
+#unauthedPage[data-page="signin"] > div[page="signin"],
+#unauthedPage[data-page="signup"] > div[page="signup"],
+#unauthedPage[data-page="authcode"] > div[page="authcode"] {
+	display: flex;
+}
+
+.reddit-modal {
+	margin: auto;
+	border: 1px solid gray;
+	border-radius: 4px;
+	background-color: #f0f0f0;
+	height: 600px;
+	width: min(800px, 100% - 16px);
+	box-shadow: 0px 0px 12px black;
+	overflow: clip;
+	display: none;
+	flex-direction: column;
+}
+.reddit-modal[open] {
+	display: flex;
+}
+/* i.e loginPanel */
+.reddit-modal > div {
+	display: flex;
+	flex-grow: 1;
+	max-height: 100%;
+}
+.reddit-modal {
+	font-family: 'IBM Plex Sans', sans-serif;
+	font-size: 20px;
+}
+.reddit-modal p, a, span {
+	font-size: 16px;
+}
+.reddit-modal p {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.reddit-modal .header {
+	color: black;
+	padding: 16px;
+	background: url(images/reddit-login-banner.png);
+	background-size: cover;
+	min-width: 144px;
+	width: 144px;
+}
+.reddit-modal .body {
+	margin: 8px;
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
+	flex-grow: 1;
+}
+.reddit-modal .section {
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
+}
+.reddit-modal, .body, .reddit-modal .body {
+	touch-action: manipulation;
+}
+@media (orientation: portrait) {
+	.reddit-modal > div {
+		flex-direction: column;
+		position: relative;
+	}
+	.reddit-modal .header {
+		background: #343536;
+		color: white;
+		width: auto;
+	}
+	#accountDialog r-close-icon svg {
+		fill: white;
+	}
+	.reddit-modal .confirm-button {
+		position: absolute;
+		bottom: 8px;
+		width: calc(100% - 16px);
+	}
+	.reddit-card {
+		flex-direction: column;
+		height: fit-content !important;
+	}
+}
+.reddit-modal-input {
+	all: unset;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 8px;
+	font-size: 14px;
+	outline: none;
+	height: 14px;
+	margin: 0;
+	background-color: white;
+
+}
+.reddit-modal-input[type=file]::file-selector-button {
+	all: unset;
+	border-radius: 5px;
+	background-color: white;
+	border: 0px solid black;
+	box-shadow: none;
+	height: 100%;
+}
+.reddit-modal-input[type=file] {
+	height: 48px;
+	background-color: transparent;
+}
+.reddit-modal-input:focus {
+	border-color: #369;
+	box-shadow: 0 0 5px #ccc;
+}
+.reddit-signin-button {
+	border: 1px solid #dbdbdb;
+	border-radius: 4px;
+	background-color: white;
+	width: fit-content;
+	display: flex;
+	height: 46px;
+	column-gap: 8px;
+	cursor: pointer;
+	padding-right: 8px;
+	box-shadow: none;
+}
+.reddit-modal-button {
+	all: unset;
+	display: inline-block;
+	padding: 8px 16px;
+	border: none;
+	border-radius: 4px;
+	background-color: #cee3f8;
+	color: #1a1a1b;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.2s ease-in-out;
+}
+.reddit-modal-button:hover {
+	background-color: #b0c8e6;
+}
+.reddit-card {
+	height: 150px;
+	margin: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 10px;
+	position: relative;
+	background: white;
+	display: flex;
+	column-gap: 16px;
+}
+
+.profile-section {
+	overflow-y: auto;
+}
+#profileName {
+	margin-top: 0px;
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+#profileBio {
+	margin-bottom: 16px;
+	margin-top: 0px;
+}
+.profile-section > div {
+	margin: 0px;
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+	transition: .2s all;
+}
+.profile-editable > summary {
+	display: flex;
+	column-gap: 4px;
+}
+.profile-editable > summary svg {
+	margin-left: auto;
+}
+.profile-section > div.profile-editable:hover {
+	overflow: visible;
+	background-color: white;
+	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.243);
+	border-radius: 4px;
+	min-width: fit-content;
+	z-index: 2;
+	padding: 4px;
 }

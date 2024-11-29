@@ -20,7 +20,7 @@ import cookie from "cookie"
 import repl from "basic-repl"
 import { $, Server, ServerWebSocket, TLSWebSocketServeOptions } from "bun"
 import { DbInternals, LiveChatMessage } from "./db-worker.ts"
-import { PublicPromise } from "./server-types.ts"
+import { PublicPromise, ReactionInfo } from "./server-types.ts"
 import { distance } from "fastest-levenshtein"
 
 let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Buffer
@@ -102,77 +102,77 @@ if (configFailed) {
     process.exit(0)
 }
 
-const DEFAULT_EMOJIS = {
-    rofl: "🤣",
-    joy: "😂",
-    cool: "😎",
-    sunglasses: "😎",
-    heart: "❤️",
-    moyai: "🗿",
-    bruh: "🗿",
-    turkey: "🇹🇷",
-    skull: "💀",
-    sus: "ඞ",
-    iran: "🇮🇷",
-    uk: "🇬🇧",
-    usa: "🇺🇸",
-    america: "🇺🇸",
-    eyes: "👀",
-    fire: "🔥",
-    thumbsup: "👍",
-    thumbsdown: "👎",
-    clown: "🤡",
-    facepalm: "🤦‍♂️",
-    ok: "👌",
-    poop: "💩",
-    rocket: "🚀",
-    tada: "🎉",
-    celebration: "🎉",
-    moneybag: "💰",
-    crown: "👑",
-    muscle: "💪",
-    beer: "🍺",
-    pizza: "🍕",
-    cookie: "🍪",
-    balloon: "🎈",
-    gift: "🎁",
-    star: "⭐️",
-    love: "😍",
-    crying: "😢",
-    angry: "😠",
-    sleepy: "😴",
-    nerd: "🤓",
-    laughing: "😆",
-    vomiting: "🤮",
-    unicorn: "🦄",
-    alien: "👽",
-    ghost: "👻",
-    skullcrossbones: "☠️",
-    explosion: "💥",
-    shush: "🤫",
-    deaf: "🧏",
-    mew:"🤫🧏",
-    pray: "🙏",
-    thinking: "🤔"
-}
-const DEFAULT_CUSTOM_EMOJIS = {
-    amogus: "custom_emojis/amogus.png",
-    biaoqing: "custom_emojis/biaoqing.png",
-    deepfriedh: "custom_emojis/deepfriedh.png",
-    edp445: "custom_emojis/edp445.png",
-    fan: "custom_emojis/fan.png",
-    heavy: "custom_emojis/heavy.png",
-    herkul: "custom_emojis/herkul.png",
-    kaanozdil: "custom_emojis/kaanozdil.png",
-    lowtiergod: "custom_emojis/lowtiergod.png",
-    manly: "custom_emojis/manly.png",
-    plsaddred: "custom_emojis/plsaddred.png",
-    rplace: "custom_emojis/rplace.png",
-    rplacediscord: "custom_emojis/rplacediscord.png",
-    sonic: "custom_emojis/sonic.png",
-    transparent: "custom_emojis/transparent.png",
-    trollface: "custom_emojis/trollface.png"
-}
+const DEFAULT_EMOJIS = new Map([
+    [ "rofl", "🤣" ],
+    [ "joy", "😂" ],
+    [ "cool", "😎" ],
+    [ "sunglasses", "😎" ],
+    [ "heart", "❤️" ],
+    [ "moyai", "🗿" ],
+    [ "bruh", "🗿" ],
+    [ "turkey", "🇹🇷" ],
+    [ "skull", "💀" ],
+    [ "sus", "ඞ" ],
+    [ "iran", "🇮🇷" ],
+    [ "uk", "🇬🇧" ],
+    [ "usa", "🇺🇸" ],
+    [ "america", "🇺🇸" ],
+    [ "eyes", "👀" ],
+    [ "fire", "🔥" ],
+    [ "thumbsup", "👍" ],
+    [ "thumbsdown", "👎" ],
+    [ "clown", "🤡" ],
+    [ "facepalm", "🤦‍♂️" ],
+    [ "ok", "👌" ],
+    [ "poop", "💩" ],
+    [ "rocket", "🚀" ],
+    [ "tada", "🎉" ],
+    [ "celebration", "🎉" ],
+    [ "moneybag", "💰" ],
+    [ "crown", "👑" ],
+    [ "muscle", "💪" ],
+    [ "beer", "🍺" ],
+    [ "pizza", "🍕" ],
+    [ "cookie", "🍪" ],
+    [ "balloon", "🎈" ],
+    [ "gift", "🎁"],
+    [ "star", "⭐️" ],
+    [ "love", "😍" ],
+    [ "crying", "😢" ],
+    [ "angry", "😠" ],
+    [ "sleepy", "😴" ],
+    [ "nerd", "🤓" ],
+    [ "laughing", "😆" ],
+    [ "vomiting", "🤮" ],
+    [ "unicorn", "🦄" ],
+    [ "alien", "👽" ],
+    [ "ghost", "👻" ],
+    [ "skullcrossbones", "☠️" ],
+    [ "explosion", "💥" ],
+    [ "shush", "🤫" ],
+    [ "deaf", "🧏" ],
+    [ "mew", "🤫🧏" ],
+    [ "pray", "🙏" ],
+    [ "thinking", "🤔" ]
+])
+const DEFAULT_CUSTOM_EMOJIS = new Map([
+    [ "amogus", "custom_emojis/amogus.png" ],
+    [ "biaoqing", "custom_emojis/biaoqing.png" ],
+    [ "deepfriedh", "custom_emojis/deepfriedh.png" ],
+    [ "edp445", "custom_emojis/edp445.png" ],
+    [ "fan", "custom_emojis/fan.png" ],
+    [ "heavy", "custom_emojis/heavy.png" ],
+    [ "herkul", "custom_emojis/herkul.png" ],
+    [ "kaanozdil", "custom_emojis/kaanozdil.png" ],
+    [ "lowtiergod", "custom_emojis/lowtiergod.png" ],
+    [ "manly", "custom_emojis/manly.png" ],
+    [ "plsaddred", "custom_emojis/plsaddred.png" ],
+    [ "rplace", "custom_emojis/rplace.png" ],
+    [ "rplacediscord", "custom_emojis/rplacediscord.png" ],
+    [ "sonic", "custom_emojis/sonic.png" ],
+    [ "transparent", "custom_emojis/transparent.png" ],
+    [ "trollface", "custom_emojis/trollface.png" ]
+])
 const DEFAULT_PALETTE = [ 0xff1a006d, 0xff3900be, 0xff0045ff, 0xff00a8ff, 0xff35d6ff, 0xffb8f8ff, 0xff68a300, 0xff78cc00, 0xff56ed7e, 0xff6f7500, 0xffaa9e00, 0xffc0cc00, 0xffa45024, 0xffea9036, 0xfff4e951, 0xffc13a49, 0xffff5c6a, 0xffffb394, 0xff9f1e81, 0xffc04ab4, 0xffffabe4, 0xff7f10de, 0xff8138ff, 0xffaa99ff, 0xff2f486d, 0xff26699c, 0xff70b4ff, 0xff000000, 0xff525251, 0xff908d89, 0xffd9d7d4, 0xffffffff ]
 let { SECURE, CERT_PATH, PORT, KEY_PATH, WIDTH, HEIGHT, ORIGINS, PALETTE, PALETTE_USABLE_REGION, COOLDOWN, CAPTCHA,
     PXPS_SECURITY, USE_CLOUDFLARE, PUSH_LOCATION, PUSH_PLACE_PATH, LOCKED, CHAT_WEBHOOK_URL, MOD_WEBHOOK_URL,
@@ -568,7 +568,7 @@ function censorText(text:string):string {
  * @param {number?} positionIndex - Index on canvas of place chat message (u32)
  * @returns {Buffer} Message packet data prepended with packet code (15)
  */
-function createChatPacket(type: number, message: string, sendDate: number, messageId: number, intId: number, channel: string|null = null, repliesTo: number|null = null, positionIndex: number|null = null): Buffer {
+function createChatPacket(type: number, message: string, sendDate: number, messageId: number, intId: number, channel: string|null = null, repliesTo: number|null = null, reactions: Map<string, number[]>|null = null, positionIndex: number|null = null): Buffer {
     let encodedChannel:Uint8Array|null = null
     if (channel) encodedChannel = encoderUTF8.encode(channel)
     const encodedTxt = encoderUTF8.encode(message)
@@ -585,9 +585,18 @@ function createChatPacket(type: number, message: string, sendDate: number, messa
 
     if (type == 0 && encodedChannel != null) { // Live chat message
         msgPacket.writeUInt32BE(sendDate, i); i += 4
-        // TODO: reactions
-        msgPacket[i] = 0; i++
-        // TODO: reactions
+        msgPacket[i] = reactions?.size || 0; i++
+        if (reactions != null) {
+            for (const [reactionKey, reactors] of reactions.entries()) {
+                const encodedReactionKey = encoderUTF8.encode(reactionKey)
+                msgPacket[i++] = encodedReactionKey.byteLength
+                msgPacket.set(encodedReactionKey)
+                msgPacket.writeUint32BE(reactors.length, i)
+                for (const reactor of reactors) {
+                    msgPacket.writeUint32BE(reactor, i); i += 4
+                }
+            }
+        }
         msgPacket[i] = encodedChannel.byteLength; i++
         msgPacket.set(encodedChannel, i); i += encodedChannel.byteLength
         if (repliesTo != null) {
@@ -688,18 +697,20 @@ async function applyPunishments(ws: ServerWebSocket<ClientData>, intId: number, 
                 // Banned user ID on a new IP, ban this IP too
                 ipFinishMap.set(ip, punishInfo.finishDate)
             }
-            ws.send(createPunishPacket(stateType, punishInfo.startDate,
-                punishInfo.finishDate, punishInfo.reason, punishInfo.userAppeal, punishInfo.appealRejected))
+            const punishPacket = createPunishPacket(stateType, punishInfo.startDate,
+                punishInfo.finishDate, punishInfo.reason, punishInfo.userAppeal, punishInfo.appealRejected)
+            ws.send(punishPacket)
         }
         else if (ipFinish) {
-            ws.send(createPunishPacket(stateType, NOW, ipFinish, "Unknown", "N/A", true))
+            const punishPacket = createPunishPacket(stateType, NOW, ipFinish, "Unknown", "N/A", true)
+            ws.send(punishPacket)
         }    
     }
     await resolvePunishments("Bans", bans, PUNISHMENT_STATE.ban)
     await resolvePunishments("Mutes", mutes, PUNISHMENT_STATE.mute)
 }
 
-function rejectPixel(ws:ServerWebSocket<any>, i:number, cd:number) {
+function rejectPixel(ws:ServerWebSocket<ClientData>, i:number, cd:number) {
     const data = Buffer.alloc(10)
     data[0] = 7
     data.writeInt32BE(Math.ceil(cd / 1000) || 1, 1)
@@ -770,7 +781,14 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                 })
             }
 
-            return new Response(JSON.stringify(usersInfo[0]), {
+            const userInfo = usersInfo[0]
+            for (const p of wss.clients) {
+                if (p.data.intId === userInfo.intId) {
+                    userInfo.online = true
+                    break
+                }
+            }
+            return new Response(JSON.stringify(userInfo), {
                 status: 200,
                 headers: { "Content-Type": "application/json", ...corsHeaders }
             })
@@ -883,7 +901,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     ws.data.challenge = "pending"
                 }
                 if (TURNSTILE) {
-                    const turnstileBuffer = encoderUTF8.encode("\x17" + TURNSTILE_SITE_KEY)
+                    const turnstileBuffer = encoderUTF8.encode("\x18" + TURNSTILE_SITE_KEY)
                     ws.send(turnstileBuffer)
                     ws.data.turnstile = "active"
                 }
@@ -1033,11 +1051,22 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     ws.send(placerInfoBuf)
                     break
                 }
-                case 11: { // Live chat reaction
+                case 18: { // Live chat reaction
                     const messageId = data.readUInt32BE(1)
                     const reactionKey = data.subarray(5).toString()
+                    // Validate reaction
+                    if (!DEFAULT_EMOJIS.has(reactionKey) && !DEFAULT_CUSTOM_EMOJIS.has(reactionKey)) {
+                        break
+                    }
                     postDbMessage("addLiveChatReaction", { messageId, reaction: reactionKey, senderIntId: ws.data.intId })
-                    // TODO: Implement this
+                    
+                    const encodedReaction = encoderUTF8.encode(reactionKey)
+                    const reactionBuf = Buffer.alloc(9 + encodedReaction.byteLength)
+                    reactionBuf[0] = 18
+                    reactionBuf.writeUint32BE(messageId, 1)
+                    reactionBuf.writeUint32BE(ws.data.intId, 1)
+                    reactionBuf.set(encodedReaction, 5)
+                    wss.publish("all", reactionBuf)
                     break
                 }
                 case 12: { // Submit name
@@ -1070,7 +1099,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const messageHistory = await makeDbRequest("getLiveChatHistory", { messageId, count, before, channel }) as any[]
 
                     const messages:Buffer[] = []
-                    const usernames = new Map()
+                    const usernames = new Map() // TODO: Insert reactor usernames
                     let size = 7 + encChannel.byteLength
                     for (const row of messageHistory) {
                         usernames.set(row.senderIntId, row.chatName)
@@ -1088,7 +1117,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     ws.send(nmInfoBuf)
 
                     let i = 0
-                    const historyBuffer = Buffer.allocUnsafe(size)
+                    const historyBuffer = Buffer.alloc(size)
                     historyBuffer[i++] = 13
                     historyBuffer.writeUInt32BE(messageId, i); i += 4
                     historyBuffer[i++] = data[5]
@@ -1125,7 +1154,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                         `Message:\n\`\`\`\n${sanitisedMessage}\n\`\`\`\n`)
                     break
                 }
-                case 15: { // chat
+                case 15: { // Chat
                     if (ws.data.lastChat + (CHAT_COOLDOWN_MS || 2500) > NOW
                         || data.length > (CHAT_MAX_LENGTH || 400) || bans.has(IP) || mutes.has(IP)
                         || ws.data.shadowBanned === true) {
@@ -1166,7 +1195,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const msgSimilar = isSimilarToPrevious(message, previousBucket)
                     previousBucket.push(message)
                     if (msgSimilar) {
-                        ws.send(createChatPacket(type, "Your message was filtered for spam", Math.floor(NOW / 1000), 0, 0, channel, null, positionIndex))
+                        const spamChatPacket = createChatPacket(type, "Your message was filtered for spam", Math.floor(NOW / 1000), 0, 0, channel, null, null, positionIndex)
+                        ws.send(spamChatPacket)
                         return
                     }
 
@@ -1195,10 +1225,10 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }
 
                     const censoredChatPacket = createChatPacket(type, censoredMessage, Math.floor(NOW / 1000), messageId, ws.data.intId,
-                        channel, repliesTo, positionIndex)
+                        channel, repliesTo, null, positionIndex)
                     if (censoredMessage !== message) {
                         const chatPacket = createChatPacket(type, message, Math.floor(NOW / 1000), messageId, ws.data.intId,
-                            channel, repliesTo, positionIndex)
+                            channel, repliesTo, null, positionIndex)
                         for (const p of wss.clients) {
                             p.send(p === ws ? chatPacket : censoredChatPacket)
                         }
@@ -1219,7 +1249,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }catch (err){ console.log("Could not post chat message to discord: " + err) }
                     break
                 }
-                case 16: { // Captcha
+                case 16: { // Captcha response
                     const response = data.subarray(1).toString()
                     const info = toValidate.get(ws)
                     if (info && response === info.answer && info.start + CAPTCHA_EXPIRY_SECS * 1000 > NOW) {
@@ -1244,7 +1274,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }
                     break
                 }
-                case 21: {
+                case 23: {
                     const result = await padlock.verifySolution(ws, data)
                     if (result === "badpacket" || result === "nosolution") return ws.close(4000, "Invalid solve packet")
                     if (result === false) {
@@ -1257,7 +1287,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     }
                     break
                 }
-                case 23: {
+                case 24: {
                     const turnstileToken = decoderUTF8.decode(data.buffer.slice(1))
                     if (!turnstileToken) return ws.close(4000, "Invalid turnstile packet")
                     const outcome = await verifyTurnstile(turnstileToken, ws.data.ip)
@@ -1266,12 +1296,12 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                             modWebhookLog(`Couldn't verify turnstile for client ${IP}/${ws.data.intId} bad cloudflare HTTP response, kicking`)
                             return ws.close(4000, "Internal turnstile fail")
                         }
-                        case  "fail": {
+                        case "fail": {
                             modWebhookLog(`Client ${IP}/${ws.data.intId} gave an incorrect turnstile token, kicking`)
                             return ws.close(4000, "No turnstile")
                         }
                         default: {
-                            const turnstileSuccessBuf = Buffer.from([24])
+                            const turnstileSuccessBuf = Buffer.from([25])
                             ws.send(turnstileSuccessBuf)
                             delete ws.data.turnstile
                             break
@@ -1595,13 +1625,13 @@ async function forceCaptchaSolve(identifier:string|number|ServerWebSocket<Client
         toValidate.set(cli, { start: NOW, answer: result.answer })
         const dv = new DataView(new ArrayBuffer(3 + encodedDummies.byteLength + result.data.byteLength))
         if (currentCaptcha == zcaptcha.genTextCaptcha) {
-            dv.setUint8(0, 18)
+            dv.setUint8(0, 20)
         }
         else if (currentCaptcha == zcaptcha.genMathCaptcha) {
-            dv.setUint8(0, 19)
+            dv.setUint8(0, 21)
         }
         else if (currentCaptcha == zcaptcha.genEmojiCaptcha) {
-            dv.setUint8(0, 20)
+            dv.setUint8(0, 22)
         }
         else {
             throw new Error("Could not generate captcha packet. Handler for packet code doesn't exist")
