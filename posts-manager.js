@@ -1,7 +1,3 @@
-/* eslint-disable jsdoc/require-jsdoc */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// This script runs on posts.html
 class PostElArray {
 	items
 	constructor() {

@@ -178,6 +178,7 @@
 		let setName = null // function injected by wscapsule
 		let requestPixelPlacers = null // function injected by wscapsule
 		let requestLoadChannelPrevious = null // function injected by wscapsule
+		let chatReport = null // function injected by wscapsule
 		let canvasLocked = false // Server will tell us this
 		let includesPlacer = false // Server will tell us this
 
@@ -194,7 +195,7 @@
 			let ws = new WebSocket(svUri)
 			delete WebSocket
 
-			function chatReport(messageId, senderId) {
+			function _chatReport(messageId, senderId) {
 				const reason = prompt("Enter the reason for why you are reporting this message (max 280 chars)\n\n" +
 					`Additional info:\nMessage ID: ${messageId}\nSender ID: ${senderId}\n`)
 				if (!reason || !reason.trim()) {
@@ -209,119 +210,18 @@
 				call(send, ws, reportBuffer)
 				alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
 			}
+			chatReport = _chatReport
 
-			// TODO: Web component-ise (see elements.js)
-			function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null) {
-				let newMessage = document.createElement("div")
-				newMessage.messageId = messageId
-				newMessage.name = name
-				newMessage.originalContent = txt
-
-				// Sanitise regex
-				txt = sanitise(txt)
-				// Simple markdown parse regexes
-				txt = markdownParse(txt)
-				// Custom emoji regex
-				txt = txt.replaceAll(/:([a-z-_]{0,16}):/g, (full, source) => {
-					// If this emoji is the only thing in the message we can make it big!
-					if (txt.match(source).length == 1 && !txt.replace(full, "").trim()) {
-						return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="48" height="48">`
-					}
-
-					// Else smaller and inline with the rest of the message
-					return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="16" height="16">`
-				})
-				// Coordinate to clickable link regex
-				txt = txt.replaceAll(/([0-9]+),\s*([0-9]+)/g, (element) => {
-					let px = parseInt(element.split(",")[0].trim())
-					let py = parseInt(element.split(",")[1].trim())
-					if (px != NaN && py != NaN) {
-						return `<a href="#" onclick="event.preventDefault();x=${px};y=${py};pos();">${px},${py}</a>`
-					}
-				})
-
-				let namePart = document.createElement("span")
-				if (messageId === 0) {
-					namePart.classList.add("rainbow-glow")
-				}
-				else {
-					namePart.style.color = CHAT_COLOURS[hash("" + senderId) & 7]
-				}
-				namePart.title = (new Date(sendDate * 1000)).toLocaleString()
-				namePart.textContent = `[${name || ("#" + senderId)}] `
-				let txtPart = document.createElement("span")
-				txtPart.innerHTML = txt
-
-				if (repliesTo != null) {
-					let replyingMessage = null
-					for (let message of cMessages[currentChannel]) {
-						if (message.messageId == repliesTo) {
-							replyingMessage = message
-							break
-						}
-					}
-					if (replyingMessage == null) {
-						replyingMessage = {
-							name: "[?????]",
-							originalContent: translate("messageCouldntBeLoaded"),
-							fake: true
-						}
-					}
-
-					let repliesPart = document.createElement("p")
-					if (!replyingMessage.fake) {
-						repliesPart.onclick = function() {
-							let height = 0
-							for (let message of cMessages[currentChannel]) {
-								if (message == replyingMessage) break
-								height += message.offsetHeight
-							}
-
-							replyingMessage.setAttribute("highlight", "true")
-							setTimeout(() => {
-								replyingMessage.removeAttribute("highlight")
-							}, 500)
-
-							chatMessages.scroll({ top: height, left: 0, behavior: "smooth" })
-						}
-					}
-					repliesPart.innerText = `↪️ ${replyingMessage.name} ${replyingMessage.originalContent}`
-					newMessage.appendChild(repliesPart)
-				}
-
-				newMessage.appendChild(namePart)
-				newMessage.appendChild(txtPart)
-				if (messageId > 0) { // Disable interactivity for system messages
-					namePart.onclick = (e) => chatMentionUser(senderId)
-					newMessage.oncontextmenu = (e) => onChatContext(e, senderId, messageId)
-
-					let actionsPart = document.createElement("div")
-					let replyBtn = document.createElement("img")
-					replyBtn.onclick = function(e) { chatReply(messageId, senderId) }
-					replyBtn.title = translate("replyTo")
-					replyBtn.tabIndex = "0"
-					replyBtn.src = "svg/reply-action.svg"
-					actionsPart.appendChild(replyBtn)
-
-					let reportBtn = document.createElement("img")
-					reportBtn.onclick = function(e) { chatReport(messageId, senderId) }
-					reportBtn.title = translate("report")
-					replyBtn.tabIndex = "0"
-					reportBtn.src = "svg/report-action.svg"
-					actionsPart.appendChild(reportBtn)
-
-					if (localStorage.vip?.startsWith("!")) {
-						let moderateBtn = document.createElement("img")
-						moderateBtn.onclick = function(e) { chatModerate("delete", senderId, messageId, newMessage) }
-						replyBtn.title = "Moderation options"
-						replyBtn.tabIndex = "0"
-						moderateBtn.src = "svg/moderate-action.svg"
-						actionsPart.appendChild(moderateBtn)
-					}
-					newMessage.appendChild(actionsPart)
-				}
-
-				return newMessage
+			function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null, reactions = null) {
+				const message = document.createElement("r-live-chat-message")
+				message.messageId = messageId
+				message.content = txt
+				message.senderId = senderId
+				message.name = name
+				message.sendDate = sendDate
+				message.repliesTo = repliesTo
+				message.reactions = reactions
+				return message
 			}
 
 			ws.onopen = function(e) {
@@ -471,14 +371,18 @@
 						const name = intIdNames.get(intId)
 
 						const sendDate = data.getUint32(offset); offset += 4
+						const reactions = new Map()
 						const reactionsL = data.getUint8(offset); offset++
 						for (let j = 0; j < reactionsL; j++) {
 							const reactionKeyL = data.getUint8(offset); offset++
 							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
+							const reactors = []
 							const reactorsL = data.getUint32(offset); offset += 4
 							for (let k = 0; k < reactorsL; k++) {
 								const reactor = data.getUint32BE(offset); offset += 4
+								reactors.push(reactor)
 							}
+							reactions.set(reactionKey, reactors)
 						}
 						const channelL = data.getUint8(offset); offset++
 						const channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
@@ -488,7 +392,7 @@
 						}
 
 						// TODO: We will worry about after when we get dynamic message loading
-						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo)
+						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo, reactions)
 						if (before) {
 							const scrollBefore = chatMessages.scrollTop
 							chatMessages.prepend(newMessage)
@@ -545,14 +449,18 @@
 
 					if (msgType == 0) { // live
 						const sendDate = data.getUint32(offset); offset += 4
+						const reactions = new Map()
 						const reactionsL = data.getUint8(offset); offset++
 						for (let j = 0; j < reactionsL; j++) {
 							const reactionKeyL = data.getUint8(offset); offset++
 							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
+							const reactors = []
 							const reactorsL = data.getUint32(offset); offset += 4
 							for (let k = 0; k < reactorsL; k++) {
 								const reactor = data.getUint32BE(offset); offset += 4
+								reactors.push(reactor)
 							}
+							reactions.set(reactionKey, reactors)
 						}
 						const channelL = data.getUint8(offset); offset++
 						const channel = decoder.decode(data.buffer.slice(offset, (offset += channelL)))
@@ -563,7 +471,7 @@
 							break
 						}
 
-						const newMessage = createLiveChatMessage(messageId, txt, senderIntId, name, sendDate, repliesTo)
+						const newMessage = createLiveChatMessage(messageId, txt, senderIntId, name, sendDate, repliesTo, reactions)
 						if (senderIntId !== 0 && blockedUsers.includes(senderIntId)) {
 							newMessage.style.color = "transparent"
 							newMessage.style.textShadow = "0px 0px 6px black"
@@ -632,7 +540,7 @@
 					let textsSize = data.getUint8(1)
 					let texts = decoder.decode(new Uint8Array(data.buffer).slice(2, textsSize + 2)).split("\n")
 					let imageData = new Uint8Array(data.buffer).slice(2 + textsSize)
-					captchaOptions.innerHTMcreateChatPacketL = ""
+					captchaOptions.innerHTML = ""
 
 					for (let text of texts) {
 						let button = document.createElement("button")
@@ -1180,7 +1088,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
-	<script type="application/javascript" src="elements.js?v=6" defer></script>
+	<script type="application/javascript" src="shared.js?v=6"></script>
+	<script type="application/javascript" src="shared-elements.js?v=8" defer></script>
 	<script type="application/javascript" src="event-timer.js" defer></script>
 	<script type="application/javascript" src="august21-event.js" defer></script>
 	<script type="application/javascript" src="quests.js" defer></script>
@@ -1188,8 +1097,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="darkplace.js"></script>
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
-	<script type="application/javascript" src="shared.js?v=5"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
+	<script type="module" src="live-chat-elements.js?v=1" defer></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
@@ -1197,7 +1106,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=353" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=354" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -3079,6 +2988,52 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			}
 			setInterval(cycleAd, 12e4) // 2 mins
 			cycleAd()
+		}
+
+		window.moduleExports = {
+			...window.moduleExports,
+			get x() {
+				return x
+			},
+			set x(value) {
+				x = value
+			},
+			get y() {
+				return y
+			},
+			set y(value) {
+				y = value
+			},
+			get pos() {
+				return pos
+			},
+			get chatMentionUser() {
+				return chatMentionUser	
+			},
+			get onChatContext() {
+				return onChatContext
+			},
+			get chatReply() {
+				return chatReply
+			},
+			get chatReport() {
+				return chatReport
+			},
+			get chatModerate() {
+				return chatModerate
+			},
+			get CHAT_COLOURS() {
+				return CHAT_COLOURS
+			},
+			get hash() {
+				return hash
+			},
+			get cMessages() {
+				return cMessages
+			},
+			get currentChannel() {
+				return currentChannel
+			}
 		}
 	</script>
 </html>

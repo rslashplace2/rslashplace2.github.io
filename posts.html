@@ -5,11 +5,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
 	<link href="rplace-2022.css?v=11" rel="stylesheet">
-	<link href="style.css?v=353" rel="stylesheet">
-	<link href="posts.css?v=1" rel="stylesheet">
-	<script type="application/javascript" src="elements.js?v=6" defer></script>
-	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=5" defer></script>
-	<script type="application/javascript" src="shared.js?v=5"></script>
+	<link href="style.css?v=354" rel="stylesheet">
+	<link href="posts.css?v=2" rel="stylesheet">
+	<script type="application/javascript" src="shared.js?v=6"></script>
+	<script type="application/javascript" src="shared-elements.js?v=8" defer></script>
+	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=6" defer></script>
+	<script type="module" src="posts-elements.js?v=8" defer></script>
 	<script>
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
 		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;

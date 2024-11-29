@@ -743,29 +743,31 @@ body[eventphase="3"] .coverer-title {
 	touch-action: pan-y;
 }
 
-#chatMessages > div {
+#chatMessages > .message {
 	position: relative;
+	display: block;
+	white-space: collapse;
 	transition: .2s background-color;
 }
 
-#chatMessages > div:hover {
+#chatMessages > .message:hover {
 	background-color: #d3d3d333;
 	border-radius: 4px;
 }
 
-#chatMessages > div[highlight] {
+#chatMessages > .message[highlight] {
 	background-color: #4dd77780;
 }
 
-#chatMessages > div[mention] {
+#chatMessages > .message[mention] {
 	background-color: #ffff0080;
 }
 
-#chatMessages > div[reply] {
+#chatMessages > .message[reply] {
 	background-color: #e4efff;
 }
 
-#chatMessages > div > p {
+#chatMessages > .message > p {
 	border-left: 4px solid gray;
 	padding: 2px 4px 2px 8px;
 	font-size: 12px;
@@ -776,11 +778,11 @@ body[eventphase="3"] .coverer-title {
 	border-radius: 2px 0px 0px 0px;
 }
 
-#chatMessages > div > span:nth-of-type(1) {
+#chatMessages > .message > span:nth-of-type(1) {
 	cursor: pointer;
 }
 
-#chatMessages > div > div {
+#chatMessages > .message > div {
 	position: absolute;
 	right: 0px;
 	top: -4px;
@@ -797,7 +799,7 @@ body[eventphase="3"] .coverer-title {
 	transition: .2s opacity;
 }
 
-#chatMessages > div:hover > div {
+#chatMessages > .message:hover > div {
 	opacity: 1;
 	cursor: pointer;
 }
