@@ -172,6 +172,7 @@ class LiveChatMessage extends LitElement {
 	
 		chatReactionsPanel.onemojiselection = (e) => {
 			this.#onReactEmojiSelected(e)
+			chatReactionsPanel.removeAttribute("open")
 		}
 	}
 
