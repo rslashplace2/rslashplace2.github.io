@@ -11,10 +11,10 @@ class LiveChatMessage extends LitElement {
 		sendDate: { type: Number, reflect: true, attribute: "senddate" },
 		repliesTo: { type: Number, reflect: true, attribute: "repliesto" },
 		content: { type: String, reflect: true, attribute: "content" },
-		reactions: { reflect: true, attribute: false },
-		class: { reflect: true },
+		reactions: { type: Object, attribute: false },
 		showReactionsPanel: { type: Boolean, attribute: false },
-		openedReactionDetails: { type: String, attribute: false }
+		openedReactionDetails: { type: String, attribute: false },
+		class: { reflect: true }
 	}
 	
 	constructor() {

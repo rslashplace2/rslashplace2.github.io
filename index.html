@@ -553,13 +553,18 @@
 					const reactionKey = decoder.decode(data.buffer.slice(9))
 					for (const channel of Object.values(cMessages)) {
 						for (const messageEl of channel) {
-							if (messageEl.messageId !== messageId) continue
-							let reactors = messageEl.reactions.get(reactionKey)
-							if (!reactors) {
-								reactors = new Set()
+							if (messageEl.messageId !== messageId) {
+								continue
 							}
-							reactors.add(reactorId)
-							messageEl.reactions = messageEl.reactions.set(reactionKey, reactors)
+
+							const currentReactions = messageEl.reactions
+							const reactors = currentReactions?.get(reactionKey) || new Set()
+							if (!reactors.has(reactorId)) {
+								const newReactions = currentReactions ? new Map(currentReactions) : new Map()
+								reactors.add(reactorId)
+								newReactions.set(reactionKey, reactors)
+								messageEl.reactions = newReactions
+							}
 						}
 					}
 					break
@@ -1119,7 +1124,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
-	<script type="application/javascript" src="shared.js?v=6"></script>
+	<script type="application/javascript" src="shared.js?v=7"></script>
 	<script type="application/javascript" src="event-timer.js" defer></script>
 	<script type="application/javascript" src="august21-event.js" defer></script>
 	<script type="application/javascript" src="quests.js" defer></script>
@@ -1128,8 +1133,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
-	<script type="module" src="shared-elements.js?v=9" defer></script>
-	<script type="module" src="live-chat-elements.js?v=1" defer></script>
+	<script type="module" src="shared-elements.js?v=10" defer></script>
+	<script type="module" src="live-chat-elements.js?v=2" defer></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
