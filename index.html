@@ -417,6 +417,8 @@
 						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo, reactions)
 						if (before) {
 							chatMessages.prepend(newMessage)
+							const channelMessages = chatMessages.get(currentChannel)
+							channelMessages.unshift(newMessage)
 						}
 						messageRenderPromises.push(
 							newMessage.updateComplete.then(() => {
@@ -494,7 +496,7 @@
 						if (data.byteLength - offset >= 4) {
 							repliesTo = data.getUint32(offset)
 						}
-						if (!(channel in cMessages)) {
+						if (!cMessages.has(channel)) {
 							break
 						}
 
@@ -510,9 +512,10 @@
 						const atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 64 >= chatMessages.scrollHeight
 
 						// Insert the message into the channel
-						cMessages[channel].push(newMessage)
-						if (cMessages[channel].length > MAX_CHANNEL_MESSAGES) {
-							cMessages[channel].shift()
+						const channelMessages = cMessages.get(channel)
+						channelMessages.push(newMessage)
+						if (channelMessages.length > MAX_CHANNEL_MESSAGES) {
+							channelMessages.shift()
 						}
 						if (channel == currentChannel) {
 							if (chatMessages.children.length > MAX_CHANNEL_MESSAGES) {
@@ -551,7 +554,7 @@
 				}
 				case 17: {// Live chat delete
 					const messageId = data.getUint32(1)
-					for (const channel of Object.values(cMessages)) {
+					for (const channel of cMessages.values()) {
 						for (const messageEl of channel) {
 							if (messageEl.messageId !== messageId) continue
 							channel.splice(channel.indexOf(messageEl), 1)
@@ -564,7 +567,7 @@
 					const messageId = data.getUint32(1)
 					const reactorId = data.getUint32(5)
 					const reactionKey = decoder.decode(data.buffer.slice(9))
-					for (const channel of Object.values(cMessages)) {
+					for (const channel of cMessages.values()) {
 						for (const messageEl of channel) {
 							if (messageEl.messageId !== messageId) {
 								continue
@@ -1268,9 +1271,11 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				<div id="modMessageIdForm" class="mod-form">
 					<input type="number" id="modMessageId" title="Message ID" placeholder="Message ID" oninput="
 						let found = null
-						for (let message of cMessages[currentChannel]) { if (message.messageId == this.value) {
-							found = message
-						}}
+						for (let message of cMessages.get(currentChannel)) {
+							if (message.messageId == this.value) {
+								found = message
+							}
+						}
 						modMessagePreview.innerHTML = found?.innerHTML ?? 'Message not found'">
 					<div id="modMessagePreview">Message not found</div>
 				</div>
@@ -2346,7 +2351,10 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		const hash = (text) => text.split("").reduce((hash, char) => (hash * 31 + char.charCodeAt()) >>> 0, 0)
 		let online = 1
 		let extraLanguage = (lang == "en" ? "tr" : lang)
-		let cMessages = { [extraLanguage]: [], en: [] }
+		/** @type {Map<string, LiveChatMessage[]>} */ const cMessages = new Map([
+			[extraLanguage, []],
+			["en", []]
+		])
 		let chatPreviousLoadDebounce = false
 		let chatPreviousAutoLoad = false
 		let currentChannel = lang
@@ -2437,14 +2445,12 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 
 		function extraChannel(code) {
-			// TODO: Implement if persisting all channels becomes too heavy
-			// delete cMessages[extraLanguage]
 			let info = LANG_INFOS.get(code)
 			channelMineName.innerText = code.toUpperCase()
 			channelMineImg.src = info?.flag
 			channelMineImg.style.display = ((info?.flag) ? "inline" : "none")
 			extraLanguage = code
-			cMessages[code] ||= []
+			cMessages.set(code, cMessages.get(code) || [])
 		}
 
 		function switchLanguageChannel(selected) {
@@ -2463,8 +2469,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			// User must ask to load previous at least once for each channel before site
 			// will start auto loading previous chat messages
 			chatPreviousAutoLoad = false
-			if (cMessages[selected]?.length) {
-				for (const el of cMessages[selected]) {
+			if (cMessages.get(selected)?.length) {
+				for (const el of cMessages.get(selected)) {
 					chatMessages.appendChild(el)
 				}
 			}
@@ -2497,7 +2503,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 
 		function chatReply(messageId, senderId) {
-			for (let m of cMessages[currentChannel]) {
+			for (let m of cMessages.get(currentChannel)) {
 				m.removeAttribute("reply")
 			}
 			currentReply = messageId
@@ -2507,7 +2513,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			messageInput.focus()
 			messageReplyPanel.removeAttribute("closed")
 			messageReplyLabel.innerText = translate("replyTo") + ": " + (intIdNames.get(senderId) || ("#" + senderId))
-			for (let m of cMessages[currentChannel]) {
+			for (let m of cMessages.get(currentChannel)) {
 				if (m["messageId"] == messageId) {
 					m.setAttribute("reply", "true")
 					break
@@ -2516,7 +2522,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 
 		function chatCancelReplies() {
-			for (let m of cMessages[currentChannel]) {
+			for (let m of cMessages.get(currentChannel)) {
 				m.removeAttribute("reply")
 			}
 			currentReply = null

@@ -99,7 +99,7 @@ class LiveChatMessage extends LitElement {
 	}
 	
 	#findReplyingMessage() {
-		if (!cMessages[currentChannel]) {
+		if (!cMessages.has(currentChannel)) {
 			return { name: "[ERROR]", content: "Channel not found", fake: true }
 		}
 		
