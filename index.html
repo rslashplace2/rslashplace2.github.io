@@ -417,7 +417,7 @@
 						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo, reactions)
 						if (before) {
 							chatMessages.prepend(newMessage)
-							const channelMessages = chatMessages.get(currentChannel)
+							const channelMessages = cMessages.get(currentChannel)
 							channelMessages.unshift(newMessage)
 						}
 						messageRenderPromises.push(
