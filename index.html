@@ -377,7 +377,12 @@
 					let channelLen = data.getUint8(i++)
 					let channel = decoder.decode(data.buffer.slice(i, (i += channelLen)))
 
-					if (channel !== currentChannel) return
+					let newChatScroll = chatMessages.scrollTop
+					let messageRenderPromises = []
+
+					if (channel !== currentChannel) {
+						return
+					}
 					while (i < data.byteLength) {
 						let offset = i
 						const messageLength = data.getUint16(offset); offset += 2
@@ -411,18 +416,23 @@
 						// TODO: We will worry about after when we get dynamic message loading
 						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo, reactions)
 						if (before) {
-							const scrollBefore = chatMessages.scrollTop
 							chatMessages.prepend(newMessage)
-							chatMessages.scrollTop = scrollBefore + newMessage.offsetHeight
 						}
+						messageRenderPromises.push(
+							newMessage.updateComplete.then(() => {
+								newChatScroll += newMessage.offsetHeight
+							})
+						)
 						i = offset
 					}
-					// chatPrevious button height (looks more seamless if the last of the
-					// loaded previous messages can be seen in place of the previous button
-					chatMessages.scrollTop -= 18
-					// Prevent site from spam loading chat messages when already at scroll top until it
-					// received the last lot
-					chatPreviousLoadDebounce = false
+					Promise.all(messageRenderPromises).then(() => {
+						// Looks more seamless if the last of the loaded previous messages can be seen
+						// in place of the previous button
+						chatMessages.scrollTop = newChatScroll - chatPreviousButton.offsetHeight
+						// Prevent site from spam loading chat messages when already at scroll top until it
+						// received the last lot
+						chatPreviousLoadDebounce = false
+					})
 					break
 				}
 				case 14: { // Moderation
@@ -497,7 +507,7 @@
 							newMessage.setAttribute("mention", "true")
 							if (currentChannel == channel) AUDIOS.closePalette.run()
 						}
-						const atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 16 >= chatMessages.scrollHeight
+						const atScrollBottom = chatMessages.scrollTop + chatMessages.offsetHeight + 64 >= chatMessages.scrollHeight
 
 						// Insert the message into the channel
 						cMessages[channel].push(newMessage)
@@ -505,13 +515,16 @@
 							cMessages[channel].shift()
 						}
 						if (channel == currentChannel) {
-							if (chatMessages.children.length > MAX_CHANNEL_MESSAGES) chatMessages.children[0].remove()
+							if (chatMessages.children.length > MAX_CHANNEL_MESSAGES) {
+								chatMessages.children[0].remove()
+							}
 							chatMessages.insertAdjacentElement("beforeEnd", newMessage)
-						}
-
-						// If at scroll bottom (we scroll down when new chat messages come)
-						if (atScrollBottom) {
-							chatMessages.scrollTo(0, chatMessages.scrollHeight)
+							newMessage.updateComplete.then(() => {
+								// If at scroll bottom (we scroll down when new chat messages come)
+								if (atScrollBottom) {
+									chatMessages.scrollTo(0, chatMessages.scrollHeight)
+								}
+							})
 						}
 					}
 					else { // place
