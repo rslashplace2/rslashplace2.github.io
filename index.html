@@ -21,87 +21,92 @@
 			celebration: new Audio("./sounds/celebration.mp3")
 		}
 
-		const EMOJIS = {
-			rofl: "🤣",
-			joy: "😂",
-			cool: "😎",
-			sunglasses: "😎",
-			heart: "❤️",
-			moyai: "🗿",
-			bruh: "🗿",
-			turkey: "🇹🇷",
-			skull: "💀",
-			sus: "ඞ",
-			iran: "🇮🇷",
-			uk: "🇬🇧",
-			usa: "🇺🇸",
-			america: "🇺🇸",
-			eyes: "👀",
-			fire: "🔥",
-			thumbsup: "👍",
-			thumbsdown: "👎",
-			clown: "🤡",
-			facepalm: "🤦‍♂️",
-			ok: "👌",
-			poop: "💩",
-			rocket: "🚀",
-			tada: "🎉",
-			celebration: "🎉",
-			moneybag: "💰",
-			crown: "👑",
-			muscle: "💪",
-			beer: "🍺",
-			pizza: "🍕",
-			cookie: "🍪",
-			balloon: "🎈",
-			gift: "🎁",
-			star: "⭐️",
-			love: "😍",
-			crying: "😢",
-			angry: "😠",
-			sleepy: "😴",
-			nerd: "🤓",
-			laughing: "😆",
-			vomiting: "🤮",
-			unicorn: "🦄",
-			alien: "👽",
-			ghost: "👻",
-			skullcrossbones: "☠️",
-			explosion: "💥",
-			shush: "🤫",
-			deaf: "🧏",
-			mew:"🤫🧏",
-			pray: "🙏",
-			thinking: "🤔"
-		}
-
-		const EMOJIS_CUSTOM = {
-			amogus: '<img src="custom_emojis/amogus.png" height="24">',
-			biaoqing: '<img src="custom_emojis/biaoqing.png" height="24">',
-			deepfriedh: '<img src="custom_emojis/deepfriedh.png" height="24">',
-			edp445: '<img src="custom_emojis/edp445.png" height="24">',
-			fan: '<img src="custom_emojis/fan.png" height="24">',
-			heavy: '<img src="custom_emojis/heavy.png" height="24">',
-			herkul: '<img src="custom_emojis/herkul.png" height="24">',
-			kaanozdil: '<img src="custom_emojis/kaanozdil.png" height="24">',
-			lowtiergod: '<img src="custom_emojis/lowtiergod.png" height="24">',
-			manly: '<img src="custom_emojis/manly.png" height="24">',
-			plsaddred: '<img src="custom_emojis/plsaddred.png" height="24">',
-			rplace: '<img src="custom_emojis/rplace.png" height="24">',
-			rplacediscord: '<img src="custom_emojis/rplacediscord.png" height="24">',
-			sonic: '<img src="custom_emojis/sonic.png" height="24">',
-			transparent: '<img src="custom_emojis/transparent.png" height="24">',
-			trollface: '<img src="custom_emojis/trollface.png" height="24">',
-		}
-
-		const COMMANDS = {
-			help: "<kbd>Help information for live chat</kbd>",
-			name: "<kbd>Change your username</kbd>",
-			vip: "<kbd>Apply a VIP code</kbd>",
-			lookup: "<kbd>Get the IDs of all players with the given name</kbd>",
-			getid: "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>",
-			whoplaced: "<kbd>View details of who placed the current pixel being hoveredd</kbd>"
-		}
+		const EMOJIS = new Map([
+			[ "rofl", "🤣" ],
+			[ "joy", "😂" ],
+			[ "cool", "😎" ],
+			[ "sunglasses", "😎" ],
+			[ "heart", "❤️" ],
+			[ "moyai", "🗿" ],
+			[ "bruh", "🗿" ],
+			[ "skull", "💀" ],
+			[ "sus", "ඞ" ],
+			[ "tr", "🇹🇷" ],
+			[ "turkey", "🇹🇷" ],
+			[ "ir", "🇮🇷" ],
+			[ "iran", "🇮🇷" ],
+			[ "uk", "🇬🇧" ],
+			[ "britain", "🇬🇧" ],
+			[ "usa", "🇺🇸" ],
+			[ "america", "🇺🇸" ],
+			[ "ru", "🇷🇺" ],
+			[ "russia", "🇷🇺" ],
+			[ "eyes", "👀" ],
+			[ "fire", "🔥" ],
+			[ "thumbsup", "👍" ],
+			[ "thumbsdown", "👎" ],
+			[ "clown", "🤡" ],
+			[ "facepalm", "🤦‍♂️" ],
+			[ "ok", "👌" ],
+			[ "poop", "💩" ],
+			[ "rocket", "🚀" ],
+			[ "tada", "🎉" ],
+			[ "celebration", "🎉" ],
+			[ "moneybag", "💰" ],
+			[ "crown", "👑" ],
+			[ "muscle", "💪" ],
+			[ "beer", "🍺" ],
+			[ "pizza", "🍕" ],
+			[ "cookie", "🍪" ],
+			[ "balloon", "🎈" ],
+			[ "gift", "🎁"],
+			[ "star", "⭐️" ],
+			[ "love", "😍" ],
+			[ "crying", "😢" ],
+			[ "angry", "😠" ],
+			[ "sleepy", "😴" ],
+			[ "nerd", "🤓" ],
+			[ "laughing", "😆" ],
+			[ "vomiting", "🤮" ],
+			[ "unicorn", "🦄" ],
+			[ "alien", "👽" ],
+			[ "ghost", "👻" ],
+			[ "skullcrossbones", "☠️" ],
+			[ "explosion", "💥" ],
+			[ "shush", "🤫" ],
+			[ "deaf", "🧏" ],
+			[ "mew", "🤫🧏" ],
+			[ "pray", "🙏" ],
+			[ "thinking", "🤔" ],
+			[ "sweat", "😅" ],
+			[ "wave", "👋"]
+		])
+		const CUSTOM_EMOJIS = new Map([
+			[ "amogus", '<img src="custom_emojis/amogus.png" height="24">' ],
+			[ "biaoqing", '<img src="custom_emojis/biaoqing.png" height="24">' ],
+			[ "deepfriedh", '<img src="custom_emojis/deepfriedh.png" height="24">' ],
+			[ "edp445", '<img src="custom_emojis/edp445.png" height="24">' ],
+			[ "fan", '<img src="custom_emojis/fan.png" height="24">' ],
+			[ "heavy", '<img src="custom_emojis/heavy.png" height="24">' ],
+			[ "herkul", '<img src="custom_emojis/herkul.png" height="24">' ],
+			[ "kaanozdil", '<img src="custom_emojis/kaanozdil.png" height="24">' ],
+			[ "lowtiergod", '<img src="custom_emojis/lowtiergod.png" height="24">' ],
+			[ "manly", '<img src="custom_emojis/manly.png" height="24">' ],
+			[ "plsaddred", '<img src="custom_emojis/plsaddred.png" height="24">' ],
+			[ "rplace", '<img src="custom_emojis/rplace.png" height="24">' ],
+			[ "rplacediscord", '<img src="custom_emojis/rplacediscord.png" height="24">' ],
+			[ "sonic", '<img src="custom_emojis/sonic.png" height="24">' ],
+			[ "transparent", '<img src="custom_emojis/transparent.png" height="24">' ],
+			[ "trollface", '<img src="custom_emojis/trollface.png" height="24">' ]
+		])
+		const COMMANDS = new Map([
+			[ "help", "<kbd>Help information for live chat</kbd>" ],
+			[ "name", "<kbd>Change your username</kbd>" ],
+			[ "vip", "<kbd>Apply a VIP code</kbd>" ],
+			[ "lookup", "<kbd>Get the IDs of all players with the given name</kbd>" ],
+			[ "getid", "<kbd>View your own User Id, or provide a name to view a list of online player User Ids</kbd>" ],
+			[ "whoplaced", "<kbd>View details of who placed the current pixel being hoveredd</kbd>" ]
+		])
 
 		// Flag emojis all sourced from openmoji.org, https://www.langoly.com/most-spoken-languages/
 		const LANG_INFOS = new Map([
@@ -179,6 +184,7 @@
 		let requestPixelPlacers = null // function injected by wscapsule
 		let requestLoadChannelPrevious = null // function injected by wscapsule
 		let chatReport = null // function injected by wscapsule
+		let chatReact = null // function injected by wscapsule
 		let canvasLocked = false // Server will tell us this
 		let includesPlacer = false // Server will tell us this
 
@@ -211,6 +217,17 @@
 				alert("Report sent!\nIn the meantime you can block this user by 'right clicking / press hold on the message' > 'block'")
 			}
 			chatReport = _chatReport
+
+			function _chatReact(messageId, reactKey) {
+				const reactBuffer = encoder.encode("XXXXX" + reactKey)
+				reactBuffer[0] = 18
+				reactBuffer[1] = messageId >> 24
+				reactBuffer[2] = messageId >> 16
+				reactBuffer[3] = messageId >> 8
+				reactBuffer[4] = messageId & 255
+				call(send, ws, reactBuffer)
+			}
+			chatReact = _chatReact
 
 			function createLiveChatMessage(messageId, txt, senderId, name, sendDate, repliesTo = null, reactions = null) {
 				const message = document.createElement("r-live-chat-message")
@@ -376,11 +393,11 @@
 						for (let j = 0; j < reactionsL; j++) {
 							const reactionKeyL = data.getUint8(offset); offset++
 							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
-							const reactors = []
+							const reactors = new Set()
 							const reactorsL = data.getUint32(offset); offset += 4
 							for (let k = 0; k < reactorsL; k++) {
 								const reactor = data.getUint32BE(offset); offset += 4
-								reactors.push(reactor)
+								reactors.add(reactor)
 							}
 							reactions.set(reactionKey, reactors)
 						}
@@ -454,11 +471,11 @@
 						for (let j = 0; j < reactionsL; j++) {
 							const reactionKeyL = data.getUint8(offset); offset++
 							const reactionKey = decoder.decode(data.buffer.slice(i, (i += reactionKeyL)))
-							const reactors = []
+							const reactors = new Set()
 							const reactorsL = data.getUint32(offset); offset += 4
 							for (let k = 0; k < reactorsL; k++) {
 								const reactor = data.getUint32BE(offset); offset += 4
-								reactors.push(reactor)
+								reactors.add(reactor)
 							}
 							reactions.set(reactionKey, reactors)
 						}
@@ -521,8 +538,8 @@
 				}
 				case 17: {// Live chat delete
 					const messageId = data.getUint32(1)
-					for (let channel of Object.values(cMessages)) {
-						for (let messageEl of channel) {
+					for (const channel of Object.values(cMessages)) {
+						for (const messageEl of channel) {
 							if (messageEl.messageId !== messageId) continue
 							channel.splice(channel.indexOf(messageEl), 1)
 							messageEl.remove()
@@ -531,9 +548,20 @@
 					break
 				}
 				case 18: { // Live chat reaction
-					const senderId = data.getUint32(1)
-					const reactionKey = decoder.decode(data.buffer.slice(5))
-					// TODO: Modify chat message
+					const messageId = data.getUint32(1)
+					const reactorId = data.getUint32(5)
+					const reactionKey = decoder.decode(data.buffer.slice(9))
+					for (const channel of Object.values(cMessages)) {
+						for (const messageEl of channel) {
+							if (messageEl.messageId !== messageId) continue
+							let reactors = messageEl.reactions.get(reactionKey)
+							if (!reactors) {
+								reactors = new Set()
+							}
+							reactors.add(reactorId)
+							messageEl.reactions = messageEl.reactions.set(reactionKey, reactors)
+						}
+					}
 					break
 				}
 				case 20: { // Text capcha
@@ -882,59 +910,62 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			call(addEventListener, document.body, "keydown", function(e) {
 				if (!e.isTrusted) return
 
-				//"Shift+O" to open overlay menu
-				if (e.key === "O" && e.shiftKey && !("value" in document.activeElement)) {
-					e.preventDefault()
-					overlayMenu.toggleAttribute("opened")
-				}
-				else if (e.key === "/" && !("value" in document.activeElement)) {
-					e.preventDefault()
-					openChatPanel()
-					messageInput.focus()
-				}
-				else if (e.key === "Escape") {
-					// TODO: Not optimal, but it works for now
-					e.preventDefault()
-					modal.style.display = "flex"
-					bg.style.display = "block"
-				}
-				else if (e.key === "=" || e.key == "+") {
-					e.preventDefault()
-					z += 0.02
-					pos()
-				}
-				else if (e.key === "-") {
-					e.preventDefault()
-					z -= 0.02
-					pos()
-				}
-
-				// Move around with arrow keys
-				let moveEaseI = 10
-				let repeatFunc = setInterval(function() {
-					// We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 == 1
-					switch (e.keyCode) {
-					case 37:
-						x -= moveEaseI / 55
-						arrowkeyDown.right = true
-						break //right
-					case 38:
-						y -= moveEaseI / 55
-						arrowkeyDown.up = true
-						break //up
-					case 39:
-						x += moveEaseI / 55
-						arrowkeyDown.left = true
-						break //left
-					case 40:
-						y += moveEaseI / 55
-						arrowkeyDown.down = true
-						break //down
+				// Handle keybindings
+				if (!("value" in document.activeElement)) {
+					//"Shift+O" to open overlay menu
+					if (e.key === "O" && e.shiftKey) {
+						e.preventDefault()
+						overlayMenu.toggleAttribute("opened")
 					}
-					pos()
-					moveEaseI--
-					if (moveEaseI <= 0) clearInterval(repeatFunc)
-				}, 16)
+					else if (e.key === "/") {
+						e.preventDefault()
+						openChatPanel()
+						messageInput.focus()
+					}
+					else if (e.key === "Escape") {
+						// TODO: Not optimal, but it works for now
+						e.preventDefault()
+						modal.style.display = "flex"
+						bg.style.display = "block"
+					}
+					else if ((e.key === "=" || e.key == "+")) {
+						e.preventDefault()
+						z += 0.02
+						pos()
+					}
+					else if (e.key === "-") {
+						e.preventDefault()
+						z -= 0.02
+						pos()
+					}
+
+					// Move around with arrow keys
+					let moveEaseI = 10
+					let repeatFunc = setInterval(function() {
+						// We use 55 because: 10/55+9/55+8/55+7/55+6/55+5/55+4/55+3/55+2/55+1/55 = 1
+						switch (e.keyCode) {
+						case 37:
+							x -= moveEaseI / 55
+							arrowkeyDown.right = true
+							break //right
+						case 38:
+							y -= moveEaseI / 55
+							arrowkeyDown.up = true
+							break //up
+						case 39:
+							x += moveEaseI / 55
+							arrowkeyDown.left = true
+							break //left
+						case 40:
+							y += moveEaseI / 55
+							arrowkeyDown.down = true
+							break //down
+						}
+						pos()
+						moveEaseI--
+						if (moveEaseI <= 0) clearInterval(repeatFunc)
+					}, 16)
+				}
 
 				//Begin palette commands
 				if (onCooldown || canvasLocked) return
@@ -1089,7 +1120,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
 	<script type="application/javascript" src="shared.js?v=6"></script>
-	<script type="application/javascript" src="shared-elements.js?v=8" defer></script>
 	<script type="application/javascript" src="event-timer.js" defer></script>
 	<script type="application/javascript" src="august21-event.js" defer></script>
 	<script type="application/javascript" src="quests.js" defer></script>
@@ -1098,6 +1128,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="canvas-snow.min.js"></script>
 	<script type="application/javascript" src="snowplace.js"></script>
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
+	<script type="module" src="shared-elements.js?v=9" defer></script>
 	<script type="module" src="live-chat-elements.js?v=1" defer></script>
 	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
@@ -2579,7 +2610,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			}
 
 			let handled = false
-			for (const [emojiCode, value] of Object.entries(EMOJIS)) {
+			for (const [emojiCode, value] of EMOJIS) {
 				if (comp && emojiCode.startsWith(comp)) {
 					const entryElement = createEmojiEntry(emojiCode)
 					const entryValueText = document.createTextNode(value)
@@ -2603,7 +2634,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					handled = true
 				}
 			}
-			if (!handled) for (const [emojiCode, value] of Object.entries(EMOJIS_CUSTOM)) {
+			if (!handled) for (const [emojiCode, value] of CUSTOM_EMOJIS) {
 				if (comp && emojiCode.startsWith(comp)) {
 					const entryElement = createEmojiEntry(emojiCode)
 					entryElement.appendChild(stringToHtml(value))
@@ -2625,7 +2656,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					handled = true
 				}
 			}
-			if (!handled) for (const [commandCode, value] of Object.entries(COMMANDS)) {
+			if (!handled) for (const [commandCode, value] of COMMANDS) {
 				if (comp && commandCode.startsWith(comp)) {
 					const entryElement = document.createElement("button")
 					entryElement.classList.add("message-emojis-suggestion")
@@ -2831,7 +2862,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					tlTimer.innerText = "0.0s"
 				})
 				.catch((e) => {
-					console.log("Timelapse failed, " + e)
+					console.error("Timelapse failed, " + e)
 					tlConfirm.value = "Create"
 					tlConfirm.style.pointerEvents = "auto"
 					clearInterval(tlTimerInterval)
@@ -3013,6 +3044,9 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			get onChatContext() {
 				return onChatContext
 			},
+			get chatReact() {
+				return chatReact
+			},
 			get chatReply() {
 				return chatReply
 			},
@@ -3031,8 +3065,20 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			get cMessages() {
 				return cMessages
 			},
+			get chatMessages() { // element
+				return chatMessages
+			},
 			get currentChannel() {
 				return currentChannel
+			},
+			get EMOJIS() {
+				return EMOJIS
+			},
+			get CUSTOM_EMOJIS() {
+				return CUSTOM_EMOJIS
+			},
+			get intIdNames() {
+				return intIdNames
 			}
 		}
 	</script>

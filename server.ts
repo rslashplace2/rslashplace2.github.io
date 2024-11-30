@@ -110,13 +110,18 @@ const DEFAULT_EMOJIS = new Map([
     [ "heart", "❤️" ],
     [ "moyai", "🗿" ],
     [ "bruh", "🗿" ],
-    [ "turkey", "🇹🇷" ],
     [ "skull", "💀" ],
     [ "sus", "ඞ" ],
+    [ "tr", "🇹🇷" ],
+    [ "turkey", "🇹🇷" ],
+    [ "ir", "🇮🇷" ],
     [ "iran", "🇮🇷" ],
     [ "uk", "🇬🇧" ],
+    [ "britain", "🇬🇧" ],
     [ "usa", "🇺🇸" ],
     [ "america", "🇺🇸" ],
+    [ "ru", "🇷🇺" ],
+    [ "russia", "🇷🇺" ],
     [ "eyes", "👀" ],
     [ "fire", "🔥" ],
     [ "thumbsup", "👍" ],
@@ -153,7 +158,9 @@ const DEFAULT_EMOJIS = new Map([
     [ "deaf", "🧏" ],
     [ "mew", "🤫🧏" ],
     [ "pray", "🙏" ],
-    [ "thinking", "🤔" ]
+    [ "thinking", "🤔" ],
+    [ "sweat", "😅" ],
+    [ "wave", "👋"]
 ])
 const DEFAULT_CUSTOM_EMOJIS = new Map([
     [ "amogus", "custom_emojis/amogus.png" ],
@@ -1064,8 +1071,8 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     const reactionBuf = Buffer.alloc(9 + encodedReaction.byteLength)
                     reactionBuf[0] = 18
                     reactionBuf.writeUint32BE(messageId, 1)
-                    reactionBuf.writeUint32BE(ws.data.intId, 1)
-                    reactionBuf.set(encodedReaction, 5)
+                    reactionBuf.writeUint32BE(ws.data.intId, 5)
+                    reactionBuf.set(encodedReaction, 9)
                     wss.publish("all", reactionBuf)
                     break
                 }
@@ -1322,7 +1329,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
                     ws.data.shadowBanned = true
                     const sanitisedDetail = detail.replaceAll("```", "`​`​`​")
                     modWebhookLog("Client activity reported webdriver usage:\nClient data:\n```\n" +
-                        `Ip: ${ws.data.ip}\nChat name: ${ws.data.chatName}\nUser id: ${ws.data.intId}\nPerms: ${ws.data.perms}\nHeaders: ${JSON.stringify(ws.data.headers, null, 4)}\n` +
+                        `Ip: ${ws.data.ip}\nChat name: ${ws.data.chatName}\nUser ID: ${ws.data.intId}\nPerms: ${ws.data.perms}\nHeaders: ${JSON.stringify(ws.data.headers, null, 4)}\n` +
                         `Connect date: ${new Date(ws.data.connDate).toLocaleString()}\nLast period captcha: ${new Date(ws.data.lastPeriodCaptcha).toLocaleString()}\n` +
                         `\`\`\`\nClient details (untrusted):\n\`\`\`\n${sanitisedDetail}\n\`\`\`\nServer has temporarily shadowbanned this connection.`)
                     break

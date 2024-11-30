@@ -506,7 +506,7 @@ class Votes extends LitElement {
 	}
 
 	#notifyVote() {
-		const event = new CustomEvent("vote-changed", {
+		const event = new CustomEvent("votechanged", {
 			detail: { voted: this.voted },
 			bubbles: true,
 			composed: true

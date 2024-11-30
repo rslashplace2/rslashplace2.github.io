@@ -1,3 +1,5 @@
+import { LitElement, html, unsafeHTML } from "./lit.all.min.js"
+
 class Spoiler extends HTMLElement {
 	constructor() {
 		super()
@@ -64,9 +66,84 @@ class CloseIcon extends HTMLElement {
 		this.addEventListener("keydown", function(event) {
 			if (event.key == "Enter" || event.key == " ") {
 				this.click()
-				console.log(this)
 			}
 		})
 	}
 }
 customElements.define("r-close-icon", CloseIcon)
+
+class EmojiPanel extends LitElement {
+	constructor() {
+		super()
+	}
+
+	connectedCallback() {
+		super.connectedCallback()
+		this.classList.add("context-menu")
+	}
+
+	// @ts-expect-error Remove shadow DOM by using element itself as the shadowroot
+	createRenderRoot() {
+		return this
+	}	
+
+	/**
+	 * @param {Map<any, any>} changedProperties
+	 */
+	willUpdate(changedProperties) {
+		if (changedProperties.has("class")) {
+			this.classList.add("context-menu")
+		}
+	}
+
+	render() {
+		const values = []
+		return html`
+			<div class="emojis-header">
+				<h3>Select an emoji:</h3>
+				<r-close-icon @click=${this.#notifyClose}></r-close-icon>
+			</div>
+			<div class="emojis-body">
+				<ul class="emojis-container">
+					${EMOJIS.entries().map(([emojiKey, value]) => {
+							let entry = null
+							if (!values.includes(value)) {
+								entry = html`<li title=${emojiKey}>
+										<button type="button" @click=${() => this.#notifySelection(emojiKey, value)}>${value}</button>
+									</li>`
+							}
+							values.push(value)
+							return entry
+						}
+					)}
+				</ul>
+				<hr>
+				<h4>Custom emojis:</h4>
+				<ul class="emojis-container">
+					${CUSTOM_EMOJIS.entries().map(([emojiKey, value]) =>
+						html`<li title=${emojiKey}>
+								<button type="button" @click=${() => this.#notifySelection(emojiKey, value)}>${unsafeHTML(value)}</button>
+							</li>`
+					)}
+				</ul>
+			</div>`
+	}
+
+	#notifyClose() {
+		const event = new CustomEvent("close", {
+			bubbles: true,
+			composed: true
+		})
+		this.dispatchEvent(event)
+	}
+
+	#notifySelection(key, value) {
+		const event = new CustomEvent("selectionchanged", {
+			detail: { key, value },
+			bubbles: true,
+			composed: true
+		})
+		this.dispatchEvent(event)
+	}
+}
+customElements.define("r-emoji-panel", EmojiPanel)

@@ -32,6 +32,7 @@ const TRANSLATIONS = {
 		createNewAccount: "Create a new account",
 		mention: "Mention",
 		replyTo: "Reply to",
+		addReaction: "Add reaction",
 		report: "Report",
 		block: "Block",
 		unblock: "Unblock",
@@ -410,13 +411,13 @@ function sanitise(txt) {
 function markdownParse(text) {
 	// Headers
 	text = text.replace(/^(#{3}\s)(.+)/gm, (match, p1, p2) => {
-		return `<h3 style="display:inline;">${p2}</h3>`
+		return `<h3>${p2}</h3>`
 	})
 	text = text.replace(/^(#{2}\s)(.+)/gm, (match, p1, p2) => {
-		return `<h2 style="display:inline;">${p2}</h2>`
+		return `<h2>${p2}</h2>`
 	})
 	text = text.replace(/^(#{1}\s)(.+)/gm, (match, p1, p2) => {
-		return `<h1 style="display:inline;">${p2}</h1>`
+		return `<h1>${p2}</h1>`
 	})
 	// Bold
 	text = text.replace(/\*\*(.+?)\*\*/g, (match) => {
