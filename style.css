@@ -821,6 +821,8 @@ body[eventphase="3"] .coverer-title {
 	border-radius: 20px 0px 0px 20px;
 	background-color: transparent;
 	white-space: nowrap;
+	display: flex;
+	align-items: center;
 }
 
 #captchaPopup {
@@ -1406,4 +1408,140 @@ postcopy span {
 	cursor: pointer;
 	font-size: 8px;
 	opacity: 0.3;
+}
+
+/* TODO: Clean up and separate out into theme specific CSS files */
+r-live-chat-message r-emoji-panel {
+	right: 5px;
+	top: 24px;
+}
+r-live-chat-message .reactions {
+	display: flex;
+	list-style: none;
+	margin-left: 12px;
+	flex-wrap: wrap;
+}
+r-live-chat-message .reaction {
+	list-style: none;
+}
+r-live-chat-message .reaction.expanded {
+	z-index: 1;
+}
+r-live-chat-message .emoji-container {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	row-gap: 4px;
+    margin-bottom: 4px;
+}
+r-live-chat-message .emoji-container p {
+	width: 100%;
+}
+r-live-chat-message .emoji {
+    min-width: 18px;
+    width: 18px;
+    min-height: 18px;
+    height: 18px;
+	font-size: 18px;
+	user-select: none;
+	transition: .2s font-size, .2s min-width, .2s min-height
+}
+r-live-chat-message img.emoji.expanded {
+	min-height: 54px;
+    min-width: 54px;
+}
+r-live-chat-message span.emoji.expanded {
+	font-size: 48px;
+	width: 54px;
+	height: 54px;
+}
+r-live-chat-messaage hr {
+	margin: 4px;
+}
+r-live-chat-message .reaction-details {
+	padding: 4px 8px 4px 8px;
+	border: 1px solid gray;
+	border-radius: 64px;
+	max-height: 42px;
+	background-color: white;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+	margin-left: -8px;
+	margin-bottom: -8px;
+	overflow: hidden;
+	transition: .2s max-height, .2s box-shadow;
+}
+r-live-chat-message .reaction-body {
+	display: flex;
+	flex-direction: column;
+	row-gap: 4px;
+}
+r-live-chat-message .reaction-details[open] {
+	border-radius: 4px;
+	max-height: 256px;
+	border: none;
+	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+}
+r-live-chat-message .reactors {
+	padding-left: 8px;
+	overflow-y: auto;
+}
+r-live-chat-message .reactor {
+    list-style: inside;
+}
+
+r-emoji-panel.context-menu {
+	display: block;
+	width: 240px;
+	max-height: 360px;
+	overflow-y: auto;
+	position: absolute;
+	resize: vertical;
+	min-height: 120px;
+	padding: 0;
+}
+
+r-emoji-panel .emojis-header {
+	display: flex;
+	justify-content: space-between;
+	position: sticky;
+	top: 0px;
+	padding: 5px;
+	background: var(--ui-panel-bg);
+}
+
+r-emoji-panel .emojis-body {
+	padding: 5px;
+	display: flex;
+	flex-direction: column;
+	row-gap: 8px;
+}
+
+r-emoji-panel .emojis-container {
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	list-style: none;
+	row-gap: 2px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
+}
+
+r-emoji-panel .emojis-container > li {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	list-style-type: none;
+	padding: 0;
+}
+
+r-emoji-panel button {
+	box-shadow: none;
+	background: none;
+	border: none;
+	width: auto;
+	height: auto;
+	font-size: 28px;
+	width: 32px;
+	height: 32px;
+	padding: 0;
 }
