@@ -1,7 +1,7 @@
 import { LitElement, html, styleMap, unsafeHTML } from "./lit.all.min.js"
 // @ts-expect-error Hack to access window globals from module script
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-var { cMessages, currentChannel, chatMessages, x, y, pos, chatMentionUser, onChatContext, chatReply, chatReport, chatModerate, CHAT_COLOURS, hash, chatReact, EMOJIS, CUSTOM_EMOJIS, intIdNames } = window.moduleExports
+var { cMessages, currentChannel, chatMessages, x, y, pos, chatMentionUser, onChatContext, chatReply, chatReport, chatModerate, chatReactionsPanel, CHAT_COLOURS, hash, chatReact, EMOJIS, CUSTOM_EMOJIS, intIdNames } = window.moduleExports
 
 class LiveChatMessage extends LitElement {
 	static properties = {
@@ -12,7 +12,6 @@ class LiveChatMessage extends LitElement {
 		repliesTo: { type: Number, reflect: true, attribute: "repliesto" },
 		content: { type: String, reflect: true, attribute: "content" },
 		reactions: { type: Object, attribute: false },
-		showReactionsPanel: { type: Boolean, attribute: false },
 		openedReactionDetails: { type: String, attribute: false },
 		class: { reflect: true }
 	}
@@ -27,7 +26,6 @@ class LiveChatMessage extends LitElement {
 		this.content = null
 		/** @type {Map<string, Set<number>>|null} */ this.reactions = null
 		this.replyingMessage = null
-		this.showReactionsPanel = false
 		this.openedReactionDetails = ""
 		this.addEventListener("contextmenu", this.#handleContextMenu)
 	}
@@ -103,7 +101,7 @@ class LiveChatMessage extends LitElement {
 			return { name: "[ERROR]", content: "Channel not found", fake: true }
 		}
 		
-		const message = cMessages[currentChannel].find(msg => msg.messageId === this.repliesTo)
+		const message = cMessages.get(currentChannel).find(msg => msg.messageId === this.repliesTo)
 		return message || {
 			name: "[?????]",
 			content: translate("messageNotFound"),
@@ -159,7 +157,25 @@ class LiveChatMessage extends LitElement {
 		chatModerate("delete", this.senderId, this.messageId, this)
 	}
 
-	#handleReact(e) {
+	#handleReact() {
+		// Open react panel singleton element
+		chatReactionsPanel.setAttribute("open", "true")
+		
+		const bounds = this.getBoundingClientRect()
+		const panelHeight = chatReactionsPanel.offsetHeight
+		const viewportHeight = window.innerHeight
+		const topPosition = Math.min(bounds.bottom, viewportHeight - panelHeight - 8) // Ensure it stays on screen
+	
+		// Apply position
+		chatReactionsPanel.style.right = "8px"
+		chatReactionsPanel.style.top = `${Math.max(8, topPosition)}px` // Ensure it doesn't go off the top
+	
+		chatReactionsPanel.onemojiselection = (e) => {
+			this.#onReactEmojiSelected(e)
+		}
+	}
+
+	#onReactEmojiSelected(e) {
 		const { key } = e.detail
 		chatReact(this.messageId, key)
 	}
@@ -197,18 +213,14 @@ class LiveChatMessage extends LitElement {
 				<img class="action-button" src="svg/reply-action.svg"
 					title=${translate("replyTo")} tabindex="0" @click=${this.#handleReply}>
 				<img class="action-button" src="svg/react-action.svg"
-					title=${translate("addReaction")} tabindex="0" @click=${() => this.showReactionsPanel = true}>
+					title=${translate("addReaction")} tabindex="0" @click=${this.#handleReact}>
 				<img class="action-button" src="svg/report-action.svg"
 					title=${translate("report")} tabindex="0" @click=${this.#handleReport}>
 				${localStorage.vip?.startsWith("!") ? html`
 					<img class="action-button" src="svg/moderate-action.svg"
 						title=${translate("Moderation options")} tabindex="0" @click=${this.#handleModerate}>
 				` : null}
-			</div>
-			${this.showReactionsPanel
-				? html`<r-emoji-panel @selectionchanged=${this.#handleReact} @close=${() => this.showReactionsPanel = false}
-					@mouseleave=${() => this.showReactionsPanel = false}></r-emoji-panel>`
-				: null}`
+			</div>`
 	}
 
 	#renderReactions() {

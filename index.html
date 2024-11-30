@@ -378,7 +378,7 @@
 					let channel = decoder.decode(data.buffer.slice(i, (i += channelLen)))
 
 					let newChatScroll = chatMessages.scrollTop
-					let messageRenderPromises = []
+					const messageRenderPromises = []
 
 					if (channel !== currentChannel) {
 						return
@@ -417,7 +417,7 @@
 						const newMessage = createLiveChatMessage(messageId, txt, intId, name, sendDate, repliesTo, reactions)
 						if (before) {
 							chatMessages.prepend(newMessage)
-							const channelMessages = chatMessages.get(currentChannel)
+							const channelMessages = cMessages.get(currentChannel)
 							channelMessages.unshift(newMessage)
 						}
 						messageRenderPromises.push(
@@ -1650,6 +1650,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					</li>
 				</ul>
 			</div>
+			<r-emoji-panel id="chatReactionsPanel" onclose="this.removeAttribute('open')"></r-emoji-panel>
 			<a id="ad" target="_blank">
 				<button class="ad-close" onclick="
 					event.preventDefault()
@@ -2456,23 +2457,32 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		function switchLanguageChannel(selected) {
 			channelMine.style.opacity = "0.5"
 			channelEn.style.opacity = "0.5"
-			if (currentChannel != selected) chatCancelReplies()
+			if (currentChannel != selected) {
+				chatCancelReplies()
+			}
 			currentChannel = selected
 			chatMessages.style.direction = (LANG_INFOS.get(selected)?.rtl) ? "rtl" : "ltr"
 
-			if (selected == "en")
+			if (selected == "en") {
 				channelEn.style.opacity = "1"
-			else if (selected == extraLanguage)
+			}
+			else if (selected == extraLanguage) {
 				channelMine.style.opacity = "1"
-
+			}
 			chatMessages.innerHTML = ""
 			// User must ask to load previous at least once for each channel before site
 			// will start auto loading previous chat messages
 			chatPreviousAutoLoad = false
+			const messageRenderPromises = []
+
 			if (cMessages.get(selected)?.length) {
-				for (const el of cMessages.get(selected)) {
-					chatMessages.appendChild(el)
+				for (const messageEl of cMessages.get(selected)) {
+					messageRenderPromises.push(messageEl.updateComplete)
+					chatMessages.appendChild(messageEl)
 				}
+				Promise.all(messageRenderPromises).then(() => {
+					chatMessages.scrollTo(0, chatMessages.scrollHeight)
+				})
 			}
 			else if (typeof requestLoadChannelPrevious === "function") {
 				// If we don't have any cached messages for this channel, try pre-populate with a few
@@ -2489,7 +2499,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 
 		function chatMentionUser(senderId) {
-			let [start, end] = [messageInput.selectionStart, messageInput.selectionEnd]
+			const [ start, end ] = [ messageInput.selectionStart, messageInput.selectionEnd ]
 			let mentionText = "@"
 			const identifier = intIdNames.get(senderId) || ("#" + senderId)
 			if (typeof identifier === "string") {
@@ -3103,6 +3113,9 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			},
 			get intIdNames() {
 				return intIdNames
+			},
+			get chatReactionsPanel() {
+				return chatReactionsPanel
 			}
 		}
 	</script>
