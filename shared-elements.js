@@ -73,6 +73,8 @@ class CloseIcon extends HTMLElement {
 customElements.define("r-close-icon", CloseIcon)
 
 class EmojiPanel extends LitElement {
+	#onEmojiSelection = null
+
 	constructor() {
 		super()
 	}
@@ -80,6 +82,20 @@ class EmojiPanel extends LitElement {
 	connectedCallback() {
 		super.connectedCallback()
 		this.classList.add("context-menu")
+	}
+
+	set onemojiselection(handler) {
+		if (this.#onEmojiSelection) {
+			this.removeEventListener("emojiselection", this.#onEmojiSelection)
+		}
+		if (typeof handler === "function") {
+			this.#onEmojiSelection = handler
+			this.addEventListener("emojiselection", handler)
+		}
+	}
+
+	get onemojiselection() {
+		return this.#onEmojiSelection
 	}
 
 	// @ts-expect-error Remove shadow DOM by using element itself as the shadowroot
@@ -138,7 +154,7 @@ class EmojiPanel extends LitElement {
 	}
 
 	#notifySelection(key, value) {
-		const event = new CustomEvent("selectionchanged", {
+		const event = new CustomEvent("emojiselection", {
 			detail: { key, value },
 			bubbles: true,
 			composed: true
