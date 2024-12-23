@@ -1,4 +1,5 @@
 :root {
+	--ui-frame-shadow: none;
 	--ui-background: #333;
 	--ui-panel-hover: lightgrey;
 	--ui-panel-bg: white;
@@ -6,6 +7,7 @@
 }
 
 :root[data-variant="dark"] {
+	--ui-frame-shadow: none;
 	--ui-background: black;
 	--ui-panel-hover: #313131;
 	--ui-panel-bg: #141414;
@@ -13,6 +15,14 @@
 }
 :root[data-variant="dark"] .icon-image {
 	filter: invert(1);
+}
+
+:root[data-variant="merry"] {
+	--ui-frame-shadow: inset 0 0 32px #10ad3a;
+	--ui-background: linear-gradient(to bottom, #568dae, #7fa2b4 30%, #8e9eac 60%, #bdb6a7 90%);
+	--ui-panel-hover: #f7c6c6;
+	--ui-panel-bg: #ffffff;
+	--ui-text: #333333;
 }
 
 html, body {
@@ -108,6 +118,10 @@ a {
 
 #loadingScreen {
     background: #d6dfe3;
+}
+
+#maincontent {
+	box-shadow: var(--ui-frame-shadow);
 }
 
 #modal {
@@ -229,6 +243,8 @@ a {
 	text-align: center;
 	font-size: 25px;
 	line-height: 8px;
+	display: flex;
+	justify-content: center;
 }
 
 #helpbtn, #posel, #place, #archiveView, .toast-menu, #captchaPopup, #closebtn, #timelapsePanel {

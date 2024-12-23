@@ -132,8 +132,8 @@
 		])
 
 		const DEFAULT_THEMES = new Map([
-			[ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "11", pixelselect: "svg/pixel-select-2022.svg" }],
-			[ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "11", pixelselect: "svg/pixel-select-2023.svg" }],
+			[ "r/place 2022", { id: "r/place 2022", css: "rplace-2022.css", cssVersion: "12", pixelselect: "svg/pixel-select-2022.svg" }],
+			[ "r/place 2023", { id: "r/place 2023", css: "rplace-2023.css", cssVersion: "12", pixelselect: "svg/pixel-select-2023.svg" }],
 		])
 
 		const ADS = [
@@ -1158,7 +1158,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<meta name="apple-mobile-web-app-title" content="place">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=354" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=355" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 <meta property="og:title" content="r/place 2"/>
@@ -1323,7 +1323,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					<button style="flex-grow: 1;" onclick="closeChatModerate()">Cancel</button>
 				</div>
 			</div>
-			<div noselect id="place" tabindex="0" onclick="
+			<button noselect id="place" onclick="
 				if (initialConnect && CD < Date.now()) {
 					zoomIn()
 					showPalette()
@@ -1340,7 +1340,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				else {
 					AUDIOS.invalid.run()
 				}
-			" translate="connecting">Connecting...</div>
+			" translate="connecting">Connecting...</button>
 			<canvas id="canvas" width="0" height="0" noselect></canvas>
 			<div id="canvparent1" noselect>
 				<img id="edge" height="226" width="290" src="images/snoo-edge.png" />
@@ -1417,7 +1417,15 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					</div>
 				</div>
 			</dialog>
-			<div noselect id="helpbtn" tabindex="0" class="layout" onclick="
+			<button noselect id="closebtn" class="layout" onclick="
+				bg.style.opacity = '0.5'
+				bg.style.display = 'block'
+				closeChatPanel()
+
+				document.body.id = 'out'
+				window.onresize()
+			">...</button>
+			<button noselect id="helpbtn" class="layout" onclick="
 				if (modal.style.display == 'flex') {
 					modal.style.display = 'none'
 					bg.style.display = 'none'
@@ -1428,15 +1436,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				}
 			">
 				<img class="icon-image" src="svg/help.svg">
-			</div>
-			<div noselect id="closebtn" tabindex="0" class="layout" onclick="
-				bg.style.opacity = '0.5'
-				bg.style.display = 'block'
-				closeChatPanel()
-
-				document.body.id = 'out'
-				window.onresize()
-			">...</div>
+			</button>
 			<div id="bg" style="display:none;position:absolute;top:0;left:0;bottom:0;right:0;background:rgba(0,0,0,.4);z-index:6"></div>
 			<div id="modal" style="display:none">
 				<div class="modal-header">
@@ -1502,7 +1502,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 								<hr style="opacity: 0.2">
 								<li theme="r/place 2022" variant="dark" effects="darkplace"><span>darkplace.live (April fools)</span></li>
 								<li theme="r/place 2022" variant="" effects="winter"><span>snowplace.live (December 2023)</span></li>
-								<!--<li theme="goldplace" variant=""><span>goldplace.live (August 21st 2024)</span></li>-->
+								<li theme="r/place 2022" variant="merry" effects="winter"><span>merryplace.live (December 2024)</span></li>
+								<!--<li theme="goldplace" variant=""><span>goldplace.live (August 21st 2025)</span></li>-->
 							</ul>
 						</div>
 					</div>
@@ -2815,7 +2816,9 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			document.documentElement.dataset.variant = variant
 		}
 		const startupThemeSet = DEFAULT_THEMES.get(localStorage.theme || "r/place 2022")
-		theme(startupThemeSet, localStorage.variant, localStorage.effects)
+		// TEMP: Christmas / new years 2024
+		theme(DEFAULT_THEMES.get("r/place 2022"), "merry", "winter")
+		//theme(startupThemeSet, localStorage.variant, localStorage.effects)
 		themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
 		// Apply all translations from shared.js
