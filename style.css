@@ -1480,6 +1480,7 @@ r-live-chat-message .reaction-body {
 	display: flex;
 	flex-direction: column;
 	row-gap: 4px;
+	touch-action: pan-y;
 }
 r-live-chat-message .reaction-details[open] {
 	border-radius: 4px;

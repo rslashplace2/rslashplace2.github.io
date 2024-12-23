@@ -66,36 +66,64 @@ class LiveChatMessage extends LitElement {
 	}
 
 	/**
-	 * @param {string} txt
-	 * @returns {string}
+	 * @param {string} txt Raw message text
+	 * @returns {any} Lit HTML output
 	 */
-	#formatMessage(txt) {
-		if (!txt) return ""
-		
-		let formatted = sanitise(txt)
-		formatted = markdownParse(formatted)
-		
+	#parseMessage(txt) {
+		if (!txt) {
+			return null
+		}
+
+		// Sanitize and parse markdown
+		let parsedHTML = markdownParse(sanitise(txt))
+	
 		// Handle emojis
-		formatted = formatted.replaceAll(/:([a-z-_]{0,16}):/g, (full, source) => {
-			const isLargeEmoji = formatted.match(new RegExp(source)).length === 1 &&
-			!formatted.replace(full, "").trim()
+		parsedHTML = parsedHTML.replaceAll(/:([a-z-_]{0,16}):/g, (full, source) => {
+			const isLargeEmoji = parsedHTML.match(new RegExp(`:${source}:`, "g")).length === 1 &&
+				!parsedHTML.replace(full, "").trim()
 			const size = isLargeEmoji ? "48" : "16"
-			return html`<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="${size}" height="${size}">`
+			return `<img src="custom_emojis/${source}.png" alt=":${source}:" title=":${source}:" width="${size}" height="${size}">`;
 		})
 	
-		// Handle coordinates
-		formatted = formatted.replaceAll(/([0-9]+),\s*([0-9]+)/g, (match, px, py) => {
-			px = parseInt(px.trim())
-			py = parseInt(py.trim())
-			if (!isNaN(px) && !isNaN(py)) {
-				return html`<a href="#" @click=${(e) => this.#handleCoordinateClick(e, px, py)}>${px},${py}</a>`
-			}
-			return match
-		})
-		
-		return formatted
+		// Handle coordinates and generate final lit HTML
+		const formattedMessage = this.#parseCoordinates(parsedHTML)
+		return html`${formattedMessage}`
 	}
-	
+
+	/**
+	 * 
+	 * @param {string} parsedHTML 
+	 * @returns {any} Lit HTML fragment
+	 */
+	#parseCoordinates(parsedHTML) {
+		const regex = /(\d+),\s*(\d+)/g // Matches coordinate patterns like "10, 20"
+		const parts = []
+		let lastIndex = 0
+
+		for (const match of parsedHTML.matchAll(regex)) {
+			const [fullMatch, x, y] = match
+			const startIndex = match.index
+
+			// Push the text before the match
+			if (startIndex > lastIndex) {
+				parts.push(unsafeHTML(parsedHTML.slice(lastIndex, startIndex)))
+			}
+
+			const href = `${window.location.pathname}?x=${x}&y=${y}`
+			parts.push(html`<a href="${href}" @click=${(e) => 
+				this.#handleCoordinateClick(e, parseInt(x, 10), parseInt(y, 10))}>${x},${y}</a>`)
+
+			lastIndex = startIndex + fullMatch.length
+		}
+
+		// Push any text following matches
+		if (lastIndex < parsedHTML.length) {
+			parts.push(unsafeHTML(parsedHTML.slice(lastIndex)))
+		}
+
+		return html`${parts}`
+	}
+
 	#findReplyingMessage() {
 		if (!cMessages.has(currentChannel)) {
 			return { name: "[ERROR]", content: "Channel not found", fake: true }
@@ -118,20 +146,22 @@ class LiveChatMessage extends LitElement {
 		setTimeout(() => this.replyingMessage.removeAttribute("highlight"), 500)
 		this.replyingMessage.scrollIntoView({ behavior: "smooth", block: "nearest" })
 	}
-	
+
 	/**
-	 * 
 	 * @param {MouseEvent} e
 	 * @param {number} newX 
 	 * @param {number} newY 
 	 */
 	#handleCoordinateClick(e, newX, newY) {
 		e.preventDefault()
-		x = newX
-		y = newY
-		pos()
+		const params = new URLSearchParams(window.location.search)
+		params.set("x", x)
+		params.set("y", y)
+		const newUrl = `${window.location.pathname}?${params.toString()}`
+		window.history.pushState({}, "", newUrl)
+		pos(newX, newY)
 	}
-	
+
 	#handleNameClick() {
 		if (this.messageId > 0) {
 			chatMentionUser(this.senderId)
@@ -164,7 +194,7 @@ class LiveChatMessage extends LitElement {
 		const bounds = this.getBoundingClientRect()
 		const panelHeight = chatReactionsPanel.offsetHeight
 		const viewportHeight = window.innerHeight
-		const topPosition = Math.min(bounds.bottom, viewportHeight - panelHeight - 8) // Ensure it stays on screen
+		const topPosition = Math.min(bounds.y, viewportHeight - panelHeight - 8) // Ensure it stays on screen
 	
 		// Apply position
 		chatReactionsPanel.style.right = "8px"
@@ -281,7 +311,7 @@ class LiveChatMessage extends LitElement {
 		return html`
 			${this.#renderReply()}
 			${this.#renderName()}
-			<span>${unsafeHTML(this.#formatMessage(this.content))}</span>
+			<span>${this.#parseMessage(this.content)}</span>
 			${this.#renderReactions()}
 			${this.#renderActions()}`
 	}

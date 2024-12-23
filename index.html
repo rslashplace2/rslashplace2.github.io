@@ -1863,7 +1863,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 
 		// Essential game variable definitions
-		let x, y, z, board, minZoom;
+		let x=0, y=0, z=0, board=null, minZoom;
 
 		function showLoadingScreen() {
 			loadingScreen.style.opacity = 1
@@ -2052,27 +2052,29 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		let lastIntX = Math.floor(x)
 		let lastIntY = Math.floor(y)
 
-		function pos() {
-			z = Math.min(Math.max(z, minZoom), 1)
+		function pos(newX=x, newY=y, newZ=z) {
+			newX = x = Math.min(Math.max(newX, 0), WIDTH)
+			newY = y = Math.min(Math.max(newY, 0), HEIGHT)
+			newZ = z = Math.min(Math.max(newZ, minZoom), 1)
 
-			const right = x - canvas.width + 0.01
-			const left = x
-			const up = y - canvas.height + 0.01
-			const down = y
+			const right = newX - canvas.width + 0.01
+			const left = newX
+			const up = newY - canvas.height + 0.01
+			const down = newY
 
-			if (right >= left) x = 0
-			else if (right > 0) x -= right
-			else if (left < 0) x -= left
-			if (up >= down) y = 0
-			else if (up > 0) y -= up
-			else if (down < 0) y -= down
-			posel.textContent = `(${Math.floor(x)},${Math.floor(y)}) ${z > 0.02 ? Math.round(z*50)/10 : Math.ceil(z*500)/100}x`
-			localStorage.x = Math.floor(x) + 0.5
-			localStorage.y = Math.floor(y) + 0.5
-			localStorage.z = z
+			if (right >= left) newX = 0
+			else if (right > 0) newX -= right
+			else if (left < 0) newX -= left
+			if (up >= down) newY = 0
+			else if (up > 0) newY -= up
+			else if (down < 0) newY -= down
+			posel.textContent = `(${Math.floor(newX)},${Math.floor(newY)}) ${newZ > 0.02 ? Math.round(newZ*50)/10 : Math.ceil(newZ*500)/100}x`
+			localStorage.x = Math.floor(newX) + 0.5
+			localStorage.y = Math.floor(newY) + 0.5
+			localStorage.z = newZ
 			transform()
 
-			const intX = Math.floor(x), intY = Math.floor(y)
+			const intX = Math.floor(newX), intY = Math.floor(newY)
 			if (intX != lastIntX || intY != lastIntY) {
 				clearTimeout(idPositionTimeout)
 				idPosition.style.display = "none"
