@@ -1554,3 +1554,16 @@ r-emoji-panel button {
 	height: 32px;
 	padding: 0;
 }
+
+#questsFrame {
+	position: fixed;
+    width: 500px;
+    height: 500px;
+    left: 50%;
+    top: 50%;
+    z-index: 21;
+    transform: translate(-50%, -50%);
+	height: 600px;
+	width: min(800px, 100% - 16px);
+	background: transparent;
+}

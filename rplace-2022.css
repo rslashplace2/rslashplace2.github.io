@@ -25,6 +25,10 @@
 	--ui-text: #333333;
 }
 
+::selection {
+    background-color: var(--ui-panel-hover);
+}
+
 html, body {
 	color: var(--ui-text);
 	background: var(--ui-background);
