@@ -3019,9 +3019,13 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 		function blockWebviewLoad() {
 			if (window.location !== window.parent.location
-				|| typeof window.Android !== "undefined"
-				|| typeof window.Kodular !== "undefined") {
+					|| typeof window.Android !== "undefined"
+					|| typeof window.Kodular !== "undefined") {
 				window.location.replace("fakeapp.html")
+				// Block interaction if page load was overidden
+				const body = document.body
+				body.style.opacity = "0.6"
+				body.style.pointerEvents = "none"
 			}
 		}
 		checkVerifiedApp().then(isVerified => {
