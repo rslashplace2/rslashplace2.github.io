@@ -3000,20 +3000,20 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		redirectQueryLocation()
 
 		const verifiedAppHash = "f255e4c294a5413cce887407b91062ac162faec4cb1e6e21cdd6e4492fb270f8"
-		function checkVerifiedApp() {
+		async function checkVerifiedApp() {
 			const urlParams = new URLSearchParams(window.location.search);
-			const verifyAppValue = urlParams.get("verify-app");
+			const verifyAppValue = urlParams.get("verify-app")
 			if (!verifyAppValue) {
 				return false
 			}
-			const hashedValue = sha256(verifyAppValue)
+			const hashedValue = await sha256(verifyAppValue)
 			return hashedValue === verifiedAppHash
 		}
 		function sha256(str) {
 			const encoder = new TextEncoder()
 			const data = encoder.encode(str)
 			return crypto.subtle.digest("SHA-256", data).then(hashBuffer => {
-				const hashArray = Array.from(new Uint8Array(hashBuffer));
+				const hashArray = Array.from(new Uint8Array(hashBuffer))
 				return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("")
 			})
 		}
