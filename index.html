@@ -3000,14 +3000,14 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		redirectQueryLocation()
 
 		const verifiedAppHash = "f255e4c294a5413cce887407b91062ac162faec4cb1e6e21cdd6e4492fb270f8"
-		async function checkVerifiedApp() {
+		async function checkVerifiedAppStatus() {
 			const urlParams = new URLSearchParams(window.location.search);
 			const verifyAppValue = urlParams.get("verify-app")
 			if (!verifyAppValue) {
-				return false
+				return "none"
 			}
 			const hashedValue = await sha256(verifyAppValue)
-			return hashedValue === verifiedAppHash
+			return hashedValue === verifiedAppHash ?  "valid" : "invalid"
 		}
 		function sha256(str) {
 			const encoder = new TextEncoder()
@@ -3017,23 +3017,22 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				return hashArray.map(byte => byte.toString(16).padStart(2, "0")).join("")
 			})
 		}
-		function blockWebviewLoad() {
-			if (window.location !== window.parent.location
-					|| typeof window.Android !== "undefined"
-					|| typeof window.Kodular !== "undefined") {
-				window.location.replace("fakeapp.html")
-				// Block interaction if page load was overidden
-				const body = document.body
-				body.style.opacity = "0.6"
-				body.style.pointerEvents = "none"
-			}
-		}
-		checkVerifiedApp().then(isVerified => {
-			if (isVerified) {
+		checkVerifiedAppStatus().then(status => {
+			if (status === "valid") {
 				console.log("Successfully verified rplace.live app");
 			}
 			else {
-				blockWebviewLoad()
+				if (window.location !== window.parent.location
+						|| typeof window.Android !== "undefined"
+						|| typeof window.Kodular !== "undefined"
+						|| status == "invalid") {
+					window.location.replace("fakeapp.html")
+					// Block interaction if page redirect was overidden
+					document.body.style.opacity = "0.6"
+					document.body.style.pointerEvents = "none"
+					alert("Error: App failed verification - game is being accessed via an unofficial or unauthorised site or app\n" +
+						"Please report to developers or visit the game online at https://rplace.live")
+				}
 			}
 		})
 
