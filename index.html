@@ -2047,8 +2047,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		let lastIntY = Math.floor(y)
 
 		function pos(newX=x, newY=y, newZ=z) {
-			newX = x = Math.min(Math.max(newX, 0), WIDTH)
-			newY = y = Math.min(Math.max(newY, 0), HEIGHT)
+			newX = x = Math.max(Math.min(newX, WIDTH - 1), 0)
+			newY = y = Math.max(Math.min(newY, HEIGHT - 1), 0)
 			newZ = z = Math.min(Math.max(newZ, minZoom), 1)
 
 			const right = newX - canvas.width + 0.01
