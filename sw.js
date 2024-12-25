@@ -1,15 +1,29 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Service worker for PWA installation
-const CURRENT_CACHES = "tkv2"
+const CURRENT_CACHES = "tkv3"
 self.addEventListener("install", (event) => {
 	event.waitUntil(
 		caches.open(CURRENT_CACHES).then((cache) =>
 			cache.addAll([
+				// Pages
+				"404.html",
+				"disclaimer.html",
+				"fakeapp.html",
 				"index.html",
-				"style.css",
+				"instance.html",
+				"posts.html",
+				"quests-dialog.html",
+
+				// Styles
+				"goldplace.css",
+				"misc-page.css",
+				"posts.css",
 				"rplace-2022.css",
 				"rplace-2023.css",
+				"shared.css",
+				"style.css",
+				"theme-switch.css",
 
 				// Images
 				"images/1984.png",
@@ -61,7 +75,7 @@ self.addEventListener("install", (event) => {
 				"svg/rplace.svg",
 				"svg/santa-hat.svg",
 				
-				//Badges
+				// Badges
 				"badges/1000000-pixels-placed.svg",
 				"badges/100000-pixels-placed.svg",
 				"badges/1000-pixels-placed.svg",
@@ -109,7 +123,21 @@ self.addEventListener("install", (event) => {
 				"sounds/highlight.mp3",
 				"sounds/select-colour.mp3",
 				"sounds/close-palette.mp3",
-				"sounds/bell.mp3"
+				"sounds/bell.mp3",
+
+				// Translatins
+				"translations/ar.json",
+				"translations/de.json",
+				"translations/el.json",
+				"translations/es.json",
+				"translations/fa.json",
+				"translations/fr.json",
+				"translations/hi.json",
+				"translations/jp.json",
+				"translations/ro.json",
+				"translations/ru.json",
+				"translations/tr.json",
+				"translations/uk.json"
 			])
 		)
 	)

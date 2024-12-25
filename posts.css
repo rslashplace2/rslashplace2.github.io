@@ -54,6 +54,7 @@ r-post .hider {
 	align-items: center;
 	cursor: pointer;
 	border-radius: 4px;
+	z-index: 1;
 }
 r-post .body, .post .body {
 	display: flex;

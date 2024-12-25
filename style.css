@@ -227,19 +227,14 @@ btn{
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	display: none;
 	flex-direction: column;
-	z-index: 7;
 	box-sizing: content-box;
+	overflow: visible;
+	z-index: 7;
 }
 
-#bg {
-	display: block;
-	position: absolute;
-	background: rgba(0, 0, 0, 0.4);
-	inset: 0px;
-	z-index: 6;
-	opacity: 1;
+#modal[open] {
+	display: flex;
 }
 
 @media (max-width:500px){
@@ -661,6 +656,11 @@ body[eventphase="3"] .coverer-title {
 	align-items:center
 }
 
+.chat-header-right {
+	display: flex;
+	column-gap: 8px;
+}
+
 #chatAd {
 	/* Default: 'Advertise here', will be overriden in element style */
 	--adurl: url(./images/default-ad.png);
@@ -839,6 +839,13 @@ body[eventphase="3"] .coverer-title {
 	white-space: nowrap;
 	display: flex;
 	align-items: center;
+}
+
+.channel-button {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0;	
 }
 
 #captchaPopup {
@@ -1320,11 +1327,12 @@ kbd {
 	height: 60vh;
 	width: 100%;
 	flex-shrink: 0;
+	background: rgba(0, 0, 0, 0.2);
 }
 #spaceFiller {
 	background: transparent;
 	height: 100vh;
-	transition: .5s height;
+	transition: .5s height, .5s background-color;
 }
 
 .virtselect {
@@ -1454,23 +1462,23 @@ r-live-chat-message .emoji-container {
 	flex-direction: column;
 	align-items: center;
 	row-gap: 4px;
-    margin-bottom: 4px;
+	margin-bottom: 4px;
 }
 r-live-chat-message .emoji-container p {
 	width: 100%;
 }
 r-live-chat-message .emoji {
-    min-width: 18px;
-    width: 18px;
-    min-height: 18px;
-    height: 18px;
+	min-width: 18px;
+	width: 18px;
+	min-height: 18px;
+	height: 18px;
 	font-size: 18px;
 	user-select: none;
 	transition: .2s font-size, .2s min-width, .2s min-height
 }
 r-live-chat-message img.emoji.expanded {
 	min-height: 54px;
-    min-width: 54px;
+	min-width: 54px;
 }
 r-live-chat-message span.emoji.expanded {
 	font-size: 48px;
@@ -1509,7 +1517,7 @@ r-live-chat-message .reactors {
 	overflow-y: auto;
 }
 r-live-chat-message .reactor {
-    list-style: inside;
+	list-style: inside;
 }
 
 r-emoji-panel.context-menu {
@@ -1573,12 +1581,12 @@ r-emoji-panel button {
 
 #questsFrame {
 	position: fixed;
-    width: 500px;
-    height: 500px;
-    left: 50%;
-    top: 50%;
-    z-index: 21;
-    transform: translate(-50%, -50%);
+	width: 500px;
+	height: 500px;
+	left: 50%;
+	top: 50%;
+	z-index: 21;
+	transform: translate(-50%, -50%);
 	height: 600px;
 	width: min(800px, 100% - 16px);
 	background: transparent;
