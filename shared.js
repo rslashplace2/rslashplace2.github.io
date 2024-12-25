@@ -61,18 +61,55 @@ const TRANSLATIONS = {
 }
 
 const lang = navigator.language.split("-")[0]
+
+const TRANSLATION_EXPIRY = 3 * 24 * 60 * 60 * 1000 // 3 days
+function openTranslationDB() {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open("translationsDB", 1)
+		request.onupgradeneeded = event => {
+			const db = event.target.result
+			db.createObjectStore("translations", { keyPath: "lang" })
+		};
+		request.onsuccess = event => resolve(event.target.result)
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
+function getCachedTranslation(lang) {
+	return new Promise(async (resolve, reject) => {
+		const db = await openTranslationDB()
+		const transaction = db.transaction("translations", "readonly")
+		const store = transaction.objectStore("translations")
+		const request = store.get(lang)
+		request.onsuccess = event => resolve(event.target.result)
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
+function setCachedTranslation(lang, data) {
+	return new Promise(async (resolve, reject) => {
+		const db = await openTranslationDB()
+		const transaction = db.transaction("translations", "readwrite")
+		const store = transaction.objectStore("translations")
+		const request = store.put({ lang, data, timestamp: Date.now() })
+		request.onsuccess = () => resolve()
+		request.onerror = event => reject(event.target.error)
+	})
+}
+
 async function fetchTranslations(lang) {
 	try {
-		const cachedTranslation = localStorage.getItem(`translation_${lang}`)
-		if (cachedTranslation) {
-			return JSON.parse(cachedTranslation)
+		const cachedTranslation = await getCachedTranslation(lang)
+		const now = Date.now()
+		if (cachedTranslation && (now - cachedTranslation.timestamp) <= TRANSLATION_EXPIRY) {
+			return cachedTranslation.data
 		}
 		const response = await fetch(`translations/${lang}.json`)
 		if (!response.ok) {
 			throw new Error(`Translations for ${lang} not found`)
 		}
 		const translation = await response.json()
-		localStorage.setItem(`translation_${lang}`, JSON.stringify(translation))
+		await setCachedTranslation(lang, translation)
 		TRANSLATIONS[lang] = translation
 		return translation
 	} catch (error) {

@@ -2982,7 +2982,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				mentionUser.children[0].textContent = `${await translate("mention")} ${identifier}`
 				replyUser.children[0].textContent = `${await translate("replyTo")} ${identifier}`
 				blockUser.children[0].textContent =
-					`${translate(blockedUsers.includes(senderId) ? "unblock" : "block")} ${identifier}`
+					`${await translate(blockedUsers.includes(senderId) ? "unblock" : "block")} ${identifier}`
 
 				if (senderId == intId) {
 					blockUser.style.pointerEvents = "none"
