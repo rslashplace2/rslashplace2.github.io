@@ -289,6 +289,10 @@ a {
 	background: var(--ui-panel-hover);
 	border-radius: 4px;
 }
+
+.chat-ad-ins::before {
+	background: var(--ui-panel-bg);
+}
 .chat-ad-close {
     color: var(--ui-text);
 }

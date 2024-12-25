@@ -285,6 +285,10 @@ r-close-icon {
 .chat-header {
     margin-right: 24px;
 }
+
+.chat-ad-ins::before {
+	background: var(--ui-panel-bg);
+}
 .chat-ad-close {
     color: black;
 }
