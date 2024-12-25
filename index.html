@@ -1137,8 +1137,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}).bind(undefined, WebSocket.prototype.send, addEventListener, btoa.call.bind(btoa.call));
 		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
 	</script>
-	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2508999262953411" crossorigin="anonymous"></script>
+	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
 	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
 	<script type="application/javascript" src="shared.js?v=7"></script>
@@ -1160,7 +1160,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="google-adsense-account" content="ca-pub-2508999262953411">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=356" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
+	<link href="style.css?v=357" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
 	<title>place</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 	<meta property="og:title" content="r/place 2"/>
@@ -1654,10 +1654,11 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				</ul>
 			</div>
 			<r-emoji-panel id="chatReactionsPanel" onclose="this.removeAttribute('open')"></r-emoji-panel>
-			<a id="ad" target="_blank">
-				<button class="ad-close" onclick="
+			<!-- If google ad hidden by extension, fall back to standard chat ad -->
+			<a id="chatAd" target="_blank">
+				<button class="chat-ad-close" onclick="
 					event.preventDefault()
-					ad.style.display = 'none'
+					chatAd.style.display = 'none'
 					localStorage.noad = Date.now()
 					adLabel.style.display = 'block'
 					adLabel.animate([
@@ -1666,6 +1667,12 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					], { duration: 1000, iterations: 1, })
 					setTimeout(() => adLabel.style.display = 'none', 1000)
 				">x</button>
+				<!-- Google ad -->
+				<ins class="adsbygoogle chat-ad-ins"
+					data-ad-client="ca-pub-2508999262953411"
+					data-ad-slot="3701460951"
+					data-ad-format="auto"
+					data-full-width-responsive="true"></ins>
 			</a>
 			<span id="adLabel" style="display: none; opacity: 0; align-self: center;" translate="adHidden">Ad hidden for 14 days!</span>
 			<button id="chatPreviousButton" type="button" class="horizontal-labeled-separator" noselect><hr><span>See previous messages</span><hr></button>
@@ -3068,15 +3075,17 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			}
 		}, 5000)
 
+		// Ads
+		(adsbygoogle = window.adsbygoogle || []).push({});
 		if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) { // 14 days
-			ad.style.display = "none"
+			chatAd.style.display = "none"
 		}
 		else {
 			let adI = Math.floor(Math.random() * ADS.length)
 			function cycleAd() {
 				const currentAd = ADS[adI % ADS.length]
-				ad.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
-				ad.href = currentAd.url
+				chatAd.style.setProperty("--adurl", `url(${currentAd.banners[lang] || currentAd.banners["en"]})`)
+				chatAd.href = currentAd.url
 				adI++
 			}
 			setInterval(cycleAd, 12e4) // 2 mins

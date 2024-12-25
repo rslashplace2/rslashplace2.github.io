@@ -289,7 +289,7 @@ a {
 	background: var(--ui-panel-hover);
 	border-radius: 4px;
 }
-.ad-close {
+.chat-ad-close {
     color: var(--ui-text);
 }
 
