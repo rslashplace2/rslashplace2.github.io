@@ -3076,7 +3076,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}, 5000)
 
 		// Ads
-		(adsbygoogle = window.adsbygoogle || []).push({});
 		if (localStorage.noad && Date.now() - localStorage.noad < 1.21e9) { // 14 days
 			chatAd.style.display = "none"
 		}
@@ -3091,6 +3090,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			setInterval(cycleAd, 12e4) // 2 mins
 			cycleAd()
 		}
+		;(adsbygoogle = window.adsbygoogle || []).push({});
 
 		window.moduleExports = {
 			...window.moduleExports,
