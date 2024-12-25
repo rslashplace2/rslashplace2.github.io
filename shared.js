@@ -7,7 +7,7 @@ const DEFAULT_SERVER = "wss://server.rplace.live:443"
 const DEFAULT_BOARD = "https://raw.githubusercontent.com/rplacetk/canvas1/main/place"
 const DEFAULT_AUTH = "https://server.rplace.live/auth"
 
-const TRANSLATIONS_EN = {
+const TRANSLATIONS = {
 	en: {
 		// Game
 		connecting: "Connecting...",
@@ -60,12 +60,8 @@ const TRANSLATIONS_EN = {
 	}
 }
 
-const TRANSLATIONS = {
-	...TRANSLATIONS_EN
-}
-
 const lang = navigator.language.split("-")[0]
-async function fetchTranslation(lang) {
+async function fetchTranslations(lang) {
 	try {
 		const cachedTranslation = localStorage.getItem(`translation_${lang}`)
 		if (cachedTranslation) {
@@ -73,47 +69,51 @@ async function fetchTranslation(lang) {
 		}
 		const response = await fetch(`translations/${lang}.json`)
 		if (!response.ok) {
-			throw new Error("Translations for", lang, "not found")
+			throw new Error(`Translations for ${lang} not found`)
 		}
 		const translation = await response.json()
 		localStorage.setItem(`translation_${lang}`, JSON.stringify(translation))
 		TRANSLATIONS[lang] = translation
 		return translation
-	}
-	catch (error) {
+	} catch (error) {
 		console.log(error)
 		return TRANSLATIONS["en"]
 	}
 }
 
 async function translate(key) {
-	if (!TRANSLATIONS[lang]) {
-		await fetchTranslation(lang)
+	let translations = TRANSLATIONS[lang]
+	if (!translations) {
+		translations = await fetchTranslations(lang)
 	}
-	return TRANSLATIONS[lang][key] || TRANSLATIONS["en"][key] || key
+	return translations?.[key] ?? TRANSLATIONS["en"]?.[key] ?? key
 }
 
 async function translateAll() {
-	if (!TRANSLATIONS[lang]) {
-		await fetchTranslation(lang)
+	let translations = TRANSLATIONS[lang]
+	if (!translations) {
+		translations = await fetchTranslations(lang)
 	}
 	const elements = document.querySelectorAll("[translate]")
 	elements.forEach((element) => {
 		const key = element.getAttribute("translate")
-		if (TRANSLATIONS[lang] == null) return
+		const translation = translations?.[key] ?? TRANSLATIONS["en"]?.[key] ?? key
 		if (element.nodeName === "INPUT" || element.nodeName === "TEXTAREA") {
-			if (element.getAttribute("type") == "text")
-				element.placeholder = TRANSLATIONS[lang][key] || element.placeholder
-			else
-				element.value = TRANSLATIONS[lang][key] || element.value
-		} else {
-			element.innerHTML = TRANSLATIONS[lang][key] || element.innerHTML
+			if (element.getAttribute("type") == "text") {
+				element.placeholder = translation || element.placeholder
+			}
+			else {
+				element.value = translation || element.value
+			}
+		}
+		else {
+			element.innerHTML = translation || element.innerHTML
 		}
 	})
 }
 
 // Preload default language translations
-fetchTranslation(lang)
+fetchTranslations(lang)
 
 class PublicPromise {
 	constructor() {
