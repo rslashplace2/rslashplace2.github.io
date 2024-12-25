@@ -120,6 +120,7 @@ r-post .author-name {
 .post-inline-ad {
 	display: flex;
 	justify-content: center;
+	overflow: hidden;
 	min-height: 76px !important;
 }
 .post-inline-ad > div {
