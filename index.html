@@ -1018,7 +1018,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				canvselect.style.boxShadow= "0px 2px 4px 0px rgb(0 0 0 / 50%)"
 			})
 
-			call(addEventListener, document.body, "touchend", function(e) {
+			call(addEventListener, maincontent, "touchend", function(e) {
 				if (!e.isTrusted) return
 
 				for (let t of e.changedTouches) {
@@ -1138,7 +1138,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	</script>
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2508999262953411" crossorigin="anonymous"></script>
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
-	<script type="application/javascript" src="virtual-select.min.js"></script>
 	<script type="application/javascript" src="uv.min.js"></script>
 	<script type="application/javascript" src="shared.js?v=8"></script>
 	<script type="application/javascript" src="event-timer.js" defer></script>
@@ -1151,7 +1150,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
 	<script type="module" src="shared-elements.js?v=10" defer></script>
 	<script type="module" src="live-chat-elements.js?v=2" defer></script>
-	<link rel="stylesheet" type="text/css" href="virtual-select.min.css">
 	<link rel="manifest" href="manifest.json">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="apple-touch-icon" href="favicon.png">
@@ -1554,7 +1552,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			"></button>
 			<iframe id="postsFrame" src="posts.html" title="posts" onload="resizePostsFrame()" frameborder="0" scrolling="no"></iframe>
 		</div>
-		<div id="chatPanel" ontouchstart="messageInput.blur(); chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"
+		<div id="chatPanel" ontouchstart="chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')"
 				onclick="chatContext.style.display = 'none'; channelDropParent.removeAttribute('open')">
 			<div id="namePanel">
 				<h2 id="namePanelHeader" translate="nicknameToContinue">Enter a nickname to continue:</h2>
@@ -1690,7 +1688,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			</div>
 			<div style="display: flex; column-gap: 8px; z-index: 1;">
 				<textarea id="messageInput" onclick="openChatPanel()" type="text" placeholder="Enter message..." translate="enterMessage" enterkeyhint="send" maxlength="200"></textarea>
-				<button class="message-options" onclick="messageTypePanel.toggleAttribute('closed')">...</button>
+				<button class="message-options" onclick="updateMessageInputHeight(); messageTypePanel.toggleAttribute('closed')">...</button>
 			</div>
 		</div>
 		<div id="timelapsePanel" noselect style="display: none;">
@@ -1701,9 +1699,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					<div id="tlSelect" style="position: absolute; left: 0; top: 0; background-color: rgba(0, 200, 250, 0.7); resize: both; overflow: auto;" onmousedown="this.setAttribute('dragging',  true);" onmouseup="this.setAttribute('dragging', false);" onmousemove="tlMouseMove(event)" ondragstart="return false"></div>
 				</img>
 			</div>
-			<div id="tlStartSel" class="virtselect"></div>
-			<div id="tlEndSel" class="virtselect"></div>
-			<!--<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse start backup</option> </select> <select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"> <option value="">Select timelapse end backup</option> </select>-->
+			<select id="tlStartSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"><option value="">Select timelapse start backup</option></select>
+			<select id="tlEndSel" style="width: 100%; margin-bottom: 5px; border-radius: 4px;"><option value="">Select timelapse end backup</option></select>
 			<input id="tlFps" type="number" style="width: 100%; margin-bottom: 10px; border-radius: 0px; box-shadow: none; font-size: 14px; font-family: sans-serif; color: rgba(0,0,0,0.8); border: 1px solid #ddd;" min="1" max="30" placeholder="Desired timelapse framerate" />
 			<div id="tlPlayDir" style="text-align: center;" reverse="true">
 				<span style="font-size: 18px; cursor: pointer; opacity: 0.5;" onclick="this.parentElement.setAttribute('reverse', false); this.style.opacity='1'; this.nextElementSibling.style.opacity='0.5';">Play normally</span> / <span style="font-size: 18px; cursor: pointer;" onclick="this.parentElement.setAttribute('reverse', true); this.style.opacity='1'; this.previousElementSibling.style.opacity='0.5';">Play in reverse</span>
@@ -2857,20 +2854,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				.then((data) => {
 					for (let b of data.split("\n")) backups.push(b)
 				})
-				.then(() => {
-					VirtualSelect.init({
-						ele: '#tlStartSel',
-						placeholder: "Select timelapse start backup",
-						search: true,
-						options: backups,
-					})
-					VirtualSelect.init({
-						ele: '#tlEndSel',
-						placeholder: "Select timelapse end backup",
-						search: true,
-						options: backups,
-					})
-				})
 		}
 
 		let tlTimerStart
@@ -2938,9 +2921,14 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		let targetedIntId = null
 		let targetedMsgId = null
 		let currentReply = null
+		let openedChat = false
 
 		function openChatPanel() {
 			chatPanel.setAttribute("open", "true")
+			if (!openedChat) {
+				;(adsbygoogle = window.adsbygoogle || []).push({});
+				openedChat = true
+			}
 			chatPanel.inert = false
 		}
 
@@ -3083,7 +3071,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			setInterval(cycleAd, 12e4) // 2 mins
 			cycleAd()
 		}
-		;(adsbygoogle = window.adsbygoogle || []).push({});
 
 		window.moduleExports = {
 			...window.moduleExports,

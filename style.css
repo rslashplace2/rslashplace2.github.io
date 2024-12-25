@@ -694,6 +694,8 @@ body[eventphase="3"] .coverer-title {
 	justify-content: center;
 	width: 100%;
 	height: 100%;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 
 .chat-ad-ins::before {
