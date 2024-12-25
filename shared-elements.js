@@ -23,7 +23,7 @@ class PostCopy extends HTMLElement {
 	static get observedAttributes() {
 		return ["href"]
 	}
-	connectedCallback() {
+	async connectedCallback() {
 		const clipbardSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
 		clipbardSvg.setAttribute("viewBox", "0 0 48 48")
 		clipbardSvg.setAttribute("width", "30")
@@ -36,7 +36,7 @@ class PostCopy extends HTMLElement {
 		// TODO: Use CSS
 		copyStatusSpan.style.opacity = 0
 		copyStatusSpan.style.position = "absolute"
-		copyStatusSpan.textContent = translate("copiedToClipboard")
+		copyStatusSpan.textContent = await translate("copiedToClipboard")
 		this.appendChild(copyStatusSpan)
 
 		this.addEventListener("click", (event) => {

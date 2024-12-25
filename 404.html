@@ -9,6 +9,16 @@
 		<script type="application/javascript" src="shared.js?v=7"></script>
 		<title>custom canvas</title>
 		<script>
+			const REDIRECTS = {
+				"/discord": "https://discord.com/invite/xbRrVSXJdZ",
+				"/twitter": "https://x.com/rplacetk",
+				"/x": "https://x.com/rplacetk",
+				"/reddit": "https://www.reddit.com/r/placetk",
+				"/github": "https://github.com/rplacetk",
+				"/telegram": "https://t.me/rplacelive",
+				"/admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+			};
+
 			async function getVanityInstance(name) {
 				try {
 					const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
@@ -23,7 +33,11 @@
 
 			let vanityRequestFinished = false
 			;(async function() {
-				const urlName = window.location.pathname.replaceAll("/", "")
+				const urlName = window.location.pathname.replaceAll("/", "");
+				if (REDIRECTS[window.location.pathname]) {
+					window.location.replace(REDIRECTS[window.location.pathname]);
+					return;
+				}
 				const info = await getVanityInstance(urlName)
 				if (info !== null) {
 					const protocol = info.usesHttps ? "https://" : "http://"

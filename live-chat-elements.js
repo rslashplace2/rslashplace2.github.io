@@ -1,4 +1,4 @@
-import { LitElement, html, styleMap, unsafeHTML } from "./lit.all.min.js"
+import { LitElement, html, styleMap, unsafeHTML, until } from "./lit.all.min.js"
 // @ts-expect-error Hack to access window globals from module script
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 var { cMessages, currentChannel, chatMessages, x, y, pos, chatMentionUser, onChatContext, chatReply, chatReport, chatModerate, chatReactionsPanel, CHAT_COLOURS, hash, chatReact, EMOJIS, CUSTOM_EMOJIS, intIdNames } = window.moduleExports
@@ -130,9 +130,10 @@ class LiveChatMessage extends LitElement {
 		}
 		
 		const message = cMessages.get(currentChannel).find(msg => msg.messageId === this.repliesTo)
+		translate("messageNotFound").then(translated => message.content = translated) // TODO: Sus
 		return message || {
 			name: "[?????]",
-			content: translate("messageNotFound"),
+			content: "...",
 			fake: true
 		}
 	}
@@ -238,19 +239,21 @@ class LiveChatMessage extends LitElement {
 		if (this.messageId <= 0) {
 			return null
 		}
-		
+
+		const renderActionButton = async (src, titleKey, clickHandler) => {
+			const title = await translate(titleKey)
+			return html`
+				<img class="action-button" src="${src}"
+					title="${title}" tabindex="0" @click="${clickHandler}">
+			`
+		}
+
 		return html`
 			<div class="actions">
-				<img class="action-button" src="svg/reply-action.svg"
-					title=${translate("replyTo")} tabindex="0" @click=${this.#handleReply}>
-				<img class="action-button" src="svg/react-action.svg"
-					title=${translate("addReaction")} tabindex="0" @click=${this.#handleReact}>
-				<img class="action-button" src="svg/report-action.svg"
-					title=${translate("report")} tabindex="0" @click=${this.#handleReport}>
-				${localStorage.vip?.startsWith("!") ? html`
-					<img class="action-button" src="svg/moderate-action.svg"
-						title=${translate("Moderation options")} tabindex="0" @click=${this.#handleModerate}>
-				` : null}
+				${until(renderActionButton("svg/reply-action.svg", "replyTo", this.#handleReply), html`<span>...</span>`)}
+				${until(renderActionButton("svg/react-action.svg", "addReaction", this.#handleReact), html`<span>...</span>`)}
+				${until(renderActionButton("svg/report-action.svg", "report", this.#handleReport), html`<span>...</span>`)}
+				${localStorage.vip?.startsWith("!") ? until(renderActionButton("svg/moderate-action.svg", "Moderation options", this.#handleModerate), html`<span>Loading...</span>`) : null}
 			</div>`
 	}
 

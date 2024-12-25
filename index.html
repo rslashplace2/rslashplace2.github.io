@@ -705,7 +705,7 @@
 				}
 				}
 			}
-			ws.onclose = function(e) {
+			ws.onclose = async function(e) {
 				console.error(e)
 				CD = null
 				if (e.code == 1006 && !sessionStorage.err) {
@@ -715,7 +715,7 @@
 				loadingScreen.children[0].src = "images/rplace-offline.png"
 				showLoadingScreen()
 				loadingMessage.hidden = false
-				loadingMessage.textContent = `${translate("disconnectedFromServer")}: ${e.reason}`
+				loadingMessage.textContent = `${await translate("disconnectedFromServer")}: ${e.reason}`
 			}
 
 			let linkKeyRequests = []
@@ -2235,16 +2235,16 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		mutesvg.innerHTML = muted ? MUTED_SVG : UNMUTED_SVG
 		placeChatButton.children[0].style.opacity = placeChat ? '1' : '0.6'
 
-		setInterval(() => {
+		setInterval(async () => {
 			let left = Math.floor((CD - Date.now()) / 1000)
 			place.innerHTML = initialConnect
 				? CD === null // They have made initial connect
-					? `<span style="color:#f50; white-space: nowrap;">${translate("connectingFail")}</span>` // They connected but now have disconnected
+					? `<span style="color:#f50; white-space: nowrap;">${await translate("connectingFail")}</span>` // They connected but now have disconnected
 					: left > 0
 						? `<svg xmlns="http://www.w3.org/2000/svg" data-name="icons final" viewBox="0 0 20 20" style="height: 1.1rem;vertical-align:top"><path d="M13.558 14.442l-4.183-4.183V4h1.25v5.741l3.817 3.817-.884.884z"></path><path d="M10 19.625A9.625 9.625 0 1119.625 10 9.636 9.636 0 0110 19.625zm0-18A8.375 8.375 0 1018.375 10 8.384 8.384 0 0010 1.625z"></path></svg> ${
 								("" + Math.floor(left/3600)).padStart(2, "0")}:${("" + Math.floor((left / 60)) % 60).padStart(2, "0")}:${("" + left % 60).padStart(2, "0")}` // They are connected + still connected but in cooldown
-						: translate("placeTile") // They are connected + still connected + after cooldown
-				: translate("connecting") // They are yet to connect
+						: await translate("placeTile") // They are connected + still connected + after cooldown
+				: await translate("connecting") // They are yet to connect
 
 			if (CD > Date.now() && !onCooldown) {
 				onCooldown = true
@@ -2523,7 +2523,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			messageInput.focus()
 		}
 
-		function chatReply(messageId, senderId) {
+		async function chatReply(messageId, senderId) {
 			for (let m of cMessages.get(currentChannel)) {
 				m.removeAttribute("reply")
 			}
@@ -2533,7 +2533,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			messageTypePanel.style.height = "calc(var(--message-input-height) + 92px)"
 			messageInput.focus()
 			messageReplyPanel.removeAttribute("closed")
-			messageReplyLabel.innerText = translate("replyTo") + ": " + (intIdNames.get(senderId) || ("#" + senderId))
+			messageReplyLabel.innerText = await translate("replyTo") + ": " + (intIdNames.get(senderId) || ("#" + senderId))
 			for (let m of cMessages.get(currentChannel)) {
 				if (m["messageId"] == messageId) {
 					m.setAttribute("reply", "true")
@@ -2951,8 +2951,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 		}
 		closeChatPanel()
 
-		function onChatContext(ev, senderId, msgId) {
-			ev.preventDefault()
+		async function onChatContext(e, senderId, msgId) {
+			e.preventDefault()
 
 			if (chatContext.style.display == "block") {
 				chatContext.style.display = "none"
@@ -2979,8 +2979,8 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 				targetedMsgId = msgId
 				targetedIntId = senderId
 				chatContext.style.display = "block"
-				mentionUser.children[0].textContent = `${translate("mention")} ${identifier}`
-				replyUser.children[0].textContent = `${translate("replyTo")} ${identifier}`
+				mentionUser.children[0].textContent = `${await translate("mention")} ${identifier}`
+				replyUser.children[0].textContent = `${await translate("replyTo")} ${identifier}`
 				blockUser.children[0].textContent =
 					`${translate(blockedUsers.includes(senderId) ? "unblock" : "block")} ${identifier}`
 
@@ -2995,25 +2995,10 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					changeMyName.style.display = "none"
 				}
 
-				chatContext.style.left = ev.pageX - chatPanel.offsetLeft + "px"
-				chatContext.style.top = ev.pageY - chatPanel.offsetTop + "px"
+				chatContext.style.left = e.pageX - chatPanel.offsetLeft + "px"
+				chatContext.style.top = e.pageY - chatPanel.offsetTop + "px"
 			}
 		}
-
-		function redirectQueryLocation() {
-			let redirectLocation = ({
-				"?discord": "https://discord.com/invite/xbRrVSXJdZ",
-				"?twitter": "https://twitter.com/rplacetk",
-				"?reddit": "https://www.reddit.com/r/placetk",
-				"?github": "https://github.com/rplacetk",
-				"?telegram": "https://t.me/rplacelive",
-				"?admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-			})[location.search]
-			if (redirectLocation) {
-				location.replace(redirectLocation)
-			}
-		}
-		redirectQueryLocation()
 
 		const verifiedAppHash = "f255e4c294a5413cce887407b91062ac162faec4cb1e6e21cdd6e4492fb270f8"
 		async function checkVerifiedAppStatus() {
