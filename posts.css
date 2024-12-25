@@ -120,7 +120,10 @@ r-post .author-name {
 .post-inline-ad {
 	display: flex;
 	justify-content: center;
-	min-height: 58px !important;
+	min-height: 76px !important;
+}
+.post-inline-ad > div {
+	flex-grow: 1;
 }
 
 r-votes, .r-votes {
