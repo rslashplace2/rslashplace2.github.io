@@ -116,6 +116,13 @@ r-post .author-name {
 	text-decoration: underline;
 	position: relative;
 }
+
+.post-inline-ad {
+	display: flex;
+	justify-content: center;
+	min-height: 58px;
+}
+
 r-votes, .r-votes {
 	position: absolute;
 	top: 0;
