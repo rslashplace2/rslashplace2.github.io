@@ -122,7 +122,7 @@ r-post .author-name {
 	display: flex;
 	justify-content: center;
 	overflow: hidden;
-	min-height: 76px !important;
+	min-height: 128px !important;
 }
 .post-inline-ad > div {
 	flex-grow: 1;
