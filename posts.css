@@ -123,7 +123,7 @@ r-post .author-name {
 	display: flex;
 	justify-content: center;
 	overflow: hidden;
-	min-height: 76px !important;
+	min-height: 128px !important;
 }
 .post-inline-ad > div {
 	flex-grow: 1;
@@ -725,21 +725,10 @@ dialog {
 		color: white;
 		width: auto;
 	}
-	#accountDialog r-close-icon svg {
-		fill: white;
-	}
 	.reddit-modal .confirm-button {
 		position: absolute;
 		bottom: 8px;
 		width: calc(100% - 16px);
-	}
-	.reddit-card {
-		flex-direction: column;
-		height: fit-content !important;
-	}
-
-	r-close-icon > svg {
-		fill: white;
 	}
 }
 .reddit-modal-input {
@@ -799,18 +788,4 @@ dialog {
 }
 .reddit-modal-button:hover {
 	background-color: #b0c8e6;
-}
-.reddit-card {
-	margin: 16px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	padding: 10px;
-	margin-bottom: 10px;
-	position: relative;
-	background: white;
-	display: flex;
-	column-gap: 16px;
-}
-.reddit-card:hover {
-	box-shadow: 0px 2px 4px #0003;
 }

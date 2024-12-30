@@ -70,3 +70,28 @@
 	font-size: 14px;
 	margin: 0px;
 }
+
+.reddit-card {
+	margin: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 10px;
+	position: relative;
+	background: white;
+	display: flex;
+	column-gap: 16px;
+}
+.reddit-card:hover {
+	box-shadow: 0px 2px 4px #0003;
+}
+
+@media (orientation: portrait) {
+	#accountDialog r-close-icon svg {
+		fill: white;
+	}
+	.reddit-card {
+		flex-direction: column;
+		height: fit-content !important;
+	}
+}
