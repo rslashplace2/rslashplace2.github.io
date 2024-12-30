@@ -1,0 +1,72 @@
+#loginPanel[data-page] > div[page] {
+	display: none;
+}
+#loginPanel[data-page="loading"] > div[page="loading"],
+#loginPanel[data-page="unauthed"] > div[page="unauthed"],
+#loginPanel[data-page="profile"] > div[page="profile"],
+#loginPanel[data-page="error"] > div[page="error"] {
+	display: flex;
+}
+
+#verificationCode {
+	height: 64px;
+	font-size: 42px;
+	text-align: center;
+	margin: 8 0 0 0;
+}
+
+#loginSignupMessage {
+	color: red;
+	font-weight: bold;
+}
+
+#unauthedPage[data-page] > div[page] {
+	display: none;
+}
+#unauthedPage[data-page="signin"] > div[page="signin"],
+#unauthedPage[data-page="signup"] > div[page="signup"],
+#unauthedPage[data-page="authcode"] > div[page="authcode"] {
+	display: flex;
+}
+.profile-section {
+	overflow-y: auto;
+}
+#profileName {
+	margin-top: 0px;
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+#profileBio {
+	margin-bottom: 16px;
+	margin-top: 0px;
+}
+.profile-section > div {
+	margin: 0px;
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+	transition: .2s all;
+}
+.profile-editable > summary {
+	display: flex;
+	column-gap: 4px;
+}
+.profile-editable > summary svg {
+	margin-left: auto;
+}
+.profile-section > div.profile-editable:hover {
+	overflow: visible;
+	background-color: white;
+	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.243);
+	border-radius: 4px;
+	min-width: fit-content;
+	z-index: 2;
+	padding: 4px;
+}
+.form-error {
+	color: red;
+	font-weight: bold;
+	font-style: italic;
+	font-size: 14px;
+	margin: 0px;
+}

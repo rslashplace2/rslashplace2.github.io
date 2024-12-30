@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en" style="background: transparent;padding: 12px;width: 100%;height: 100%;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>account</title>
+	<script type="module" src="shared-elements.js?v=10" defer></script>
+	<script src="shared.js?v=9"></script>
+	<link rel="stylesheet" href="posts.css?v=2">
+	<link rel="stylesheet" href="account.css?v=2">
+	<link rel="stylesheet" href="shared.css?v=2">
+</head>
+<body class="reddit-modal" style="background: transparent; height: 100%;width: 100%;position: relative;" open>
+	<div id="loginPanel" data-page="loading" style="background-color: #f0f0f0;">
+		<header class="header">
+			<h4 style="margin: 0px;">My account</h4>
+		</header>
+		<r-close-icon onclick="window.parent.postMessage({ call: 'closeAccountFrame' })" class="active" style="position: absolute; top: 12px; right: 12px;width: 24px;height: 24px;"></r-close-icon>
+		<div id="loadingPage" class="body" page="loading">
+			<div style="flex-grow: 1;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+				<h4>Authenticating</h4>
+				<img alt="Loading" src="svg/loading-spinner.svg" width="64" height="64">		
+			</div>	
+		</div>
+		<div id="unauthedPage" class="body" page="unauthed" data-page="signin">
+			<div id="signinPage" class="section" page="signin">
+				<h4 style="margin: 0px;">Sign in</h4>
+				<form id="signinForm" class="section">
+					<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" maxlength="32" minlength="4" required>
+					<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
+					<button type="submit" class="reddit-modal-button">Continue</button>	
+				</form>
+				<p id="signinMessage" class="form-error"></p>
+			</div>
+			<div id="signupPage" class="section" page="signup">
+				<h4 style="margin: 0px;">Sign up</h4>
+				<form id="signupForm" class="section">
+					<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" minlength="4" required>
+					<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
+					<input type="email" class="reddit-modal-input" placeholder="Confirm email*" name="confirmEmail" required>
+					<button type="submit" class="reddit-modal-button">Continue</button>
+					<p id="signupMessage" class="form-error"></p>
+				</form>
+			</div>
+			<div id="authCodePage" class="section" page="authcode">
+				<div style="display: flex;align-items: center; column-gap: 8px; margin-bottom: 10px;">
+					<button type="button" onclick="unauthedPage.dataset.page='signin'" style="display: inline; background: transparent; padding: 0px; box-shadow: none; border: none;">
+						<image alt="&lt;- Back" src="svg/icon-back.svg"></image>
+					</button>
+					<h3 style="display: inline-block;">Email verification</h3>
+				</div>
+				<h4>If you're lucky, an email has been sent to your inbox</h4>
+				<p>Enter the code sent below to authenticate your account</p>
+				<form id="verificationForm" class="section">
+					<input id="verificationCodeInput" name="code" type="text" maxlength="7" class="reddit-modal-input" placeholder="Verification code*" required="" style="display: block;height: 64px;font-size: 48px;text-align: center;">
+					<button type="submit" class="reddit-modal-button">Done</button>
+					<p id="verificationMessage" class="form-error"></p>
+				</form>
+			</div>
+			<div style="flex-grow: 1"></div>
+			<h4>Other options:</h4>
+			<div style="display: flex;column-gap: 8px;margin: 8px;">
+				<button type="button" class="reddit-signin-button" noselect disabled onclick="
+					const csrf = (Math.random() + 1).toString(36).substring(2)
+					window.open('https:\/\/www.reddit.com/api/v1/authorize?client_id=eqjRPVmD2M7InsCDhBdvVg&response_type=code'
+						+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.live/&duration=permanent&scope=identity')
+					window.close()
+				">
+					<img src="images/reddit.png" style="height: 100%;"><span style="align-self: center;">Sign in with reddit</span>
+				</button>
+				<a href="#" id="authToggleLink" style="align-self: center;" translate="createNewAccount">Create a new account</a>
+			</div>
+		</div>
+		<div class="body" page="profile">
+			<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <span id="profileName2" style="font-size: inherit;"></span></h4>
+			<r-close-icon onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
+			<div class="section" style="flex-grow: 1;">
+				<h4 style="margin: 0;">Profile:</h4>
+				<div class="reddit-card">
+					<img id="profileImg" width="150" height="150" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
+					<div class="profile-section" style="min-width: 164px;">
+						<h4 id="profileName"></h4>
+						<textarea id="profileBio" style="height: 32px;resize: vertical;font-family: 'IBM Plex Sans', sans-serif;"></textarea>
+						<div class="horizontal-labeled-separator">
+							<hr>
+							<span>Connections:</span>
+							<hr>
+						</div>
+						<div style="overflow-y: auto;">
+							<details class="profile-editable" noselect>
+								<summary>
+									<img width="16" height="16" src="images/discord.png" id="profileDiscordIcon">
+									<span>Discord: </span><a id="profileDiscord" href=""></a>
+									<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
+										<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
+									</svg>
+								</summary>
+								<div id="profileDiscordEdit">
+									<form>
+										<input type="text" class="reddit-modal-input" placeholder="Discord Snowflake/ID" id="profileDiscordInput">
+										<button type="submit" class="reddit-modal-button" style="padding: 6px;" id="profileDiscordSubmit">Update</button>
+									</form>
+								</div>
+							</details>
+							<details class="profile-editable" noselect>
+								<summary>
+									<img width="16" height="16" src="images/reddit.png" id="profileRedditIcon">
+									<span>Reddit: </span><a id="profileReddit" href=""></a>
+									<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
+										<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
+									</svg>
+								</summary>
+								<div id="profileRedditEdit">
+									<form>
+										<input type="text" class="reddit-modal-input" placeholder="Reddit username" id="profileRedditInput">
+										<button type="submit" class="reddit-modal-button" style="padding: 6px;" id="profileRedditSubmit">Update</button>
+									</form>
+								</div>
+							</details>
+							<details class="profile-editable" noselect>
+								<summary>
+									<img width="16" height="16" src="images/x.png">
+									<span>X: </span><a id="profileX" href=""></a>
+									<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
+										<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
+									</svg>
+								</summary>
+								<div id="profileXEdit">
+									<form>
+										<input type="text" class="reddit-modal-input" placeholder="X username" id="profileXInput">
+										<button type="submit" class="reddit-modal-button" style="padding: 6px;" id="profileXSubmit">Update</button>
+									</form>
+								</div>
+							</details>
+						</div>
+					</div>
+					<hr style="background-color: #ccc;margin: 0;">
+					<div class="profile-section">
+						<p style="font-style: italic;font-weight: bold;margin: 0;">Stats:</p>
+						<div noselect><span>Pixels placed: </span><span id="profilePixels"></span></div>
+						<div noselect><span>Join date: </span><span id="profileJoin"></span></div>
+						<div noselect><span>Badges: </span><span id="profileBadges"></span></div>
+					</div>
+				</div>
+				<h4 style="margin: 0;">Account Details:</h4>
+				<div class="section">
+					<details>
+						<summary>
+							<span>Account Tier: </span><span id="accountTier"></span>
+							<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 -960 960 960" width="16" fill="#000000">
+								<path d="M280-160v-80h400v80H280Zm160-160v-327L336-544l-56-56 200-200 200 200-56 56-104-103v327h-80Z"/>
+							</svg>
+						</summary>
+						
+					</details>
+					<details>
+						<summary>
+							<span>Email: </span><span id="accountEmail"></span>
+							<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
+								<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"></path>
+							</svg>
+						</summary>
+						<form>
+							<input type="text" class="reddit-modal-input" placeholder="New email address" id="accountEmailInput">
+							<button type="submit" class="reddit-modal-button" style="padding: 6px;" id="accountEmailSubmit">Update</button>
+						</form>
+					</details>
+				</div>
+				<div style="flex-grow: 1;"><!-- Spacer --></div>
+				<a href="/instance" style="opacity: 0.6; pointer-events: none;">Instances: Go to instance manager</a>
+				<button id="logoutButton" type="button" class="reddit-modal-button">Logout</button>
+				<button id="deleteAccountButton" type="button" class="reddit-modal-button" style="background-color: lightcoral;">Delete account</button>
+			</div>
+		</div>
+		<div id="errorPage" class="body" page="error">
+			<p id="errorMessage" class="form-error"></p>
+		</div>
+	</div>
+</body>
+<script>
+	let accountId = null
+	let accountInstance = null
+
+	authToggleLink.addEventListener("touchend", function(e) {
+		event.preventDefault();
+	})
+
+	authToggleLink.addEventListener("click", async function(e) {
+		event.preventDefault()
+		const isSigninPage = unauthedPage.dataset.page === "signin"
+		unauthedPage.dataset.page = isSigninPage ? "signup" : "signin"
+		authToggleLink.textContent = await translate(isSigninPage ? "signInInstead" : "createNewAccount")
+	})
+
+	handleFormSubmit(signinForm, `${localStorage.auth || DEFAULT_AUTH}/auth/login`, {
+		onSuccess: (login) => {
+			accountId = login.accountId
+			unauthedPage.dataset.page = "authcode"
+		},
+		onError: async (err) => {
+			if (typeof err === "object") {
+				signinMessage.textContent = `${await translate("couldntSignIn")}: ${await translate(err.key)}`
+				console.error("Couldn't sign in:", err.message, err.metadata)
+			}
+			else {
+				signinMessage.textContent = `${await translate("couldntSignIn")}: ${await translate("unknownError")}`
+				console.error("Couldn't sign in:", err)
+			}
+		}
+	})
+
+	handleFormSubmit(signupForm, `${localStorage.auth || DEFAULT_AUTH}/auth/signup`, {
+		bind: ({username, email}) => {
+			return { username: username.value, email: email.value }
+		},
+		checkCustomValidity: ({email, confirmEmail}) => {
+			if (email.value !== confirmEmail.value) {
+				confirmEmail.setCustomValidity("Emails do not match!")
+				signupMessage.textContent = "Emails do not match!"
+				confirmEmail.reportValidity()
+				confirmEmail.setCustomValidity("")
+				return false
+			}
+			return true
+		},
+		preRequest: () => {
+			loginPanel.dataset.page = "loading"
+		},
+		onSuccess: (signup) => {
+			accountId = signup.accountId
+			unauthedPage.dataset.page = "authcode"
+		},
+		onError: async (err) => {
+			loginPanel.dataset.page = "unauthed"
+			if (typeof err === "object") {
+				signupMessage.textContent = `${await translate("couldntSignUp")}: ${await translate(err.key)}`
+				console.error("Couldn't sign up:", err.message, err.metadata)
+			}
+			else {
+				signupMessage.textContent = `${await translate("couldntSignUp")}: ${await translate("signinError")}`
+				console.error("Couldn't sign up:", err)
+			}
+		}
+	})
+
+	verificationCodeInput.addEventListener("input", function(e) {
+		const value = e.target.value.replace("-", "").toUpperCase()
+		if (value.length >= 3) {
+			e.target.value = value.slice(0, 3) + '-' + value.slice(3, 6)
+		}
+		else {
+			e.target.value = value
+		}
+	})
+
+	handleFormSubmit(verificationForm, `${localStorage.auth || DEFAULT_AUTH}/auth/verify`, {
+		bind: ({code}) => {
+			return { accountId: accountId, code: code.value.replaceAll("-", "") }
+		},
+		preRequest: () => {
+			loginPanel.dataset.page = "loading"
+		},
+		onSuccess: (verification) => {
+			loginPanel.dataset.page = "profile"
+			loadAccountProfile()
+		},
+		onError: async (err) => {
+			loginPanel.dataset.page = "unauthed"
+			if (typeof err === "object") {
+				verificationMessage.textContent = `${await translate("couldntVerifySignIn")}: ${await translate(err.key)}`
+				console.error("Couldn't verify signin:", err.message, err.metadata)
+			}
+			else {
+				verificationMessage.textContent = `${await translate("couldntVerifySignIn")}: ${await translate("signinError")}`
+				console.error("Couldn't verify signin:", err)
+			}
+		}
+	})
+
+	async function loadAccountProfile() {
+		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/accounts/me`)
+		if (result.status === "error") {
+			const err = result.data
+			if (typeof err === "object") {
+				errorMessage.textContent = `${await translate("couldntLoadAccountProfile")}: ${await translate(err.key)}`
+				console.error("Couldn't load account profile:", err.message, err.metadata)
+			}
+			else {
+				errorMessage.textContent = `${await translate("couldntLoadAccountProfile")}`
+				console.error("Couldn't load account profile:", err)
+			}
+			return
+		}
+		else {
+			const account = result.data
+			accountInstance = account
+			await updateAccountProfile(account)
+		}
+	}
+
+	async function updateAccountProfile(account) {
+		// Card left
+		profileName.textContent = profileName2.textContent = account.username
+		profileBio.value = account.biography
+		profileDiscord.textContent = account.discordHandle
+		profileReddit.textContent = account.redditHandle
+		profileX.textContent = account.twitterHandle
+		// Card right
+		profilePixels.textContent = account.pixelsPlaced
+		profileJoin.textContent = new Date(account.creationDate).toLocaleString()
+		if (account.badges.length === 0) {
+			profileBadges.textContent = "None"	
+		}
+		else {
+			profileBadges.innerHTML = ""
+			for (const badgeId of account.badges) {
+				const badgeImg = document.createElement("img")
+				badgeImg.src = BADGE_ICONS[badgeId]
+				profileBadges.appendChild(badgeImg)
+			}
+		}
+		// Private account data
+		accountTier.textContent = `${await translate(ACCOUNT_TIER_NAMES[account.tier])}`
+		accountEmail.textContent = account.email
+	}
+
+	logoutButton.addEventListener("click", async function() {
+		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/auth/logout`)
+		if (result.status === "success") {
+			window.location.reload()
+		}
+		else {
+			const err = result.data
+			if (typeof err === "object") {
+				console.error("Couldn't log out:", err.message, err.metadata)
+			}
+			else {
+				console.error("Couldn't log out:", err)	
+			}
+		}
+	})
+
+	deleteAccountButton.addEventListener("click", async function() {
+		if (!confirm(await translate("deleteAccountAreYouSure"))) {
+			return
+		}
+		if (prompt(await translate("deleteAccountEnterEmail")) !== accountInstance.email) {
+			return
+		}
+
+		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/accounts/me`, "DELETE")
+		if (result.status === "success") {
+			loginPanel.dataset.page = "unauthed"
+		}
+		else {
+			const err = result.data
+			if (typeof err === "object") {
+				console.error("Couldn't delete account:", err.message, err.metadata)
+			}
+			else {
+				console.error("Couldn't delete account:", err)	
+			}
+		}
+	})
+
+	// Try load account profile immediately if already logged in
+	;(async function() {
+		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/accounts/me`)
+		if (result.status === "success") {
+			const account = result.data
+			accountInstance = account
+			loginPanel.dataset.page = "profile"
+			await updateAccountProfile(account)
+		}
+		else {
+			loginPanel.dataset.page = "unauthed"
+		}
+	})()
+</script>
+</html>
