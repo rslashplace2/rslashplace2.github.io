@@ -1,6 +1,7 @@
 {
 	"connecting": "جار الاتصال...",
 	"connectingFail": "لقد فشل الاتصال!",
+	"disconnectedFromServer": "Disconnected from server",
 	"downloadingImage": "جار تحميل الصورة...",
 	"placeTile": "ضع بلاطة",
 	"donate": "تبرع",
@@ -20,6 +21,7 @@
 	"createNewAccount": "انشئ حساب جديد",
 	"mention": "ذِكر",
 	"replyTo": "الرد على",
+	"addReaction": "Add reaction",
 	"report": "ابلاغ",
 	"block": "حظر",
 	"unblock": "ازالة الحظر",
@@ -34,5 +36,30 @@
 	"lockMessage": "هذه اللوحة مقفلة... لا يمكنك وضع المزيد من البكسلات هنا",
 	"adHidden": "تم إخفاء الإعلان لمدة 14 يومًا!",
 	"specialEventTitle": "حدث خاص - 21 أغسطس!",
-	"copiedToClipboard": "نسخ إلى الحافظة!"
+	"copiedToClipboard": "نسخ إلى الحافظة!",
+
+	"rplaceLivePosts": "rplace.live posts",
+	"searchKeyword": "Search keyword",
+	"createPost": "Create post",
+	"communityPosts": "Community posts",
+	"sortBy": "Sort by:",
+	"hideSensitive": "Hide sensitive:",
+	"date": "Date",
+	"upvotes": "Upvotes",
+
+	"couldntSignIn": "Couldn't sign in",
+	"couldntSignUp": "Couldn't sign up",
+	"couldntVerifySignIn": "Couldn't verify sign in",
+	"signinError": "Sign in error",
+
+	"auth.signup.ipAddress": "Failed to resolve IP address",
+	"auth.signup.rateLimit": "Too many signup attempts. Please try again later.",
+	"auth.signup.invalidUsername": "Invalid username",
+	"auth.signup.invalidEmail": "Invalid email",
+	"auth.signup.accountExists": "An account with the specified details already exists",
+	"auth.login.invalidCredentials": "Invalid credentials",
+	"auth.verify.rateLimit": "Too many failed attempts. Please try again later.",
+	"auth.verify.invalidCode": "Invalid or expired verification code",
+	"auth.verify.accountNotFound": "Account not found",
+	"auth.link.invalidKey": "Invalid or expired link key"
 }

@@ -7,6 +7,7 @@
 		--contents-padding: 16px;
 	}
 }
+
 /* Posts */
 #postsFrame {
 	border: none;
@@ -655,35 +656,6 @@ dialog {
 }
 
 /* Reddit-themed dialog & modal styles (ported from instance manager) */
-#loginPanel[data-page] > div[page] {
-	display: none;
-}
-#loginPanel[data-page="unauthed"] > div[page="unauthed"],
-#loginPanel[data-page="profile"] > div[page="profile"] {
-	display: flex;
-}
-
-#verificationCode {
-	height: 64px;
-	font-size: 42px;
-	text-align: center;
-	margin: 8 0 0 0;
-}
-
-#loginSignupMessage {
-	color: red;
-	font-weight: bold;
-}
-
-#unauthedPage[data-page] > div[page] {
-	display: none;
-}
-#unauthedPage[data-page="signin"] > div[page="signin"],
-#unauthedPage[data-page="signup"] > div[page="signup"],
-#unauthedPage[data-page="authcode"] > div[page="authcode"] {
-	display: flex;
-}
-
 .reddit-modal {
 	margin: auto;
 	border: 1px solid gray;
@@ -717,6 +689,8 @@ dialog {
 	margin-bottom: 20px;
 }
 .reddit-modal .header {
+	position: sticky;
+  	top: 0;
 	color: black;
 	padding: 16px;
 	background: url(images/reddit-login-banner.png);
@@ -730,6 +704,8 @@ dialog {
 	flex-direction: column;
 	row-gap: 8px;
 	flex-grow: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 .reddit-modal .section {
 	display: flex;
@@ -760,6 +736,10 @@ dialog {
 	.reddit-card {
 		flex-direction: column;
 		height: fit-content !important;
+	}
+
+	r-close-icon > svg {
+		fill: white;
 	}
 }
 .reddit-modal-input {
@@ -821,7 +801,6 @@ dialog {
 	background-color: #b0c8e6;
 }
 .reddit-card {
-	height: 150px;
 	margin: 16px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
@@ -832,39 +811,6 @@ dialog {
 	display: flex;
 	column-gap: 16px;
 }
-
-.profile-section {
-	overflow-y: auto;
-}
-#profileName {
-	margin-top: 0px;
-	margin-bottom: 8px;
-	font-weight: 600;
-}
-#profileBio {
-	margin-bottom: 16px;
-	margin-top: 0px;
-}
-.profile-section > div {
-	margin: 0px;
-	overflow: hidden;
-	white-space: nowrap;
-	position: relative;
-	transition: .2s all;
-}
-.profile-editable > summary {
-	display: flex;
-	column-gap: 4px;
-}
-.profile-editable > summary svg {
-	margin-left: auto;
-}
-.profile-section > div.profile-editable:hover {
-	overflow: visible;
-	background-color: white;
-	box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.243);
-	border-radius: 4px;
-	min-width: fit-content;
-	z-index: 2;
-	padding: 4px;
+.reddit-card:hover {
+	box-shadow: 0px 2px 4px #0003;
 }

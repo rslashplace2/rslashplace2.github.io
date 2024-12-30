@@ -4,20 +4,17 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>posts</title>
-	<link href="rplace-2022.css?v=13" rel="stylesheet">
-	<link href="style.css?v=359" rel="stylesheet">
-	<link href="posts.css?v=3" rel="stylesheet">
-	<script type="application/javascript" src="shared.js?v=8"></script>
-	<script id="postsManager" type="application/javascript" src="posts-manager.js?v=6" defer></script>
+	<link rel="stylesheet" href="rplace-2022.css?v=13">
+	<link rel="stylesheet" href="styles.css?v=359">
+	<link rel="stylesheet" href="shared.css?v=2">
+	<link rel="stylesheet" href="posts.css?v=3">
+	<script type="text/javascript" src="shared.js?v=9"></script>
+	<script type="text/javascript" src="account.js"></script>
+	<script id="postsManager" type="text/javascript" src="posts-manager.js?v=6" defer></script>
 	<script type="module" src="shared-elements.js?v=10" defer></script>
 	<script type="module" src="posts-elements.js?v=8" defer></script>
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2508999262953411"
 		crossorigin="anonymous"></script>
-	<script>
-		WebSocket.prototype.send = function(){this.close()}; document.execCommand = (_) => {window.location.reload(true)};
-		const I=HTMLIFrameElement.prototype; delete I.contentWindow;delete I.contentDocument;
-		delete I.getSVGDocument; delete eval;  delete Function.prototype.constructor; delete Function; delete Worker; delete WebSocket;
-	</script>
 </head>
 <body>
 	<header>
@@ -198,8 +195,8 @@
 			</div>
 			<r-clipboard-copy title="Copy canvas URL to clipbaord" href="https://rplace.live/?server=wss://server.rplace.live:443&board=https://raw.githubusercontent.com/rplacetk/canvas1/main/place"></r-clipboard-copy>
 		</div>
-		<!--<r-post onclick="accountDialog.showModal(); unauthedPage.dataset.page = 'signin';" style="cursor: pointer;" class="post" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
-			coverimageurl="images/account-profile.png"></r-post>-->
+		<r-post onclick="/*openAccountFrame();*/" style="cursor: pointer; opacity: 0.6; pointer-events: none;" class="post" novotes="true" title="My Account" description="Login or signup to an rplace.live account, access special features and host your own custom canvases"
+			coverimageurl="images/account-profile.png"></r-post>
 		<!--<r-post onclick="window.open('https:\/\/lamda.count.land/', '_blank')" class="post" novotes="true" title="Lamda" description="Chat anonymously with strangers online. Start random voice calls and meet others!"
 			coverimageurl="images/lamda.png"></r-post>
 		<r-post onclick="toggleTlPanel()" class="post" style="opacity: 0.6; pointer-events: none;" novotes="true" title="Timelapse tool" description="Combine a sequence from the history of the canvas to create your own timelapse video!"
@@ -257,135 +254,6 @@
 				localStorage.agredPostRules = true
 				postRulesDialog.close(true)
 				">Create post</button>
-		</div>
-	</dialog>
-	<dialog id="accountDialog" class="reddit-modal">
-		<div id="loginPanel" data-page="unauthed">
-			<div class="header">
-				<h4 style="margin: 0px;">My account</h4>
-			</div>
-			<r-close-icon onclick="accountDialog.close()" class="active" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
-			<div id="unauthedPage" class="body" page="unauthed" data-page="signin">
-				<div id="signinPage" class="body" page="signin">
-					<h4>Sign in</h4>
-					<form id="signinForm" class="section">
-						<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" maxlength="32" minlength="4" required>
-						<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
-						<button type="submit" class="reddit-modal-button">Continue</button>	
-					</form>
-					<p id="loginSigninMessage"></p>
-				</div>
-				<div id="signupPage" class="body" page="signup">
-					<h4>Sign up</h4>
-					<form id="signupForm" class="section">
-						<input type="text" class="reddit-modal-input" placeholder="Username*" name="username" minlength="4" required>
-						<input type="email" class="reddit-modal-input" placeholder="Email*" name="email" required>
-						<input type="email" class="reddit-modal-input" placeholder="Confirm email*" name="confirmEmail" required>
-						<button type="submit" class="reddit-modal-button">Continue</button>
-						<p id="loginSignupMessage"></p>
-					</form>
-				</div>
-				<div id="authCodePage" class="body" page="authcode">
-					<div style="display: flex;align-items: center; column-gap: 8px; margin-bottom: 10px;">
-						<button type="button" onclick="unauthedPage.dataset.page='signin'" style="display: inline; background: transparent; padding: 0px; box-shadow: none;">
-							<image alt="&lt;- Back" src="svg/icon-back.svg"></image>
-						</button>
-						<h3 style="display: inline-block;">Email verification</h3>
-					</div>
-					<h4>If you're lucky, an email has been sent to your inbox</h4>
-					<p>Enter the code sent below to authenticate your account</p>
-					<form id="verificationForm" class="section">
-						<input id="verificationCodeInput" name="verificationCode" type="text" maxlength="7" class="reddit-modal-input" placeholder="Verification code*" required="" style="display: block;height: 64px;font-size: 48px;text-align: center;">
-						<button type="submit" class="reddit-modal-button">Done</button>
-					</form>
-				</div>
-				<div style="flex-grow: 1"></div>
-				<h4>Other options:</h4>
-				<div style="display: flex;column-gap: 8px;margin: 8px;">
-					<button type="button" class="reddit-signin-button" noselect disabled onclick="
-						const csrf = (Math.random() + 1).toString(36).substring(2)
-						window.open('https:\/\/www.reddit.com/api/v1/authorize?client_id=eqjRPVmD2M7InsCDhBdvVg&response_type=code'
-							+ '&state='+csrf+'&redirect_uri=https:\/\/rplace.live/&duration=permanent&scope=identity')
-						window.close()
-					">
-						<img src="images/reddit.png" style="height: 100%;"><span style="align-self: center;">Sign in with reddit</span>
-					</button>
-					<a href="#" ontouchend="event.preventDefault(); this.click()" onclick="{
-						event.preventDefault()
-						let isSigninPage = unauthedPage.dataset.page === 'signin'
-						unauthedPage.dataset.page = isSigninPage ? 'signup' : 'signin'
-						//this.textContent = translate(isSigninPage ? 'signInInstead' : 'createNewAccount')
-					}" style="align-self: center;" translate="createNewAccount">Create a new account</a>
-				</div>
-			</div>
-			<div class="body" style="overflow-y: scroll;" page="profile">
-				<h4 style="margin-bottom: 8px;">🔑 Sucessfully logged in as <span id="profileName2"></span></h4>
-				<r-close-icon onclick="loginPanel.style.display = 'none'" style="position: absolute; top: 10px; right: 10px;"></r-close-icon>
-				<div class="body">
-					<h4>Profile</h4>
-					<div class="reddit-card">
-						<img id="profileImg" src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg">
-						<div class="profile-section" style="min-width: 164px;">
-							<h5 id="profileName"></h5>
-							<div style="overflow-y: auto;">
-								<details class="profile-editable" noselect>
-									<summary>
-										<img width="16" height="16" src="images/discord.png" id="profileDiscordIcon">
-										<span>Discord: </span><a id="profileDiscord" href=""></a>
-										<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
-											<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
-										</svg>
-									</summary>
-									<div id="profileDiscordEdit">
-										<input type="text" class="reddit-modal-input" placeholder="Discord Snowflake/ID" id="profileDiscordInput">
-										<button type="button" class="reddit-modal-button" style="padding: 6px;" id="profileDiscordSubmit">Update</button>
-									</div>
-								</details>
-								<details class="profile-editable" noselect>
-									<summary>
-										<img width="16" height="16" src="images/reddit.png" id="profileRedditIcon">
-										<span>Reddit: </span><a id="profileReddit" href=""></a>
-										<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
-											<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
-										</svg>
-									</summary>
-									<div id="profileRedditEdit">
-										<input type="text" class="reddit-modal-input" placeholder="Reddit username" id="profileRedditInput">
-										<button type="button" class="reddit-modal-button" style="padding: 6px;" id="profileRedditSubmit">Update</button>
-									</div>
-								</details>
-								<details class="profile-editable" noselect>
-									<summary>
-										<img width="16" height="16" src="images/x.png">
-										<span>X: </span><a id="profileX" href=""></a>
-										<svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.2;cursor:pointer;" height="16" viewBox="0 96 960 960" width="16">
-											<path d="M180 876h44l443-443-44-44-443 443v44Zm614-486L666 262l42-42q17-17 42-17t42 17l44 44q17 17 17 42t-17 42l-42 42Zm-42 42L248 936H120V808l504-504 128 128Zm-107-21-22-22 44 44-22-22Z"/>
-										</svg>
-									</summary>
-									<div id="profileXEdit">
-										<input type="text" class="reddit-modal-input" placeholder="X username" id="profileXInput">
-										<button type="button" class="reddit-modal-button" style="padding: 6px;" id="profileXSubmit">Update</button>
-									</div>
-								</details>
-							</div>
-						</div>
-						<div style="width: 2px;background-color: #ccc;border-radius: 2px;"></div>
-						<div class="profile-section">
-							<p style="font-style: italic;">Stats</p>
-							<div noselect><span>Pixels placed: </span><span id="profilePixels"></span></div>
-							<div noselect><span>Join date: </span><span id="profileJoin"></span></div>
-							<div noselect><span>Badges: </span><span id="profileBadges"></span></div>
-						</div>
-					</div>
-					<h4>Account Data:</h4>
-					<p>Account Tier: <span id="accountTier"></span></p>
-					<p>Username: <span id="accountName"></span></p>
-					<p>Email: <span id="accountEmail"></span></p>
-					<a href="/instance" style="opacity: 0.6; pointer-events: none;">Instances: Go to instance manager</a>
-					<button type="button" class="reddit-modal-button">Logout</button>
-					<button type="button" class="reddit-modal-button">Delete account</button>
-				</div>
-			</div>
 		</div>
 	</dialog>
 </body>
@@ -620,114 +488,6 @@
 		createPostInput.placeholder = "Create post..."
 		createPostPost.classList.remove("focused")
 	}
-
-	signinForm.addEventListener("submit", async function(e) {
-		e.preventDefault()
-		const { username, email } = signupForm.elements
-		loginSigninMessage.textContent = ""
-
-		if (!signinForm.checkValidity()) {
-			signinForm.reportValidity()
-			return
-		}
-
-		unauthedPage.dataset.page = "authcode"
-	})
-
-	signupForm.addEventListener("submit", async function(e) {
-		e.preventDefault()
-		const { username, email, confirmEmail } = signupForm.elements
-		loginSignupMessage.textContent = ""
-
-		if (!signupForm.checkValidity()) {
-			signupForm.reportValidity()
-			return
-		}
-
-		if (email.value !== confirmEmail.value) {
-			confirmEmail.setCustomValidity("Emails do not match!")
-			loginSignupMessage.textContent = "Emails do not match!"
-			confirmEmail.reportValidity()
-			confirmEmail.setCustomValidity("")
-			return
-		}
-
-		unauthedPage.dataset.page = "authcode"
-	})
-
-	verificationCodeInput.addEventListener("input", function(e) {
-		const value = e.target.value.replace("-", "").toUpperCase()
-		if (value.length >= 3) {
-			e.target.value = value.slice(0, 3) + '-' + value.slice(3, 6)
-		}
-		else {
-			e.target.value = value
-		}
-	})
-
-	verificationForm.addEventListener("submit", function(e) {
-		e.preventDefault()
-		const { verificationCode } = verificationForm.elements
-		console.log(verificationCode.value)
-	})
-
-	/*call(addEventListener, signupButton, 'click', function(e) {
-		signupUsername.style.border = 'initial'
-		signupEmail.style.border = 'initial'
-		if (signupUsername.value.length < 4) {
-			signupUsername.style.border = '1px solid red'
-			loginSignupMessage.textContent = 'Username is too short!'
-			return
-		}
-		if (!signupEmail.validity.valid) {
-			signupEmail.style.border = '1px solid red'
-			loginSignupMessage.textContent = 'Email is not valid!'
-			return
-		}
-		loginSignupMessage.textContent = ''
-		//authCodePage.style.display = 'flex'
-		//signupPage.style.display = 'none'
-		let buffer = encoder.encode('X' + signupUsername.value.padEnd(32) + signupEmail.value.padEnd(320))
-		buffer[0] = 2 // ClientPackets.CreateAccount
-		call(send, authSocket, buffer)
-	})
-	call(addEventListener, signinButton, 'click', function() {
-		let buffer = encoder.encode('X' + loginUsername.value.padEnd(32) + loginEmail.value.padEnd(320))
-		buffer[0] = 5 //ClientPackets.Authenticate
-		call(send, authSocket, buffer)
-		//authCodePage.style.display = 'flex'
-		//signinPage.style.display = 'none'
-	})
-	call(addEventListener, authCodeButton, 'click', function() {
-		let buffer = encoder.encode('X' + authCode.value)
-		buffer[0] = 3 // ClientPackets.AccountCode
-		call(send, authSocket, buffer)
-		//authCodePage.style.display = 'none'
-		//signinPage.style.display = 'flex'
-	})
-	call(addEventListener, profileDiscordSubmit, 'click', function() {
-		let view = new DataView(new Uint8Array(10).buffer)
-		view.setUint8(0, 11) // ClientPackets.UpdateProfile
-		view.setUint8(1, 1) // PublicEditableData.DiscordSnowflake
-		view.setBigInt64(2, BigInt(parseInt(profileDiscordInput.value)))
-		call(send, authSocket, view.buffer)
-		call(send, authSocket, new Uint8Array([4]))
-	})
-	call(addEventListener, profileXSubmit, 'click', function() {
-		let buffer = encoder.encode('XX' + profileXInput.value)
-		buffer[0] = 11 // ClientPackets.UpdateProfile
-		buffer[1] = 2 // PublicEditableData.TwitterHandle
-		call(send, authSocket, buffer)
-		call(send, authSocket, new Uint8Array([4]))
-	})
-	call(addEventListener, profileRedditSubmit, 'click', function() {
-		let buffer = encoder.encode('XX' + profileRedditInput.value)
-		buffer[0] = 11 // ClientPackets.UpdateProfile
-		buffer[1] = 3 // PublicEditableData.RedditHandle
-		call(send, authSocket, buffer)
-		call(send, authSocket, new Uint8Array([4]))
-	})
-	*/
 
 	translateAll()
 

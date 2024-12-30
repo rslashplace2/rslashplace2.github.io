@@ -7,7 +7,6 @@
 		const VERIFIED_APP_HASH = "90e58b1f2c5fb98f74962806b85c2d7d3f7b18be8abe7a04f21e939868625357"
 		const UNMUTED_SVG = '<path d="M10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361zM13 3.375v1.25a5.375 5.375 0 010 10.75v1.25a6.625 6.625 0 000-13.25z"></path><path d="M16.125 10A3.129 3.129 0 0013 6.875v1.25a1.875 1.875 0 010 3.75v1.25A3.129 3.129 0 0016.125 10z"></path>'
 		const MUTED_SVG = '<path d="M19.442 7.442l-.884-.884L16.5 8.616l-2.058-2.058-.884.884L15.616 9.5l-2.058 2.058.884.884 2.058-2.058 2.058 2.058.884-.884L17.384 9.5l2.058-2.058zM10.543.5a1.12 1.12 0 00-1.182.117L3.789 4.875h-1.8A1.127 1.127 0 00.868 6v8a1.127 1.127 0 001.125 1.125h1.8l5.572 4.258a1.117 1.117 0 00.681.232 1.128 1.128 0 001.127-1.126V1.511A1.119 1.119 0 0010.543.5zm-.624 17.736l-5.708-4.361H2.118v-7.75h2.093l5.708-4.361z"></path>'
-		const BADGES = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
 		const DEFAULT_PALETTE_KEYS = "123456789abcdefghijklmnopqrstuvwxyz"
 
 		const AUDIOS = {
@@ -1138,16 +1137,17 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	</script>
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2508999262953411" crossorigin="anonymous"></script>
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
-	<script type="application/javascript" src="uv.min.js"></script>
-	<script type="application/javascript" src="shared.js?v=8"></script>
-	<script type="application/javascript" src="event-timer.js" defer></script>
-	<script type="application/javascript" src="august21-event.js" defer></script>
-	<script type="application/javascript" src="quests.js" defer></script>
-	<script type="application/javascript" src="captcha-canvas.js"></script>
-	<script type="application/javascript" src="darkplace.js"></script>
-	<script type="application/javascript" src="canvas-snow.min.js"></script>
-	<script type="application/javascript" src="snowplace.js"></script>
-	<script type="application/javascript" src="tsparticles.confetti.bundle.min.js"></script>
+	<script type="text/javascript" src="uv.min.js"></script>
+	<script type="text/javascript" src="shared.js?v=9"></script>
+	<script type="text/javascript" src="event-timer.js" defer></script>
+	<script type="text/javascript" src="august21-event.js" defer></script>
+	<script type="text/javascript" src="quests.js" defer></script>
+	<script type="text/javascript" src="captcha-canvas.js"></script>
+	<script type="text/javascript" src="darkplace.js"></script>
+	<script type="text/javascript" src="canvas-snow.min.js"></script>
+	<script type="text/javascript" src="snowplace.js"></script>
+	<script type="text/javascript" src="account.js"></script>
+	<script type="text/javascript" src="tsparticles.confetti.bundle.min.js"></script>
 	<script type="module" src="shared-elements.js?v=10" defer></script>
 	<script type="module" src="live-chat-elements.js?v=2" defer></script>
 	<link rel="manifest" href="manifest.json">
@@ -1157,8 +1157,9 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="google-adsense-account" content="ca-pub-2508999262953411">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<link href="style.css?v=359" rel="stylesheet"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur-->
-	<title>place</title>
+	<link rel="stylesheet" href="styles.css?v=359"> <!-- Increment the CSS query, such as ?v=1.x every time CSS is changed in order to force clients to refresh their stylesheets. Otherwise broken CSS may occur -->
+	<link rel="stylesheet" href="shared.css?v=2">
+	<title>rplace</title>
 	<link rel="icon" type="image/x-icon" href="favicon.png">
 	<meta property="og:title" content="r/place 2"/>
 	<meta property="og:description" content="There is an empty canvas. You may place a tile upon it, but you must wait to place another. Individually you can create something. Together you can create something more." />
@@ -1731,7 +1732,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			</div>
 			<div class="progressbar"><!--progress bar--></div>
 		</div>
-		<iframe id="questsFrame" src="quests-dialog.html" title="Quests" frameborder="0" style="display: none;"></iframe>
+		<iframe id="questsFrame" src="quests-dialog.html" title="quests" frameborder="0" style="display: none;"></iframe>
 	</body>
 	<script>
 		let PALETTE_USABLE_REGION = { start: 0, end: 32 }

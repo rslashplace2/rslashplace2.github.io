@@ -8,8 +8,8 @@
 	"start_url": "/",
 	"scope": "/",
 	"icons": [{
-		"src": "favicon.png",
-		"type": "image/png",
+		"src": "favicon.ico",
+		"type": "image/x-icon",
 		"sizes": "256x256"
 	}]
 }

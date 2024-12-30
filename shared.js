@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
@@ -6,6 +7,16 @@
 const DEFAULT_SERVER = "wss://server.rplace.live:443"
 const DEFAULT_BOARD = "https://raw.githubusercontent.com/rplacetk/canvas1/main/place"
 const DEFAULT_AUTH = "https://server.rplace.live/auth"
+
+const BADGE_ICONS = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
+const ACCOUNT_TIER_NAMES = {
+	0: "accountTierFree",
+    1: "accountTierBronze",
+    2: "accountTierSilver",
+    4: "accountTierGold",
+    8: "accountTierModerator",
+    16: "accountTierAdministrator"
+}
 
 const TRANSLATIONS = {
 	en: {
@@ -48,6 +59,7 @@ const TRANSLATIONS = {
 		adHidden: "Ad hidden for 14 days!",
 		specialEventTitle: "Special event - August 21st!",
 		copiedToClipboard: "Copied to clipboard!",
+		
 		// Posts
 		rplaceLivePosts: "rplace.live posts",
 		searchKeyword: "Search keyword",
@@ -57,6 +69,33 @@ const TRANSLATIONS = {
 		hideSensitive: "Hide sensitive:",
 		date: "Date",
 		upvotes: "Upvotes",
+
+		// Accounts
+		couldntSignIn: "Couldn't sign in",
+		couldntSignUp: "Couldn't sign up",
+		couldntVerifySignIn: "Couldn't verify sign in",
+		couldntLoadAccountProfile: "Couldn't load account profile",
+		signinError: "Sign in error",
+		accountTierFree: "Free",
+		accountTierBronze: "Bronze",
+		accountTierSilver: "Silver",
+		accountTierGold: "Gold",
+		accountTierModerator: "Moderator",
+		accountTierAdministrator: "Administrator",
+		deleteAccountAreYouSure: "Warning: You are about to delete your account. This can not be undone, are you sure you want to continue?",
+		deleteAccountEnterEmail: "Enter your email below to confirm account deletion:",
+		
+		// Auth
+		"auth.signup.ipAddress": "Failed to resolve IP address",
+		"auth.signup.rateLimit": "Too many signup attempts. Please try again later.",
+		"auth.signup.invalidUsername": "Invalid username",
+		"auth.signup.invalidEmail": "Invalid email",
+		"auth.signup.accountExists": "An account with the specified details already exists",
+		"auth.login.invalidCredentials": "Invalid credentials",
+		"auth.verify.rateLimit": "Too many failed attempts. Please try again later.",
+		"auth.verify.invalidCode": "Invalid or expired verification code",
+		"auth.verify.accountNotFound": "Account not found",
+		"auth.link.invalidKey": "Invalid or expired link key"
 	}
 }
 
@@ -98,12 +137,19 @@ function setCachedTranslation(lang, data) {
 }
 
 async function fetchTranslations(lang) {
+	// Fast: Pull from local object
+	if (TRANSLATIONS[lang]) {
+		return TRANSLATIONS[lang]
+	}
 	try {
+		// Med: Fall back to indexDB caches
 		const cachedTranslation = await getCachedTranslation(lang)
 		const now = Date.now()
 		if (cachedTranslation && (now - cachedTranslation.timestamp) <= TRANSLATION_EXPIRY) {
+			TRANSLATIONS[lang] = cachedTranslation.data
 			return cachedTranslation.data
 		}
+		// Slow: Fall back to requesting translation file
 		const response = await fetch(`translations/${lang}.json`)
 		if (!response.ok) {
 			throw new Error(`Translations for ${lang} not found`)
@@ -112,7 +158,8 @@ async function fetchTranslations(lang) {
 		await setCachedTranslation(lang, translation)
 		TRANSLATIONS[lang] = translation
 		return translation
-	} catch (error) {
+	}
+	catch (error) {
 		console.log(error)
 		return TRANSLATIONS["en"]
 	}
@@ -295,6 +342,64 @@ async function cachedFetch(keystore, id, url, expiry) {
 	}
 
 	return cachedObject
+}
+
+async function makeRequest(url, method = "GET", body = undefined) {
+	try {
+		const fetchOptions = {
+			method,
+			credentials: "include",
+		}
+		if (body !== undefined) {
+			fetchOptions.headers = {
+				"Content-Type": "application/json"
+			}
+			fetchOptions.body = JSON.stringify(body)
+		}
+		const response = await fetch(url, fetchOptions)
+
+		if (!response.ok) {
+			return { status: "error", data: await response.json() }
+		}
+
+		return { status: "success", data: await response.json() }
+	}
+	catch (error) {
+		return { status: "error", data: error }
+	}
+}
+
+function handleFormSubmit(form, endpoint, { bind, checkCustomValidity, preRequest, onSuccess, onError }) {
+	form.addEventListener("submit", async function (e) {
+		e.preventDefault()
+		const elements = form.elements
+
+		if (!form.checkValidity()) {
+			form.reportValidity()
+			return
+		}
+		if (typeof checkCustomValidity === "function" && !await checkCustomValidity(elements)) {
+			return
+		}
+
+		let formData = Object.fromEntries(new FormData(form).entries())
+		if (typeof bind === "function") {
+			formData = bind(elements)
+		}
+		if (typeof before === "function") {
+			await preRequest()
+		}
+		const result = await makeRequest(endpoint, "POST", formData)
+		if (result.status === "success" && typeof onSuccess === "function") {
+
+			await onSuccess(result.data)
+			return
+		}
+		else if (result.status === "error" && typeof onError === "function") {
+			await onError(result.data)
+			return
+		}
+	})
 }
 
 window.moduleExports = {
