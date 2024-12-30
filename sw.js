@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Service worker for PWA installation
-const CURRENT_CACHES = "tkv3"
+const CURRENT_CACHES = "tkv4"
 self.addEventListener("install", (event) => {
 	event.waitUntil(
 		caches.open(CURRENT_CACHES).then((cache) =>
 			cache.addAll([
 				// Pages
 				"404.html",
+				"account-dialog.html",
 				"disclaimer.html",
 				"fakeapp.html",
 				"index.html",
@@ -16,16 +17,41 @@ self.addEventListener("install", (event) => {
 				"quests-dialog.html",
 
 				// Styles
+				"account.css",
 				"goldplace.css",
 				"misc-page.css",
 				"posts.css",
 				"rplace-2022.css",
 				"rplace-2023.css",
 				"shared.css",
-				"style.css",
+				"styles.css",
 				"theme-switch.css",
 
+				// Scripts
+				"account.js",
+				"add-vip.js",
+				"august21-event.js",
+				"canvas-snow.min.js",
+				"captcha-canvas.js",
+				"darkplace.js",
+				"event-timer.js",
+				"lit.all.min.js",
+				"live-chat-elements.js",
+				"merge.js",
+				"posts-elements.js",
+				"posts-manager.js",
+				"quests.js",
+				"shared-elements.js",
+				"shared.js",
+				"snowplace.js",
+				"sw.js",
+				"trim-ban-mute-file.js",
+				"tsparticles.confetti.bundle.min.js",
+				"uv.min.js",
+
 				// Images
+				"favicon.ico",
+				"favicon.png",
 				"images/1984.png",
 				"images/account-profile.png",
 				"images/canv.png",

@@ -1,4 +1,19 @@
-* { margin: 0; padding: 0; touch-action: none } *, *::before, *::after { box-sizing: border-box } body, html{ width: 100%; height: 100%; overflow: hidden; position: absolute }
+* {
+	margin: 0;
+	padding: 0;
+	touch-action: none
+}
+
+*, *::before, *::after {
+	box-sizing: border-box
+}
+
+body, html {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	position: absolute
+}
 
 html {
 	overscroll-behavior: none;
@@ -713,24 +728,6 @@ body[eventphase="3"] .coverer-title {
 	top: -8px;
 	height: 32px;
 	width: 32px;
-}
-
-.horizontal-labeled-separator {
-	background: none;
-	border: none;
-	color: gray;
-	font-weight: bold;
-	display: flex;
-	column-gap: 4px;
-}
-.horizontal-labeled-separator > hr {
-	flex-grow: 1;
-	height: 1px;
-	margin-top: 8px;
-	opacity: 0.2;
-}
-.horizontal-labeled-separator > span {
-	font-size: 14px;
 }
 
 #chatPreviousButton {

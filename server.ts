@@ -9,7 +9,6 @@
 // Legacy rplace server software, (c) BlobKat, Zekiah
 // For the current server software, go to https://github.com/Zekiah-A/RplaceServer
 import { promises as fs } from "fs"
-import sha256 from "sha256"
 import fsExists from "fs.promises.exists"
 import util from "util"
 import path from "path"
@@ -22,6 +21,7 @@ import { $, Server, ServerWebSocket, TLSWebSocketServeOptions } from "bun"
 import { DbInternals, LiveChatMessage } from "./db-worker.ts"
 import { PublicPromise, ReactionInfo } from "./server-types.ts"
 import { distance } from "fastest-levenshtein"
+import * as sha256 from "sha256"
 
 let BOARD:Uint8Array, CHANGES:Uint8Array, PLACERS:Buffer
 
@@ -316,29 +316,29 @@ function runLengthChanges() {
 
 /** Bidirectional map */
 class DoubleMap<T, K> {
-    foward: Map<T, K>
+    forward: Map<T, K>
     reverse: Map<K, T>
     constructor() {
-        this.foward = new Map<T, K>()
+        this.forward = new Map<T, K>()
         this.reverse = new Map<K, T>()
     }
     set(key: T, value: K) {
-        this.foward.set(key, value)
+        this.forward.set(key, value)
         this.reverse.set(value, key)
     }
-    getForward(key: T) { return this.foward.get(key) }
+    getForward(key: T) { return this.forward.get(key) }
     getReverse(value: K) { return this.reverse.get(value) }
     delete(key: T):boolean {
-        const value = this.foward.get(key)
+        const value = this.forward.get(key)
         if (value) {
-            this.foward.delete(key)
+            this.forward.delete(key)
             this.reverse.delete(value)
             return true
         }
         return false
     }
-    clear() { this.foward.clear(); this.reverse.clear() }
-    size() { return this.foward.size }
+    clear() { this.forward.clear(); this.reverse.clear() }
+    size() { return this.forward.size }
 }
 
 const criticalFiles = ["blacklist.txt", "bansheets.txt", "vip.txt", "reserved_names.txt", "censors.txt"]
@@ -359,7 +359,7 @@ function randomString(length: number) {
     crypto.getRandomValues(buf)
     let str = ""
     for (let i = 0; i < buf.length; i++) {
-        str += (buf[i].toString(16))
+        return Array.from(buf).map(b => b.toString(16)).join("").slice(0, length)
     }
 
     return str.slice(0, length)
@@ -389,7 +389,11 @@ async function getBansheetsIps() {
     const banListUrls = bansheetsText.toString().trim().split("\n")
     const banLists = await Promise.all(
         banListUrls.map(banListUrl => fetch(banListUrl)
-            .then(response => response.text()))
+            .then(response => response.text())
+            .catch(error => {
+                console.error(`Failed to fetch ban list from ${banListUrl}:`, error)
+                return ""
+            }))
     )
     const blacklistedIps = banLists
         .flatMap((line: string) => line.trim().split("\n")
@@ -440,7 +444,12 @@ async function makeDbRequest<T extends DbInternals>(messageCall: keyof T, args?:
 
     const postCall = { call: messageCall, data: args, handle: handle }
     dbReqs.set(handle, promise)
-    dbWorker.postMessage(postCall)
+    try {
+        dbWorker.postMessage(postCall)
+    }
+    catch (error) {
+        promise.reject(error)
+    }
     //@ts-expect-error Chicanery (trust me bro)
     return await promise.promise
 }
@@ -448,6 +457,15 @@ dbWorker.on("message", (message) => {
     dbReqs.get(message.handle)?.resolve(message.data)
 })
 dbWorker.on("error", console.warn)
+//@ts-expect-error Chicanery (trust me bro)
+function postDbMessage<T extends DbInternals>(messageCall: keyof T, args?: Parameters<T[keyof T]>[0]):void {
+    try {
+        dbWorker.postMessage({ call: messageCall, data: args })
+    }
+    catch (error) {
+        console.error("Failed to post message to worker:", error)
+    }
+}
 //@ts-expect-error Chicanery (trust me bro)
 function postDbMessage<T extends DbInternals>(messageCall: keyof T, args?: Parameters<T[keyof T]>[0]):void {
     dbWorker.postMessage({ call: messageCall, data: args })
@@ -1587,15 +1605,21 @@ async function verifyTurnstile(turnstileToken:string, ip:string) {
     formData.append("secret", TURNSTILE_PRIVATE_KEY)
     formData.append("response", turnstileToken)
     formData.append("remoteip", ip)
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        body: formData,
-        method: "POST"
-    })
-    if (!response.ok) {
-        return { result: "error", response }
+    try {
+        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            body: formData,
+            method: "POST"
+        })
+        if (!response.ok) {
+            return { result: "error", response }
+        }
+        const outcome:any = await response.json()
+        return { result: outcome?.success ? "success" : "fail", response }
     }
-    const outcome:any = await response.json()
-    return { result: outcome?.success ? "success" : "fail", response }
+    catch (error) {
+        console.error("Error verifying Turnstile:", error)
+        return { result: "error", error }
+    }
 }
 
 /**
@@ -1661,26 +1685,42 @@ async function pushImage() {
     for (let i = BOARD.length - 1; i >= 0; i--) { if (CHANGES[i] != 255) BOARD[i] = CHANGES[i] }
 
     const metadata = {  palette: PALETTE, width: WIDTH, height: HEIGHT }
-    await Bun.write(path.join(PUSH_PLACE_PATH, "metadata.json"), JSON.stringify(metadata))
-    await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
-	await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock")).catch(_ => { })
-    const addResult = await $`git add -A`.cwd(PUSH_PLACE_PATH).quiet()
-    if (addResult.exitCode != 0 && addResult.stderr) {
-        console.error("Failed to push canvas backup image (failure during git add)\n", addResult.stderr.toString())
+    try {
+        await Bun.write(path.join(PUSH_PLACE_PATH, "metadata.json"), JSON.stringify(metadata))
+        await Bun.write(path.join(PUSH_PLACE_PATH, "place"), BOARD)
+        await fs.unlink(path.join(PUSH_PLACE_PATH, ".git/index.lock")).catch(_ => { })
     }
-    const pushResult = await $`git commit -a -m 'Canvas backup'; git push --force ${PUSH_LOCATION}`.cwd(PUSH_PLACE_PATH).quiet()
-    if (pushResult.exitCode != 0 && pushResult.stderr) {
-        console.error("Failed to push canvas backup image (fail during push)\n", pushResult.stderr.toString())
+    catch (error) {
+        console.error("Failed to write files:", error)
+        return
     }
-    else {
-        // [If sucesssful push] Serve old changes for 11 more mins before wipe just to be 100% safe
-        // of slow git sync or http canvas file server caching...
-        const curr = new Uint8Array(CHANGES)
-        setTimeout(() => {
-            // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove
-            for (let i = curr.length - 1; i >= 0; i--) { if (curr[i] == CHANGES[i]) CHANGES[i] = 255 }
-        }, 200e3)
+
+    try {
+        const addResult = await $`git add -A`.cwd(PUSH_PLACE_PATH).quiet()
+        if (addResult.exitCode != 0 && addResult.stderr) {
+            console.error("Failed to push canvas backup image (failure during git add)\n", addResult.stderr.toString())
+            return
+        }
+        const pushResult = await $`git commit -a -m 'Canvas backup'; git push --force ${PUSH_LOCATION}`.cwd(PUSH_PLACE_PATH).quiet()
+        if (pushResult.exitCode != 0 && pushResult.stderr) {
+            console.error("Failed to push canvas backup image (fail during push)\n", pushResult.stderr.toString())
+            return
+        }
     }
+    catch (error) {
+        console.error("Failed to execute git commands:", error)
+        return
+    }
+
+    // [If successful push] Serve old changes for 11 more mins before wipe just to be 100% safe
+    // of slow git sync or http canvas file server caching...
+    const curr = new Uint8Array(CHANGES)
+    setTimeout(() => {
+        // After 11 minutes, remove all old changes. Where there is a new change, curr[i] != CHANGES[i] and so it will be kept, but otherwise, remove
+        for (let i = curr.length - 1; i >= 0; i--) {
+            if (curr[i] == CHANGES[i]) CHANGES[i] = 255
+        }
+    }, 200e3)
 }
 
 // Rolling array of window size
