@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "esnext",
         "module": "ESNext",
-        "checkJs":true,
+        "checkJs": false,
     	"types": [ "bun-types" ],
         "moduleResolution": "nodenext",
         "forceConsistentCasingInFileNames": true,

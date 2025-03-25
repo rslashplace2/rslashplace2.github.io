@@ -11,11 +11,11 @@ const DEFAULT_AUTH = "https://server.rplace.live/auth"
 const BADGE_ICONS = [ "badges/based.svg", "badges/trouble_maker.svg", "badges/veteran.svg", "badges/admin.svg", "badges/moderator.svg", "badges/noob.svg", "badges/script_kiddie.svg", "badges/ethical_botter.svg", "badges/gay.svg", "badges/discord_member.svg", "badges/100_pixels_placed", "badges/1000_pixels_placed", "badges/5000_pixels_placed", "badges/2000_pixels_placed", "badges/100000_pixels_placed", "badges/1000000_pixels_placed" ]
 const ACCOUNT_TIER_NAMES = {
 	0: "accountTierFree",
-    1: "accountTierBronze",
-    2: "accountTierSilver",
-    4: "accountTierGold",
-    8: "accountTierModerator",
-    16: "accountTierAdministrator"
+	1: "accountTierBronze",
+	2: "accountTierSilver",
+	4: "accountTierGold",
+	8: "accountTierModerator",
+	16: "accountTierAdministrator"
 }
 
 const TRANSLATIONS = {
@@ -401,6 +401,78 @@ function handleFormSubmit(form, endpoint, { bind, checkCustomValidity, preReques
 		}
 	})
 }
+
+// Cross-frame IPC system
+let frameReqId = 0
+let frameReqs = new Map()
+async function makeCrossFrameRequest(frameEl, messageCall, args = undefined) {
+	const handle = frameReqId++
+	const promise = new PublicPromise()
+	const postCall = { 
+		call: messageCall, 
+		data: args, 
+		handle: handle,
+		source: window.name || "main"
+	}
+	frameReqs.set(handle, promise)
+	frameEl.contentWindow.postMessage(postCall, location.origin)
+	return await promise.promise
+}
+function sendCrossFrameMessage(frameEl, messageCall, args = undefined) {
+	frameEl.contentWindow.postMessage({ 
+		call: messageCall, 
+		data: args,
+		source: window.name || "main"
+	}, location.origin)
+}
+window.addEventListener("message", async function(event) {
+	if (!event.origin.startsWith(location.origin)) {
+		return
+	}
+	const message = event.data
+	if (!message) {
+		return
+	}
+	if (message.call) { // Another frame asking to call window method
+		let result = undefined
+		try {
+			// Check if the method exists and is callable
+			if (typeof window[message.call] === "function") {
+				result = await window[message.call](message.data)
+			}
+			// Send return result back if handle was provided
+			if (message.handle !== undefined && message.handle !== null) {
+				event.source.postMessage({ 
+					handle: message.handle, 
+					data: result,
+					source: window.name || "main"
+				}, event.origin)
+			}
+		}
+		catch (error) {
+			console.error(`Error executing cross-frame call '${message.call}':`, error)
+			if (message.handle !== undefined && message.handle !== null) {
+				event.source.postMessage({ 
+					handle: message.handle, 
+					error: error.message,
+					source: window.name || "main"
+				}, event.origin)
+			}
+		}
+	}
+	else { // Return value from calling another frames method
+		const request = frameReqs.get(message.handle)
+		if (request) {
+			if (message.error) {
+				request.reject(new Error(message.error))
+			}
+			else {
+				request.resolve(message.data)
+			}
+			frameReqs.delete(message.handle)
+		}
+	}
+})
 
 window.moduleExports = {
 	...window.moduleExports,

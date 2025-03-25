@@ -61,6 +61,20 @@ async function getAccount() {
 	}
 }
 
+/**
+ * Called by account dialog via cross frame IPC system
+ * @param {string} eventName Name of account event, i.e account-login, account-logout
+ * @param {object} detail Associated event metadata
+ */
+function dispatchAccountEvent(eventName, detail = {}) {
+	const event = new CustomEvent(eventName, {
+		detail,
+		bubbles: true,
+		composed: true
+	})
+	window.dispatchEvent(event)
+}
+
 window.moduleExports = {
 	...window.moduleExports,
 	get openAccountFrame() {
@@ -71,5 +85,8 @@ window.moduleExports = {
 	},
 	get getAccount() {
 		return getAccount
+	},
+	get dispatchAccountEvent() {
+		return dispatchAccountEvent
 	}
 }
