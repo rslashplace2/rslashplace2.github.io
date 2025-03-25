@@ -1,7 +1,8 @@
 // Show game popup
 function isTodayAugust21st() {
     const now = new Date()
-    return now.getMonth() === 7 && now.getDate() === 21 // August is month 7 (zero-based)
+	// August is month 7 (zero-based)
+    return now.getMonth() === 7 && now.getDate() === 21
 }
 
 function getNextAugust21st() {
@@ -10,8 +11,9 @@ function getNextAugust21st() {
 		? now.getFullYear() + 1 
 		: now.getFullYear()
 
-	const august21st = new Date(year, 7, 21) // Month is zero-based (7 = August)
-	return Math.floor(august21st.getTime() / 1000) // Convert to Unix timestamp
+	// Get unix timestamp of August 21st of the current year
+	const august21st = new Date(year, 7, 21)
+	return august21st.getTime()
 }
 
 function enableAugust21() {
