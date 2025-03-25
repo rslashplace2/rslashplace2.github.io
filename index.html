@@ -2355,7 +2355,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 
 		async function fetchBoard() {
 			// Override browser cache with ?v= param, may incurr longer loading times
-			// TODO: investigate optimisations to onl;y do a hard realod when necessary
+			// TODO: investigate optimisations to only do a hard realod when necessary
 			const response = await fetch((localStorage.board || DEFAULT_BOARD) + "?v=" + Date.now())
 			if (!response.ok) {
 				showLoadingScreen()

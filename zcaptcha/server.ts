@@ -53,9 +53,10 @@ function decodeGenResult(genResult:Pointer) {
 
 export function init() {
     const pathStr = join(__dirname, "Data/NotoColorEmoji-Regular.ttf")
-    const pathStrBuffer = new Uint8Array(new TextEncoder().encode(pathStr))
-    const cPathStr = new CString(ptr(pathStrBuffer))
-    const result = initialise(cPathStr)
+    const pathBuffer = Buffer.from(pathStr + "\0", "utf8")
+    const pathPtr = ptr(pathBuffer.buffer)
+    const cPathStr = new CString(pathPtr)
+    const result = initialise(cPathStr) // TODO: Investigate possible type errors
     if (result == -1) {
         throw new Error("Could not initialise zcaptcha native module. Invalid font path?")
     }

@@ -1,263 +1,166 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="apple-touch-icon" href="favicon.ico">
-		<link rel="icon" type="image/x-icon" href="favicon.ico">
-		<link rel="stylesheet" href="shared.css?v=2">
-		<script type="text/javascript" src="shared.js?v=9"></script>
-		<title>custom canvas</title>
-		<script>
-			const REDIRECTS = {
-				"/discord": "https://discord.com/invite/xbRrVSXJdZ",
-				"/twitter": "https://x.com/rplacetk",
-				"/x": "https://x.com/rplacetk",
-				"/reddit": "https://www.reddit.com/r/placetk",
-				"/github": "https://github.com/rplacetk",
-				"/telegram": "https://t.me/rplacelive",
-				"/admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-			};
+<html lang="en" style="background: transparent;padding: 12px;width: 100%;height: 100%;">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="apple-touch-icon" href="favicon.ico">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link rel="stylesheet" href="shared.css?v=2">
+	<script type="text/javascript" src="shared.js?v=9"></script>
+	<title>custom canvas</title>
+	<script>
+		const REDIRECTS = {
+			"/discord": "https://discord.com/invite/xbRrVSXJdZ",
+			"/twitter": "https://x.com/rplacetk",
+			"/x": "https://x.com/rplacetk",
+			"/reddit": "https://www.reddit.com/r/placetk",
+			"/github": "https://github.com/rplacetk",
+			"/telegram": "https://t.me/rplacelive",
+			"/admin": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+		};
 
-			async function getVanityInstance(name) {
-				try {
-					const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
-					if (!response.ok) return null
-					const instanceInfo = await response.json()
-					return instanceInfo
-				}
-				catch(e) {
-					return null
-				}
+		async function getVanityInstance(name) {
+			try {
+				const response = await fetch(`${localStorage.auth || DEFAULT_AUTH}/instances/vanity/${name}`)
+				if (!response.ok) return null
+				const instanceInfo = await response.json()
+				return instanceInfo
 			}
+			catch(e) {
+				return null
+			}
+		}
 
-			let vanityRequestFinished = false
-			;(async function() {
-				const urlName = window.location.pathname.replaceAll("/", "");
-				if (REDIRECTS[window.location.pathname]) {
-					window.location.replace(REDIRECTS[window.location.pathname]);
-					return;
-				}
-				const info = await getVanityInstance(urlName)
-				if (info !== null) {
-					const protocol = info.usesHttps ? "https://" : "http://"
-					const wsProtocol = info.usesHttps ? "wss://" : "ws://"
-					const filesLocation = info.legacy ? info.serverLocation : info.fileServerLocation
-					const newLocation = `${window.location.origin}/?server=${wsProtocol}${info.serverLocation}&board=${protocol}${filesLocation}/place`
-					window.location.replace(newLocation)
-				}
-				else {
-					overlay.remove()
-				}
-				vanityRequestFinished = true
-			})()
-		</script>
-		<style>
-			html { height: 100%; }
-			* { font-family: 'IBM Plex Sans', sans-serif; }
-			*:not(h1, h2, h3, h4) { font-size: 20px; }
-			body {
-				background-color: #dae0e6;
-				font-family: Arial, sans-serif;
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-				height: 100%;
+		let vanityRequestFinished = false
+		;(async function() {
+			const urlName = window.location.pathname.replaceAll("/", "");
+			if (REDIRECTS[window.location.pathname]) {
+				window.location.replace(REDIRECTS[window.location.pathname]);
+				return;
 			}
-			.modal {
-				border: 1px solid gray;
-				border-radius: 4px;
-				background-color: #f0f0f0;
-				height: 600px;
-				width: min(800px, 100% - 16px);
-				box-shadow: 0px 0px 12px black;
-				overflow: clip;
-				display: flex;
+			const info = await getVanityInstance(urlName)
+			if (info !== null) {
+				const protocol = info.usesHttps ? "https://" : "http://"
+				const wsProtocol = info.usesHttps ? "wss://" : "ws://"
+				const filesLocation = info.legacy ? info.serverLocation : info.fileServerLocation
+				const newLocation = `${window.location.origin}/?server=${wsProtocol}${info.serverLocation}&board=${protocol}${filesLocation}/place`
+				window.location.replace(newLocation)
 			}
-			.header {
-				color: black;
-				padding: 16px;
-				background: url(images/reddit-login-banner.png);
-				background-size: cover;
+			else {
+				overlay.remove()
 			}
-			.body {
-				margin: 8px;
-				display: flex;
-				flex-direction: column;
-			}
-			@media (orientation: portrait) {
-				.modal {
-					flex-direction: column;
-					position: relative;
-				}
-				.header {
-					background: #343536;
-					color: white;
-				}
-				.create-button {
-					position: absolute;
-					bottom: 8px;
-					width: calc(100% - 16px);
-				}
-			}
-			input {
-				border: 1px solid #ccc;
-				border-radius: 4px;
-				padding: 8px;
-				font-size: 14px;
-				outline: none;
-				height: 14px;
-				margin-top: 4px;
-				margin-bottom: 4px;
-			}
-			input[type=file]::file-selector-button {
-				border-radius: 5px;
-				background-color: white;
-				border: 0px solid black;
-				box-shadow: none;
-				height: 100%;
-			}
-			input[type=file] {
-				height: 48px;
-			}
-			input:focus {
-				border-color: #369;
-				box-shadow: 0 0 5px #ccc;
-			}
-			button {
-				display: inline-block;
-				padding: 8px 16px;
-				border: none;
-				border-radius: 4px;
-				background-color: #cee3f8;
-				color: #1a1a1b;
-				font-size: 14px;
-				font-weight: bold;
-				text-align: center;
-				text-decoration: none;
-				cursor: pointer;
-				transition: background-color 0.2s ease-in-out;
-			}
-			button:hover {
-				background-color: #b0c8e6;
-			}
-
-			@keyframes waitSpin {
-				0%, 20% { transform: rotate(0deg); }
-				100% { transform: rotate(360deg); }
-			}
-			.spinner {
-				animation: waitSpin 1.8s cubic-bezier(.68,-0.55,.5,1.27) infinite;
-				border-radius: 100%;
-				overflow: clip;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="overlay" class="page-cover">
-			<img alt="rplace logo" class="spinner" src="images/rplace.png">
-			<span style="font-size: 10px; opacity: 0.4;">rplace.live</span>
-			<h3 style="margin: 0px;">Loading custom canvas...</h3>
+			vanityRequestFinished = true
+		})()
+	</script>
+<link rel="stylesheet" href="posts.css?v=2">
+<link rel="stylesheet" href="shared.css?v=2">
+</head>
+<body class="reddit-modal" style="background: transparent; height: 100%;width: 100%;position: relative;" open>
+	<div id="overlay" class="page-cover">
+		<img alt="rplace logo" class="spinner" src="images/rplace.png">
+		<span style="font-size: 10px; opacity: 0.4;">rplace.live</span>
+		<h3 style="margin: 0px;">Loading custom canvas...</h3>
+	</div>
+	<div style="background-color: #f0f0f0;">
+		<header class="header">
+			<h4 style="margin: 0px;">Make a new rplace canvas</h4>
+		</header>
+		<div class="body">
+			<p>Create your own custom rplace canvas, with your own rules, a special vanity URL,
+				and custom features. For friends, drawing by yourself, or whole build teams!</p>
+			<input id="vanity" type="text" class="reddit-modal-input" required placeholder="Vanity name (unique)" maxlength="32">
+			<input id="cooldown" type="number" class="reddit-modal-input" required min="0" max="4294967" placeholder="Canvas cooldown (seconds)">
+			<input id="width" type="number" class="reddit-modal-input" required min="1" max="8192" placeholder="Canvas width (pixels)">
+			<input id="height" type="number" class="reddit-modal-input" required min="1" max="8192" placeholder="Canvas height (pixels)">
+			<label>
+				Import canvas from image file:
+				<input type="file" style="height: 24px;">	
+			</label>
+			<div style="flex-grow: 1"></div>
+			<button type="button" id="createButton" class="reddit-modal-button">Finish creating canvas!</button>
 		</div>
-		<div class="modal">
-			<div class="header">
-				<h4 style="margin: 0px;">Make a new rplace canvas</h4>
-			</div>
-			<div class="body">
-				<p>Create your own custom rplace canvas, with your own rules, a special vanity URL,
-					and custom features. For friends, drawing by yourself, or whole build teams!</p>
-				<input id="vanity" type="text" required placeholder="Vanity name (unique)" maxlength="32">
-				<input id="cooldown" type="number" required min="0" max="4294967" placeholder="Canvas cooldown (seconds)">
-				<input id="width" type="number" required min="1" max="8192" placeholder="Canvas width (pixels)">
-				<input id="height" type="number" required min="1" max="8192" placeholder="Canvas height (pixels)">
-				<p style="margin: 0px;">Import canvas from image file:</p>
-				<input type="file" style="height: 24px;">
-				<div style="flex-grow: 1"></div>
-				<button type="button" id="createButton" class="create-button">Finish creating canvas!</button>
-			</div>
-		</div>
-	</body>
-	<script defer>
-		const DISALLOWED_VANITIES = [ "index", "index.html", "disclaimer", "disclaimer.html", "fakeapp", "fakeapp.html",
-			"instance", "instance.html", "posts", "posts.html", "404", "404.html" ]
+	</div>
+</body>
+<script defer>
+	const DISALLOWED_VANITIES = [ "index", "index.html", "disclaimer", "disclaimer.html", "fakeapp", "fakeapp.html",
+		"instance", "instance.html", "posts", "posts.html", "404", "404.html" ]
 
-		vanity.addEventListener("input", async function(e) {
-			const name = vanity.value = vanity.value.replace(" ", "-").replace("--", "-")
-					.replace("__", "_").replace("..", ".").replace(/[^\p{L}\d_.-]/gu, "")
+	vanity.addEventListener("input", async function(e) {
+		const name = vanity.value = vanity.value.replace(" ", "-").replace("--", "-")
+				.replace("__", "_").replace("..", ".").replace(/[^\p{L}\d_.-]/gu, "")
 
-			if (!vanityRequestFinished) {
-				return
-			}
-			vanityRequestFinished = false
+		if (!vanityRequestFinished) {
+			return
+		}
+		vanityRequestFinished = false
 
-			if (!name || DISALLOWED_VANITIES.includes(name)) {
-				vanity.setCustomValidity("This vanity name is invalid")
+		if (!name || DISALLOWED_VANITIES.includes(name)) {
+			vanity.setCustomValidity("This vanity name is invalid")
+			vanity.style.border = "1px solid red"
+		}
+		else {
+			const info = await getVanityInstance(name)
+			if (info) {
+				vanity.setCustomValidity("This vanity name has already been taken")
 				vanity.style.border = "1px solid red"
 			}
 			else {
-				const info = await getVanityInstance(name)
-				if (info) {
-					vanity.setCustomValidity("This vanity name has already been taken")
-					vanity.style.border = "1px solid red"
-				}
-				else {
-					vanity.setCustomValidity("")
-					vanity.style.border = "1px solid green"
-				}
+				vanity.setCustomValidity("")
+				vanity.style.border = "1px solid green"
 			}
+		}
 
-			vanity.reportValidity()
-			vanityRequestFinished = true
-		})
+		vanity.reportValidity()
+		vanityRequestFinished = true
+	})
 
-		createButton.addEventListener("click", function(e) {
-			let allValid = true
-			if (!cooldown.checkValidity()) {
-				if (cooldown.validity.rangeUnderflow) {
-					cooldown.setCustomValidity("Cooldown must be greater than 0")	
-				}
-				else if (cooldown.validity.rangeOverflow) {
-					cooldown.setCustomValidity("Cooldown must be less than 4294967")
-				}
-				cooldown.style.border = "1px solid red"
-				cooldown.reportValidity()
-				allValid = false
+	createButton.addEventListener("click", function(e) {
+		let allValid = true
+		if (!cooldown.checkValidity()) {
+			if (cooldown.validity.rangeUnderflow) {
+				cooldown.setCustomValidity("Cooldown must be greater than 0")	
 			}
-			else {
-				cooldown.style.border = "1px solid green"
+			else if (cooldown.validity.rangeOverflow) {
+				cooldown.setCustomValidity("Cooldown must be less than 4294967")
 			}
-			if (!width.checkValidity()) {
-				if (width.validity.rangeUnderflow) {
-					width.setCustomValidity("Canvas width must be greater than 0")	
-				}
-				else if (width.validity.rangeOverflow) {
-					width.setCustomValidity("Canvas width must be less than 4294967")
-				}
-				width.style.border = "1px solid red"
-				width.reportValidity()
-				allValid = false
+			cooldown.style.border = "1px solid red"
+			cooldown.reportValidity()
+			allValid = false
+		}
+		else {
+			cooldown.style.border = "1px solid green"
+		}
+		if (!width.checkValidity()) {
+			if (width.validity.rangeUnderflow) {
+				width.setCustomValidity("Canvas width must be greater than 0")	
 			}
-			else {
-				width.style.border = "1px solid green"
+			else if (width.validity.rangeOverflow) {
+				width.setCustomValidity("Canvas width must be less than 4294967")
 			}
-			if (!height.checkValidity()) {
-				if (height.validity.rangeUnderflow) {
-					height.setCustomValidity("Canvas height must be greater than 0")	
-				}
-				else if (height.validity.rangeOverflow) {
-					height.setCustomValidity("Canvas height must be less than 4294967")
-				}
-				height.style.border = "1px solid red"
-				height.reportValidity()
-				allValid = false
+			width.style.border = "1px solid red"
+			width.reportValidity()
+			allValid = false
+		}
+		else {
+			width.style.border = "1px solid green"
+		}
+		if (!height.checkValidity()) {
+			if (height.validity.rangeUnderflow) {
+				height.setCustomValidity("Canvas height must be greater than 0")	
 			}
-			else {
-				height.style.border = "1px solid green"
+			else if (height.validity.rangeOverflow) {
+				height.setCustomValidity("Canvas height must be less than 4294967")
 			}
-			if (allValid) {
-				window.location = `${window.location.origin}/instance.html?builder=true&name=${name.value}&cooldown=${cooldown.value}&width=${width.value}&height=${height.value}`
-			}
-		})
-	</script>
+			height.style.border = "1px solid red"
+			height.reportValidity()
+			allValid = false
+		}
+		else {
+			height.style.border = "1px solid green"
+		}
+		if (allValid) {
+			window.location = `${window.location.origin}/instance.html?builder=true&name=${name.value}&cooldown=${cooldown.value}&width=${width.value}&height=${height.value}`
+		}
+	})
+</script>
 </html>
