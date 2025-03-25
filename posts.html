@@ -276,25 +276,6 @@
 		window.parent.postMessage(postCall)
 		return await promise.promise
 	}
-	window.addEventListener("message", async function(event) {
-		if (!event.origin.startsWith(location.origin)) {
-			throw new Error("Invalid message origin")
-		}
-		const message = event.data
-		if (message.call) { // Parent window asking to call iframe method
-			let result = undefined
-			if (window[message.call]) {
-				result = await window[message.call](message.data)
-			}
-			if (message.handle !== undefined && message.handle !== null) {
-				window.parent.postMessage({ handle: message.handle, data: result }, location.origin)
-			}
-		}
-		else { // Return value from parent method
-			parentReqs.get(message.handle)?.resolve(message.data)
-		}
-
-	}, false)
 	function sendParentMessage(messageCall, args = undefined) {
 		window.parent.postMessage({ call: messageCall, data: args }, location.origin)
 	}
@@ -351,12 +332,10 @@
 		document.documentElement.setAttribute("embedded", "false")
 		postsManager.addEventListener("load", async () => {
 			tryLoadBottomPosts()
-			updateDialogTop(0)
-			// TODO: Until accounts are enabled
-			createPostPost.style.opacity = "0.6"
-			createPostPost.style.pointerEvents = "none"
-			createPostInput.disabled = true
-			createPostTitle.disabled =  true
+			document.body.style.setProperty("--posts-dialog-top", "50%")
+			if (!await getAccount()) {
+				disableCreatePost()
+			}
 			liveChatPost.remove()
 			overlayPost.remove()
 			mainCanvasPost.onclick = function() {
@@ -402,54 +381,116 @@
 		})
 	}
 
+	function enableCreatePost() {
+		createPostPost.style.opacity = "1"
+		createPostPost.style.pointerEvents = "all"
+		createPostInput.disabled = false
+		createPostTitle.disabled = false
+	}
+	function disableCreatePost() {
+		createPostPost.style.opacity = "0.6"
+		createPostPost.style.pointerEvents = "none"
+		createPostInput.disabled = true
+		createPostTitle.disabled =  true
+	}
+	window.addEventListener("account-login", () => {
+		enableCreatePost()
+	})
+	window.addEventListener("account-logout", () => {
+		disableCreatePost()
+	})
+
 	async function uploadPost(title, content, contents, progressCb) {
 		const postData = {
-			canvasUser: null,
-			accountId: null,
 			title: title,
-			description: content
+			description: content,
+			// TODO: Until we add forums, forum ID will always be 1 (canvas1)
+			forumId: 1
 		}
-		// TODO: Until global auth accounts are released, we will do all post authentications
-		// TODO: through the canvas account linkage API
-		// Get link key from canvas server to prove we own this account ID
-		const linkInfo = await makeParentRequest("fetchLinkKey")
-		if (!linkInfo) {
-			alert("Could not upload post. Error communicating with server")
-			console.error("Could not upload post, linkinfo was falsy", linkInfo)
-			return false
-		}
-		postData.canvasUser = linkInfo // { linkKey: number, instanceId: number }
 
-		if (progressCb) progressCb("uploadPost", { progress: 0 })
-		const uploadResponse = await fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/upload`, {
-			method: "POST",
-			body: JSON.stringify(postData),
-			headers: { "Content-Type": "application/json" }
-		})
-		if (!uploadResponse.ok) {
-			if (uploadResponse.status == 401) {
-				alert("Error: You are being rate limited. Please wait before posting again")
+		// If we are logged in to an account, 
+		const account = await getAccount()
+		if (!account) {
+			// Get link key from canvas server to prove we own this Canvas User ID
+			const linkInfo = await makeParentRequest("fetchLinkKey")
+			if (!linkInfo) {
+				alert("Could not upload post. Error communicating with server")
+				console.error("Couldn't upload post: failed to retrieve link key from instance server", linkInfo)
+				return false
 			}
-			else {
-				const jsonError = await uploadResponse.json().catch(e => console.error(e))
-				alert("Error: Could not upload post: " + jsonError.message)
-				console.error(uploadResponse.status, uploadResponse.statusText)
+			postData.canvasUser = linkInfo // { linkKey: number, instanceId: number }
+
+			// Pre-authenticate canvas uuser with auth server using link key
+			const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/auth/link`, "POST", linkInfo)
+			if (result.status === "error") {
+				const err = result.data
+				if (typeof err === "object") {
+					console.error("Couldn't upload post:", err.message, err.metadata)
+				}
+				else {
+					console.error("Couldn't upload post:", err)
+				}
+				return
 			}
-			return false
 		}
-		if (progressCb) progressCb("uploadPost", { progress: 1 })
+
+		// Upload post
+		const uploadResponse = await new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest()
+			xhr.open("POST", `${localStorage.auth || DEFAULT_AUTH}/posts`, true)
+			xhr.setRequestHeader("Content-Type", "application/json")
+			xhr.withCredentials = true
+			xhr.upload.onprogress = (event) => {
+				if (progressCb && event.lengthComputable) {
+					const progress = event.loaded / event.total
+					progressCb("uploadPost", { progress })
+				}
+			}
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					if (progressCb) progressCb("uploadPost", { progress: 1 })
+					resolve(JSON.parse(xhr.responseText))
+				}
+				else {
+					let err = null;
+					try {
+						err = JSON.parse(xhr.responseText)
+					}
+					catch (e) {
+						console.error(e);
+						reject(xhr)
+						return
+					}
+
+					if (xhr.status === 401) {
+						alert("Error: You are being rate limited. Please wait before posting again");
+					}
+					else {
+						alert("Couldn't upload post: " + (err?.message || xhr.statusText));
+					}
+					reject(xhr)
+				}
+			}
+			xhr.onerror = () => {
+				console.error("Couldn't upload post: Network error occurred during upload");
+				reject(xhr)
+			}
+			xhr.send(JSON.stringify(postData));
+			if (progressCb) progressCb("uploadPost", { progress: 0 })
+		})
+		if (!uploadResponse) {
+			return
+		}
 
 		// Upload file as form content
 		let contentsUploaded = 0
 		let contentsUploadedSuccess = 0
 		const contentUploadTasks = []
-		const uploadResponseObject = await uploadResponse.json()
 		contents.forEach((file, index) => {
 			const contentForm = new FormData() // new Blob([], { type: "text/plain" })
-			contentForm.append("contentUploadKey", uploadResponseObject.contentUploadKey)
 			contentForm.append("file", file)
 			contentUploadTasks.push(
-				fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponseObject.postId}/contents/`, {
+				fetch(`${localStorage.auth || DEFAULT_AUTH}/posts/${uploadResponse.postId}/contents/`, {
 						method: "POST",
 						body: contentForm,
 					})

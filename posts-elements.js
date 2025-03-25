@@ -150,7 +150,7 @@ class Post extends LitElement {
 			const profileObject = await cachedFetch(
 				"profiles", 
 				fromPost.accountId,
-				`${localStorage.auth || DEFAULT_AUTH}/profiles/${fromPost.accountId}`, 
+				`${localStorage.auth || DEFAULT_AUTH}/accounts/profiles/${fromPost.accountId}`, 
 				AUTHOR_CACHE_EXPIRY
 			)
 			
@@ -164,7 +164,8 @@ class Post extends LitElement {
 			this.authorName = profileObject.username
 			this.authorImageUrl = "images/rplace.png"
 			this.showAuthor = true
-		} else if (fromPost.canvasUserId) {
+		}
+		else if (fromPost.canvasUserId) {
 			const canvasUserObject = await cachedFetch(
 				"users", 
 				fromPost.canvasUserId,
@@ -361,6 +362,53 @@ class UserTooltip extends LitElement {
 	}
 }
 customElements.define("r-user-tooltip", UserTooltip)
+
+class CreatePostContent extends HTMLElement {
+	#fileThumbnail
+	#deleteButton
+	#deleteEvent
+	#ondelete
+
+	constructor() {
+		super()
+		this.file = null
+		this.#deleteEvent = new Event("delete")
+		this.ondelete = null
+		const _this = this
+		this.#fileThumbnail = document.createElement("img")
+		this.#deleteButton = document.createElement("button")
+		this.#deleteButton.onclick = function() {
+			_this.dispatchEvent(_this.#deleteEvent)
+		}
+		this.#deleteButton.innerHTML = `
+			<svg viewBox="0 0 20 20" style="fill: white;" xmlns="http://www.w3.org/2000/svg" height="16">
+				<path d="M18.442 2.442l-.884-.884L10 9.116 2.442 1.558l-.884.884L9.116 10l-7.558 7.558.884.884L10 10.884l7.558 7.558.884-.884L10.884 10l7.558-7.558z" class=""></path>
+			</svg>`
+	}
+
+	get ondelete() {
+		return this.#ondelete
+	}
+
+	set ondelete(value) {
+		if (this.#ondelete) {
+			this.removeEventListener("delete", this.#ondelete)
+		}
+		this.addEventListener("delete", value)
+		this.#ondelete = value
+	}
+
+	connectedCallback() {
+		this.appendChild(this.#fileThumbnail)
+		this.appendChild(this.#deleteButton)
+	}
+
+	setFile(fileObject) {
+		this.file = fileObject
+		this.#fileThumbnail.src = window.URL.createObjectURL(this.file)
+	}
+}
+customElements.define("r-create-post-content", CreatePostContent)
 
 class CreatePostContentsPreview extends HTMLElement {
 	#contents

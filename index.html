@@ -1384,7 +1384,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 					<!--<iframe id="timelapseEmbed" src="https://www.youtube-nocookie.com/embed/H67q2HfYl7s" title="YouTube video player"
 						frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 						allowfullscreen="true" width="100%" height="100%"></iframe>-->
-					<div class="august21-popup-content">
+					<!--<div class="august21-popup-content">
 						<div>
 							<h1>HAPPY AUGUST 21st 🪑‍🔥🪑‍🔥 Δ ΔΔ</h1>
 							<em>A day of chaos and destruction, randomness and all things <strong>Mad.</strong></em>
@@ -1420,7 +1420,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 						<p>
 							You wait. You look. Turn your eye. Look to andromeda. Do you see it?
 						</p>
-					</div>
+					</div>-->
 				</div>
 			</dialog>
 			<button noselect id="helpbtn" class="layout" onclick="
@@ -1770,27 +1770,6 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			postsFrame.contentWindow.postMessage(postCall)
 			return await promise.promise
 		}
-		window.addEventListener("message", async function(event) {
-			if (event.origin.startsWith("https://challenges.cloudflare.com")) {
-				return
-			}
-			if (!event.origin.startsWith(location.origin)) {
-				throw new Error("Invalid message origin")
-			}
-			const message = event.data
-			if (message.call) { // Iframe asking to call window method
-				let result = undefined
-				if (window[message.call]) {
-					result = await window[message.call](message.data)
-				}
-				if (message.handle !== undefined && message.handle !== null) {
-					postsFrame.contentWindow.postMessage({ handle: message.handle, data: result })
-				}
-			}
-			else { // Return value from iframe method
-				postsFrameReqs.get(message.handle)?.resolve(message.data)
-			}
-		})
 		function sendPostsFrameMessage(messageCall, args = undefined) {
 			postsFrame.contentWindow.postMessage({ call: messageCall, data: args })
 		}
@@ -2822,9 +2801,7 @@ To create a separator, create a blank line (Shift + Enter on keyboard) and inser
 			document.documentElement.dataset.variant = variant
 		}
 		const startupThemeSet = DEFAULT_THEMES.get(localStorage.theme || "r/place 2022")
-		// TEMP: Christmas / new years 2024
-		theme(DEFAULT_THEMES.get("r/place 2022"), "merry", "winter")
-		//theme(startupThemeSet, localStorage.variant, localStorage.effects)
+		theme(startupThemeSet, localStorage.variant, localStorage.effects)
 		themeDropName.textContent = "🖌️ " + (localStorage.theme || "r/place 2022")
 
 		// Apply all translations from shared.js

@@ -49,7 +49,7 @@
 					</button>
 					<h3 style="display: inline-block;">Email verification</h3>
 				</div>
-				<h4>If you're lucky, an email has been sent to your inbox</h4>
+				<h4 style="margin: 0;">If you're lucky, an email has been sent to your inbox</h4>
 				<p>Enter the code sent below to authenticate your account</p>
 				<form id="verificationForm" class="section">
 					<input id="verificationCodeInput" name="code" type="text" maxlength="7" class="reddit-modal-input" placeholder="Verification code*" required="" style="display: block;height: 64px;font-size: 48px;text-align: center;">
@@ -174,6 +174,7 @@
 		</div>
 		<div id="errorPage" class="body" page="error">
 			<p id="errorMessage" class="form-error"></p>
+			<a href="">Try again</a>
 		</div>
 	</div>
 </body>
@@ -263,6 +264,15 @@
 		onSuccess: (verification) => {
 			loginPanel.dataset.page = "profile"
 			loadAccountProfile()
+
+			// Notify parent window / other frames of login account event
+			window.parent.postMessage({
+				call: "dispatchAccountEvent",
+				data: {
+					eventName: "account-login",
+					detail: { account }
+				}
+			}, location.origin)
 		},
 		onError: async (err) => {
 			loginPanel.dataset.page = "unauthed"
@@ -281,6 +291,7 @@
 		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/accounts/me`)
 		if (result.status === "error") {
 			const err = result.data
+			loginPanel.dataset.page = "error"
 			if (typeof err === "object") {
 				errorMessage.textContent = `${await translate("couldntLoadAccountProfile")}: ${await translate(err.key)}`
 				console.error("Couldn't load account profile:", err.message, err.metadata)
@@ -289,12 +300,13 @@
 				errorMessage.textContent = `${await translate("couldntLoadAccountProfile")}`
 				console.error("Couldn't load account profile:", err)
 			}
-			return
+			return null
 		}
 		else {
 			const account = result.data
 			accountInstance = account
 			await updateAccountProfile(account)
+			return account
 		}
 	}
 
@@ -327,7 +339,14 @@
 	logoutButton.addEventListener("click", async function() {
 		const result = await makeRequest(`${localStorage.auth || DEFAULT_AUTH}/auth/logout`)
 		if (result.status === "success") {
-			window.location.reload()
+			// Notify parent window / other frames of logout account event
+			window.parent.postMessage({
+				call: 'dispatchAccountEvent',
+				data: {
+					eventName: 'account-logout'
+				}
+			}, location.origin)
+			return window.location.reload()
 		}
 		else {
 			const err = result.data
