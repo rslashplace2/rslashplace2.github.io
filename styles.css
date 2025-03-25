@@ -1456,15 +1456,28 @@ r-live-chat-message .reaction {
 r-live-chat-message .reaction.expanded {
 	z-index: 1;
 }
+r-live-chat-message .reaction-details[open] .emoji-container {
+	flex-direction: column;
+}
 r-live-chat-message .emoji-container {
 	display: inline-flex;
-	flex-direction: column;
+	flex-direction: row;
 	align-items: center;
 	row-gap: 4px;
+	column-gap: 4px;
 	margin-bottom: 4px;
+	width: 100%;
+}
+r-live-chat-message .emoji-reactors-count {
+	background: lightgray;
+    border-radius: 100%;
+	text-align: center;
+    width: 16px;
+    height: 16px;
 }
 r-live-chat-message .emoji-container p {
 	width: 100%;
+	text-align: center;
 }
 r-live-chat-message .emoji {
 	min-width: 18px;
@@ -1492,10 +1505,12 @@ r-live-chat-message .reaction-details {
 	border: 1px solid gray;
 	border-radius: 64px;
 	max-height: 42px;
+	min-width: 48px;
 	background-color: white;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
 	margin-left: -8px;
 	margin-top: -8px;
+	list-style: none;
 	overflow: hidden;
 	transition: .2s max-height, .2s box-shadow;
 }
@@ -1510,6 +1525,9 @@ r-live-chat-message .reaction-details[open] {
 	max-height: 256px;
 	border: none;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
+}
+r-live-chat-message .reaction-details > summary {
+	list-style: none;
 }
 r-live-chat-message .reactors {
 	padding-left: 8px;

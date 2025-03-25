@@ -288,6 +288,7 @@ class LiveChatMessage extends LitElement {
 								<summary>
 									<div class="emoji-container">
 										${emojiEl}
+										<span class="emoji-reactors-count">${reactors.size}</span>
 										${this.openedReactionDetails == emojiKey ? html`<p>:${emojiKey}:</p>` : null}
 									</div>
 								</summary>
