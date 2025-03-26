@@ -1,3 +1,4 @@
+* { box-sizing: border-box; }
 body {
 	background-color: #dae0e6;
 	margin: 0;
@@ -16,6 +17,8 @@ header {
 header h1 {
 	margin: 0;
 	align-self: center;
+	text-overflow: ellipsis;
+    white-space: nowrap;
 }
 section.reddit-cards-container {
 	display: flex;flex-direction: column;align-items: center;

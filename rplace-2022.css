@@ -150,13 +150,20 @@ a {
 	}
 }
 
+r-close-icon {
+	fill: var(--ui-text);
+}
+
+dialog {
+	color: var(--ui-text);
+}
 .modal-close-button {
 	width: 20px;
   	height: 20px;
   	font-size: 20px;
   	cursor: pointer;
 	display: inline-block;
-	fill: currentcolor;
+	fill: var(--ui-text);
 	vertical-align: middle;
 	line-height: 1em;
 }
@@ -221,7 +228,7 @@ a {
 	position: absolute;
 	cursor: pointer;
 	background: var(--ui-panel-bg);
-	fill: currentcolor;
+	fill: var(--ui-text);
 	z-index: 5;
 }
 
@@ -418,17 +425,15 @@ a {
 	display: none;
 }
 
-#onlinepanel {
+#onlinePanel {
+	color: white;
 	background: rgba(0, 0, 0, 0.6);
 	border-radius: 20px;
 }
 
 #playerIcon {
-	color: white;
-}
-
-#onlineCounter {
-	color: white;
+	stroke: white;
+	fill: white;
 }
 
 #popup {

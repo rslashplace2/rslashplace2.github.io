@@ -272,7 +272,6 @@ r-close-icon {
   	font-size: 20px;
   	cursor: pointer;
 	display: inline-block;
-	fill: currentcolor;
 	vertical-align: middle;
 	line-height: 1em;
 	user-select: none;
@@ -628,7 +627,7 @@ body[eventphase="3"] .coverer-title {
 	text-align: center;
 }
 
-#onlinepanel {
+#onlinePanel {
 	height: 25px;
 	padding: 3px;
 	display: flex;
@@ -1458,6 +1457,7 @@ r-live-chat-message .reaction.expanded {
 }
 r-live-chat-message .reaction-details[open] .emoji-container {
 	flex-direction: column;
+	margin-bottom: 4px;
 }
 r-live-chat-message .emoji-container {
 	display: inline-flex;
@@ -1465,7 +1465,6 @@ r-live-chat-message .emoji-container {
 	align-items: center;
 	row-gap: 4px;
 	column-gap: 4px;
-	margin-bottom: 4px;
 	width: 100%;
 }
 r-live-chat-message .emoji-reactors-count {
