@@ -121,134 +121,15 @@ export type DbInternals = {
     reInitialise: () => void
 }
 
-const createLiveChatMessages = `
-    CREATE TABLE IF NOT EXISTS LiveChatMessages (
-        messageId INTEGER PRIMARY KEY,
-        sendDate INTEGER,
-        channel TEXT,
-        message TEXT,
-        senderIntId INTEGER,
-        repliesTo INTEGER,
-        deletionId INTEGER,
-        FOREIGN KEY (repliesTo) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderIntId) REFERENCES Users(intId),
-        FOREIGN KEY (deletionId) REFERENCES LiveChatDeletions(deletionId)
-    )
-`
-db.exec(createLiveChatMessages)
-const createLiveChatReactions = `
-    CREATE TABLE IF NOT EXISTS LiveChatReactions (
-        messageId INTEGER,
-        reaction TEXT,
-        senderIntId INTEGER,
-        FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId),
-        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createLiveChatReactions)
-const createPlaceChatMessages = `
-    CREATE TABLE IF NOT EXISTS PlaceChatMessages (
-        messageId INTEGER PRIMARY KEY,
-        sendDate INTEGER,
-        message TEXT,
-        senderIntId INTEGER,
-        x INTEGER,
-        y INTEGER,
-        FOREIGN KEY (senderIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createPlaceChatMessages)
-const createBans = `
-    CREATE TABLE IF NOT EXISTS Bans (
-        banId INTEGER PRIMARY KEY,
-        userIntId INTEGER UNIQUE,
-        startDate INTEGER,
-        finishDate INTEGER,
-        moderatorIntId INTEGER,
-        reason TEXT,
-        userAppeal TEXT,
-        appealRejected INTEGER,
-        FOREIGN KEY (userIntId) REFERENCES Users(intId),
-        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createBans)
-const createMutes = `
-    CREATE TABLE IF NOT EXISTS Mutes (
-        muteId INTEGER PRIMARY KEY,
-        startDate INTEGER,
-        finishDate INTEGER,
-        userIntId INTEGER UNIQUE,
-        moderatorIntId INTEGER,
-        reason TEXT,
-        userAppeal TEXT,
-        appealRejected INTEGER,
-        FOREIGN KEY (userIntId) REFERENCES Users(intId),
-        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createMutes)
-const createUsers = `
-    CREATE TABLE IF NOT EXISTS Users (
-        intId INTEGER PRIMARY KEY,
-        chatName TEXT,
-        token TEXT NOT NULL,
-        lastJoined INTEGER,
-        pixelsPlaced INTEGER,
-        playTimeSeconds INTEGER
-    )
-`
-db.exec(createUsers)
-const createKnownIps = `
-    CREATE TABLE IF NOT EXISTS KnownIps (
-        userIntId INTEGER NOT NULL,
-        ip TEXT NOT NULL,
-        lastUsed INTEGER,
-        userAgent TEXT,
-        FOREIGN KEY (userIntId) REFERENCES Users(intId)
-    )
-` // ip and userIntId combined form a composite key to identify a record
-db.exec(createKnownIps)
-const createVips = `
-    CREATE TABLE IF NOT EXISTS UserVips (
-        userIntId INTEGER NOT NULL,
-        keyHash TEXT NOT NULL,
-        lastUsed INTEGER,
-        FOREIGN KEY(userIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createVips)
-const createLiveChatDeletions = `
-    CREATE TABLE IF NOT EXISTS LiveChatDeletions (
-        deletionId INTEGER PRIMARY KEY,
-        moderatorIntId INTEGER NOT NULL,
-        reason TEXT,
-        deletionDate INTEGER,
-        FOREIGN KEY (moderatorIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createLiveChatDeletions)
-const createLiveChatReports = `
-    CREATE TABLE IF NOT EXISTS LiveChatReports (
-        reportId INTEGER PRIMARY KEY,
-        reporterId INTEGER NOT NULL,
-        messageId INTEGER NOT NULL,
-        reason TEXT,
-        reportDate INTEGER,
-        FOREIGN KEY (reporterId) REFERENCES Users(intId),
-        FOREIGN KEY (messageId) REFERENCES LiveChatMessages(messageId)
-    )
-`
-db.exec(createLiveChatReports)
-const createLinkages = `
-    CREATE TABLE IF NOT EXISTS Linkages (
-        userIntId INTEGER UNIQUE,
-        accountId INTEGER,
-        linkDate INTEGER,
-        FOREIGN KEY (userIntId) REFERENCES Users(intId)
-    )
-`
-db.exec(createLinkages)
+// Invoke schema script to create tables & indexes
+const schemaFile = Bun.file("schema.sql")
+const schema = await schemaFile.text()
+db.exec(schema)
+
+// Set DB pragmas
+db.exec("PRAGMA journal_mode = WAL;")
+db.exec("PRAGMA synchronous=NORMAL;")
+db.exec("PRAGMA cache_size=-10000;")
 
 export type LiveChatHistoryMessage = LiveChatMessage & {
     chatName: string,
