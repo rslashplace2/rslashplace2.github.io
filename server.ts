@@ -766,9 +766,9 @@ type ClientData = {
     previousLiveChats: string[],
     previousPlaceChats: string[]
 }
-interface RplaceServer extends Server {
-    clients: Set<ServerWebSocket<ClientData>>
-}
+type RplaceServer = Server & {
+    clients: Set<ServerWebSocket<ClientData>>;
+};
 const serverOptions:TLSWebSocketServeOptions<ClientData> = {
     async fetch(req: Request, server: Server) {
         const url = new URL(req.url)
@@ -1522,12 +1522,12 @@ if (SECURE) {
         throw new Error("Could not start server with SECURE, cert and key file could not be opened.")
     }
 }
-const bunServer = Bun.serve<ClientData>(serverOptions)
-// For compat with methods that use node ws clients property
-// @ts-ignore
-bunServer.clients = new Set<ServerWebSocket<ClientData>>()
-// @ts-ignore
-const wss:RplaceServer = bunServer
+const wss: RplaceServer = Object.assign(
+    Bun.serve(serverOptions),
+    {
+        clients: new Set<ServerWebSocket<ClientData>>()
+    }
+)
 
 /**
  * Log a moderation-only message to console, the mod webhook, and the mod log text file
@@ -1732,6 +1732,7 @@ let pastPxpsWindowSize = 60 // secs = n elements in pastPxps
 let pastPxpsThresholdLow = 1.2 // 120% increase
 let pastPxpsThresholdHigh = 3.5 // 350% increase
 let pastPxpsActionDate = 0
+let unlockTimeout: Timer|null = null
 
 let pixelTick = 0
 setInterval(function () {
@@ -1745,7 +1746,7 @@ setInterval(function () {
     // Above min check threshold, has been window size secs since last corrective action, captcha enabled
     if (pxps > pastPxpsMin && NOW - pastPxpsActionDate > pastPxpsWindowSize && PXPS_SECURITY) {
         const pastSum = pastPxps.reduce((acc, val) => acc + val, 0)
-        const pastAverage = pastSum / pastPxps.length
+        const pastAverage = pastPxps.length > 0 ? pastSum / pastPxps.length : 0
         const pastIncrease = ((pxps - pastAverage) / pastAverage)
 
         if (pastIncrease > pastPxpsThresholdLow) {
@@ -1773,7 +1774,10 @@ setInterval(function () {
                 restrictionsBuffer.set(reasonBuffer, 2)
 
                 LOCKED = true
-                setTimeout(() => {
+                if (unlockTimeout) {
+                    clearTimeout(unlockTimeout)
+                }
+                unlockTimeout = setTimeout(() => {
                     LOCKED = false
                     const unrestrictionsBuffer = Buffer.alloc(2)
                     unrestrictionsBuffer[0] = 8
@@ -1814,7 +1818,7 @@ setInterval(function () {
         if (INCLUDE_PLACER) {
             newPixelsBuffer = Buffer.alloc(1 + newPixels.length * 9)
             newPixelsBuffer[0] = 5
-            while ((newPixel = newPixels.pop()) !== undefined) {
+            while ((newPixel = newPixels.shift()) !== undefined) {
                 newPixelsBuffer.writeInt32BE(newPixel.index, i); i += 4
                 newPixelsBuffer[i++] = newPixel.colour
                 newPixelsBuffer.writeInt32BE(newPixel.placer.data.intId, i); i += 4
@@ -1823,7 +1827,7 @@ setInterval(function () {
         else {
             newPixelsBuffer = Buffer.alloc(1 + newPixels.length * 5)
             newPixelsBuffer[0] = 6
-            while ((newPixel = newPixels.pop()) !== undefined) {
+            while ((newPixel = newPixels.shift()) !== undefined) {
                 newPixelsBuffer.writeInt32BE(newPixel.index, i); i += 4
                 newPixelsBuffer[i++] = newPixel.colour
             }    

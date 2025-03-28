@@ -1,8 +1,8 @@
 // Show game popup
 function isTodayAugust21st() {
-    const now = new Date()
+	const now = new Date()
 	// August is month 7 (zero-based)
-    return now.getMonth() === 7 && now.getDate() === 21
+	return now.getMonth() === 7 && now.getDate() === 21
 }
 
 function getNextAugust21st() {
