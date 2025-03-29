@@ -856,37 +856,51 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 				headers: corsHeaders
 			})
 		}
-		else {
-			let newToken:string|null = null
-			if (!userToken) {
-				newToken = randomString(32)
-			}
-			const success = server.upgrade(req, {
-				data: {
-					url: url.pathname.slice(1).trim(),
-					headers: req.headers,
-					token: userToken || newToken
-				},
-				headers: {
-					"Access-Control-Allow-Origin": "*",
-					"Access-Control-Allow-Credentials": "true",
-					"Set-Cookie": cookie.serialize(uidToken,
-						newToken || userToken, {
+		else if (!url.pathname || url.pathname === "/") {
+			const isWebSocketRequest = req.headers.get("upgrade")?.toLowerCase() === "websocket" &&
+				req.headers.get("connection")?.toLowerCase()?.includes("upgrade")
+			if (isWebSocketRequest) {
+				let newToken: string | null = null
+				if (!userToken) {
+					newToken = randomString(32)
+				}
+				const upgradeSuccess = server.upgrade(req, {
+					data: {
+						url: url.pathname.slice(1).trim(),
+						headers: req.headers,
+						token: userToken || newToken
+					},
+					headers: {
+						"Access-Control-Allow-Origin": "*",
+						"Access-Control-Allow-Credentials": "true",
+						"Set-Cookie": cookie.serialize(uidToken, newToken || userToken, {
 							domain: url.hostname,
 							expires: new Date(4e12),
-							httpOnly: true, // Inaccessible from JS
-							sameSite: CORS_COOKIE ? "lax" : "none", // Cross origin
-							secure: SECURE_COOKIE, // Only over HTTPS
+							httpOnly: true,
+							sameSite: CORS_COOKIE ? "lax" : "none",
+							secure: SECURE_COOKIE,
 							path: "/"
 						}),
+					}
+				})
+				if (upgradeSuccess) {
+					return undefined
 				}
-			})
-			if (success) {
-				return undefined
+				// If ws upgrade failed, send 426 Upgrade Required
+				return new Response(null, { status: 426 })
 			}
-			else {
-				return new Response("Failed to upgrade connection", { status: 500 })
+
+			// Handle canvas info query (HTTP)
+			const instanceInfo = {
+				canvasId: CANVAS_ID,
+				width: WIDTH,
+				height: HEIGHT,
+				cooldown: COOLDOWN
 			}
+			return new Response(JSON.stringify(instanceInfo), { status: 200 })
+		}
+		else {
+			return new Response("Not found", { status: 404 })
 		}
 	},
 	websocket: {
