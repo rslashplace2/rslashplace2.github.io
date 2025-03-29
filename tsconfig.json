@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "esnext",
-        "module": "ESNext",
+        "module": "NodeNext",
         "checkJs": false,
     	"types": [ "bun-types" ],
         "moduleResolution": "nodenext",

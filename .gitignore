@@ -5,6 +5,8 @@
 *.pem
 *.key
 node_modules/
+padlock/*
+!padlock/server.d.ts
 
 # Config files
 server_config.json
