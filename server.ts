@@ -861,7 +861,7 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 			if (!userToken) {
 				newToken = randomString(32)
 			}
-			server.upgrade(req, {
+			const success = server.upgrade(req, {
 				data: {
 					url: url.pathname.slice(1).trim(),
 					headers: req.headers,
@@ -881,8 +881,12 @@ const serverOptions:TLSWebSocketServeOptions<ClientData> = {
 						}),
 				}
 			})
-
-			return undefined
+			if (success) {
+				return undefined
+			}
+			else {
+				return new Response("Failed to upgrade connection", { status: 500 })
+			}
 		}
 	},
 	websocket: {
